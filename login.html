@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Login — Amala Higher Secondary School</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);}
+  .login-wrap{width:100%;max-width:400px;padding:20px;}
+  .login-card{background:var(--white);border-radius:8px;padding:36px 32px;}
+  .back-link{color:#c7cee0;font-size:13px;text-decoration:none;display:inline-block;margin-bottom:18px;}
+  .login-card h1{font-size:23px;margin-bottom:4px;}
+  .login-card .sub{color:var(--ink-soft);font-size:14px;margin-bottom:24px;}
+  .foot-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px;}
+  .foot-links a{color:var(--brass);text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <a href="index.html" class="back-link">&larr; Back to school site</a>
+  <div class="login-card">
+    <h1>School Portal Login</h1>
+    <p class="sub">Sign in to your Student, Parent, Staff, or Admin account.</p>
+
+    <div class="error-box" id="errBox"></div>
+    <div class="success-box" id="okBox"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" required autocomplete="username" placeholder="name@example.com">
+      </div>
+      <div class="field">
+        <label for="pass">Password</label>
+        <input type="password" id="pass" required autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Login to Portal</button>
+    </form>
+
+    <div class="foot-links">
+      <a href="#" id="resetLink">Forgot password?</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db, signInWithEmailAndPassword, doc, getDoc, sendPasswordResetEmail, fbSignOut } from './js/auth.js';
+import { showBox } from './js/auth.js';
+
+const form = document.getElementById('loginForm');
+const errBox = document.getElementById('errBox');
+const okBox = document.getElementById('okBox');
+const submitBtn = document.getElementById('submitBtn');
+
+// All roles supported with auto-routing
+const ALLOWED_ROLES = {
+  student: 'student/dashboard.html',
+  parent: 'parent/dashboard.html',
+  staff: 'internal/staff/dashboard.html',
+  admin: 'internal/admin/dashboard.html'
+};
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showBox(errBox, ''); showBox(okBox, '');
+  submitBtn.disabled = true; submitBtn.textContent = 'Signing in…';
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('pass').value;
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const snap = await getDoc(doc(db, 'users', cred.user.uid));
+    const role = snap.exists() ? snap.data().role : null;
+    const dest = ALLOWED_ROLES[role];
+    if (!dest) {
+      await fbSignOut(auth);
+      throw new Error('Account role not recognised or not assigned. Please contact school admin.');
+    }
+    window.location.href = dest;
+  } catch (err) {
+    let msg = 'Login failed. Check your email and password.';
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      msg = 'Incorrect email or password.';
+    } else if (err.message) {
+      msg = err.message;
+    }
+    showBox(errBox, msg);
+  } finally {
+    submitBtn.disabled = false; submitBtn.textContent = 'Login to Portal';
+  }
+});
+
+document.getElementById('resetLink').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  if (!email) { showBox(errBox, 'Enter your email above first, then click "Forgot password?".'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showBox(errBox, '');
+    showBox(okBox, 'Password reset email sent to ' + email);
+  } catch (err) {
+    showBox(errBox, 'Could not send reset email: ' + err.message);
+  }
+});
+</script>
+</body>
+</html>

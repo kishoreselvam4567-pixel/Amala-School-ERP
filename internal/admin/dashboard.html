@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar">
+    <div class="brand">Amala HSS</div>
+    <div class="brand-sub">Admin Portal</div>
+    <nav>
+      <a href="#" data-tab="overview" class="active">Overview</a>
+      <a href="#" data-tab="classes">Classes</a>
+      <a href="#" data-tab="staff">Staff</a>
+      <a href="#" data-tab="students">Students</a>
+      <a href="#" data-tab="parents">Parents</a>
+    </nav>
+    <div class="user-box">
+      <div class="u-name" id="uName">Loading…</div>
+      <div class="u-role">Administrator</div>
+      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading school data…</div>
+    <div id="content" style="display:none;">
+
+      <!-- OVERVIEW -->
+      <section id="panel-overview">
+        <div class="main-header"><div><h2>School Overview</h2><p style="color:var(--ink-soft);">Everything at a glance.</p></div></div>
+        <div class="grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="card"><div class="pill">Classes</div><div id="cntClasses" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
+          <div class="card"><div class="pill">Staff</div><div id="cntStaff" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
+          <div class="card"><div class="pill">Students</div><div id="cntStudents" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
+          <div class="card"><div class="pill">Parents Linked</div><div id="cntParents" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
+        </div>
+      </section>
+
+      <!-- CLASSES -->
+      <section id="panel-classes" style="display:none;">
+        <div class="main-header"><div><h2>Classes</h2><p style="color:var(--ink-soft);">Create classes and their self-registration code.</p></div></div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="field-row">
+            <div class="field"><label>Class Name</label><input type="text" id="clsName" placeholder="e.g. Class 10 - Section A"></div>
+            <div class="field"><label>Registration Code</label><input type="text" id="clsCode" placeholder="e.g. 10A-2026"></div>
+          </div>
+          <button class="btn btn-primary" id="clsAddBtn">Add Class</button>
+          <span id="clsMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+        </div>
+        <div class="card table-wrap">
+          <table id="clsTable"><thead><tr><th>Class</th><th>Code</th><th>Class Teacher</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </section>
+
+      <!-- STAFF -->
+      <section id="panel-staff" style="display:none;">
+        <div class="main-header"><div><h2>Staff</h2><p style="color:var(--ink-soft);">Create staff logins and assign classes/subjects.</p></div></div>
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px;">Create Staff Login</h3>
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="stfName"></div>
+            <div class="field"><label>Email</label><input type="email" id="stfEmail"></div>
+            <div class="field"><label>Temp Password</label><input type="text" id="stfPass" value="Welcome@123"></div>
+          </div>
+          <button class="btn btn-primary" id="stfAddBtn">Create Staff Account</button>
+          <span id="stfMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+        </div>
+        <div class="card table-wrap" style="margin-bottom:20px;">
+          <table id="stfTable"><thead><tr><th>Name</th><th>Email</th><th>Class Teacher Of</th><th>Subjects</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;">Assign Class Teacher</h3>
+          <div class="field-row">
+            <div class="field"><label>Staff</label><select id="ctStaffSel"></select></div>
+            <div class="field"><label>Class</label><select id="ctClassSel"></select></div>
+            <div class="field" style="flex:0;align-self:flex-end;"><button class="btn btn-outline" id="ctAssignBtn">Assign</button></div>
+          </div>
+          <h3 style="font-size:15px;margin-top:22px;">Assign Subject</h3>
+          <div class="field-row">
+            <div class="field"><label>Staff</label><select id="subStaffSel"></select></div>
+            <div class="field"><label>Class</label><select id="subClassSel"></select></div>
+            <div class="field"><label>Subject</label><input type="text" id="subSubject" placeholder="e.g. Mathematics"></div>
+            <div class="field" style="flex:0;align-self:flex-end;"><button class="btn btn-outline" id="subAssignBtn">Assign</button></div>
+          </div>
+          <span id="assignMsg" style="color:var(--good);font-weight:600;"></span>
+        </div>
+      </section>
+
+      <!-- STUDENTS -->
+      <section id="panel-students" style="display:none;">
+        <div class="main-header"><div><h2>Students</h2><p style="color:var(--ink-soft);">Register new students and view all students.</p></div></div>
+        
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px;">Register New Student</h3>
+          <div class="field-row">
+            <div class="field"><label>Full Name</label><input type="text" id="stuName"></div>
+            <div class="field"><label>Admission No.</label><input type="text" id="stuAdm"></div>
+            <div class="field"><label>Date of Birth</label><input type="date" id="stuDob"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Class</label><select id="stuClassSelAdd"></select></div>
+            <div class="field"><label>Login Email</label><input type="email" id="stuEmail"></div>
+            <div class="field"><label>Temp Password</label><input type="text" id="stuPass" value="Student@123"></div>
+          </div>
+          <button class="btn btn-primary" id="stuAddBtn">Create Student Account</button>
+          <span id="stuMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="stuTable"><thead><tr><th>Name</th><th>Admission No.</th><th>Class</th><th>Parent Linked</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </section>
+
+      <!-- PARENTS -->
+      <section id="panel-parents" style="display:none;">
+        <div class="main-header"><div><h2>Parents</h2><p style="color:var(--ink-soft);">Create parent accounts and link them to students.</p></div></div>
+        
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px;">Register Parent</h3>
+          <div class="field-row">
+            <div class="field"><label>Parent Name</label><input type="text" id="parName"></div>
+            <div class="field"><label>Select Child (Student)</label><select id="parStudentSel"></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Login Email</label><input type="email" id="parEmail"></div>
+            <div class="field"><label>Temp Password</label><input type="text" id="parPass" value="Parent@123"></div>
+          </div>
+          <button class="btn btn-primary" id="parAddBtn">Create Parent Account</button>
+          <span id="parMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="parTable"><thead><tr><th>Name</th><th>Email</th><th>Linked Child</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  auth, db, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, query, where, getDocs, addDoc, serverTimestamp,
+  getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
+} from '../js/auth.js';
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
+
+document.querySelectorAll('.sidebar nav a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
+    document.getElementById('panel-' + a.dataset.tab).style.display = 'block';
+    if (a.dataset.tab === 'classes') loadClasses();
+    if (a.dataset.tab === 'staff') { loadStaff(); loadClasses(); }
+    if (a.dataset.tab === 'students') loadStudents();
+    if (a.dataset.tab === 'parents') loadParents();
+  });
+});
+
+requirePortal(['admin'], async ({ user, profile }) => {
+  document.getElementById('uName').textContent = profile.name;
+  await loadOverview();
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+
+async function loadOverview() {
+  const [c, s, st, p] = await Promise.all([
+    getDocs(collection(db, 'classes')),
+    getDocs(collection(db, 'staff')),
+    getDocs(collection(db, 'students')),
+    getDocs(collection(db, 'parents'))
+  ]);
+  document.getElementById('cntClasses').textContent = c.size;
+  document.getElementById('cntStaff').textContent = s.size;
+  document.getElementById('cntStudents').textContent = st.size;
+  document.getElementById('cntParents').textContent = p.size;
+}
+
+// ---------------- CLASSES ----------------
+document.getElementById('clsAddBtn').addEventListener('click', async () => {
+  const name = document.getElementById('clsName').value.trim();
+  const code = document.getElementById('clsCode').value.trim();
+  if (!name || !code) { alert('Enter class name and code.'); return; }
+  await addDoc(collection(db, 'classes'), { name, code, classTeacherUid: null, createdAt: serverTimestamp() });
+  document.getElementById('clsName').value = '';
+  document.getElementById('clsCode').value = '';
+  document.getElementById('clsMsg').textContent = 'Class added.';
+  setTimeout(() => document.getElementById('clsMsg').textContent = '', 2500);
+  loadClasses();
+});
+async function loadClasses() {
+  const snap = await getDocs(collection(db, 'classes'));
+  const body = document.querySelector('#clsTable tbody');
+  body.innerHTML = '';
+  const selOptions = [];
+  for (const d of snap.docs) {
+    const r = d.data();
+    let teacherName = '—';
+    if (r.classTeacherUid) {
+      const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
+      if (t.exists()) teacherName = t.data().name;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td><code>${r.code}</code></td><td>${teacherName}</td>
+      <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
+    tr.querySelector('button').addEventListener('click', async () => {
+      if (confirm('Delete this class? Existing student links will remain.')) { await deleteDoc(doc(db, 'classes', d.id)); loadClasses(); }
+    });
+    body.appendChild(tr);
+    selOptions.push(`<option value="${d.id}">${r.name}</option>`);
+  }
+  ['ctClassSel', 'subClassSel', 'stuClassSelAdd'].forEach(id => document.getElementById(id).innerHTML = selOptions.join(''));
+}
+
+// ---------------- STAFF ----------------
+document.getElementById('stfAddBtn').addEventListener('click', async () => {
+  const name = document.getElementById('stfName').value.trim();
+  const email = document.getElementById('stfEmail').value.trim();
+  const pass = document.getElementById('stfPass').value;
+  if (!name || !email || pass.length < 6) { alert('Fill all fields — password needs 6+ characters.'); return; }
+  const btn = document.getElementById('stfAddBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    // Use a secondary auth instance so creating this user doesn't sign the admin out.
+    const secAuth = getSecondaryAuth();
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+    const uid = cred.user.uid;
+    await setDoc(doc(db, 'users', uid), { role: 'staff', name, email, createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'staff', uid), { name, email, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() });
+    await fbSignOut(secAuth);
+    document.getElementById('stfName').value = '';
+    document.getElementById('stfEmail').value = '';
+    document.getElementById('stfMsg').textContent = 'Staff account created. Share the email + password with them.';
+    setTimeout(() => document.getElementById('stfMsg').textContent = '', 5000);
+    loadStaff();
+  } catch (err) {
+    alert(err.message.replace('Firebase: ', ''));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Staff Account';
+  }
+});
+
+async function loadStaff() {
+  const snap = await getDocs(collection(db, 'staff'));
+  const body = document.querySelector('#stfTable tbody');
+  body.innerHTML = '';
+  const selOptions = [];
+  for (const d of snap.docs) {
+    const r = d.data();
+    let ctName = '—';
+    if (r.classTeacherOf) {
+      const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
+      if (c.exists()) ctName = c.data().name;
+    }
+    const subjects = (r.subjects || []).map(s => s.subject).join(', ') || '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.email}</td><td>${ctName}</td><td>${subjects}</td>
+      <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Remove</button></td>`;
+    tr.querySelector('button').addEventListener('click', async () => {
+      if (confirm('Remove this staff profile? (Login account itself must be removed from Firebase Console.)')) {
+        await deleteDoc(doc(db, 'staff', d.id)); loadStaff();
+      }
+    });
+    body.appendChild(tr);
+    selOptions.push(`<option value="${d.id}">${r.name}</option>`);
+  }
+  ['ctStaffSel', 'subStaffSel'].forEach(id => document.getElementById(id).innerHTML = selOptions.join(''));
+}
+
+document.getElementById('ctAssignBtn').addEventListener('click', async () => {
+  const staffUid = document.getElementById('ctStaffSel').value;
+  const classId = document.getElementById('ctClassSel').value;
+  if (!staffUid || !classId) return;
+  const staffSnap = await getDoc(doc(db, 'staff', staffUid));
+  const current = staffSnap.data();
+  await updateDoc(doc(db, 'staff', staffUid), {
+    classTeacherOf: classId,
+    type: (current.subjects && current.subjects.length) ? 'both' : 'classTeacher'
+  });
+  await updateDoc(doc(db, 'classes', classId), { classTeacherUid: staffUid });
+  document.getElementById('assignMsg').textContent = 'Class teacher assigned.';
+  setTimeout(() => document.getElementById('assignMsg').textContent = '', 3000);
+  loadStaff(); loadClasses();
+});
+
+document.getElementById('subAssignBtn').addEventListener('click', async () => {
+  const staffUid = document.getElementById('subStaffSel').value;
+  const classId = document.getElementById('subClassSel').value;
+  const subject = document.getElementById('subSubject').value.trim();
+  if (!staffUid || !classId || !subject) { alert('Fill all fields.'); return; }
+  const staffSnap = await getDoc(doc(db, 'staff', staffUid));
+  const current = staffSnap.data();
+  const subjects = current.subjects || [];
+  if (!subjects.some(s => s.classId === classId && s.subject === subject)) {
+    subjects.push({ classId, subject });
+  }
+  await updateDoc(doc(db, 'staff', staffUid), {
+    subjects, type: current.classTeacherOf ? 'both' : 'subject'
+  });
+  document.getElementById('subSubject').value = '';
+  document.getElementById('assignMsg').textContent = 'Subject assigned.';
+  setTimeout(() => document.getElementById('assignMsg').textContent = '', 3000);
+  loadStaff();
+});
+
+// ---------------- STUDENTS ----------------
+document.getElementById('stuAddBtn').addEventListener('click', async () => {
+  const name = document.getElementById('stuName').value.trim();
+  const admNo = document.getElementById('stuAdm').value.trim();
+  const dob = document.getElementById('stuDob').value;
+  const classId = document.getElementById('stuClassSelAdd').value;
+  const email = document.getElementById('stuEmail').value.trim();
+  const pass = document.getElementById('stuPass').value;
+  if (!name || !admNo || !dob || !classId || !email || pass.length < 6) {
+    alert('Fill all fields — password needs 6+ characters.'); return;
+  }
+  const btn = document.getElementById('stuAddBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const classSnap = await getDoc(doc(db, 'classes', classId));
+    const className = classSnap.exists() ? classSnap.data().name : '';
+    
+    const secAuth = getSecondaryAuth();
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+    const uid = cred.user.uid;
+    
+    await setDoc(doc(db, 'users', uid), { role: 'student', name, email, createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'students', uid), { 
+      name, email, admissionNo: admNo, dob, classId, className, parentUid: null, createdAt: serverTimestamp() 
+    });
+    await fbSignOut(secAuth);
+    
+    document.getElementById('stuName').value = '';
+    document.getElementById('stuAdm').value = '';
+    document.getElementById('stuEmail').value = '';
+    document.getElementById('stuMsg').textContent = 'Student created successfully.';
+    setTimeout(() => document.getElementById('stuMsg').textContent = '', 5000);
+    loadStudents();
+  } catch (err) {
+    alert(err.message.replace('Firebase: ', ''));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Student Account';
+  }
+});
+
+async function loadStudents() {
+  const snap = await getDocs(collection(db, 'students'));
+  const classesSnap = await getDocs(collection(db, 'classes'));
+  const classOptions = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+  const body = document.querySelector('#stuTable tbody');
+  body.innerHTML = '';
+  
+  const parStudentOptions = [];
+  
+  snap.docs.forEach(d => {
+    const r = d.data();
+    const tr = document.createElement('tr');
+    const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.admissionNo}</td>
+      <td><select class="stuClassSel" data-uid="${d.id}">${selHtml}</select></td>
+      <td>${r.parentUid ? '<span class="badge badge-good">Yes</span>' : '<span class="badge badge-bad">No</span>'}</td>
+      <td>
+        <button class="btn btn-outline btn-sm stuSaveBtn" data-uid="${d.id}">Save</button>
+        <button class="btn btn-danger btn-sm stuDelBtn" data-uid="${d.id}">Delete</button>
+      </td>`;
+    
+    tr.querySelector('.stuSaveBtn').addEventListener('click', async () => {
+      const sel = tr.querySelector('.stuClassSel');
+      const newClassId = sel.value;
+      const cname = classOptions.find(c => c.id === newClassId)?.name || '';
+      await updateDoc(doc(db, 'students', d.id), { classId: newClassId, className: cname });
+      alert('Class updated for ' + r.name);
+    });
+    
+    tr.querySelector('.stuDelBtn').addEventListener('click', async () => {
+      if(confirm('Delete student record? This does not delete their auth login from Firebase Console.')) {
+        await deleteDoc(doc(db, 'students', d.id));
+        loadStudents();
+      }
+    });
+    
+    body.appendChild(tr);
+    parStudentOptions.push(`<option value="${d.id}">${r.name} (${r.admissionNo})</option>`);
+  });
+  
+  document.getElementById('parStudentSel').innerHTML = parStudentOptions.join('');
+}
+
+// ---------------- PARENTS ----------------
+document.getElementById('parAddBtn').addEventListener('click', async () => {
+  const name = document.getElementById('parName').value.trim();
+  const childUid = document.getElementById('parStudentSel').value;
+  const email = document.getElementById('parEmail').value.trim();
+  const pass = document.getElementById('parPass').value;
+  
+  if (!name || !childUid || !email || pass.length < 6) {
+    alert('Fill all fields — password needs 6+ characters.'); return;
+  }
+  const btn = document.getElementById('parAddBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const childSnap = await getDoc(doc(db, 'students', childUid));
+    if (!childSnap.exists()) throw new Error("Student not found.");
+    const childName = childSnap.data().name;
+    
+    const secAuth = getSecondaryAuth();
+    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+    const uid = cred.user.uid;
+    
+    await setDoc(doc(db, 'users', uid), { role: 'parent', name, email, createdAt: serverTimestamp() });
+    await setDoc(doc(db, 'parents', uid), { 
+      name, email, childUid, childName, createdAt: serverTimestamp() 
+    });
+    
+    await updateDoc(doc(db, 'students', childUid), { parentUid: uid });
+    
+    await fbSignOut(secAuth);
+    
+    document.getElementById('parName').value = '';
+    document.getElementById('parEmail').value = '';
+    document.getElementById('parMsg').textContent = 'Parent created and linked.';
+    setTimeout(() => document.getElementById('parMsg').textContent = '', 5000);
+    loadParents();
+    loadStudents();
+  } catch (err) {
+    alert(err.message.replace('Firebase: ', ''));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create Parent Account';
+  }
+});
+
+async function loadParents() {
+  const snap = await getDocs(collection(db, 'parents'));
+  const body = document.querySelector('#parTable tbody');
+  body.innerHTML = '';
+  snap.docs.forEach(d => {
+    const r = d.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.email || '—'}</td><td>${r.childName || '—'}</td>
+      <td><button class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}">Delete</button></td>`;
+    tr.querySelector('.parDelBtn').addEventListener('click', async () => {
+      if (confirm('Delete parent "' + r.name + '"? This removes the Firestore record. The auth login must be removed from Firebase Console separately.')) {
+        // Unlink parent from student
+        if (r.childUid) {
+          try { await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }); } catch(e) {}
+        }
+        // Delete parent doc and user doc
+        await deleteDoc(doc(db, 'parents', d.id));
+        try { await deleteDoc(doc(db, 'users', d.id)); } catch(e) {}
+        loadParents();
+        loadStudents();
+      }
+    });
+    body.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>

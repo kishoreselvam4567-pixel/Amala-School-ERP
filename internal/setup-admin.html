@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin & Backend Initializer — Amala HSS</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { min-height: 100vh; background: var(--navy); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .setup-wrap { width: 100%; max-width: 580px; }
+  .setup-card { background: var(--white); border-radius: 8px; padding: 36px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+  .step-num { display: inline-block; width: 24px; height: 24px; line-height: 24px; background: var(--navy); color: #fff; text-align: center; border-radius: 50%; font-size: 12px; font-weight: 700; margin-right: 8px; }
+  .section-divider { border-top: 1px solid var(--line); margin: 24px 0; padding-top: 20px; }
+  .status-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-ready { background: #eaf4ec; color: var(--good); }
+  .status-pending { background: #fff4e5; color: #b97a2f; }
+</style>
+</head>
+<body>
+<div class="setup-wrap">
+  <div class="setup-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span class="pill">Backend Initializer</span>
+      <span class="status-tag status-ready">Firebase Connected</span>
+    </div>
+    
+    <h1 style="font-size:24px; margin-bottom:6px;">Initialize First Admin & System</h1>
+    <p style="color:var(--ink-soft); font-size:14px; margin-bottom:24px;">
+      Use this one-time setup utility to bootstrap your school ERP database and create your root administrator account.
+    </p>
+
+    <div class="error-box" id="errBox"></div>
+    <div class="success-box" id="okBox"></div>
+
+    <!-- STEP 1: CREATE ROOT ADMIN -->
+    <div>
+      <h3 style="font-size:16px;"><span class="step-num">1</span>Create Super Admin Account</h3>
+      <p style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;">This account gets full permission to manage classes, staff, subjects, and view all student records.</p>
+      
+      <form id="adminForm">
+        <div class="field">
+          <label>Admin Full Name</label>
+          <input type="text" id="admName" required placeholder="e.g. Principal / Administrator" value="System Administrator">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Admin Email</label>
+            <input type="email" id="admEmail" required placeholder="admin@amalaschool.edu.in">
+          </div>
+          <div class="field">
+            <label>Admin Password</label>
+            <input type="password" id="admPass" required minlength="6" placeholder="Minimum 6 characters">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="createAdminBtn">Create Admin & Initialize Roles</button>
+      </form>
+    </div>
+
+    <!-- STEP 2: SEED SAMPLE CLASSES -->
+    <div class="section-divider">
+      <h3 style="font-size:16px;"><span class="step-num">2</span>Seed Default Classes (Optional)</h3>
+      <p style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;">Create standard starter classes with registration codes so students can immediately register.</p>
+      <button type="button" class="btn btn-brass btn-block" id="seedClassesBtn">Add Default Classes (10-A, 10-B, 9-A, 9-B)</button>
+    </div>
+
+    <div style="margin-top:28px; text-align:center; font-size:13px;">
+      <a href="login.html" class="btn btn-outline btn-block">Go to Internal Staff & Admin Login &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  auth, db, createUserWithEmailAndPassword, doc, setDoc, addDoc, collection,
+  serverTimestamp, showBox
+} from './js/auth.js';
+
+const errBox = document.getElementById('errBox');
+const okBox = document.getElementById('okBox');
+const createAdminBtn = document.getElementById('createAdminBtn');
+const seedClassesBtn = document.getElementById('seedClassesBtn');
+
+// 1. CREATE ADMIN
+document.getElementById('adminForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showBox(errBox, '');
+  showBox(okBox, '');
+  createAdminBtn.disabled = true;
+  createAdminBtn.textContent = 'Initializing Admin...';
+
+  const name = document.getElementById('admName').value.trim();
+  const email = document.getElementById('admEmail').value.trim();
+  const pass = document.getElementById('admPass').value;
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = cred.user.uid;
+
+    // Create users doc with role: admin
+    await setDoc(doc(db, 'users', uid), {
+      role: 'admin',
+      name: name,
+      email: email,
+      createdAt: serverTimestamp()
+    });
+
+    showBox(okBox, `✅ Admin account "${email}" created successfully with full privileges! You can now log into the Admin portal.`);
+  } catch (err) {
+    let msg = err.message.replace('Firebase: ', '');
+    if (err.code === 'auth/email-already-in-use') {
+      msg = 'This email already exists in Firebase Auth. If you already created it, you can log in at internal/login.html or promote the user in Firestore.';
+    }
+    showBox(errBox, msg);
+  } finally {
+    createAdminBtn.disabled = false;
+    createAdminBtn.textContent = 'Create Admin & Initialize Roles';
+  }
+});
+
+// 2. SEED DEFAULT CLASSES
+seedClassesBtn.addEventListener('click', async () => {
+  showBox(errBox, '');
+  showBox(okBox, '');
+  seedClassesBtn.disabled = true;
+  seedClassesBtn.textContent = 'Creating Classes...';
+
+  const defaultClasses = [
+    { name: 'Class 10 - Section A', code: '10A-2026' },
+    { name: 'Class 10 - Section B', code: '10B-2026' },
+    { name: 'Class 9 - Section A', code: '9A-2026' },
+    { name: 'Class 9 - Section B', code: '9B-2026' }
+  ];
+
+  try {
+    for (const cls of defaultClasses) {
+      await addDoc(collection(db, 'classes'), {
+        name: cls.name,
+        code: cls.code,
+        classTeacherUid: null,
+        createdAt: serverTimestamp()
+      });
+    }
+    showBox(okBox, '✅ Successfully seeded classes: 10A-2026, 10B-2026, 9A-2026, 9B-2026. Students can now register with these codes!');
+  } catch (err) {
+    showBox(errBox, 'Error seeding classes: ' + err.message.replace('Firebase: ', ''));
+  } finally {
+    seedClassesBtn.disabled = false;
+    seedClassesBtn.textContent = 'Add Default Classes (10-A, 10-B, 9-A, 9-B)';
+  }
+});
+</script>
+</body>
+</html>

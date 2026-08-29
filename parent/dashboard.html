@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parent Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <div class="sidebar">
+    <div class="brand">Amala HSS</div>
+    <div class="brand-sub">Parent Portal</div>
+    <nav>
+      <a href="#" data-tab="overview" class="active">Overview</a>
+      <a href="#" data-tab="attendance">Attendance</a>
+      <a href="#" data-tab="marks">Marks</a>
+      <a href="#" data-tab="exams">Exam Schedule</a>
+      <a href="#" data-tab="notes">Syllabus Notes</a>
+      <a href="#" data-tab="homework">Homework</a>
+    </nav>
+    <div class="user-box">
+      <div class="u-name" id="uName">Loading…</div>
+      <div class="u-role" id="uClass">—</div>
+      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading your data…</div>
+
+    <div id="content" style="display:none;">
+
+      <!-- OVERVIEW -->
+      <section id="panel-overview">
+        <div class="main-header"><div><h2>Welcome back<span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Here's a snapshot of your child's academic profile.</p></div></div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+          <div class="card"><div class="pill">Attendance</div><div id="attPct" style="font-family:var(--font-display);font-size:30px;margin-top:8px;">—</div></div>
+          <div class="card"><div class="pill">Avg. Marks</div><div id="avgMarks" style="font-family:var(--font-display);font-size:30px;margin-top:8px;">—</div></div>
+          <div class="card"><div class="pill">Next Exam</div><div id="nextExam" style="font-size:15px;margin-top:8px;font-weight:600;">—</div></div>
+        </div>
+        <div class="card">
+          <h3>Profile</h3>
+          <table>
+            <tr><th>Child's Name</th><td id="p_name">—</td></tr>
+            <tr><th>Admission No.</th><td id="p_admno">—</td></tr>
+            <tr><th>Class</th><td id="p_class">—</td></tr>
+            <tr><th>Date of Birth</th><td id="p_dob">—</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ATTENDANCE -->
+      <section id="panel-attendance" style="display:none;">
+        <div class="main-header"><div><h2>Attendance</h2><p style="color:var(--ink-soft);">Marked daily by your class teacher.</p></div></div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="pill">Overall</div>
+          <div id="attSummary" style="font-family:var(--font-display);font-size:26px;margin-top:6px;">—</div>
+        </div>
+        <div class="card table-wrap">
+          <table id="attTable"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="attEmpty" style="display:none;">No attendance records yet.</div>
+        </div>
+      </section>
+
+      <!-- MARKS -->
+      <section id="panel-marks" style="display:none;">
+        <div class="main-header"><div><h2>Marks</h2><p style="color:var(--ink-soft);">Uploaded per subject by your subject teachers.</p></div></div>
+        <div class="card table-wrap">
+          <table id="marksTable"><thead><tr><th>Subject</th><th>Exam</th><th>Marks</th><th>Out of</th><th>%</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="marksEmpty" style="display:none;">No marks uploaded yet.</div>
+        </div>
+      </section>
+
+      <!-- EXAMS -->
+      <section id="panel-exams" style="display:none;">
+        <div class="main-header"><div><h2>Exam Schedule</h2><p style="color:var(--ink-soft);">Upcoming and past exams for your class.</p></div></div>
+        <div class="card table-wrap">
+          <table id="examsTable"><thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Syllabus</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="examsEmpty" style="display:none;">No exams scheduled yet.</div>
+        </div>
+      </section>
+
+      <!-- NOTES -->
+      <section id="panel-notes" style="display:none;">
+        <div class="main-header"><div><h2>Syllabus Notes</h2><p style="color:var(--ink-soft);">PDFs uploaded by your subject teachers.</p></div></div>
+        <div class="grid" id="notesGrid" style="grid-template-columns:repeat(2,1fr);"></div>
+        <div class="empty-state" id="notesEmpty" style="display:none;">No notes uploaded yet.</div>
+      </section>
+
+      <!-- HOMEWORK -->
+      <section id="panel-homework" style="display:none;">
+        <div class="main-header"><div><h2>Homework</h2><p style="color:var(--ink-soft);">Assigned per subject, with due dates.</p></div></div>
+        <div class="card table-wrap">
+          <table id="hwTable"><thead><tr><th>Subject</th><th>Title</th><th>Due</th><th>File</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="hwEmpty" style="display:none;">No homework assigned yet.</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  auth, db, requirePortal, logout, doc, getDoc, collection, query, where,
+  getDocs, orderBy
+} from '../js/auth.js';
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
+
+// tab nav
+document.querySelectorAll('.sidebar nav a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
+    document.getElementById('panel-' + a.dataset.tab).style.display = 'block';
+  });
+});
+
+requirePortal(['parent'], async ({ user, profile }) => {
+  document.getElementById('uName').textContent = profile.name;
+
+  const parentSnap = await getDoc(doc(db, 'parents', user.uid));
+  const parentData = parentSnap.exists() ? parentSnap.data() : {};
+  const childUid = parentData.childUid;
+  if (!childUid) {
+    document.getElementById('loadingState').innerHTML = 'No child linked to this account yet. Contact admin.';
+    return;
+  }
+
+  const stSnap = await getDoc(doc(db, 'students', childUid));
+  const student = stSnap.exists() ? stSnap.data() : {};
+  document.getElementById('uClass').textContent = student.className || '—';
+  document.getElementById('welcomeName').textContent = ', ' + profile.name.split(' ')[0];
+
+  document.getElementById('p_name').textContent = student.name || '—';
+  document.getElementById('p_admno').textContent = student.admissionNo || '—';
+  document.getElementById('p_class').textContent = student.className || '—';
+  document.getElementById('p_dob').textContent = student.dob || '—';
+
+  // ---- attendance ----
+  const attQ = query(collection(db, 'attendance'), where('studentUid', '==', childUid));
+  const attSnap = await getDocs(attQ);
+  const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const present = attRows.filter(r => r.status === 'present').length;
+  const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
+  document.getElementById('attPct').textContent = pct !== null ? pct + '%' : '—';
+  document.getElementById('attSummary').textContent = attRows.length
+    ? `${present} / ${attRows.length} days present (${pct}%)` : 'No records yet';
+  const attBody = document.querySelector('#attTable tbody');
+  if (!attRows.length) { document.getElementById('attEmpty').style.display = 'block'; }
+  attRows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.date}</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${r.status}</span></td>`;
+    attBody.appendChild(tr);
+  });
+
+  // ---- marks ----
+  const marksQ = query(collection(db, 'marks'), where('studentUid', '==', childUid));
+  const marksSnap = await getDocs(marksQ);
+  const marksRows = marksSnap.docs.map(d => d.data());
+  const marksBody = document.querySelector('#marksTable tbody');
+  if (!marksRows.length) { document.getElementById('marksEmpty').style.display = 'block'; }
+  let totalPct = 0;
+  marksRows.forEach(r => {
+    const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+    totalPct += p;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.subject}</td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td>`;
+    marksBody.appendChild(tr);
+  });
+  document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
+
+  // ---- exams ----
+  const examsQ = query(collection(db, 'exams'), where('classId', '==', student.classId || '__none__'));
+  const examsSnap = await getDocs(examsQ);
+  const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => (a.date > b.date ? 1 : -1));
+  const examsBody = document.querySelector('#examsTable tbody');
+  if (!examsRows.length) { document.getElementById('examsEmpty').style.display = 'block'; }
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = examsRows.find(r => r.date >= today);
+  document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} — ${upcoming.subject} (${upcoming.date})` : 'None scheduled';
+  examsRows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.examName}</td><td>${r.subject}</td><td>${r.date}</td><td>${r.syllabus || '—'}</td>`;
+    examsBody.appendChild(tr);
+  });
+
+  // ---- notes ----
+  const notesQ = query(collection(db, 'notes'), where('classId', '==', student.classId || '__none__'));
+  const notesSnap = await getDocs(notesQ);
+  const notesRows = notesSnap.docs.map(d => d.data());
+  const notesGrid = document.getElementById('notesGrid');
+  if (!notesRows.length) { document.getElementById('notesEmpty').style.display = 'block'; }
+  notesRows.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `<div class="pill">${r.subject}</div><h3 style="font-size:16px;margin-top:6px;">${r.title}</h3>
+      <a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:10px;">Open PDF</a>`;
+    notesGrid.appendChild(div);
+  });
+
+  // ---- homework ----
+  const hwQ = query(collection(db, 'homework'), where('classId', '==', student.classId || '__none__'));
+  const hwSnap = await getDocs(hwQ);
+  const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
+  const hwBody = document.querySelector('#hwTable tbody');
+  if (!hwRows.length) { document.getElementById('hwEmpty').style.display = 'block'; }
+  hwRows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.subject}</td><td>${r.title}<div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">Open</a>` : '—'}</td>`;
+    hwBody.appendChild(tr);
+  });
+
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+});
+</script>
+</body>
+</html>

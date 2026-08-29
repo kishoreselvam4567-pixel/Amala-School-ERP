@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMALA HIGHER SECONDARY SCHOOL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+
+/* =========================
+   HERO
+========================= */
+
+.hero{
+  background:var(--navy);
+  color:var(--white);
+  position:relative;
+  overflow:hidden;
+  min-height:720px;
+}
+
+.hero::after{
+  content:'';
+  position:absolute;
+  right:-120px;
+  top:-120px;
+  width:420px;
+  height:420px;
+  border-radius:50%;
+  background:radial-gradient(
+    circle,
+    rgba(185,146,47,.25),
+    transparent 70%
+  );
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:34px 0;
+  position:relative;
+  z-index:2;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+
+/* School logo + name */
+
+.school-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.school-logo{
+  width:52px;
+  height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.school-logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+.school-brand .brand{
+  font-family:var(--font-display);
+  font-size:21px;
+  font-weight:700;
+  line-height:1.15;
+  color:var(--white);
+}
+
+.school-brand .brand small{
+  display:block;
+  margin-top:5px;
+  font-family:var(--font-body);
+  font-size:10px;
+  letter-spacing:.08em;
+  color:#9aa7c2;
+  font-weight:500;
+  text-transform:uppercase;
+}
+
+
+/* =========================
+   HERO CONTENT
+========================= */
+
+.hero-body{
+  position:relative;
+  z-index:2;
+  padding-top:72px;
+  padding-bottom:90px;
+  max-width:680px;
+}
+
+.hero-body .pill{
+  color:var(--brass-light);
+}
+
+.hero-body .pill::before{
+  background:var(--brass-light);
+}
+
+.hero-body h1{
+  color:var(--white);
+  font-size:58px;
+  line-height:1.12;
+  margin:18px 0 24px;
+  max-width:650px;
+}
+
+.hero-body p{
+  color:#9aa7c2;
+  font-size:17px;
+  line-height:1.7;
+  max-width:620px;
+  margin-bottom:38px;
+}
+
+
+/* =========================
+   HERO BUTTONS
+========================= */
+
+.hero-cta{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.hero-cta .btn{
+  min-height:56px;
+  padding:0 28px;
+}
+
+
+/* =========================
+   SECTIONS
+========================= */
+
+section{padding:70px 0;}
+.section-head{max-width:560px;margin-bottom:40px;}
+.section-head .pill{color:var(--brass);}
+
+.stat-strip{display:flex;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.stat{flex:1;padding:26px 24px;border-right:1px solid var(--line);}
+.stat:last-child{border-right:none;}
+.stat .num{font-family:var(--font-display);font-size:32px;color:var(--navy);}
+.stat .lbl{font-size:12.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+
+.feat-grid{grid-template-columns:repeat(3,1fr);}
+.feat-grid .card .n{font-family:var(--font-mono);color:var(--brass);font-weight:700;font-size:13px;margin-bottom:10px;display:block;}
+
+.portal-grid{grid-template-columns:repeat(4,1fr);max-width:100%;}
+.portal-card{text-align:left;display:flex;flex-direction:column;justify-content:space-between;}
+.portal-card h3{font-size:18px;}
+.portal-card p{color:var(--ink-soft);font-size:13.5px;margin-bottom:18px;min-height:54px;line-height:1.5;}
+
+footer{background:var(--navy);color:#9aa7c2;padding:40px 0;font-size:13.5px;}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+
+
+/* =========================
+   TABLET
+========================= */
+
+@media(max-width:900px){
+  .hero-body h1{font-size:34px;}
+  .feat-grid{grid-template-columns:1fr 1fr;}
+  .portal-grid{grid-template-columns:1fr 1fr;}
+  .stat-strip{flex-wrap:wrap;}
+  .stat{flex:1 1 50%;border-bottom:1px solid var(--line);}
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:560px){
+
+  .hero{
+    min-height:auto;
+  }
+
+  .topbar{
+    padding:22px 0;
+  }
+
+  .school-brand{
+    gap:9px;
+  }
+
+  .school-logo{
+    width:38px;
+    height:38px;
+  }
+
+  .school-brand .brand{
+    font-size:14px;
+  }
+
+  .school-brand .brand small{
+    font-size:7px;
+    margin-top:3px;
+  }
+
+  .topbar .btn{
+    padding:10px 12px;
+    font-size:11px;
+  }
+
+  .hero-body{
+    padding-top:55px;
+    padding-bottom:70px;
+  }
+
+  .hero-body h1{
+    font-size:36px;
+    line-height:1.15;
+  }
+
+  .hero-body p{
+    font-size:15px;
+    line-height:1.6;
+  }
+
+  .hero-cta{
+    gap:10px;
+  }
+
+  .hero-cta .btn{
+    min-height:50px;
+    padding:0 20px;
+  }
+
+  .feat-grid,.portal-grid{grid-template-columns:1fr;}
+  .stat{flex:1 1 100%;}
+
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+
+  <div class="wrap">
+
+    <!-- HEADER -->
+    <div class="topbar">
+
+      <div class="school-brand">
+
+        <div class="school-logo">
+          <img src="image/school logo.jpg.jpeg" alt="Amala Higher Secondary School Logo">
+        </div>
+
+        <div class="brand">
+          AMALA HIGHER SECONDARY SCHOOL
+          <small>EST. — BE A CREATIVE LEARNER</small>
+        </div>
+
+      </div>
+
+      <a href="login.html" class="btn btn-brass btn-sm">
+        Portal Login
+      </a>
+
+    </div>
+
+
+    <!-- HERO CONTENT -->
+    <div class="hero-body">
+
+      <span class="pill">Student &amp; Parent ERP</span>
+
+      <h1>
+        One place for every report card, register, and reminder.
+      </h1>
+
+      <p>
+        Check attendance, view subject-wise marks, download syllabus notes, and track upcoming exams — all from one dashboard built for students and parents.
+      </p>
+
+      <div class="hero-cta">
+
+        <a href="login.html" class="btn btn-brass">
+          Login to Portal
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<div class="wrap">
+  <div class="stat-strip">
+    <div class="stat"><div class="num">4</div><div class="lbl">Linked Portals</div></div>
+    <div class="stat"><div class="num">Live</div><div class="lbl">Attendance &amp; Marks</div></div>
+    <div class="stat"><div class="num">24/7</div><div class="lbl">Notes &amp; Homework Access</div></div>
+    <div class="stat"><div class="num">1</div><div class="lbl">Login Per Family</div></div>
+  </div>
+</div>
+
+<section class="wrap">
+  <div class="section-head">
+    <span class="pill">What's inside</span>
+    <h2>Everything a report card used to hide, now visible year-round.</h2>
+  </div>
+  <div class="grid feat-grid">
+    <div class="card">
+      <span class="n">01</span>
+      <h3>Attendance</h3>
+      <p style="color:var(--ink-soft);font-size:14.5px;">Daily attendance marked by the class teacher, visible to students and parents the same day.</p>
+    </div>
+    <div class="card">
+      <span class="n">02</span>
+      <h3>Marks &amp; Exams</h3>
+      <p style="color:var(--ink-soft);font-size:14.5px;">Subject-wise marks and the exam calendar, updated by each subject teacher directly.</p>
+    </div>
+    <div class="card">
+      <span class="n">03</span>
+      <h3>Notes &amp; Homework</h3>
+      <p style="color:var(--ink-soft);font-size:14.5px;">Syllabus PDFs and homework uploaded per subject, downloadable anytime from the student portal.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-head">
+    <span class="pill">Login</span>
+    <h2>Four portals, one school.</h2>
+  </div>
+  <div class="grid portal-grid">
+    <div class="card portal-card">
+      <div>
+        <span class="badge badge-navy" style="margin-bottom:10px;">Students</span>
+        <h3>Student Portal</h3>
+        <p>View personal attendance %, subject marks, download syllabus notes &amp; submit homework.</p>
+      </div>
+      <a href="login.html" class="btn btn-outline btn-sm btn-block">Student Login</a>
+    </div>
+    <div class="card portal-card">
+      <div>
+        <span class="badge badge-brass" style="margin-bottom:10px;">Parents</span>
+        <h3>Parent Portal</h3>
+        <p>Live read-only access to your child's attendance record, exam performance, and notices.</p>
+      </div>
+      <a href="login.html" class="btn btn-outline btn-sm btn-block">Parent Login</a>
+    </div>
+    <div class="card portal-card">
+      <div>
+        <span class="badge badge-good" style="margin-bottom:10px;">Teachers</span>
+        <h3>Staff Portal</h3>
+        <p>Mark daily section attendance, publish marks, post exams, notes &amp; assign class homework.</p>
+      </div>
+      <a href="internal/login.html" class="btn btn-outline btn-sm btn-block">Staff Login</a>
+    </div>
+    <div class="card portal-card">
+      <div>
+        <span class="badge badge-navy" style="margin-bottom:10px;">Management</span>
+        <h3>Admin Portal</h3>
+        <p>Manage class registration codes, create staff accounts, subject assignments &amp; full reports.</p>
+      </div>
+      <a href="internal/login.html" class="btn btn-primary btn-sm btn-block">Admin Login</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>Amala Higher Secondary School — Be a Creative Learner</div>
+    <div>info@amalaschool.edu.in</div>
+  </div>
+</footer>
+
+</body>
+</html>

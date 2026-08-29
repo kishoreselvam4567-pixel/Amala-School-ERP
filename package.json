@@ -1,0 +1,16 @@
+{
+  "name": "school-erp",
+  "version": "1.0.0",
+  "description": "Amala Higher Secondary School ERP System",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000",
+    "deploy": "npx firebase deploy",
+    "deploy:rules": "npx firebase deploy --only firestore:rules,storage:rules",
+    "deploy:hosting": "npx firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.31.0",
+    "serve": "^14.2.6"
+  }
+}
