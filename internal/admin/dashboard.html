@@ -1275,6 +1275,7 @@
                   <th>Marks Obtained</th>
                   <th>Max Marks</th>
                   <th>Percentage</th>
+                  <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -2359,7 +2360,19 @@
         <td><strong style="color:var(--brand-green); font-size:14px;">${r.marks}</strong></td>
         <td>${r.maxMarks}</td>
         <td><span class="badge ${pct >= 40 ? 'badge-good' : 'badge-bad'}">${pct}%</span></td>
+        <td style="text-align:right;">
+          <button class="btn btn-danger btn-sm markDelBtn" data-id="${md.id}" style="padding:4px 10px; font-size:12px;">Delete</button>
+        </td>
       `;
+
+          tr.querySelector('.markDelBtn').addEventListener('click', async () => {
+            if (confirm(`Delete marks record for "${stuName}" (${r.subject} - ${r.examName || 'Exam'})?`)) {
+              await deleteDoc(doc(db, 'marks', md.id));
+              showToast('✅ Marks record deleted.');
+              document.getElementById('marksReportBtn').click();
+            }
+          });
+
           body.appendChild(tr);
         }
       } catch (err) {
