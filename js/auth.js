@@ -68,8 +68,8 @@ export function portalPathForRole(role) {
   switch (role) {
     case "student": return "student/dashboard.html";
     case "parent": return "parent/dashboard.html";
-    case "staff": return "staff/dashboard.html";
-    case "admin": return "admin/dashboard.html";
+    case "staff": return "internal/staff/dashboard.html";
+    case "admin": return "internal/admin/dashboard.html";
     default: return "login.html";
   }
 }

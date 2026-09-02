@@ -4,28 +4,145 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Staff Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+<title>Staff Portal — Amala HSS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/style.css">
+<style>
+  /* Profile Modal for Staff */
+  .profile-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .profile-modal-overlay.open { display: flex; }
+  .profile-modal-card {
+    background: var(--white);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    animation: fadeInScale 0.3s ease both;
+  }
+</style>
 </head>
 <body>
+
+<button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- STUDENT FULL PROFILE MODAL (ID CARD) -->
+<div class="profile-modal-overlay" id="studentDetailModal">
+  <div class="profile-modal-card">
+    <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
+    
+    <div class="profile-hero-card" style="margin-bottom:20px;">
+      <div class="profile-hero-left">
+        <div class="profile-big-avatar" id="modalAvatarInit">S</div>
+        <div class="profile-hero-info">
+          <h2 id="modalStudentName">Student Name</h2>
+          <p id="modalStudentSub">Class Section • Admission No: —</p>
+          <div class="profile-hero-tags">
+            <span class="hero-tag" id="modalTagClass">Class: —</span>
+            <span class="hero-tag" id="modalTagAdmNo">Adm: —</span>
+            <span class="hero-tag" id="modalTagRoll">Roll: —</span>
+            <span class="hero-tag" id="modalTagBlood">Blood: —</span>
+            <span class="hero-tag" id="modalTagAadhaar">Aadhaar: —</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal & Academic Details -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Personal &amp; Academic Identity
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item"><label>Full Name</label><div class="detail-val" id="mp_name">—</div></div>
+        <div class="detail-item"><label>Admission Number</label><div class="detail-val" id="mp_admNo">—</div></div>
+        <div class="detail-item"><label>Roll Number</label><div class="detail-val" id="mp_rollNo">—</div></div>
+        <div class="detail-item"><label>Class Section</label><div class="detail-val" id="mp_class">—</div></div>
+        <div class="detail-item"><label>Date of Birth</label><div class="detail-val" id="mp_dob">—</div></div>
+        <div class="detail-item"><label>Gender</label><div class="detail-val" id="mp_gender">—</div></div>
+        <div class="detail-item"><label>Blood Group</label><div class="detail-val" id="mp_blood">—</div></div>
+        <div class="detail-item"><label>Aadhaar Number</label><div class="detail-val" id="mp_aadhaar">—</div></div>
+        <div class="detail-item"><label>Student Login Email</label><div class="detail-val" id="mp_email">—</div></div>
+      </div>
+    </div>
+
+    <!-- Parent & Guardian Information -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Parent &amp; Family Information
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item"><label>Father's Name</label><div class="detail-val" id="mp_fatherName">—</div></div>
+        <div class="detail-item"><label>Father's Contact Number</label><div class="detail-val" id="mp_fatherPhone">—</div></div>
+        <div class="detail-item"><label>Mother's Name</label><div class="detail-val" id="mp_motherName">—</div></div>
+        <div class="detail-item"><label>Mother's Contact Number</label><div class="detail-val" id="mp_motherPhone">—</div></div>
+        <div class="detail-item"><label>Parent Portal Login Email</label><div class="detail-val" id="mp_parentEmail">—</div></div>
+        <div class="detail-item"><label>Emergency Contact</label><div class="detail-val" id="mp_emergencyPhone">—</div></div>
+      </div>
+    </div>
+
+    <!-- Residential Address -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Residential Address
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item" style="grid-column: 1 / -1;"><label>Permanent Residential Address</label><div class="detail-val" id="mp_address">—</div></div>
+        <div class="detail-item"><label>City / Town</label><div class="detail-val" id="mp_city">—</div></div>
+        <div class="detail-item"><label>Pincode / Postal Code</label><div class="detail-val" id="mp_pincode">—</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="app-shell">
-  <div class="sidebar">
-    <div class="brand">Amala HSS</div>
-    <div class="brand-sub">Staff Portal</div>
+  <div class="sidebar" id="sidebar">
+    <div class="brand-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <div class="brand-logo" style="width:38px;height:38px;border-radius:8px;background:#fff;padding:4px;display:flex;align-items:center;justify-content:center;">
+        <img data-school-logo src="/image/school logo.jpg" alt="Amala HSS Logo" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+      <div>
+        <div class="brand" style="font-size:17px;font-weight:700;line-height:1.2;">Amala HSS</div>
+        <div class="brand-sub" style="font-size:11px;opacity:0.7;">Staff Portal</div>
+      </div>
+    </div>
     <nav id="navLinks">
-      <a href="#" data-tab="overview" class="active">Overview</a>
-      <a href="#" data-tab="attendance">Mark Attendance</a>
-      <a href="#" data-tab="marks">Upload Marks</a>
-      <a href="#" data-tab="exams">Exam Schedule</a>
-      <a href="#" data-tab="notes">Syllabus Notes</a>
-      <a href="#" data-tab="homework">Homework</a>
-      <a href="#" data-tab="students" id="navStudents" style="display:none;">Manage Students</a>
+      <a href="#" data-tab="overview" class="active">📊 Overview</a>
+      <a href="#" data-tab="lookup">🔍 Student Finder</a>
+      <a href="#" data-tab="attendance">📋 Mark Attendance</a>
+      <a href="#" data-tab="marks">📝 Upload Marks</a>
+      <a href="#" data-tab="exams">📅 Exam Schedule</a>
+      <a href="#" data-tab="notes">📚 Syllabus Notes</a>
+      <a href="#" data-tab="homework">📓 Homework</a>
+      <a href="#" data-tab="students" id="navStudents" style="display:none;">👥 Manage Students</a>
     </nav>
     <div class="user-box">
       <div class="u-name" id="uName">Loading…</div>
       <div class="u-role" id="uType">—</div>
       <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
+      <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
     </div>
   </div>
 
@@ -35,82 +152,110 @@
 
       <!-- OVERVIEW -->
       <section id="panel-overview">
-        <div class="main-header"><div><h2>Welcome<span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Your teaching assignments at a glance.</p></div></div>
-        <div class="card" id="assignBox"></div>
+        <div class="main-header"><div><h2>Welcome <span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Your teaching assignments and class roster at a glance.</p></div></div>
+        <div class="card card-static anim-fadeInUp" id="assignBox"></div>
+      </section>
+
+      <!-- 🔍 DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
+      <section id="panel-lookup" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Instant Student Lookup</h2>
+            <p style="color:var(--ink-soft);">Search any student by class section and Roll Number or Admission Number</p>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, var(--white) 100%); border:1.5px solid var(--brand-green); margin-bottom:24px;">
+          <div class="field-row" style="align-items:flex-end;">
+            <div class="field" style="flex:1.2;">
+              <label>1. Select Class Section</label>
+              <select id="staffFinderClassSel"><option value="">-- Choose Class Section --</option></select>
+            </div>
+            <div class="field" style="flex:1;">
+              <label>2. Enter Roll No. or Register / Adm No.</label>
+              <input type="text" id="staffFinderRollInput" placeholder="e.g. 23 or 2026-001">
+            </div>
+            <div class="field" style="flex:0;">
+              <button type="button" class="btn btn-primary" id="staffFinderSearchBtn" style="white-space:nowrap;">🔍 Find Student</button>
+            </div>
+          </div>
+
+          <!-- Live Result Display Box -->
+          <div id="staffFinderResultBox" style="display:none; margin-top:16px; padding:18px; background:var(--white); border-radius:14px; border:1px solid var(--line); box-shadow:var(--shadow-md);">
+          </div>
+        </div>
       </section>
 
       <!-- ATTENDANCE (class teacher only) -->
       <section id="panel-attendance" style="display:none;">
-        <div class="main-header"><div><h2>Mark Attendance</h2><p style="color:var(--ink-soft);">Available to the class teacher of a section.</p></div></div>
+        <div class="main-header"><div><h2>Mark Attendance</h2><p style="color:var(--ink-soft);">Available to the class teacher of a section (ordered by Roll Number).</p></div></div>
         <div id="attNoAccess" class="empty-state" style="display:none;">You are not set as a class teacher. Ask admin to assign you a class.</div>
         <div id="attAccess" style="display:none;">
-          <div class="field-row" style="align-items:flex-end;">
-            <div class="field"><label>Date</label><input type="date" id="attDate"></div>
-            <div class="field" style="flex:0;"><button class="btn btn-primary" id="attLoadBtn">Load Class List</button></div>
+          <div class="card card-static" style="margin-bottom:20px;">
+            <div class="field-row" style="align-items:flex-end;">
+              <div class="field"><label>Date</label><input type="date" id="attDate"></div>
+              <div class="field" style="flex:0;"><button class="btn btn-primary" id="attLoadBtn">Load Class List</button></div>
+            </div>
           </div>
-          <div class="card table-wrap">
-            <table id="attMarkTable"><thead><tr><th>Student</th><th>Admission No.</th><th>Status</th></tr></thead><tbody></tbody></table>
+          <div class="card card-static table-wrap">
+            <table id="attMarkTable"><thead><tr><th>Roll No.</th><th>Student Name</th><th>Admission No.</th><th>Status</th></tr></thead><tbody></tbody></table>
           </div>
-          <button class="btn btn-brass" id="attSaveBtn" style="margin-top:16px;">Save Attendance</button>
-          <span id="attMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+            <button class="btn btn-brass" id="attSaveBtn">Save Attendance</button>
+            <span id="attMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+          </div>
         </div>
       </section>
 
-      <!-- MARKS (subject staff, any class they teach) -->
+      <!-- MARKS -->
       <section id="panel-marks" style="display:none;">
-        <div class="main-header"><div><h2>Upload Marks</h2><p style="color:var(--ink-soft);">Pick a class and subject you teach, then enter marks for the whole class.</p></div></div>
+        <div class="main-header"><div><h2>Upload Marks</h2><p style="color:var(--ink-soft);">Pick a class and subject you teach, then enter student marks by Roll No.</p></div></div>
         <div id="marksNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet. Ask admin.</div>
         <div id="marksAccess" style="display:none;">
-          <div class="field-row" style="align-items:flex-end;">
-            <div class="field"><label>Class / Subject</label><select id="marksAssignSel"></select></div>
-            <div class="field"><label>Exam Name</label><input type="text" id="marksExamName" placeholder="e.g. Midterm 1"></div>
-            <div class="field"><label>Max Marks</label><input type="number" id="marksMax" value="100"></div>
-            <div class="field" style="flex:0;"><button class="btn btn-primary" id="marksLoadBtn">Load Class List</button></div>
+          <div class="card card-static" style="margin-bottom:20px;">
+            <div class="field-row" style="align-items:flex-end;">
+              <div class="field"><label>Class / Subject</label><select id="marksAssignSel"></select></div>
+              <div class="field"><label>Exam Name</label><input type="text" id="marksExamName" placeholder="e.g. Midterm 1"></div>
+              <div class="field"><label>Max Marks</label><input type="number" id="marksMax" value="100"></div>
+              <div class="field" style="flex:0;"><button class="btn btn-primary" id="marksLoadBtn">Load</button></div>
+            </div>
           </div>
-          <div class="card table-wrap">
-            <table id="marksEntryTable"><thead><tr><th>Student</th><th>Admission No.</th><th>Marks Obtained</th></tr></thead><tbody></tbody></table>
+          <div class="card card-static table-wrap">
+            <table id="marksEntryTable"><thead><tr><th>Roll No.</th><th>Student Name</th><th>Admission No.</th><th>Marks Obtained</th></tr></thead><tbody></tbody></table>
           </div>
-          <button class="btn btn-brass" id="marksSaveBtn" style="margin-top:16px;">Save Marks</button>
-          <span id="marksMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+            <button class="btn btn-brass" id="marksSaveBtn">Save Marks</button>
+            <span id="marksMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+          </div>
         </div>
       </section>
 
       <!-- EXAMS -->
       <section id="panel-exams" style="display:none;">
-        <div class="main-header"><div><h2>Exam Schedule</h2><p style="color:var(--ink-soft);">Add exam dates for classes/subjects you teach.</p></div></div>
-        <div id="examsNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
-        <div id="examsAccess" style="display:none;">
-          <div class="card" style="margin-bottom:20px;">
-            <div class="field-row">
-              <div class="field"><label>Class / Subject</label><select id="examAssignSel"></select></div>
-              <div class="field"><label>Exam Name</label><input type="text" id="examName" placeholder="e.g. Final Exam"></div>
-              <div class="field"><label>Date</label><input type="date" id="examDate"></div>
-            </div>
-            <div class="field"><label>Syllabus / Topics Covered</label><textarea id="examSyllabus" rows="2"></textarea></div>
-            <button class="btn btn-primary" id="examAddBtn">Add Exam</button>
-            <span id="examMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
-          </div>
-          <div class="card table-wrap">
-            <table id="examsListTable"><thead><tr><th>Class</th><th>Subject</th><th>Exam</th><th>Date</th><th></th></tr></thead><tbody></tbody></table>
-          </div>
+        <div class="main-header"><div><h2>Exam Schedule</h2><p style="color:var(--ink-soft);">All upcoming exams scheduled for the school.</p></div></div>
+        <div class="card card-static table-wrap">
+          <table id="examsTable"><thead><tr><th>Date</th><th>Exam</th><th>Class</th><th>Subject</th><th>Syllabus</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="examsEmpty" style="display:none;">No exams scheduled.</div>
         </div>
       </section>
 
       <!-- NOTES -->
       <section id="panel-notes" style="display:none;">
-        <div class="main-header"><div><h2>Syllabus Notes</h2><p style="color:var(--ink-soft);">Upload PDF notes for a subject you teach.</p></div></div>
+        <div class="main-header"><div><h2>Syllabus Notes</h2><p style="color:var(--ink-soft);">Upload PDF study materials for your subjects.</p></div></div>
         <div id="notesNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
         <div id="notesAccess" style="display:none;">
-          <div class="card" style="margin-bottom:20px;">
+          <div class="card card-static" style="margin-bottom:20px;">
             <div class="field-row">
               <div class="field"><label>Class / Subject</label><select id="notesAssignSel"></select></div>
               <div class="field"><label>Title</label><input type="text" id="notesTitle" placeholder="e.g. Chapter 4 Notes"></div>
             </div>
             <div class="field"><label>PDF File</label><input type="file" id="notesFile" accept="application/pdf"></div>
-            <button class="btn btn-primary" id="notesUploadBtn">Upload Note</button>
-            <span id="notesMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button class="btn btn-primary" id="notesUploadBtn">Upload Note</button>
+              <span id="notesMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+            </div>
           </div>
-          <div class="card table-wrap">
+          <div class="card card-static table-wrap">
             <table id="notesListTable"><thead><tr><th>Class</th><th>Subject</th><th>Title</th><th></th></tr></thead><tbody></tbody></table>
           </div>
         </div>
@@ -121,7 +266,7 @@
         <div class="main-header"><div><h2>Homework</h2><p style="color:var(--ink-soft);">Assign homework with an optional PDF attachment.</p></div></div>
         <div id="hwNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
         <div id="hwAccess" style="display:none;">
-          <div class="card" style="margin-bottom:20px;">
+          <div class="card card-static" style="margin-bottom:20px;">
             <div class="field-row">
               <div class="field"><label>Class / Subject</label><select id="hwAssignSel"></select></div>
               <div class="field"><label>Due Date</label><input type="date" id="hwDue"></div>
@@ -129,10 +274,12 @@
             <div class="field"><label>Title</label><input type="text" id="hwTitle" placeholder="e.g. Worksheet 3"></div>
             <div class="field"><label>Description</label><textarea id="hwDesc" rows="2"></textarea></div>
             <div class="field"><label>Attachment (optional PDF)</label><input type="file" id="hwFile" accept="application/pdf"></div>
-            <button class="btn btn-primary" id="hwAddBtn">Assign Homework</button>
-            <span id="hwMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button class="btn btn-primary" id="hwAddBtn">Assign Homework</button>
+              <span id="hwMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+            </div>
           </div>
-          <div class="card table-wrap">
+          <div class="card card-static table-wrap">
             <table id="hwListTable"><thead><tr><th>Class</th><th>Subject</th><th>Title</th><th>Due</th><th></th></tr></thead><tbody></tbody></table>
           </div>
         </div>
@@ -140,43 +287,76 @@
 
       <!-- MANAGE STUDENTS (Class Teacher Only) -->
       <section id="panel-students" style="display:none;">
-        <div class="main-header"><div><h2>Manage Students</h2><p style="color:var(--ink-soft);">Register new students for your class and link parent accounts.</p></div></div>
+        <div class="main-header"><div><h2>Class Student Roster</h2><p style="color:var(--ink-soft);">Register new students for your class with speed-boosted DOB and view ID cards.</p></div></div>
         
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="font-size:15px;">Register New Student</h3>
+        <div class="card card-static" style="margin-bottom:20px;">
+          <h3 style="font-size:15px; margin-bottom:14px;">Register New Student to Your Section</h3>
           <div class="field-row">
-            <div class="field"><label>Full Name</label><input type="text" id="stuName"></div>
-            <div class="field"><label>Admission No.</label><input type="text" id="stuAdm"></div>
-            <div class="field"><label>Date of Birth</label><input type="date" id="stuDob"></div>
+            <div class="field"><label>Full Name *</label><input type="text" id="stuName" placeholder="Full name"></div>
+            <div class="field"><label>Admission No. *</label><input type="text" id="stuAdm" placeholder="e.g. 2026-001"></div>
+            <div class="field"><label>Roll Number</label><input type="text" id="stuRollNo" placeholder="e.g. 23"></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Login Email</label><input type="email" id="stuEmail"></div>
-            <div class="field"><label>Temp Password</label><input type="text" id="stuPass" value="Student@123"></div>
-            <div class="field" style="flex:0; align-self:flex-end;">
-              <button class="btn btn-primary" id="stuAddBtn">Create Student</button>
+            <!-- Speed Boosted DOB -->
+            <div class="field">
+              <label>⚡ Date of Birth (Speed Pick)</label>
+              <div style="display:flex; gap:6px;">
+                <select id="stuDobDay" style="flex:1; padding:10px 4px; font-size:13px;"><option value="">Day</option></select>
+                <select id="stuDobMonth" style="flex:1.4; padding:10px 4px; font-size:13px;">
+                  <option value="">Month</option>
+                  <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option>
+                  <option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option>
+                  <option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option>
+                  <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+                <select id="stuDobYear" style="flex:1.4; padding:10px 4px; font-size:13px;"><option value="">Year</option></select>
+              </div>
             </div>
+            <div class="field"><label>Blood Group</label>
+              <select id="stuBlood">
+                <option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option>
+                <option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div class="field"><label>Login Email *</label><input type="email" id="stuEmail" placeholder="student@school.edu.in"></div>
+            <div class="field"><label>Temp Password *</label><input type="text" id="stuPass" value="Student@123"></div>
           </div>
-          <span id="stuMsg" style="color:var(--good);font-weight:600;"></span>
+          <div style="margin-top:8px;">
+            <button class="btn btn-primary" id="stuAddBtn">Create Student</button>
+            <span id="stuMsg" style="color:var(--good);font-weight:600;font-size:14px;margin-left:12px;"></span>
+          </div>
         </div>
 
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="font-size:15px;">Register Parent (Link to Student)</h3>
+        <div class="card card-static" style="margin-bottom:20px;">
+          <h3 style="font-size:15px; margin-bottom:14px;">Register Parent (Link to Student)</h3>
           <div class="field-row">
-            <div class="field"><label>Parent Name</label><input type="text" id="parName"></div>
+            <div class="field"><label>Parent Name</label><input type="text" id="parName" placeholder="Parent / Guardian name"></div>
             <div class="field"><label>Select Child (Student)</label><select id="parStudentSel"></select></div>
           </div>
           <div class="field-row">
-            <div class="field"><label>Login Email</label><input type="email" id="parEmail"></div>
+            <div class="field"><label>Login Email</label><input type="email" id="parEmail" placeholder="parent@example.com"></div>
             <div class="field"><label>Temp Password</label><input type="text" id="parPass" value="Parent@123"></div>
             <div class="field" style="flex:0; align-self:flex-end;">
               <button class="btn btn-brass" id="parAddBtn">Create Parent</button>
             </div>
           </div>
-          <span id="parMsg" style="color:var(--good);font-weight:600;"></span>
+          <span id="parMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
         </div>
 
-        <div class="card table-wrap">
-          <table id="stuTable"><thead><tr><th>Name</th><th>Admission No.</th><th>Parent Linked</th></tr></thead><tbody></tbody></table>
+        <div class="card card-static table-wrap">
+          <table id="stuTable">
+            <thead>
+              <tr>
+                <th>Roll No.</th>
+                <th>Student Name</th>
+                <th>Admission No.</th>
+                <th>Blood</th>
+                <th>Parent Linked</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
 
@@ -189,9 +369,48 @@ import {
   auth, db, storage, requirePortal, logout, doc, getDoc, setDoc, collection,
   query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp,
   ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
-} from '../js/auth.js';
+} from '../../js/auth.js';
 
-document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
+// Mobile sidebar
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebar = document.getElementById('sidebar');
+
+if (sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('active');
+  });
+}
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('active');
+  });
+}
+
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('erp-theme') || 'light';
+if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = '☀️ Light Mode'; }
+themeToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('erp-theme', isDark ? 'light' : 'dark');
+  themeToggle.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+});
+
+// Toast helper
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout('../../login.html'));
 
 document.querySelectorAll('.sidebar nav a').forEach(a => {
   a.addEventListener('click', (e) => {
@@ -199,211 +418,399 @@ document.querySelectorAll('.sidebar nav a').forEach(a => {
     document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
     a.classList.add('active');
     document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
-    document.getElementById('panel-' + a.dataset.tab).style.display = 'block';
-    if (a.dataset.tab === 'students' && classTeacherClass) loadStudentsForTeacher();
+    const panel = document.getElementById('panel-' + a.dataset.tab);
+    if (panel) {
+      panel.style.display = 'block';
+      panel.style.animation = 'fadeInUp 0.3s ease both';
+    }
+    if (a.dataset.tab === 'exams') loadExams();
+    if (a.dataset.tab === 'notes') loadNotesList();
+    if (a.dataset.tab === 'homework') loadHwList();
+    if (a.dataset.tab === 'students') loadStudentsForTeacher();
   });
 });
 
-let staffData = null;   // staff doc
-let staffUid = null;
-let classTeacherClass = null; // { id, name }
-let subjectAssignments = []; // [{classId, className, subject}]
+// Speed DOB dropdown options init
+const staffDaySel = document.getElementById('stuDobDay');
+const staffYearSel = document.getElementById('stuDobYear');
+if (staffDaySel) {
+  for (let d = 1; d <= 31; d++) {
+    const v = String(d).padStart(2, '0');
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    staffDaySel.appendChild(opt);
+  }
+}
+if (staffYearSel) {
+  const currentY = new Date().getFullYear();
+  for (let y = currentY - 3; y >= 1995; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y); opt.textContent = String(y);
+    if (y === 2010) opt.selected = true;
+    staffYearSel.appendChild(opt);
+  }
+}
+
+// Student Full Profile Modal Handlers
+const studentDetailModal = document.getElementById('studentDetailModal');
+document.getElementById('closeProfileModal').addEventListener('click', () => {
+  studentDetailModal.classList.remove('open');
+});
+studentDetailModal.addEventListener('click', (e) => {
+  if (e.target === studentDetailModal) studentDetailModal.classList.remove('open');
+});
+
+function openStudentProfileModal(s) {
+  const init = (s.name || 'S').charAt(0).toUpperCase();
+  document.getElementById('modalAvatarInit').textContent = init;
+  document.getElementById('modalStudentName').textContent = s.name || 'Student';
+  document.getElementById('modalStudentSub').textContent = `Class ${s.className || '—'} • Admission No: ${s.admissionNo || '—'}`;
+  
+  document.getElementById('modalTagClass').textContent = `Class: ${s.className || '—'}`;
+  document.getElementById('modalTagAdmNo').textContent = `Adm: ${s.admissionNo || '—'}`;
+  document.getElementById('modalTagRoll').textContent = `Roll: ${s.rollNo || s.admissionNo || '—'}`;
+  document.getElementById('modalTagBlood').textContent = `Blood: ${s.bloodGroup || '—'}`;
+  document.getElementById('modalTagAadhaar').textContent = `Aadhaar: ${s.aadhaarNo || '—'}`;
+
+  // Populate Personal Details
+  document.getElementById('mp_name').textContent = s.name || '—';
+  document.getElementById('mp_admNo').textContent = s.admissionNo || '—';
+  document.getElementById('mp_rollNo').textContent = s.rollNo || s.admissionNo || '—';
+  document.getElementById('mp_class').textContent = s.className || '—';
+  document.getElementById('mp_dob').textContent = s.dob || '—';
+  document.getElementById('mp_gender').textContent = s.gender || '—';
+  document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
+  document.getElementById('mp_aadhaar').textContent = s.aadhaarNo || '—';
+  document.getElementById('mp_email').textContent = s.email || '—';
+
+  // Family details
+  document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
+  document.getElementById('mp_fatherPhone').textContent = s.fatherPhone || '—';
+  document.getElementById('mp_motherName').textContent = s.motherName || '—';
+  document.getElementById('mp_motherPhone').textContent = s.motherPhone || '—';
+  document.getElementById('mp_parentEmail').textContent = s.parentEmail || '—';
+  document.getElementById('mp_emergencyPhone').textContent = s.emergencyPhone || s.fatherPhone || '—';
+
+  // Address
+  document.getElementById('mp_address').textContent = s.address || '—';
+  document.getElementById('mp_city').textContent = s.city || '—';
+  document.getElementById('mp_pincode').textContent = s.pincode || '—';
+
+  studentDetailModal.classList.add('open');
+}
+
+let staffUid, staffProfile, classTeacherClass = null, subjectAssignments = [];
+let allSchoolStudentsCache = [];
 
 requirePortal(['staff'], async ({ user, profile }) => {
   staffUid = user.uid;
-  document.getElementById('uName').textContent = profile.name;
+  staffProfile = profile;
+  document.getElementById('uName').textContent = profile.name || 'Faculty';
+  document.getElementById('welcomeName').textContent = ', ' + (profile.name || 'Faculty');
 
-  const staffSnap = await getDoc(doc(db, 'staff', user.uid));
-  staffData = staffSnap.exists() ? staffSnap.data() : { type: 'subject', subjects: [] };
-  document.getElementById('welcomeName').textContent = ', ' + profile.name.split(' ')[0];
-  document.getElementById('uType').textContent =
-    staffData.type === 'both' ? 'Class Teacher & Subject Staff' :
-    staffData.type === 'classTeacher' ? 'Class Teacher' : 'Subject Staff';
-
-  // resolve class-teacher class
-  if (staffData.classTeacherOf) {
-    const c = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
-    if (c.exists()) classTeacherClass = { id: c.id, name: c.data().name };
-  }
-  // resolve subject assignments (already has classId + subject stored, fetch class names)
+  const staffDoc = await getDoc(doc(db, 'staff', staffUid));
+  const staffData = staffDoc.exists() ? staffDoc.data() : {};
   subjectAssignments = staffData.subjects || [];
-  for (const a of subjectAssignments) {
-    const c = await getDoc(doc(db, 'classes', a.classId));
-    a.className = c.exists() ? c.data().name : a.classId;
+
+  if (staffData.classTeacherOf) {
+    const classDoc = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
+    if (classDoc.exists()) {
+      classTeacherClass = { id: classDoc.id, ...classDoc.data() };
+    }
   }
 
-  // overview box
-  const box = document.getElementById('assignBox');
-  let html = '';
-  if (classTeacherClass) html += `<p><span class="badge badge-navy">Class Teacher</span> ${classTeacherClass.name}</p>`;
+  // Set roles label
+  const roles = [];
+  if (classTeacherClass) roles.push(`Class Teacher (${classTeacherClass.name})`);
+  if (subjectAssignments.length) roles.push(`Subject Teacher (${subjectAssignments.length})`);
+  document.getElementById('uType').textContent = roles.join(' • ') || 'Staff';
+
+  // Overview box
+  let html = '<h3>Assigned Classes &amp; Subjects</h3>';
+  if (classTeacherClass) {
+    html += `<div style="margin-bottom:12px;"><span class="badge badge-good">Class Teacher</span> <strong>${classTeacherClass.name}</strong></div>`;
+  }
   if (subjectAssignments.length) {
-    html += '<p style="margin-top:10px;font-weight:600;">Subjects you teach:</p><ul>' +
-      subjectAssignments.map(a => `<li>${a.className} — ${a.subject}</li>`).join('') + '</ul>';
+    html += '<div><strong>Subject Allocations:</strong><ul style="margin:8px 0 0 20px;padding:0;">';
+    subjectAssignments.forEach(a => {
+      html += `<li><strong>${a.subject}</strong> — ${a.className || 'Class'}</li>`;
+    });
+    html += '</ul></div>';
   }
-  if (!classTeacherClass && !subjectAssignments.length) html = '<p>No assignments yet. Contact admin to be assigned a class or subject.</p>';
-  box.innerHTML = html;
+  if (!classTeacherClass && !subjectAssignments.length) {
+    html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
+  }
+  document.getElementById('assignBox').innerHTML = html;
 
-  // populate selects
-  const selHtml = subjectAssignments.map((a, i) => `<option value="${i}">${a.className} — ${a.subject}</option>`).join('');
-  ['marksAssignSel', 'examAssignSel', 'notesAssignSel', 'hwAssignSel'].forEach(id => {
-    document.getElementById(id).innerHTML = selHtml || '<option value="">—</option>';
-  });
+  // Cache school students & classes for finder
+  const [stSnap, clSnap] = await Promise.all([
+    getDocs(collection(db, 'students')),
+    getDocs(collection(db, 'classes'))
+  ]);
+  allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
 
-  // toggle access blocks
-  document.getElementById('attNoAccess').style.display = classTeacherClass ? 'none' : 'block';
-  document.getElementById('attAccess').style.display = classTeacherClass ? 'block' : 'none';
-  ['marks', 'exams', 'notes', 'hw'].forEach(p => {
-    document.getElementById(p + 'NoAccess').style.display = subjectAssignments.length ? 'none' : 'block';
-    document.getElementById(p + 'Access').style.display = subjectAssignments.length ? 'block' : 'none';
-  });
+  const finderClassSel = document.getElementById('staffFinderClassSel');
+  if (finderClassSel) {
+    finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+      clSnap.docs.map(d => `<option value="${d.id}">${d.data().name}</option>`).join('');
+  }
+
+  // Configure Attendance Access
+  if (classTeacherClass) {
+    document.getElementById('attAccess').style.display = 'block';
+    document.getElementById('navStudents').style.display = 'block';
+    document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+  } else {
+    document.getElementById('attNoAccess').style.display = 'block';
+  }
+
+  // Configure Marks Access
+  if (subjectAssignments.length) {
+    document.getElementById('marksAccess').style.display = 'block';
+    document.getElementById('notesAccess').style.display = 'block';
+    document.getElementById('hwAccess').style.display = 'block';
+
+    const opts = subjectAssignments.map((a, i) => `<option value="${i}">${a.className || 'Class'} — ${a.subject}</option>`).join('');
+    document.getElementById('marksAssignSel').innerHTML = opts;
+    document.getElementById('notesAssignSel').innerHTML = opts;
+    document.getElementById('hwAssignSel').innerHTML = opts;
+  } else {
+    document.getElementById('marksNoAccess').style.display = 'block';
+    document.getElementById('notesNoAccess').style.display = 'block';
+    document.getElementById('hwNoAccess').style.display = 'block';
+  }
 
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('content').style.display = 'block';
-
-  if (subjectAssignments.length) { loadExamsList(); loadNotesList(); loadHwList(); }
-  if (classTeacherClass) {
-    document.getElementById('navStudents').style.display = 'block';
-  }
 });
 
+// ======================== 🔍 INSTANT STUDENT LOOKUP ========================
+const staffFinderClassSel = document.getElementById('staffFinderClassSel');
+const staffFinderRollInput = document.getElementById('staffFinderRollInput');
+const staffFinderSearchBtn = document.getElementById('staffFinderSearchBtn');
+const staffFinderResultBox = document.getElementById('staffFinderResultBox');
+
+function runStaffStudentFinder() {
+  const selectedClassId = staffFinderClassSel.value;
+  const rollTerm = staffFinderRollInput.value.trim().toLowerCase();
+
+  if (!rollTerm && !selectedClassId) {
+    staffFinderResultBox.style.display = 'none';
+    return;
+  }
+
+  let matches = allSchoolStudentsCache;
+  if (selectedClassId) {
+    matches = matches.filter(s => s.classId === selectedClassId);
+  }
+  if (rollTerm) {
+    matches = matches.filter(s => 
+      (s.rollNo && s.rollNo.toLowerCase().includes(rollTerm)) ||
+      (s.admissionNo && s.admissionNo.toLowerCase().includes(rollTerm)) ||
+      (s.name && s.name.toLowerCase().includes(rollTerm))
+    );
+  }
+
+  staffFinderResultBox.style.display = 'block';
+  if (!matches.length) {
+    staffFinderResultBox.innerHTML = `
+      <div style="text-align:center; padding:12px; color:var(--ink-soft); font-size:13.5px;">
+        ⚠️ No student found with Roll/Adm No. "<strong>${rollTerm}</strong>" in the selected class.
+      </div>
+    `;
+    return;
+  }
+
+  const s = matches[0];
+  staffFinderResultBox.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:48px; height:48px; border-radius:12px; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">
+          ${(s.name || 'S').charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; font-size:16px; color:var(--ink);">${s.name}</h3>
+            <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">Roll No: ${s.rollNo || '—'}</span>
+            <span class="badge badge-navy" style="font-family:var(--font-mono);">Adm: ${s.admissionNo || '—'}</span>
+          </div>
+          <div style="font-size:13px; color:var(--ink-soft); margin-top:3px;">
+            Class: <strong>${s.className || '—'}</strong> • Father: <strong>${s.fatherName || 'Parent'} (${s.fatherPhone || '—'})</strong> • Blood: <strong>${s.bloodGroup || '—'}</strong>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="staffFinderOpenProfileBtn" style="padding:8px 16px;">
+        🪪 View Complete ID Card &amp; Profile &rarr;
+      </button>
+    </div>
+  `;
+
+  document.getElementById('staffFinderOpenProfileBtn').addEventListener('click', () => {
+    openStudentProfileModal(s);
+  });
+}
+
+if (staffFinderSearchBtn) staffFinderSearchBtn.addEventListener('click', runStaffStudentFinder);
+if (staffFinderRollInput) staffFinderRollInput.addEventListener('input', runStaffStudentFinder);
+if (staffFinderClassSel) staffFinderClassSel.addEventListener('change', runStaffStudentFinder);
+
+// Helper to fetch class students sorted by roll number
 async function getClassStudents(classId) {
   const q = query(collection(db, 'students'), where('classId', '==', classId));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  const list = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  list.sort((a, b) => {
+    const rA = parseInt(a.rollNo) || 9999;
+    const rB = parseInt(b.rollNo) || 9999;
+    return rA - rB;
+  });
+  return list;
 }
 
 // ---------------- ATTENDANCE ----------------
-document.getElementById('attDate').valueAsDate = new Date();
+let currentAttStudents = [];
 document.getElementById('attLoadBtn').addEventListener('click', async () => {
   if (!classTeacherClass) return;
-  const students = await getClassStudents(classTeacherClass.id);
+  const date = document.getElementById('attDate').value;
+  if (!date) { alert('Select a date.'); return; }
+  currentAttStudents = await getClassStudents(classTeacherClass.id);
   const body = document.querySelector('#attMarkTable tbody');
   body.innerHTML = '';
-  students.forEach(s => {
+  if (!currentAttStudents.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);">No students found in this class.</td></tr>';
+    return;
+  }
+
+  // Pre-fetch existing attendance
+  const existingMap = {};
+  const attQ = query(collection(db, 'attendance'), where('classId', '==', classTeacherClass.id), where('date', '==', date));
+  const attSnap = await getDocs(attQ);
+  attSnap.docs.forEach(d => { existingMap[d.data().studentUid] = d.data().status; });
+
+  currentAttStudents.forEach(s => {
+    const currentStatus = existingMap[s.uid] || 'present';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.admissionNo}</td>
-      <td><select data-uid="${s.uid}" class="attStatusSel">
-        <option value="present">Present</option><option value="absent">Absent</option>
-      </select></td>`;
+    tr.innerHTML = `
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
+      <td>
+        <label style="margin-right:12px;font-weight:600;"><input type="radio" name="att_${s.uid}" value="present" ${currentStatus === 'present' ? 'checked' : ''}> Present</label>
+        <label style="margin-right:12px;font-weight:600;color:var(--bad);"><input type="radio" name="att_${s.uid}" value="absent" ${currentStatus === 'absent' ? 'checked' : ''}> Absent</label>
+        <label style="font-weight:600;color:var(--gold-deep);"><input type="radio" name="att_${s.uid}" value="late" ${currentStatus === 'late' ? 'checked' : ''}> Late</label>
+      </td>
+    `;
     body.appendChild(tr);
   });
 });
+
 document.getElementById('attSaveBtn').addEventListener('click', async () => {
+  if (!classTeacherClass || !currentAttStudents.length) return;
   const date = document.getElementById('attDate').value;
-  if (!date) { alert('Pick a date first.'); return; }
-  const sels = document.querySelectorAll('.attStatusSel');
-  if (!sels.length) { alert('Load the class list first.'); return; }
   const btn = document.getElementById('attSaveBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  for (const sel of sels) {
-    const uid = sel.dataset.uid;
-    const status = sel.value;
-    const docId = `${uid}_${date}`;
-    await setDoc(doc(db, 'attendance', docId), {
-      studentUid: uid, classId: classTeacherClass.id, date, status, uploadedBy: staffUid
+  
+  for (const s of currentAttStudents) {
+    const sel = document.querySelector(`input[name="att_${s.uid}"]:checked`);
+    const status = sel ? sel.value : 'present';
+    const attId = `${s.uid}_${date}`;
+    await setDoc(doc(db, 'attendance', attId), {
+      studentUid: s.uid, studentName: s.name, rollNo: s.rollNo || s.admissionNo || '',
+      classId: classTeacherClass.id, date, status, markedBy: staffUid, markedAt: serverTimestamp()
     });
   }
   btn.disabled = false; btn.textContent = 'Save Attendance';
-  document.getElementById('attMsg').textContent = 'Saved for ' + date;
-  setTimeout(() => document.getElementById('attMsg').textContent = '', 3000);
+  showToast('✅ Attendance saved successfully for ' + date);
 });
 
 // ---------------- MARKS ----------------
+let currentMarksStudents = [];
 document.getElementById('marksLoadBtn').addEventListener('click', async () => {
-  const idx = document.getElementById('marksAssignSel').value;
-  if (idx === '') return;
-  const a = subjectAssignments[idx];
-  const students = await getClassStudents(a.classId);
+  const selIdx = document.getElementById('marksAssignSel').value;
+  const a = subjectAssignments[selIdx];
+  if (!a) return;
+  currentMarksStudents = await getClassStudents(a.classId);
   const body = document.querySelector('#marksEntryTable tbody');
   body.innerHTML = '';
-  students.forEach(s => {
+  if (!currentMarksStudents.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);">No students found in this class.</td></tr>';
+    return;
+  }
+  currentMarksStudents.forEach(s => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.admissionNo}</td>
-      <td><input type="number" min="0" class="marksInput" data-uid="${s.uid}" style="width:100px;padding:7px 9px;border:1px solid var(--line);border-radius:4px;"></td>`;
+    tr.innerHTML = `
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
+      <td><input type="number" class="marks-input" data-uid="${s.uid}" placeholder="0" min="0" style="width:90px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);"></td>
+    `;
     body.appendChild(tr);
   });
 });
+
 document.getElementById('marksSaveBtn').addEventListener('click', async () => {
-  const idx = document.getElementById('marksAssignSel').value;
+  const selIdx = document.getElementById('marksAssignSel').value;
+  const a = subjectAssignments[selIdx];
   const examName = document.getElementById('marksExamName').value.trim();
-  const maxMarks = Number(document.getElementById('marksMax').value) || 100;
-  if (idx === '' || !examName) { alert('Choose a class/subject and enter an exam name.'); return; }
-  const a = subjectAssignments[idx];
-  const inputs = document.querySelectorAll('.marksInput');
-  if (!inputs.length) { alert('Load the class list first.'); return; }
+  const maxMarks = parseInt(document.getElementById('marksMax').value) || 100;
+  if (!a || !examName || !currentMarksStudents.length) {
+    alert('Select assignment, enter exam name, and load students first.'); return;
+  }
   const btn = document.getElementById('marksSaveBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  for (const input of inputs) {
-    if (input.value === '') continue;
-    const uid = input.dataset.uid;
-    const docId = `${uid}_${a.classId}_${a.subject}_${examName}`.replace(/\s+/g, '-');
-    await setDoc(doc(db, 'marks', docId), {
-      studentUid: uid, classId: a.classId, subject: a.subject, examName,
-      marks: Number(input.value), maxMarks, uploadedBy: staffUid, updatedAt: serverTimestamp()
+  
+  for (const s of currentMarksStudents) {
+    const inp = document.querySelector(`.marks-input[data-uid="${s.uid}"]`);
+    const marks = inp ? (parseFloat(inp.value) || 0) : 0;
+    await addDoc(collection(db, 'marks'), {
+      studentUid: s.uid, rollNo: s.rollNo || '', classId: a.classId, subject: a.subject,
+      examName, marks, maxMarks, uploadedBy: staffUid, uploadedAt: serverTimestamp()
     });
   }
   btn.disabled = false; btn.textContent = 'Save Marks';
-  document.getElementById('marksMsg').textContent = 'Marks saved for ' + examName;
-  setTimeout(() => document.getElementById('marksMsg').textContent = '', 3000);
+  showToast(`✅ Marks saved for ${a.subject} (${examName})`);
 });
 
-// ---------------- EXAMS ----------------
-document.getElementById('examAddBtn').addEventListener('click', async () => {
-  const idx = document.getElementById('examAssignSel').value;
-  const examName = document.getElementById('examName').value.trim();
-  const date = document.getElementById('examDate').value;
-  const syllabus = document.getElementById('examSyllabus').value.trim();
-  if (idx === '' || !examName || !date) { alert('Fill in class/subject, exam name and date.'); return; }
-  const a = subjectAssignments[idx];
-  await addDoc(collection(db, 'exams'), {
-    classId: a.classId, className: a.className, subject: a.subject, examName, date, syllabus,
-    uploadedBy: staffUid, createdAt: serverTimestamp()
-  });
-  document.getElementById('examName').value = '';
-  document.getElementById('examSyllabus').value = '';
-  document.getElementById('examMsg').textContent = 'Exam added.';
-  setTimeout(() => document.getElementById('examMsg').textContent = '', 3000);
-  loadExamsList();
-});
-async function loadExamsList() {
-  const body = document.querySelector('#examsListTable tbody');
+// ---------------- EXAMS CALENDAR ----------------
+async function loadExams() {
+  const snap = await getDocs(collection(db, 'exams'));
+  const body = document.querySelector('#examsTable tbody');
   body.innerHTML = '';
-  for (const a of subjectAssignments) {
-    const q = query(collection(db, 'exams'), where('classId', '==', a.classId), where('subject', '==', a.subject));
-    const snap = await getDocs(q);
-    snap.docs.forEach(d => {
-      const r = d.data();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td>${r.examName}</td><td>${r.date}</td>
-        <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
-      tr.querySelector('button').addEventListener('click', async () => { await deleteDoc(doc(db, 'exams', d.id)); loadExamsList(); });
-      body.appendChild(tr);
-    });
-  }
+  if (snap.empty) { document.getElementById('examsEmpty').style.display = 'block'; return; }
+  document.getElementById('examsEmpty').style.display = 'none';
+  snap.docs.forEach(d => {
+    const r = d.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="badge badge-yellow" style="font-family:var(--font-mono);">${r.date}</span></td>
+      <td><strong>${r.examName}</strong></td><td>${r.className || 'Class'}</td>
+      <td><span class="badge badge-purple">${r.subject}</span></td><td>${r.syllabus || '—'}</td>`;
+    body.appendChild(tr);
+  });
 }
 
 // ---------------- NOTES ----------------
 document.getElementById('notesUploadBtn').addEventListener('click', async () => {
-  const idx = document.getElementById('notesAssignSel').value;
+  const selIdx = document.getElementById('notesAssignSel').value;
+  const a = subjectAssignments[selIdx];
   const title = document.getElementById('notesTitle').value.trim();
   const file = document.getElementById('notesFile').files[0];
-  if (idx === '' || !title || !file) { alert('Fill in class/subject, title and choose a PDF.'); return; }
-  const a = subjectAssignments[idx];
+  if (!a || !title) { alert('Enter title and select subject.'); return; }
   const btn = document.getElementById('notesUploadBtn');
   btn.disabled = true; btn.textContent = 'Uploading…';
-  const path = `notes/${a.classId}/${a.subject}/${Date.now()}_${file.name}`;
-  const sref = ref(storage, path);
-  await uploadBytes(sref, file);
-  const url = await getDownloadURL(sref);
+  let fileUrl = null;
+  if (file) {
+    const storageRef = ref(storage, `notes/${Date.now()}_${file.name}`);
+    const snap = await uploadBytes(storageRef, file);
+    fileUrl = await getDownloadURL(snap.ref);
+  }
   await addDoc(collection(db, 'notes'), {
-    classId: a.classId, className: a.className, subject: a.subject, title, fileUrl: url,
+    classId: a.classId, className: a.className, subject: a.subject, title, fileUrl,
     uploadedBy: staffUid, uploadedAt: serverTimestamp()
   });
   document.getElementById('notesTitle').value = '';
   document.getElementById('notesFile').value = '';
   btn.disabled = false; btn.textContent = 'Upload Note';
-  document.getElementById('notesMsg').textContent = 'Uploaded.';
-  setTimeout(() => document.getElementById('notesMsg').textContent = '', 3000);
+  showToast('✅ Note uploaded.');
   loadNotesList();
 });
 async function loadNotesList() {
@@ -415,10 +822,10 @@ async function loadNotesList() {
     snap.docs.forEach(d => {
       const r = d.data();
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td>${r.title}</td>
-        <td><a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">View</a>
+      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td><strong>${r.title}</strong></td>
+        <td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">PDF</a>` : ''} 
         <button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
-      tr.querySelector('button').addEventListener('click', async () => { await deleteDoc(doc(db, 'notes', d.id)); loadNotesList(); });
+      tr.querySelector('.btn-danger').addEventListener('click', async () => { await deleteDoc(doc(db, 'notes', d.id)); loadNotesList(); });
       body.appendChild(tr);
     });
   }
@@ -426,21 +833,20 @@ async function loadNotesList() {
 
 // ---------------- HOMEWORK ----------------
 document.getElementById('hwAddBtn').addEventListener('click', async () => {
-  const idx = document.getElementById('hwAssignSel').value;
+  const selIdx = document.getElementById('hwAssignSel').value;
+  const a = subjectAssignments[selIdx];
   const title = document.getElementById('hwTitle').value.trim();
   const description = document.getElementById('hwDesc').value.trim();
   const dueDate = document.getElementById('hwDue').value;
   const file = document.getElementById('hwFile').files[0];
-  if (idx === '' || !title) { alert('Fill in class/subject and title.'); return; }
-  const a = subjectAssignments[idx];
+  if (!a || !title) { alert('Enter title and select subject.'); return; }
   const btn = document.getElementById('hwAddBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  let fileUrl = '';
+  btn.disabled = true; btn.textContent = 'Assigning…';
+  let fileUrl = null;
   if (file) {
-    const path = `homework/${a.classId}/${a.subject}/${Date.now()}_${file.name}`;
-    const sref = ref(storage, path);
-    await uploadBytes(sref, file);
-    fileUrl = await getDownloadURL(sref);
+    const storageRef = ref(storage, `homework/${Date.now()}_${file.name}`);
+    const snap = await uploadBytes(storageRef, file);
+    fileUrl = await getDownloadURL(snap.ref);
   }
   await addDoc(collection(db, 'homework'), {
     classId: a.classId, className: a.className, subject: a.subject, title, description, dueDate, fileUrl,
@@ -450,8 +856,7 @@ document.getElementById('hwAddBtn').addEventListener('click', async () => {
   document.getElementById('hwDesc').value = '';
   document.getElementById('hwFile').value = '';
   btn.disabled = false; btn.textContent = 'Assign Homework';
-  document.getElementById('hwMsg').textContent = 'Assigned.';
-  setTimeout(() => document.getElementById('hwMsg').textContent = '', 3000);
+  showToast('✅ Homework assigned.');
   loadHwList();
 });
 async function loadHwList() {
@@ -463,7 +868,7 @@ async function loadHwList() {
     snap.docs.forEach(d => {
       const r = d.data();
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td>${r.title}</td><td>${r.dueDate || '—'}</td>
+      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td>${r.title}</td><td><span class="badge badge-yellow">${r.dueDate || '—'}</span></td>
         <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
       tr.querySelector('button').addEventListener('click', async () => { await deleteDoc(doc(db, 'homework', d.id)); loadHwList(); });
       body.appendChild(tr);
@@ -476,30 +881,46 @@ document.getElementById('stuAddBtn').addEventListener('click', async () => {
   if (!classTeacherClass) return;
   const name = document.getElementById('stuName').value.trim();
   const admNo = document.getElementById('stuAdm').value.trim();
-  const dob = document.getElementById('stuDob').value;
+  const rollNo = document.getElementById('stuRollNo').value.trim();
+  
+  const d = document.getElementById('stuDobDay').value;
+  const m = document.getElementById('stuDobMonth').value;
+  const y = document.getElementById('stuDobYear').value;
+  const dob = (d && m && y) ? `${y}-${m}-${d}` : '';
+  const blood = document.getElementById('stuBlood').value;
+
   const email = document.getElementById('stuEmail').value.trim();
   const pass = document.getElementById('stuPass').value;
   if (!name || !admNo || !dob || !email || pass.length < 6) {
-    alert('Fill all fields — password needs 6+ characters.'); return;
+    alert('Fill all required fields (*): Name, Admission No, Date of Birth (Day/Month/Year), Email, and Password (6+ chars).'); return;
   }
   const btn = document.getElementById('stuAddBtn');
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
     const secAuth = getSecondaryAuth();
-    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-    const uid = cred.user.uid;
-    
-    await setDoc(doc(db, 'users', uid), { role: 'student', name, email, createdAt: serverTimestamp() });
+    let uid = null;
+    try {
+      const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+      uid = cred.user.uid;
+    } catch(err) {
+      if (err.code === 'auth/email-already-in-use') {
+        const uQ = query(collection(db, 'users'), where('email', '==', email));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) uid = uSnap.docs[0].id;
+      }
+      if (!uid) throw err;
+    }
+
+    await setDoc(doc(db, 'users', uid), { role: 'student', name, email, createdAt: serverTimestamp() }, { merge: true });
     await setDoc(doc(db, 'students', uid), { 
-      name, email, admissionNo: admNo, dob, classId: classTeacherClass.id, className: classTeacherClass.name, parentUid: null, createdAt: serverTimestamp() 
-    });
+      name, email, admissionNo: admNo, rollNo: rollNo || admNo, bloodGroup: blood, dob, classId: classTeacherClass.id, className: classTeacherClass.name, parentUid: null, createdAt: serverTimestamp() 
+    }, { merge: true });
     await fbSignOut(secAuth);
-    
     document.getElementById('stuName').value = '';
     document.getElementById('stuAdm').value = '';
+    document.getElementById('stuRollNo').value = '';
     document.getElementById('stuEmail').value = '';
-    document.getElementById('stuMsg').textContent = 'Student created successfully.';
-    setTimeout(() => document.getElementById('stuMsg').textContent = '', 5000);
+    showToast('✅ Student record created successfully.');
     loadStudentsForTeacher();
   } catch (err) {
     alert(err.message.replace('Firebase: ', ''));
@@ -522,22 +943,27 @@ document.getElementById('parAddBtn').addEventListener('click', async () => {
     const childSnap = await getDoc(doc(db, 'students', childUid));
     if (!childSnap.exists()) throw new Error("Student not found.");
     const childName = childSnap.data().name;
-    
     const secAuth = getSecondaryAuth();
-    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-    const uid = cred.user.uid;
-    
-    await setDoc(doc(db, 'users', uid), { role: 'parent', name, email, createdAt: serverTimestamp() });
-    await setDoc(doc(db, 'parents', uid), { 
-      name, email, childUid, childName, createdAt: serverTimestamp() 
-    });
+    let uid = null;
+    try {
+      const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+      uid = cred.user.uid;
+    } catch(err) {
+      if (err.code === 'auth/email-already-in-use') {
+        const uQ = query(collection(db, 'users'), where('email', '==', email));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) uid = uSnap.docs[0].id;
+      }
+      if (!uid) throw err;
+    }
+
+    await setDoc(doc(db, 'users', uid), { role: 'parent', name, email, createdAt: serverTimestamp() }, { merge: true });
+    await setDoc(doc(db, 'parents', uid), { name, email, childUid, childName, createdAt: serverTimestamp() }, { merge: true });
     await updateDoc(doc(db, 'students', childUid), { parentUid: uid });
     await fbSignOut(secAuth);
-    
     document.getElementById('parName').value = '';
     document.getElementById('parEmail').value = '';
-    document.getElementById('parMsg').textContent = 'Parent created and linked.';
-    setTimeout(() => document.getElementById('parMsg').textContent = '', 5000);
+    showToast('✅ Parent created and linked.');
     loadStudentsForTeacher();
   } catch (err) {
     alert(err.message.replace('Firebase: ', ''));
@@ -552,16 +978,27 @@ async function loadStudentsForTeacher() {
   const body = document.querySelector('#stuTable tbody');
   body.innerHTML = '';
   const parStudentOptions = [];
-  
   students.forEach(s => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.name}</td><td>${s.admissionNo}</td>
-      <td>${s.parentUid ? '<span class="badge badge-good">Yes</span>' : '<span class="badge badge-bad">No</span>'}</td>`;
+    tr.innerHTML = `
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
+      <td><span class="badge badge-purple">${s.bloodGroup || 'O+'}</span></td>
+      <td>${s.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-primary btn-sm staffViewProfileBtn" style="font-size:12px; padding:4px 10px;">🪪 View ID Profile</button>
+      </td>
+    `;
+    tr.querySelector('.staffViewProfileBtn').addEventListener('click', () => {
+      openStudentProfileModal(s);
+    });
     body.appendChild(tr);
     parStudentOptions.push(`<option value="${s.uid}">${s.name} (${s.admissionNo})</option>`);
   });
   document.getElementById('parStudentSel').innerHTML = parStudentOptions.join('');
 }
 </script>
+<script src="../../js/site-brand.js"></script>
 </body>
 </html>

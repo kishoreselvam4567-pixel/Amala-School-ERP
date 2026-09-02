@@ -3,99 +3,449 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parent Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Parent Portal — Amala Higher Secondary School</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+<button class="sidebar-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="toast-container" id="toastContainer"></div>
 <div class="app-shell">
+  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="brand">Amala HSS</div>
-    <div class="brand-sub">Parent Portal</div>
-    <nav>
-      <a href="#" data-tab="overview" class="active">Overview</a>
-      <a href="#" data-tab="attendance">Attendance</a>
-      <a href="#" data-tab="marks">Marks</a>
-      <a href="#" data-tab="exams">Exam Schedule</a>
-      <a href="#" data-tab="notes">Syllabus Notes</a>
-      <a href="#" data-tab="homework">Homework</a>
-    </nav>
-    <div class="user-box">
-      <div class="u-name" id="uName">Loading…</div>
-      <div class="u-role" id="uClass">—</div>
-      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
+    <div class="brand-wrap">
+      <div class="brand-logo"><img data-school-logo src="../image/school logo.jpg" alt="Amala Higher Secondary School logo"></div>
+      <div class="brand-copy">
+        <div class="brand-title">Amala HSS</div>
+        <div class="brand-subtitle">Parent Portal</div>
+      </div>
     </div>
+    
+    <div class="nav-section-title">Main Menu</div>
+    <nav>
+      <a href="#" data-tab="overview" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="#" data-tab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Child Full Profile
+      </a>
+      <a href="#" data-tab="attendance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+        Attendance
+      </a>
+      <a href="#" data-tab="marks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Marks & Report
+      </a>
+      <a href="#" data-tab="exams">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Exam Schedule
+      </a>
+      <a href="#" data-tab="notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
+        Syllabus Notes
+      </a>
+      <a href="#" data-tab="homework">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Homework
+      </a>
+      <a href="#" data-tab="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </a>
+    </nav>
+
+    <!-- Child Quick Info Box -->
+    <div class="sidebar-promo-card">
+      <div class="avatar-pile">
+        <div class="pile-user" id="sideChildInit">C</div>
+      </div>
+      <h4 id="sideChildName">Child Records</h4>
+      <a href="#" data-tab="profile" class="btn-quick-add">View Full Profile</a>
+    </div>
+
+    <div class="user-box">
+      <div class="u-avatar" id="uAvatarInitial" style="background:#0f172a;">P</div>
+      <div class="u-info">
+        <div class="u-name" id="uName">Parent</div>
+        <div class="u-role" id="uClass">Guardian</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Log out">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   </div>
 
+  <!-- MAIN VIEW -->
   <div class="main">
-    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading your data…</div>
+    <!-- Top Navigation Bar -->
+    <div class="topbar">
+      <div class="topbar-search">
+        <span class="search-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" placeholder="Search child progress, marks, exams..." id="topSearchInput">
+        <span class="shortcut-badge">⌘ F</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-icon" title="Notifications" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="dot"></span>
+        </button>
+
+        <div class="user-badge-pill">
+          <div class="pill-avatar" id="topInitial" style="background:var(--card-yellow-bg); color:var(--text-yellow);">P</div>
+          <div class="pill-info">
+            <div class="pill-name" id="topName">Parent User</div>
+            <div class="pill-role">Parent / Guardian</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading your child's data…</div>
 
     <div id="content" style="display:none;">
 
-      <!-- OVERVIEW -->
+      <!-- 1. OVERVIEW TAB -->
       <section id="panel-overview">
-        <div class="main-header"><div><h2>Welcome back<span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Here's a snapshot of your child's academic profile.</p></div></div>
-        <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
-          <div class="card"><div class="pill">Attendance</div><div id="attPct" style="font-family:var(--font-display);font-size:30px;margin-top:8px;">—</div></div>
-          <div class="card"><div class="pill">Avg. Marks</div><div id="avgMarks" style="font-family:var(--font-display);font-size:30px;margin-top:8px;">—</div></div>
-          <div class="card"><div class="pill">Next Exam</div><div id="nextExam" style="font-size:15px;margin-top:8px;font-weight:600;">—</div></div>
+        <div class="main-header">
+          <div>
+            <h2>Parent Dashboard</h2>
+            <p>Academic performance, daily attendance, and schedules for <strong id="overviewChildTitle">your child</strong></p>
+          </div>
         </div>
+
+        <!-- 3 Modern Pastel Metric Cards -->
+        <div class="metric-grid">
+          <!-- Yellow Card: Academic Average -->
+          <div class="metric-card yellow">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+                </div>
+                <span>Avg. Marks Score</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="avgMarks">—</div>
+              <div class="metric-trend trend-up">★ Academic</div>
+            </div>
+            <div class="metric-footer">
+              <span>Overall score</span>
+              <a href="#" data-tab="marks" class="metric-link tab-switch-btn">See Details &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Pink Card: Attendance Rate -->
+          <div class="metric-card pink">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <span>Attendance Rate</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="attPct">—</div>
+              <div class="metric-trend trend-up">Marked Days</div>
+            </div>
+            <div class="metric-footer">
+              <span id="attSummaryShort">Class regular percentage</span>
+              <a href="#" data-tab="attendance" class="metric-link tab-switch-btn">See Details &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Purple Card: Next Exam -->
+          <div class="metric-card purple">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                </div>
+                <span>Next Upcoming Exam</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div style="font-size:18px; font-weight:800; color:var(--text-purple); line-height:1.3;" id="nextExam">—</div>
+            </div>
+            <div class="metric-footer">
+              <span>Class timetable</span>
+              <a href="#" data-tab="exams" class="metric-link tab-switch-btn">See Details &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Schedule Section -->
         <div class="card">
-          <h3>Profile</h3>
-          <table>
-            <tr><th>Child's Name</th><td id="p_name">—</td></tr>
-            <tr><th>Admission No.</th><td id="p_admno">—</td></tr>
-            <tr><th>Class</th><td id="p_class">—</td></tr>
-            <tr><th>Date of Birth</th><td id="p_dob">—</td></tr>
-          </table>
+          <div class="card-header">
+            <div>
+              <h3>Daily Schedule & Notifications</h3>
+              <p>Timetable updates for your child's class</p>
+            </div>
+            <span class="badge badge-navy">School Updates</span>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon-wrap purple">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="activity-info">
+                  <h4>Daily Attendance Recorded</h4>
+                  <p>Attendance is updated in real-time by the class teacher</p>
+                </div>
+              </div>
+              <div class="activity-right">
+                <span class="badge badge-good">Daily</span>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon-wrap yellow">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 1-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+                <div class="activity-info">
+                  <h4>Exam Marks & Progress Reports</h4>
+                  <p>View test performance and percentage breakdown per subject</p>
+                </div>
+              </div>
+              <div class="activity-right">
+                <span class="badge badge-yellow">Updated</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ATTENDANCE -->
+      <!-- 2. FULL CHILD PROFILE TAB -->
+      <section id="panel-profile" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Child Comprehensive Profile</h2>
+            <p>Official student identity, family, Aadhaar, and address records</p>
+          </div>
+          <button class="btn btn-outline" onclick="window.print()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Profile
+          </button>
+        </div>
+
+        <!-- Profile Hero Card -->
+        <div class="profile-hero-card">
+          <div class="profile-hero-left">
+            <div class="profile-big-avatar" id="heroAvatarInit">C</div>
+            <div class="profile-hero-info">
+              <h2 id="heroChildName">Child Name</h2>
+              <p id="heroChildSub">Class — • Adm No: —</p>
+              <div class="profile-hero-tags">
+                <span class="hero-tag" id="tagClass">Class: —</span>
+                <span class="hero-tag" id="tagAdmNo">Adm No: —</span>
+                <span class="hero-tag" id="tagRollNo">Roll No: —</span>
+                <span class="hero-tag" id="tagAadhaar">Aadhaar: —</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <span class="badge badge-good" style="padding:8px 16px; font-size:13px;">✓ Verified Enrolled Student</span>
+          </div>
+        </div>
+
+        <!-- Group 1: Personal & Identification Details -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            1. Personal & Academic Information
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item">
+              <label>Child Full Name</label>
+              <div class="detail-val" id="p_fullname">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Admission Number</label>
+              <div class="detail-val" id="p_admno">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Roll / Reg Number</label>
+              <div class="detail-val" id="p_rollno">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Class & Section</label>
+              <div class="detail-val" id="p_class">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Date of Birth</label>
+              <div class="detail-val" id="p_dob">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Gender</label>
+              <div class="detail-val" id="p_gender">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Blood Group</label>
+              <div class="detail-val" id="p_blood">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Aadhaar Card Number</label>
+              <div class="detail-val" id="p_aadhaar" style="font-family:var(--font-mono); letter-spacing:1px;">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Parent & Family Contact Details -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            2. Parents & Family Contact Details
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item">
+              <label>Father's Name</label>
+              <div class="detail-val" id="p_fatherName">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Father's Phone Number</label>
+              <div class="detail-val" id="p_fatherPhone">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Mother's Name</label>
+              <div class="detail-val" id="p_motherName">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Mother's Phone Number</label>
+              <div class="detail-val" id="p_motherPhone">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Parent Login Account</label>
+              <div class="detail-val" id="p_parentEmail">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Residential & Emergency Contact -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            3. Address & Emergency Information
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <label>Residential Address</label>
+              <div class="detail-val" id="p_address">—</div>
+            </div>
+            <div class="detail-item">
+              <label>City / Town</label>
+              <div class="detail-val" id="p_city">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Pincode</label>
+              <div class="detail-val" id="p_pincode">—</div>
+            </div>
+            <div class="detail-item">
+              <label>Emergency Contact Number</label>
+              <div class="detail-val" id="p_emergencyPhone" style="color:var(--bad);">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. ATTENDANCE TAB -->
       <section id="panel-attendance" style="display:none;">
-        <div class="main-header"><div><h2>Attendance</h2><p style="color:var(--ink-soft);">Marked daily by your class teacher.</p></div></div>
-        <div class="card" style="margin-bottom:20px;">
-          <div class="pill">Overall</div>
-          <div id="attSummary" style="font-family:var(--font-display);font-size:26px;margin-top:6px;">—</div>
+        <div class="main-header">
+          <div>
+            <h2>Attendance Records</h2>
+            <p>Official record marked daily by the class teacher</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div class="pill" style="color:var(--text-pink);">&bull; Total Summary</div>
+            <div id="attSummary" style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-top:6px;">—</div>
+          </div>
+          <div class="badge badge-good" style="padding:10px 18px; font-size:14px;">Recorded Sessions</div>
         </div>
         <div class="card table-wrap">
-          <table id="attTable"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody></tbody></table>
-          <div class="empty-state" id="attEmpty" style="display:none;">No attendance records yet.</div>
+          <table id="attTable"><thead><tr><th>Date</th><th>Session</th><th>Status</th></tr></thead><tbody></tbody></table>
+          <div class="empty-state" id="attEmpty" style="display:none;">No attendance records found yet.</div>
         </div>
       </section>
 
-      <!-- MARKS -->
+      <!-- 4. MARKS TAB -->
       <section id="panel-marks" style="display:none;">
-        <div class="main-header"><div><h2>Marks</h2><p style="color:var(--ink-soft);">Uploaded per subject by your subject teachers.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Exam Marks & Grades</h2>
+            <p>Subject-wise marks and scores uploaded by teachers</p>
+          </div>
+        </div>
         <div class="card table-wrap">
-          <table id="marksTable"><thead><tr><th>Subject</th><th>Exam</th><th>Marks</th><th>Out of</th><th>%</th></tr></thead><tbody></tbody></table>
+          <table id="marksTable"><thead><tr><th>Subject</th><th>Exam</th><th>Marks Obtained</th><th>Maximum Marks</th><th>Percentage</th><th>Grade</th></tr></thead><tbody></tbody></table>
           <div class="empty-state" id="marksEmpty" style="display:none;">No marks uploaded yet.</div>
         </div>
       </section>
 
-      <!-- EXAMS -->
+      <!-- 5. EXAMS TAB -->
       <section id="panel-exams" style="display:none;">
-        <div class="main-header"><div><h2>Exam Schedule</h2><p style="color:var(--ink-soft);">Upcoming and past exams for your class.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Exam Schedule</h2>
+            <p>Upcoming and past examination dates and syllabi</p>
+          </div>
+        </div>
         <div class="card table-wrap">
-          <table id="examsTable"><thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Syllabus</th></tr></thead><tbody></tbody></table>
+          <table id="examsTable"><thead><tr><th>Exam Name</th><th>Subject</th><th>Date</th><th>Syllabus / Topics</th></tr></thead><tbody></tbody></table>
           <div class="empty-state" id="examsEmpty" style="display:none;">No exams scheduled yet.</div>
         </div>
       </section>
 
-      <!-- NOTES -->
+      <!-- 6. NOTES TAB -->
       <section id="panel-notes" style="display:none;">
-        <div class="main-header"><div><h2>Syllabus Notes</h2><p style="color:var(--ink-soft);">PDFs uploaded by your subject teachers.</p></div></div>
-        <div class="grid" id="notesGrid" style="grid-template-columns:repeat(2,1fr);"></div>
+        <div class="main-header">
+          <div>
+            <h2>Syllabus Notes</h2>
+            <p>Downloadable subject notes and study material</p>
+          </div>
+        </div>
+        <div class="grid" id="notesGrid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));"></div>
         <div class="empty-state" id="notesEmpty" style="display:none;">No notes uploaded yet.</div>
       </section>
 
-      <!-- HOMEWORK -->
+      <!-- 7. HOMEWORK TAB -->
       <section id="panel-homework" style="display:none;">
-        <div class="main-header"><div><h2>Homework</h2><p style="color:var(--ink-soft);">Assigned per subject, with due dates.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Homework & Assignments</h2>
+            <p>Assignments given per subject with due dates</p>
+          </div>
+        </div>
         <div class="card table-wrap">
-          <table id="hwTable"><thead><tr><th>Subject</th><th>Title</th><th>Due</th><th>File</th></tr></thead><tbody></tbody></table>
+          <table id="hwTable"><thead><tr><th>Subject</th><th>Assignment Title</th><th>Due Date</th><th>Action</th></tr></thead><tbody></tbody></table>
           <div class="empty-state" id="hwEmpty" style="display:none;">No homework assigned yet.</div>
         </div>
+      </section>
+
+      <!-- ANNOUNCEMENTS TAB -->
+      <section id="panel-announcements" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Announcements</h2>
+            <p>School-wide notices from the administration</p>
+          </div>
+        </div>
+        <div id="announcementsList"></div>
+        <div class="empty-state" id="annEmpty" style="display:none;">No announcements yet.</div>
       </section>
 
     </div>
@@ -110,56 +460,160 @@ import {
 
 document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
 
-// tab nav
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('erp-theme') || 'light';
+if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = '☀️ Light Mode'; }
+themeToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('erp-theme', isDark ? 'light' : 'dark');
+  themeToggle.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+});
+
+// Sidebar overlay for mobile
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    if (sidebar) sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    sidebarOverlay.classList.remove('active');
+  });
+}
+
+const sidebar = document.querySelector('.sidebar');
+const sidebarToggle = document.querySelector('.sidebar-toggle');
+
+if (sidebar && sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => {
+    const isOpen = sidebar.classList.toggle('is-open');
+    sidebarToggle.classList.toggle('is-open', isOpen);
+    sidebarToggle.setAttribute('aria-expanded', String(isOpen));
+  });
+}
+
+function switchTab(targetTab) {
+  document.querySelectorAll('.sidebar nav a').forEach(x => {
+    x.classList.toggle('active', x.dataset.tab === targetTab);
+  });
+  document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
+  const panel = document.getElementById('panel-' + targetTab);
+  if (panel) panel.style.display = 'block';
+
+  if (window.innerWidth <= 820 && sidebar) {
+    sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+  }
+}
+
 document.querySelectorAll('.sidebar nav a').forEach(a => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
-    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
-    document.getElementById('panel-' + a.dataset.tab).style.display = 'block';
+    switchTab(a.dataset.tab);
+  });
+});
+
+document.querySelectorAll('.tab-switch-btn, .btn-quick-add').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const tab = btn.dataset.tab || 'profile';
+    switchTab(tab);
   });
 });
 
 requirePortal(['parent'], async ({ user, profile }) => {
-  document.getElementById('uName').textContent = profile.name;
+  const pName = profile.name || 'Parent';
+  document.getElementById('uName').textContent = pName;
+  document.getElementById('topName').textContent = pName;
 
   const parentSnap = await getDoc(doc(db, 'parents', user.uid));
   const parentData = parentSnap.exists() ? parentSnap.data() : {};
   const childUid = parentData.childUid;
+
   if (!childUid) {
-    document.getElementById('loadingState').innerHTML = 'No child linked to this account yet. Contact admin.';
+    document.getElementById('loadingState').innerHTML = '<div style="padding:40px; text-align:center;"><h3>No student linked yet</h3><p style="color:var(--ink-soft);">Please contact the school administration to link your student profile.</p></div>';
     return;
   }
 
   const stSnap = await getDoc(doc(db, 'students', childUid));
   const student = stSnap.exists() ? stSnap.data() : {};
-  document.getElementById('uClass').textContent = student.className || '—';
-  document.getElementById('welcomeName').textContent = ', ' + profile.name.split(' ')[0];
 
-  document.getElementById('p_name').textContent = student.name || '—';
-  document.getElementById('p_admno').textContent = student.admissionNo || '—';
-  document.getElementById('p_class').textContent = student.className || '—';
-  document.getElementById('p_dob').textContent = student.dob || '—';
+  const childName = student.name || parentData.childName || 'Child';
+  const childInit = childName.charAt(0).toUpperCase();
 
-  // ---- attendance ----
+  document.getElementById('overviewChildTitle').textContent = childName;
+  document.getElementById('sideChildName').textContent = childName;
+  document.getElementById('sideChildInit').textContent = childInit;
+  document.getElementById('heroAvatarInit').textContent = childInit;
+  document.getElementById('heroChildName').textContent = childName;
+
+  const className = student.className || '—';
+  const admNo = student.admissionNo || '—';
+  const rollNo = student.rollNo || student.admissionNo || '—';
+  const aadhaar = student.aadhaarNo || student.aadhaar || '—';
+  const dob = student.dob || '—';
+  const gender = student.gender || '—';
+  const blood = student.bloodGroup || '—';
+
+  // Parent & Family
+  const fatherName = student.fatherName || parentData.name || '—';
+  const fatherPhone = student.fatherPhone || '—';
+  const motherName = student.motherName || '—';
+  const motherPhone = student.motherPhone || '—';
+  const address = student.address || '—';
+  const city = student.city || '—';
+  const pincode = student.pincode || '—';
+  const emergencyPhone = student.emergencyPhone || student.fatherPhone || student.motherPhone || '—';
+
+  document.getElementById('uClass').textContent = 'Child: ' + className;
+  document.getElementById('heroChildSub').textContent = `Class ${className} • Adm No: ${admNo}`;
+  document.getElementById('tagClass').textContent = `Class: ${className}`;
+  document.getElementById('tagAdmNo').textContent = `Adm No: ${admNo}`;
+  document.getElementById('tagRollNo').textContent = `Roll No: ${rollNo}`;
+  document.getElementById('tagAadhaar').textContent = `Aadhaar: ${aadhaar}`;
+
+  // Populate Detailed Profile Tab
+  document.getElementById('p_fullname').textContent = childName;
+  document.getElementById('p_admno').textContent = admNo;
+  document.getElementById('p_rollno').textContent = rollNo;
+  document.getElementById('p_class').textContent = className;
+  document.getElementById('p_dob').textContent = dob;
+  document.getElementById('p_gender').textContent = gender;
+  document.getElementById('p_blood').textContent = blood;
+  document.getElementById('p_aadhaar').textContent = aadhaar;
+
+  document.getElementById('p_fatherName').textContent = fatherName;
+  document.getElementById('p_fatherPhone').textContent = fatherPhone;
+  document.getElementById('p_motherName').textContent = motherName;
+  document.getElementById('p_motherPhone').textContent = motherPhone;
+  document.getElementById('p_parentEmail').textContent = parentData.email || user.email || '—';
+
+  document.getElementById('p_address').textContent = address;
+  document.getElementById('p_city').textContent = city;
+  document.getElementById('p_pincode').textContent = pincode;
+  document.getElementById('p_emergencyPhone').textContent = emergencyPhone;
+
+  // ---- ATTENDANCE ----
   const attQ = query(collection(db, 'attendance'), where('studentUid', '==', childUid));
   const attSnap = await getDocs(attQ);
   const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
   const present = attRows.filter(r => r.status === 'present').length;
   const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
+  
   document.getElementById('attPct').textContent = pct !== null ? pct + '%' : '—';
   document.getElementById('attSummary').textContent = attRows.length
     ? `${present} / ${attRows.length} days present (${pct}%)` : 'No records yet';
+  document.getElementById('attSummaryShort').textContent = attRows.length ? `${present} of ${attRows.length} Days Present` : 'No records yet';
+
   const attBody = document.querySelector('#attTable tbody');
   if (!attRows.length) { document.getElementById('attEmpty').style.display = 'block'; }
   attRows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.date}</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${r.status}</span></td>`;
+    tr.innerHTML = `<td><strong>${r.date}</strong></td><td>Regular School Day</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${r.status.toUpperCase()}</span></td>`;
     attBody.appendChild(tr);
   });
 
-  // ---- marks ----
+  // ---- MARKS ----
   const marksQ = query(collection(db, 'marks'), where('studentUid', '==', childUid));
   const marksSnap = await getDocs(marksQ);
   const marksRows = marksSnap.docs.map(d => d.data());
@@ -169,13 +623,20 @@ requirePortal(['parent'], async ({ user, profile }) => {
   marksRows.forEach(r => {
     const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
     totalPct += p;
+    let grade = 'A';
+    if (p < 40) grade = 'F';
+    else if (p < 60) grade = 'C';
+    else if (p < 75) grade = 'B';
+    else if (p < 90) grade = 'A';
+    else grade = 'A+';
+
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.subject}</td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td>`;
+    tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
     marksBody.appendChild(tr);
   });
   document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
 
-  // ---- exams ----
+  // ---- EXAMS ----
   const examsQ = query(collection(db, 'exams'), where('classId', '==', student.classId || '__none__'));
   const examsSnap = await getDocs(examsQ);
   const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -183,14 +644,14 @@ requirePortal(['parent'], async ({ user, profile }) => {
   if (!examsRows.length) { document.getElementById('examsEmpty').style.display = 'block'; }
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = examsRows.find(r => r.date >= today);
-  document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} — ${upcoming.subject} (${upcoming.date})` : 'None scheduled';
+  document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} (${upcoming.subject})` : 'None scheduled';
   examsRows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.examName}</td><td>${r.subject}</td><td>${r.date}</td><td>${r.syllabus || '—'}</td>`;
+    tr.innerHTML = `<td><strong>${r.examName}</strong></td><td>${r.subject}</td><td>${r.date}</td><td>${r.syllabus || '—'}</td>`;
     examsBody.appendChild(tr);
   });
 
-  // ---- notes ----
+  // ---- NOTES ----
   const notesQ = query(collection(db, 'notes'), where('classId', '==', student.classId || '__none__'));
   const notesSnap = await getDocs(notesQ);
   const notesRows = notesSnap.docs.map(d => d.data());
@@ -199,12 +660,16 @@ requirePortal(['parent'], async ({ user, profile }) => {
   notesRows.forEach(r => {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<div class="pill">${r.subject}</div><h3 style="font-size:16px;margin-top:6px;">${r.title}</h3>
-      <a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm" style="margin-top:10px;">Open PDF</a>`;
+    div.innerHTML = `<div class="pill" style="color:var(--brand-green);">&bull; ${r.subject}</div>
+      <h3 style="font-size:16px;margin:8px 0 14px;">${r.title}</h3>
+      <a href="${r.fileUrl}" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download PDF
+      </a>`;
     notesGrid.appendChild(div);
   });
 
-  // ---- homework ----
+  // ---- HOMEWORK ----
   const hwQ = query(collection(db, 'homework'), where('classId', '==', student.classId || '__none__'));
   const hwSnap = await getDocs(hwQ);
   const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
@@ -212,13 +677,39 @@ requirePortal(['parent'], async ({ user, profile }) => {
   if (!hwRows.length) { document.getElementById('hwEmpty').style.display = 'block'; }
   hwRows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.subject}</td><td>${r.title}<div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">Open</a>` : '—'}</td>`;
+    tr.innerHTML = `<td><strong>${r.subject}</strong></td><td><div><strong>${r.title}</strong></div><div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">Open File</a>` : '—'}</td>`;
     hwBody.appendChild(tr);
   });
+
+  // ---- ANNOUNCEMENTS ----
+  try {
+    const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+    const annSnap = await getDocs(annQ);
+    const annList = document.getElementById('announcementsList');
+    if (annSnap.empty) { document.getElementById('annEmpty').style.display = 'block'; }
+    annSnap.docs.forEach(d => {
+      const r = d.data();
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.style.marginBottom = '14px';
+      const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span class="badge badge-purple">📢 Announcement</span>
+        <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
+      </div>
+      <h3 style="font-size:17px;">${r.title || ''}</h3>
+      <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;">${r.message || ''}</p>`;
+      annList.appendChild(div);
+    });
+  } catch (e) {
+    document.getElementById('annEmpty').style.display = 'block';
+  }
 
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 });
 </script>
+<script src="../js/site-brand.js"></script>
 </body>
 </html>
+

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — Amala Higher Secondary School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(61, 138, 104, 0.88) 100%), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') center/cover;
+    padding: 24px;
+  }
+  .reg-wrap { width: 100%; max-width: 520px; }
+  .back-link {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: rgba(255,255,255,0.7); }
+  .reg-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 42px 38px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+    animation: fadeInScale 0.5s ease both;
+  }
+  .reg-card h1 { font-size: 24px; margin-bottom: 4px; }
+  .reg-card .sub { color: var(--ink-soft); font-size: 14px; margin-bottom: 26px; line-height: 1.5; }
+  .role-toggle {
+    display: flex;
+    gap: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid var(--line);
+    margin-bottom: 22px;
+  }
+  .role-toggle label {
+    flex: 1;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--ink-soft);
+    background: var(--white);
+  }
+  .role-toggle input { display: none; }
+  .role-toggle input:checked + label {
+    background: var(--slate-900);
+    color: #fff;
+  }
+  .role-fields { display: none; }
+  .role-fields.active { display: block; animation: fadeInUp 0.3s ease both; }
+  .foot-links {
+    display: flex;
+    justify-content: center;
+    margin-top: 18px;
+    font-size: 13px;
+    gap: 4px;
+  }
+  .foot-links a { color: var(--brand-green); text-decoration: none; font-weight: 600; }
+  .foot-links a:hover { text-decoration: underline; }
+  .pill-reg {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--brand-green);
+  }
+  .pill-reg::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: var(--brand-green);
+    border-radius: 50%;
+  }
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="reg-wrap">
+  <a href="index.html" class="back-link">&larr; Back to school site</a>
+  <div class="reg-card">
+    <span class="pill-reg">New Account</span>
+    <h1 style="margin-top:8px;">Create Your Account</h1>
+    <p class="sub">Register as a student or parent. You'll need your class registration code (from school admin) to link your account.</p>
+
+    <div class="error-box" id="errBox"></div>
+    <div class="success-box" id="okBox"></div>
+
+    <!-- Role toggle -->
+    <div class="role-toggle">
+      <input type="radio" name="role" id="roleStudent" value="student" checked>
+      <label for="roleStudent">🎓 Student</label>
+      <input type="radio" name="role" id="roleParent" value="parent">
+      <label for="roleParent">👨‍👩‍👧 Parent</label>
+    </div>
+
+    <form id="regForm">
+      <!-- Common fields -->
+      <div class="field">
+        <label for="regName">Full Name</label>
+        <input type="text" id="regName" required placeholder="Enter your full name">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" required placeholder="name@example.com" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="regPass">Password</label>
+          <input type="password" id="regPass" required minlength="6" placeholder="Min 6 characters" autocomplete="new-password">
+        </div>
+      </div>
+
+      <!-- Student-specific fields -->
+      <div id="studentFields" class="role-fields active">
+        <div class="field-row">
+          <div class="field">
+            <label for="stuAdmNo">Admission Number</label>
+            <input type="text" id="stuAdmNo" placeholder="e.g. 2026-001">
+          </div>
+          <div class="field">
+            <label>⚡ Date of Birth (Speed Pick)</label>
+            <div style="display:flex; gap:6px;">
+              <select id="stuDobDay" style="flex:1; padding:10px 4px; font-size:13px;"><option value="">Day</option></select>
+              <select id="stuDobMonth" style="flex:1.4; padding:10px 4px; font-size:13px;">
+                <option value="">Month</option>
+                <option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option>
+                <option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option>
+                <option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option>
+                <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+              </select>
+              <select id="stuDobYear" style="flex:1.4; padding:10px 4px; font-size:13px;"><option value="">Year</option></select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="stuClassCode">Class Registration Code</label>
+          <input type="text" id="stuClassCode" placeholder="e.g. 10A-2026 (given by school)">
+          <div class="hint" style="font-size:12px;color:var(--ink-soft);margin-top:5px;">Ask your class teacher or admin for the code.</div>
+        </div>
+      </div>
+
+      <!-- Parent-specific fields -->
+      <div id="parentFields" class="role-fields">
+        <div class="field">
+          <label for="parChildAdm">Child's Admission Number</label>
+          <input type="text" id="parChildAdm" placeholder="Enter your child's admission number">
+          <div class="hint" style="font-size:12px;color:var(--ink-soft);margin-top:5px;">Your child's student account must already exist.</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="regBtn" style="margin-top:8px;">Create Account</button>
+    </form>
+
+    <div class="foot-links">
+      Already have an account? <a href="login.html">Login here</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  auth, db, createUserWithEmailAndPassword, doc, getDoc, setDoc,
+  collection, query, where, getDocs, serverTimestamp, updateDoc
+} from './js/auth.js';
+import { showBox } from './js/auth.js';
+
+const errBox = document.getElementById('errBox');
+const okBox = document.getElementById('okBox');
+const regBtn = document.getElementById('regBtn');
+
+// Role toggle
+let selectedRole = 'student';
+document.querySelectorAll('input[name="role"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    selectedRole = e.target.value;
+    document.getElementById('studentFields').classList.toggle('active', selectedRole === 'student');
+    document.getElementById('parentFields').classList.toggle('active', selectedRole === 'parent');
+  });
+});
+
+// Populate Speed DOB Options
+const regDaySel = document.getElementById('stuDobDay');
+const regYearSel = document.getElementById('stuDobYear');
+if (regDaySel) {
+  for (let d = 1; d <= 31; d++) {
+    const v = String(d).padStart(2, '0');
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    regDaySel.appendChild(opt);
+  }
+}
+if (regYearSel) {
+  const currentY = new Date().getFullYear();
+  for (let y = currentY - 3; y >= 1995; y--) {
+    const opt = document.createElement('option');
+    opt.value = String(y); opt.textContent = String(y);
+    if (y === 2010) opt.selected = true;
+    regYearSel.appendChild(opt);
+  }
+}
+
+document.getElementById('regForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  showBox(errBox, ''); showBox(okBox, '');
+  regBtn.disabled = true; regBtn.textContent = 'Creating account…';
+
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+
+  try {
+    if (selectedRole === 'student') {
+      const admNo = document.getElementById('stuAdmNo').value.trim();
+      const d = document.getElementById('stuDobDay').value;
+      const m = document.getElementById('stuDobMonth').value;
+      const y = document.getElementById('stuDobYear').value;
+      const dob = (d && m && y) ? `${y}-${m}-${d}` : '';
+      const classCode = document.getElementById('stuClassCode').value.trim();
+
+      if (!admNo || !dob || !classCode) {
+        throw new Error('Please fill in all student fields including Date of Birth (Day/Month/Year) and the class code.');
+      }
+
+      // Look up class by code
+      const classQ = query(collection(db, 'classes'), where('code', '==', classCode));
+      const classSnap = await getDocs(classQ);
+      if (classSnap.empty) {
+        throw new Error('Invalid class code "' + classCode + '". Please check with your class teacher or admin.');
+      }
+      const classDoc = classSnap.docs[0];
+      const classId = classDoc.id;
+      const className = classDoc.data().name;
+
+      // Create Firebase Auth account
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const uid = cred.user.uid;
+
+      // Create user profile + student record
+      await setDoc(doc(db, 'users', uid), {
+        role: 'student', name, email, createdAt: serverTimestamp()
+      });
+      await setDoc(doc(db, 'students', uid), {
+        name, email, admissionNo: admNo, dob, classId, className,
+        parentUid: null, createdAt: serverTimestamp()
+      });
+
+      showBox(okBox, '✅ Student account created! You can now login with your email and password.');
+      document.getElementById('regForm').reset();
+
+    } else {
+      // Parent registration
+      const childAdm = document.getElementById('parChildAdm').value.trim();
+      if (!childAdm) {
+        throw new Error("Please enter your child's admission number.");
+      }
+
+      // Look up student by admission number
+      const stuQ = query(collection(db, 'students'), where('admissionNo', '==', childAdm));
+      const stuSnap = await getDocs(stuQ);
+      if (stuSnap.empty) {
+        throw new Error('No student found with admission number "' + childAdm + '". The student must be registered first.');
+      }
+      const studentDoc = stuSnap.docs[0];
+      const childUid = studentDoc.id;
+      const childName = studentDoc.data().name;
+
+      // Create Firebase Auth account
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      const uid = cred.user.uid;
+
+      // Create user profile + parent record + link
+      await setDoc(doc(db, 'users', uid), {
+        role: 'parent', name, email, createdAt: serverTimestamp()
+      });
+      await setDoc(doc(db, 'parents', uid), {
+        name, email, childUid, childName, createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, 'students', childUid), { parentUid: uid });
+
+      showBox(okBox, '✅ Parent account created and linked to ' + childName + '! You can now login.');
+      document.getElementById('regForm').reset();
+    }
+
+  } catch (err) {
+    let msg = err.message || 'Registration failed.';
+    if (err.code === 'auth/email-already-in-use') {
+      msg = 'This email is already registered. Try logging in instead.';
+    } else if (err.code === 'auth/weak-password') {
+      msg = 'Password must be at least 6 characters.';
+    }
+    msg = msg.replace('Firebase: ', '');
+    showBox(errBox, msg);
+  } finally {
+    regBtn.disabled = false; regBtn.textContent = 'Create Account';
+  }
+});
+</script>
+</body>
+</html>

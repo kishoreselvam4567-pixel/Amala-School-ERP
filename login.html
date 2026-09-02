@@ -3,104 +3,698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal Login — Amala Higher Secondary School</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Student & Staff ERP Portal — Amala Higher Secondary School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <style>
-  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);}
-  .login-wrap{width:100%;max-width:400px;padding:20px;}
-  .login-card{background:var(--white);border-radius:8px;padding:36px 32px;}
-  .back-link{color:#c7cee0;font-size:13px;text-decoration:none;display:inline-block;margin-bottom:18px;}
-  .login-card h1{font-size:23px;margin-bottom:4px;}
-  .login-card .sub{color:var(--ink-soft);font-size:14px;margin-bottom:24px;}
-  .foot-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px;}
-  .foot-links a{color:var(--brass);text-decoration:none;font-weight:600;}
+  :root {
+    --erp-navy: #0f1e36;
+    --erp-blue: #1e3a8a;
+    --erp-accent: #2563eb;
+    --erp-gold: #d97706;
+    --erp-bg: #f1f5f9;
+    --erp-card: #ffffff;
+    --erp-border: #cbd5e1;
+  }
+
+  body {
+    min-height: 100vh;
+    background: #e2e8f0 linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    font-family: var(--font-body);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Top Institutional Header */
+  .erp-header {
+    background: #ffffff;
+    border-bottom: 3px solid #1e3a8a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    padding: 12px 24px;
+  }
+  .erp-header-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .erp-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .erp-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .erp-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .erp-school-info h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f1e36;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .erp-school-info p {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 2px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .erp-portal-badge {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: right;
+  }
+  .erp-portal-badge .title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e3a8a;
+  }
+  .erp-portal-badge .sub {
+    font-size: 11px;
+    color: #64748b;
+  }
+
+  /* Marquee Alert Bar */
+  .erp-ticker {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 8px 0;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-label {
+    background: #d97706;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    border-radius: 4px;
+    margin: 0 14px 0 24px;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .ticker-content {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  /* Main Container */
+  .erp-container {
+    max-width: 1100px;
+    width: 100%;
+    margin: 32px auto;
+    padding: 0 20px;
+    flex: 1;
+  }
+  .erp-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  /* Left Panel: Instructions & Helpdesk */
+  .erp-info-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .instruction-box {
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .instruction-box h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .instruction-box p {
+    font-size: 13px;
+    color: #475569;
+    margin: 0;
+    line-height: 1.55;
+  }
+  .notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .notice-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.45;
+  }
+  .notice-item svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #10b981;
+  }
+
+  .helpdesk-box {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 18px;
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .helpdesk-info h4 {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 2px 0;
+  }
+  .helpdesk-info p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1e36;
+    margin: 0;
+  }
+
+  /* Right Panel: Login Card */
+  .erp-login-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 15px 35px -5px rgba(0,0,0,0.08);
+    padding: 32px 28px;
+    position: relative;
+  }
+  .login-card-head {
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .login-card-head h2 {
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f1e36;
+    margin: 0;
+  }
+  .role-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .role-pill-item {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  /* Input fields */
+  .erp-field {
+    margin-bottom: 16px;
+  }
+  .erp-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .erp-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .erp-input-wrap input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+  }
+  .erp-input-wrap input:focus {
+    outline: none;
+    background: #fff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .toggle-pwd-btn {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Captcha Box (VELS ERP Style) */
+  .captcha-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+  .captcha-display-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .captcha-canvas-wrap {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 14px;
+    letter-spacing: 6px;
+    font-family: 'Outfit', 'Courier New', monospace;
+    font-weight: 800;
+    font-size: 20px;
+    color: #f59e0b;
+    user-select: none;
+    text-align: center;
+    flex: 1;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    transform: skewX(-6deg);
+  }
+  .btn-refresh-captcha {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    width: 38px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.15s ease;
+  }
+  .btn-refresh-captcha:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    transform: rotate(30deg);
+  }
+
+  /* Action Buttons */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .btn-erp-login {
+    background: #1e3a8a;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-shadow: 0 4px 10px rgba(30,58,138,0.25);
+  }
+  .btn-erp-login:hover {
+    background: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(30,58,138,0.3);
+  }
+  .btn-erp-reset {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-erp-reset:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .login-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 12.5px;
+  }
+  .login-card-footer a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .login-card-footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Bottom Institutional Footer */
+  .erp-footer {
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 18px 24px;
+    font-size: 12px;
+    border-top: 1px solid #1e293b;
+  }
+  .erp-footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  @media (max-width: 860px) {
+    .erp-grid { grid-template-columns: 1fr; }
+    .erp-portal-badge { display: none; }
+  }
 </style>
 </head>
 <body>
-<div class="login-wrap">
-  <a href="index.html" class="back-link">&larr; Back to school site</a>
-  <div class="login-card">
-    <h1>School Portal Login</h1>
-    <p class="sub">Sign in to your Student, Parent, Staff, or Admin account.</p>
 
-    <div class="error-box" id="errBox"></div>
-    <div class="success-box" id="okBox"></div>
-
-    <form id="loginForm">
-      <div class="field">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" required autocomplete="username" placeholder="name@example.com">
+  <!-- 1. INSTITUTIONAL HEADER -->
+  <header class="erp-header">
+    <div class="erp-header-inner">
+      <div class="erp-brand">
+        <div class="erp-logo">
+          <img src="image/school logo.jpg" alt="Amala HSS Logo">
+        </div>
+        <div class="erp-school-info">
+          <h1>AMALA HIGHER SECONDARY SCHOOL</h1>
+          <p>Campus Management &amp; Student Information System</p>
+        </div>
       </div>
-      <div class="field">
-        <label for="pass">Password</label>
-        <input type="password" id="pass" required autocomplete="current-password" placeholder="••••••••">
-      </div>
-      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Login to Portal</button>
-    </form>
+    </div>
+  </header>
 
-    <div class="foot-links">
-      <a href="#" id="resetLink">Forgot password?</a>
+  <!-- 2. ANNOUNCEMENT TICKER -->
+  <div class="erp-ticker">
+    <div class="ticker-label">Notice</div>
+    <div class="ticker-content">
+      📢 Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam Schedule, Notes &amp; Circulars online 24/7.
     </div>
   </div>
-</div>
+
+  <!-- 3. MAIN DUAL-PANE BODY -->
+  <main class="erp-container">
+    <div class="erp-grid">
+      
+      <!-- LEFT PANEL: Instructions & Guidelines -->
+      <div class="erp-info-card">
+        <div>
+          <div class="instruction-box">
+            <h3>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              First Time Login Instructions for Students
+            </h3>
+            <p>
+              If you are a student, enter your <strong>Admission Number</strong> or <strong>Registered Email</strong> as User ID, and your assigned password or <strong>Date of Birth (format: DDMMYYYY, e.g. 15082008)</strong> to sign in.
+            </p>
+          </div>
+
+          <div style="font-size:13px; font-weight:700; color:#1e3a8a; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:10px;">
+            Institutional Portal Services:
+          </div>
+
+          <div class="notice-list">
+            <div class="notice-item">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Students &amp; Parents:</strong> Real-time Daily Attendance, Subject-wise Exam Results, Syllabus Notes &amp; Homework Download.</span>
+            </div>
+            <div class="notice-item">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Teachers &amp; Staff:</strong> Digital Class Attendance Register, Marksheet Uploads, and Curriculum Delivery.</span>
+            </div>
+            <div class="notice-item">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>School Administration:</strong> Class Code Provisioning, Staff Matrix, Reports, and Central Notification Broadcasts.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="helpdesk-box">
+          <div class="helpdesk-info">
+            <h4>ERP IT Helpdesk</h4>
+            <p>📞 +91 44 2233 4455 | ✉️ erp-support@amalaschool.edu.in</p>
+          </div>
+          <div>
+            <a href="index.html" class="btn btn-outline btn-sm" style="font-size:12px; padding:6px 12px;">&larr; School Website</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Authentication Form with Captcha -->
+      <div class="erp-login-card">
+        <div class="login-card-head">
+          <h2>Sign In to Portal</h2>
+          <div class="role-pills">
+            <span class="role-pill-item">Student</span>
+            <span class="role-pill-item">Parent</span>
+            <span class="role-pill-item">Staff</span>
+            <span class="role-pill-item">Admin</span>
+          </div>
+        </div>
+
+        <div class="error-box" id="errBox"></div>
+        <div class="success-box" id="okBox"></div>
+
+        <form id="erpLoginForm">
+          <!-- User ID (Admission No / Email) -->
+          <div class="erp-field">
+            <label for="loginUserId">User ID (Admission No. or Email)</label>
+            <div class="erp-input-wrap">
+              <input type="text" id="loginUserId" required autocomplete="username" placeholder="e.g. 2026-001 or name@school.edu.in">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="erp-field">
+            <label for="loginPassword">Password / Date of Birth</label>
+            <div class="erp-input-wrap">
+              <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
+              <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Show/Hide Password" aria-label="Toggle password visibility">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Captcha Row (VELS ERP Signature Component) -->
+          <div class="captcha-row">
+            <div>
+              <label style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Security Captcha</label>
+              <div class="captcha-display-box">
+                <div class="captcha-canvas-wrap" id="captchaDisplay">A8K9</div>
+                <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn" title="Generate New Captcha">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="erp-field" style="margin-bottom:0;">
+              <label for="captchaInput">Enter Captcha</label>
+              <div class="erp-input-wrap">
+                <input type="text" id="captchaInput" required placeholder="Type Code" maxlength="6" style="text-transform:uppercase; font-weight:700;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-row">
+            <button type="submit" class="btn-erp-login" id="loginBtn">Login to ERP</button>
+            <button type="button" class="btn-erp-reset" id="resetBtn">Clear</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 4. FOOTER & SERVER INFO -->
+  <footer class="erp-footer">
+    <div class="erp-footer-inner">
+      <div>&copy; 2025–2026 Amala Higher Secondary School. All rights reserved.</div>
+      <div id="serverClock" style="font-family:monospace; color:#cbd5e1;">Server Time: Loading…</div>
+      <div>Amala HSS ERP Portal</div>
+    </div>
+  </footer>
 
 <script type="module">
-import { auth, db, signInWithEmailAndPassword, doc, getDoc, sendPasswordResetEmail, fbSignOut } from './js/auth.js';
-import { showBox } from './js/auth.js';
+import {
+  auth, db, signInWithEmailAndPassword, doc, getDoc, collection,
+  query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox
+} from './js/auth.js';
 
-const form = document.getElementById('loginForm');
 const errBox = document.getElementById('errBox');
 const okBox = document.getElementById('okBox');
-const submitBtn = document.getElementById('submitBtn');
+const loginBtn = document.getElementById('loginBtn');
+const form = document.getElementById('erpLoginForm');
 
-// All roles supported with auto-routing
-const ALLOWED_ROLES = {
+// 1. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
+let currentCaptcha = '';
+function generateCaptcha() {
+  const numCode = Math.floor(1000 + Math.random() * 9000).toString();
+  currentCaptcha = numCode;
+  document.getElementById('captchaDisplay').textContent = numCode;
+  document.getElementById('captchaInput').value = '';
+}
+generateCaptcha();
+document.getElementById('refreshCaptchaBtn').addEventListener('click', generateCaptcha);
+
+// 2. SHOW / HIDE PASSWORD
+const togglePwdBtn = document.getElementById('togglePwdBtn');
+const pwdInput = document.getElementById('loginPassword');
+togglePwdBtn.addEventListener('click', () => {
+  const isPwd = pwdInput.type === 'password';
+  pwdInput.type = isPwd ? 'text' : 'password';
+});
+
+// 3. RESET FORM
+document.getElementById('resetBtn').addEventListener('click', () => {
+  form.reset();
+  generateCaptcha();
+  showBox(errBox, '');
+  showBox(okBox, '');
+});
+
+// 4. LIVE SERVER CLOCK
+function updateClock() {
+  const now = new Date();
+  const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
+  const clockEl = document.getElementById('serverClock');
+  if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// 5. ROLE DESTINATIONS
+const ROLE_ROUTES = {
   student: 'student/dashboard.html',
   parent: 'parent/dashboard.html',
   staff: 'internal/staff/dashboard.html',
   admin: 'internal/admin/dashboard.html'
 };
 
+// 6. LOGIN HANDLER WITH ADMISSION NO / EMAIL RESOLUTION
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  showBox(errBox, ''); showBox(okBox, '');
-  submitBtn.disabled = true; submitBtn.textContent = 'Signing in…';
-  const email = document.getElementById('email').value.trim();
-  const pass = document.getElementById('pass').value;
+  showBox(errBox, '');
+  showBox(okBox, '');
+
+  // Verify Captcha
+  const userCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase();
+  if (userCaptcha !== currentCaptcha) {
+    showBox(errBox, 'Security Captcha does not match. Please try again.');
+    generateCaptcha();
+    return;
+  }
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Authenticating…';
+
+  const rawUser = document.getElementById('loginUserId').value.trim();
+  const pass = pwdInput.value;
+
   try {
-    const cred = await signInWithEmailAndPassword(auth, email, pass);
-    const snap = await getDoc(doc(db, 'users', cred.user.uid));
-    const role = snap.exists() ? snap.data().role : null;
-    const dest = ALLOWED_ROLES[role];
+    let authEmail = rawUser;
+
+    // If user entered Admission Number (e.g. not an email)
+    if (!rawUser.includes('@')) {
+      const q = query(collection(db, 'students'), where('admissionNo', '==', rawUser));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        throw new Error(`No student account found with Admission No. "${rawUser}". Check with school admin or enter your email.`);
+      }
+      authEmail = snap.docs[0].data().email;
+    }
+
+    const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
+    const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+    const role = userDoc.exists() ? userDoc.data().role : null;
+    const dest = ROLE_ROUTES[role];
+
     if (!dest) {
       await fbSignOut(auth);
-      throw new Error('Account role not recognised or not assigned. Please contact school admin.');
+      throw new Error('User role is unassigned or unrecognized. Contact school IT support.');
     }
-    window.location.href = dest;
+
+    showBox(okBox, 'Login successful! Redirecting to your dashboard…');
+    setTimeout(() => {
+      window.location.href = dest;
+    }, 400);
+
   } catch (err) {
-    let msg = 'Login failed. Check your email and password.';
+    generateCaptcha();
+    let msg = 'Authentication failed. Please check your credentials.';
     if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-      msg = 'Incorrect email or password.';
+      msg = 'Invalid User ID or Password.';
     } else if (err.message) {
-      msg = err.message;
+      msg = err.message.replace('Firebase: ', '');
     }
     showBox(errBox, msg);
   } finally {
-    submitBtn.disabled = false; submitBtn.textContent = 'Login to Portal';
-  }
-});
-
-document.getElementById('resetLink').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  if (!email) { showBox(errBox, 'Enter your email above first, then click "Forgot password?".'); return; }
-  try {
-    await sendPasswordResetEmail(auth, email);
-    showBox(errBox, '');
-    showBox(okBox, 'Password reset email sent to ' + email);
-  } catch (err) {
-    showBox(errBox, 'Could not send reset email: ' + err.message);
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Login to ERP';
   }
 });
 </script>

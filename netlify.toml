@@ -1,0 +1,43 @@
+# Netlify Configuration for Amala HSS School ERP
+
+[build]
+  publish = "."
+
+# Clean URLs & Fallbacks
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/register"
+  to = "/register.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/internal/admin/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/staff"
+  to = "/internal/staff/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/student"
+  to = "/student/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/parent"
+  to = "/parent/dashboard.html"
+  status = 200
+
+# Security Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"

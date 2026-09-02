@@ -39,5 +39,6 @@ service cloud.firestore {
     match /exams/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
     match /notes/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
     match /homework/{docId}   { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /announcements/{docId} { allow read: if signedIn(); allow write: if isAdmin(); }
   }
 }

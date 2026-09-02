@@ -4,190 +4,1396 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/style.css">
+<title>Administrator Portal — Amala Higher Secondary School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/style.css">
+<style>
+  .master-control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .master-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+  .master-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--brand-green);
+  }
+  .master-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .master-card-icon.blue { background: #eff6ff; color: #2563eb; }
+  .master-card-icon.amber { background: #fef3c7; color: #d97706; }
+  .master-card-icon.purple { background: #f3e8ff; color: #9333ea; }
+  .master-card-icon.emerald { background: #ecfdf5; color: #059669; }
+  .master-card-icon.rose { background: #ffe4e6; color: #e11d48; }
+
+  .master-card h4 {
+    font-size: 14.5px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: var(--ink);
+  }
+  .master-card p {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .visual-stats-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  @media(max-width: 900px) {
+    .visual-stats-grid { grid-template-columns: 1fr; }
+  }
+
+  .class-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .class-bar-name {
+    width: 140px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .class-bar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--paper-2);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .class-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 999px;
+    transition: width 0.6s ease;
+  }
+  .class-bar-val {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--ink-soft);
+    width: 45px;
+    text-align: right;
+  }
+
+  /* Form Section Dividers */
+  .admission-section {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .admission-section-head {
+    font-size: 13.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .admission-section-head span.badge-num {
+    background: var(--slate-900);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* Notification Dropdown Flyout */
+  .notif-dropdown {
+    position: absolute;
+    top: 68px;
+    right: 36px;
+    width: 360px;
+    max-width: 90vw;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    display: none;
+    animation: fadeInScale 0.25s ease both;
+  }
+  .notif-dropdown.show { display: block; }
+  .notif-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .notif-head h4 { margin: 0; font-size: 14px; }
+  .notif-body {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .notif-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--paper);
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  /* Full Student Profile Modal */
+  .profile-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .profile-modal-overlay.open { display: flex; }
+  .profile-modal-card {
+    background: var(--white);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    animation: fadeInScale 0.3s ease both;
+  }
+</style>
 </head>
 <body>
-<div class="app-shell">
-  <div class="sidebar">
-    <div class="brand">Amala HSS</div>
-    <div class="brand-sub">Admin Portal</div>
-    <nav>
-      <a href="#" data-tab="overview" class="active">Overview</a>
-      <a href="#" data-tab="classes">Classes</a>
-      <a href="#" data-tab="staff">Staff</a>
-      <a href="#" data-tab="students">Students</a>
-      <a href="#" data-tab="parents">Parents</a>
-    </nav>
-    <div class="user-box">
-      <div class="u-name" id="uName">Loading…</div>
-      <div class="u-role">Administrator</div>
-      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
+
+<button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- NOTIFICATION DROPDOWN FLYOUT -->
+<div class="notif-dropdown" id="notifDropdown">
+  <div class="notif-head">
+    <h4>🔔 Campus Notifications</h4>
+    <span class="badge badge-good" id="notifCountBadge">3 Active</span>
+  </div>
+  <div class="notif-body" id="notifList">
+    <div class="notif-item">
+      <strong>📢 Cloud Sync Active</strong>
+      <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Firestore Database &amp; Auth are operating normally.</div>
+    </div>
+    <div class="notif-item">
+      <strong>🎓 Student Admissions</strong>
+      <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Unified Student + Parent admission engine ready.</div>
+    </div>
+    <div class="notif-item">
+      <strong>📅 Academic Year 2025–2026</strong>
+      <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Semester registers and examinations active.</div>
     </div>
   </div>
+</div>
 
-  <div class="main">
-    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading school data…</div>
+<!-- STUDENT FULL PROFILE MODAL (ID CARD) -->
+<div class="profile-modal-overlay" id="studentDetailModal">
+  <div class="profile-modal-card">
+    <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
+    
+    <div class="profile-hero-card" style="margin-bottom:20px;">
+      <div class="profile-hero-left">
+        <div class="profile-big-avatar" id="modalAvatarInit">S</div>
+        <div class="profile-hero-info">
+          <h2 id="modalStudentName">Student Name</h2>
+          <p id="modalStudentSub">Class Section • Admission No: —</p>
+          <div class="profile-hero-tags">
+            <span class="hero-tag" id="modalTagClass">Class: —</span>
+            <span class="hero-tag" id="modalTagAdmNo">Adm: —</span>
+            <span class="hero-tag" id="modalTagRoll">Roll: —</span>
+            <span class="hero-tag" id="modalTagBlood">Blood: —</span>
+            <span class="hero-tag" id="modalTagAadhaar">Aadhaar: —</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal & Academic Details -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Personal &amp; Academic Identity
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item"><label>Full Name</label><div class="detail-val" id="mp_name">—</div></div>
+        <div class="detail-item"><label>Admission Number</label><div class="detail-val" id="mp_admNo">—</div></div>
+        <div class="detail-item"><label>Roll Number</label><div class="detail-val" id="mp_rollNo">—</div></div>
+        <div class="detail-item"><label>Class Section</label><div class="detail-val" id="mp_class">—</div></div>
+        <div class="detail-item"><label>Date of Birth</label><div class="detail-val" id="mp_dob">—</div></div>
+        <div class="detail-item"><label>Gender</label><div class="detail-val" id="mp_gender">—</div></div>
+        <div class="detail-item"><label>Blood Group</label><div class="detail-val" id="mp_blood">—</div></div>
+        <div class="detail-item"><label>Aadhaar Number</label><div class="detail-val" id="mp_aadhaar">—</div></div>
+        <div class="detail-item"><label>Student Login Email</label><div class="detail-val" id="mp_email">—</div></div>
+      </div>
+    </div>
+
+    <!-- Parent & Guardian Information -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Parent &amp; Family Information
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item"><label>Father's Name</label><div class="detail-val" id="mp_fatherName">—</div></div>
+        <div class="detail-item"><label>Father's Contact Number</label><div class="detail-val" id="mp_fatherPhone">—</div></div>
+        <div class="detail-item"><label>Mother's Name</label><div class="detail-val" id="mp_motherName">—</div></div>
+        <div class="detail-item"><label>Mother's Contact Number</label><div class="detail-val" id="mp_motherPhone">—</div></div>
+        <div class="detail-item"><label>Parent Portal Login Email</label><div class="detail-val" id="mp_parentEmail">—</div></div>
+        <div class="detail-item"><label>Emergency Contact</label><div class="detail-val" id="mp_emergencyPhone">—</div></div>
+      </div>
+    </div>
+
+    <!-- Residential Address -->
+    <div class="profile-group-card">
+      <div class="profile-group-header">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Residential Address
+      </div>
+      <div class="profile-fields-grid">
+        <div class="detail-item" style="grid-column: 1 / -1;"><label>Permanent Residential Address</label><div class="detail-val" id="mp_address">—</div></div>
+        <div class="detail-item"><label>City / Town</label><div class="detail-val" id="mp_city">—</div></div>
+        <div class="detail-item"><label>Pincode / Postal Code</label><div class="detail-val" id="mp_pincode">—</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-wrap">
+      <div class="brand-logo" style="width:38px;height:38px;border-radius:8px;background:#fff;padding:4px;display:flex;align-items:center;justify-content:center;">
+        <img data-school-logo src="/image/school logo.jpg" alt="Amala HSS Logo" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+      <div class="brand-copy">
+        <div class="brand-title">Amala HSS</div>
+        <div class="brand-subtitle">Administrator</div>
+      </div>
+    </div>
+
+    <div class="nav-section-title">Main Menu</div>
+    <nav id="navLinks">
+      <a href="#" data-tab="overview" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        Overview
+      </a>
+      
+      <div class="nav-section-title">Management</div>
+      <a href="#" data-tab="classes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Classes &amp; Sections
+      </a>
+      <a href="#" data-tab="staff">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Teachers &amp; Staff
+      </a>
+      <a href="#" data-tab="students">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        Student Directory
+      </a>
+      <a href="#" data-tab="parents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Parent Linkage
+      </a>
+
+      <div class="nav-section-title">Academic &amp; Reports</div>
+      <a href="#" data-tab="attendance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+        Attendance Reports
+      </a>
+      <a href="#" data-tab="marks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Marks &amp; Results
+      </a>
+      <a href="#" data-tab="exams">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Exam Calendar
+      </a>
+      <a href="#" data-tab="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </a>
+    </nav>
+
+    <!-- Quick Register Mini-Card -->
+    <div class="sidebar-promo-card">
+      <div class="avatar-pile">
+        <div class="pile-user">🎓</div>
+        <div class="pile-user">👨‍🏫</div>
+        <div class="pile-user">👨‍👩‍👧</div>
+      </div>
+      <h4>Unified Student + Parent Admission</h4>
+      <button type="button" class="btn-quick-add" id="sideQuickAddBtn">+ New Admission</button>
+    </div>
+
+    <!-- User Footer -->
+    <div class="user-box">
+      <div class="u-avatar" id="uAvatarInitial">A</div>
+      <div class="u-info">
+        <div class="u-name" id="uName">Administrator</div>
+        <div class="u-role">Super Admin</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Log out">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="main">
+    
+    <!-- TOP NAVIGATION BAR -->
+    <div class="topbar">
+      <div class="topbar-search">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="globalSearchInput" placeholder="Search student name, admission no, roll no, father name, staff…">
+        <span class="shortcut-badge">⌘F</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-icon" title="Notifications" id="notifBellBtn" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="dot"></span>
+        </button>
+        <div class="user-badge-pill">
+          <div class="pill-avatar" id="topAvatarInit">A</div>
+          <div class="pill-info">
+            <div class="pill-name" id="topAdminName">Admin</div>
+            <div class="pill-role">Campus Management</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div id="loadingState" class="empty-state">
+      <span class="loader"></span> Loading campus analytics &amp; master data…
+    </div>
+
     <div id="content" style="display:none;">
 
-      <!-- OVERVIEW -->
+      <!-- ================= 1. OVERVIEW PANEL ================= -->
       <section id="panel-overview">
-        <div class="main-header"><div><h2>School Overview</h2><p style="color:var(--ink-soft);">Everything at a glance.</p></div></div>
-        <div class="grid" style="grid-template-columns:repeat(4,1fr);">
-          <div class="card"><div class="pill">Classes</div><div id="cntClasses" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
-          <div class="card"><div class="pill">Staff</div><div id="cntStaff" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
-          <div class="card"><div class="pill">Students</div><div id="cntStudents" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
-          <div class="card"><div class="pill">Parents Linked</div><div id="cntParents" style="font-family:var(--font-display);font-size:28px;margin-top:8px;">—</div></div>
+        <div class="main-header">
+          <div>
+            <h2>Dashboard Overview</h2>
+            <p id="todayDateStr" style="color:var(--ink-soft);font-size:13.5px;">Live campus metrics and management control center</p>
+          </div>
+          <div>
+            <button class="btn btn-primary btn-sm" id="overviewAnnBtn" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              + Broadcast Notice
+            </button>
+          </div>
         </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="metric-grid">
+          <div class="metric-card yellow anim-fadeInUp anim-delay-1">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">🎓</div>
+                <span>Total Students</span>
+              </div>
+              <span class="badge badge-yellow">Enrolled</span>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="cntStudents">0</div>
+              <div class="metric-trend trend-up">Active Roster</div>
+            </div>
+            <div class="metric-footer">
+              <span>Class distribution ready</span>
+              <a href="#" class="metric-link" data-go-tab="students">View Directory &rarr;</a>
+            </div>
+          </div>
+
+          <div class="metric-card pink anim-fadeInUp anim-delay-2">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">👨‍🏫</div>
+                <span>Teaching Staff</span>
+              </div>
+              <span class="badge badge-bad" style="background:#ffe4e6;color:#9f1239;">Faculty</span>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="cntStaff">0</div>
+              <div class="metric-trend trend-up">Subject Matrix</div>
+            </div>
+            <div class="metric-footer">
+              <span>Teachers &amp; Mentors</span>
+              <a href="#" class="metric-link" data-go-tab="staff">Manage Staff &rarr;</a>
+            </div>
+          </div>
+
+          <div class="metric-card purple anim-fadeInUp anim-delay-3">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">🏫</div>
+                <span>Classes &amp; Sections</span>
+              </div>
+              <span class="badge badge-purple">Academic</span>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="cntClasses">0</div>
+              <div class="metric-trend trend-up">Active Codes</div>
+            </div>
+            <div class="metric-footer">
+              <span>Standard 9th &amp; 10th Sections</span>
+              <a href="#" class="metric-link" data-go-tab="classes">Configure &rarr;</a>
+            </div>
+          </div>
+
+          <div class="metric-card teal anim-fadeInUp anim-delay-4">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">👨‍👩‍👧</div>
+                <span>Parent Portals</span>
+              </div>
+              <span class="badge" style="background:#ccfbf1;color:#115e59;">Connected</span>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="cntParents">0</div>
+              <div class="metric-trend trend-up">Guardian Links</div>
+            </div>
+            <div class="metric-footer">
+              <span>Live Student Monitoring</span>
+              <a href="#" class="metric-link" data-go-tab="parents">Parent List &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Control Panel -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header">
+            <div>
+              <h3>Master Control Panel</h3>
+              <p>Quick operational shortcuts for day-to-day campus administration</p>
+            </div>
+          </div>
+
+          <div class="master-control-grid">
+            <div class="master-card" data-go-tab="students">
+              <div>
+                <div class="master-card-icon blue">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                </div>
+                <h4>Student Admissions</h4>
+                <p>Register new student &amp; parent profile combined</p>
+              </div>
+            </div>
+
+            <div class="master-card" data-go-tab="staff">
+              <div>
+                <div class="master-card-icon amber">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h4>Teacher Matrix</h4>
+                <p>Provision staff credentials &amp; assign class teachers</p>
+              </div>
+            </div>
+
+            <div class="master-card" data-go-tab="classes">
+              <div>
+                <div class="master-card-icon purple">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <h4>Class Sections</h4>
+                <p>Create sections and generate self-registration codes</p>
+              </div>
+            </div>
+
+            <div class="master-card" data-go-tab="attendance">
+              <div>
+                <div class="master-card-icon emerald">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+                </div>
+                <h4>Attendance Audit</h4>
+                <p>Cross-class attendance analytics &amp; absent lists</p>
+              </div>
+            </div>
+
+            <div class="master-card" data-go-tab="announcements">
+              <div>
+                <div class="master-card-icon rose">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </div>
+                <h4>Notice Broadcast</h4>
+                <p>Post school-wide circulars visible across all portals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Analytics & Live Feed Row -->
+        <div class="visual-stats-grid">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+              <div>
+                <h3>Class Enrollment Distribution</h3>
+                <p>Student strength per active academic class</p>
+              </div>
+              <button class="btn btn-outline btn-sm" data-go-tab="classes">All Classes</button>
+            </div>
+            <div id="classDistributionList" style="padding-top:6px;">
+              <div class="empty-state" style="padding:24px 0;">Loading class breakdown…</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+              <div>
+                <h3>System Status</h3>
+                <p>Cloud database &amp; services</p>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--paper); border-radius:12px; border:1px solid var(--line);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="width:10px; height:10px; border-radius:50%; background:var(--good);"></span>
+                  <div>
+                    <strong style="font-size:13px; color:var(--ink);">Firestore DB</strong>
+                    <div style="font-size:11.5px; color:var(--ink-soft);">Connected • Cloud Sync</div>
+                  </div>
+                </div>
+                <span class="badge badge-good">Healthy</span>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--paper); border-radius:12px; border:1px solid var(--line);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="width:10px; height:10px; border-radius:50%; background:var(--good);"></span>
+                  <div>
+                    <strong style="font-size:13px; color:var(--ink);">Firebase Auth</strong>
+                    <div style="font-size:11.5px; color:var(--ink-soft);">Unified Multi-Role</div>
+                  </div>
+                </div>
+                <span class="badge badge-good">Online</span>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:var(--paper); border-radius:12px; border:1px solid var(--line);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="width:10px; height:10px; border-radius:50%; background:var(--brand-green);"></span>
+                  <div>
+                    <strong style="font-size:13px; color:var(--ink);">Storage CDN</strong>
+                    <div style="font-size:11.5px; color:var(--ink-soft);">Notes &amp; PDF attachments</div>
+                  </div>
+                </div>
+                <span class="badge badge-navy">Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
-      <!-- CLASSES -->
+      <!-- ================= 2. CLASSES TAB ================= -->
       <section id="panel-classes" style="display:none;">
-        <div class="main-header"><div><h2>Classes</h2><p style="color:var(--ink-soft);">Create classes and their self-registration code.</p></div></div>
-        <div class="card" style="margin-bottom:20px;">
-          <div class="field-row">
-            <div class="field"><label>Class Name</label><input type="text" id="clsName" placeholder="e.g. Class 10 - Section A"></div>
-            <div class="field"><label>Registration Code</label><input type="text" id="clsCode" placeholder="e.g. 10A-2026"></div>
+        <div class="main-header">
+          <div>
+            <h2>Classes &amp; Registration Codes</h2>
+            <p>Define academic sections and issue student registration codes</p>
           </div>
-          <button class="btn btn-primary" id="clsAddBtn">Add Class</button>
-          <span id="clsMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
         </div>
-        <div class="card table-wrap">
-          <table id="clsTable"><thead><tr><th>Class</th><th>Code</th><th>Class Teacher</th><th></th></tr></thead><tbody></tbody></table>
-        </div>
-      </section>
 
-      <!-- STAFF -->
-      <section id="panel-staff" style="display:none;">
-        <div class="main-header"><div><h2>Staff</h2><p style="color:var(--ink-soft);">Create staff logins and assign classes/subjects.</p></div></div>
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="font-size:15px;">Create Staff Login</h3>
-          <div class="field-row">
-            <div class="field"><label>Name</label><input type="text" id="stfName"></div>
-            <div class="field"><label>Email</label><input type="email" id="stfEmail"></div>
-            <div class="field"><label>Temp Password</label><input type="text" id="stfPass" value="Welcome@123"></div>
-          </div>
-          <button class="btn btn-primary" id="stfAddBtn">Create Staff Account</button>
-          <span id="stfMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
-        </div>
-        <div class="card table-wrap" style="margin-bottom:20px;">
-          <table id="stfTable"><thead><tr><th>Name</th><th>Email</th><th>Class Teacher Of</th><th>Subjects</th><th></th></tr></thead><tbody></tbody></table>
-        </div>
         <div class="card">
-          <h3 style="font-size:15px;">Assign Class Teacher</h3>
+          <div class="form-section-title">Create New Class Section</div>
           <div class="field-row">
-            <div class="field"><label>Staff</label><select id="ctStaffSel"></select></div>
-            <div class="field"><label>Class</label><select id="ctClassSel"></select></div>
-            <div class="field" style="flex:0;align-self:flex-end;"><button class="btn btn-outline" id="ctAssignBtn">Assign</button></div>
+            <div class="field">
+              <label>Class Name</label>
+              <input type="text" id="clsName" placeholder="e.g. Class 10 - Section A">
+            </div>
+            <div class="field">
+              <label>Registration Code</label>
+              <input type="text" id="clsCode" placeholder="e.g. 10A-2026">
+            </div>
           </div>
-          <h3 style="font-size:15px;margin-top:22px;">Assign Subject</h3>
-          <div class="field-row">
-            <div class="field"><label>Staff</label><select id="subStaffSel"></select></div>
-            <div class="field"><label>Class</label><select id="subClassSel"></select></div>
-            <div class="field"><label>Subject</label><input type="text" id="subSubject" placeholder="e.g. Mathematics"></div>
-            <div class="field" style="flex:0;align-self:flex-end;"><button class="btn btn-outline" id="subAssignBtn">Assign</button></div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="btn btn-primary" id="clsAddBtn">+ Add Class Section</button>
+            <span id="clsMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
           </div>
-          <span id="assignMsg" style="color:var(--good);font-weight:600;"></span>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="clsTable">
+            <thead>
+              <tr>
+                <th>Class Name</th>
+                <th>Registration Code</th>
+                <th>Assigned Class Teacher</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
 
-      <!-- STUDENTS -->
+      <!-- ================= 3. STAFF TAB ================= -->
+      <section id="panel-staff" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Teachers &amp; Faculty Management</h2>
+            <p>Create staff credentials and assign teaching roles</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-section-title">Register New Faculty Account</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="stfName" placeholder="e.g. Dr. K. Ramesh">
+            </div>
+            <div class="field">
+              <label>Login Email</label>
+              <input type="email" id="stfEmail" placeholder="staff@amalaschool.edu.in">
+            </div>
+            <div class="field">
+              <label>Temp Password</label>
+              <input type="text" id="stfPass" value="Welcome@123">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="stfAddBtn">+ Create Faculty Account</button>
+          <span id="stfMsg" style="color:var(--good); font-weight:700; font-size:13.5px; margin-left:12px;"></span>
+        </div>
+
+        <div class="card table-wrap" style="margin-bottom:24px;">
+          <table id="stfTable">
+            <thead>
+              <tr>
+                <th>Faculty Name</th>
+                <th>Email</th>
+                <th>Class Teacher Of</th>
+                <th>Subject Assignments</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="form-section-title">Teaching Assignment Matrix</div>
+          
+          <h4 style="font-size:14px; margin:16px 0 8px 0;">1. Assign Class Teacher (Attendance &amp; Mentorship)</h4>
+          <div class="field-row">
+            <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
+            <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
+            <div class="field" style="flex:0; align-self:flex-end;">
+              <button class="btn btn-dark" id="ctAssignBtn">Assign Class Teacher</button>
+            </div>
+          </div>
+
+          <h4 style="font-size:14px; margin:22px 0 8px 0;">2. Assign Subject Teaching (Marks, Notes &amp; Exams)</h4>
+          <div class="field-row">
+            <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
+            <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
+            <div class="field"><label>Subject Name</label><input type="text" id="subSubject" placeholder="e.g. Mathematics / Physics"></div>
+            <div class="field" style="flex:0; align-self:flex-end;">
+              <button class="btn btn-primary" id="subAssignBtn">Assign Subject</button>
+            </div>
+          </div>
+          <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
+        </div>
+      </section>
+
+      <!-- ================= 4. COMPREHENSIVE UNIFIED STUDENT & PARENT ADMISSION ================= -->
       <section id="panel-students" style="display:none;">
-        <div class="main-header"><div><h2>Students</h2><p style="color:var(--ink-soft);">Register new students and view all students.</p></div></div>
-        
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="font-size:15px;">Register New Student</h3>
-          <div class="field-row">
-            <div class="field"><label>Full Name</label><input type="text" id="stuName"></div>
-            <div class="field"><label>Admission No.</label><input type="text" id="stuAdm"></div>
-            <div class="field"><label>Date of Birth</label><input type="date" id="stuDob"></div>
+        <div class="main-header">
+          <div>
+            <h2>Student Admissions &amp; Comprehensive Directory</h2>
+            <p>Unified admission portal: register student identity, family details &amp; parent credentials in one step</p>
           </div>
-          <div class="field-row">
-            <div class="field"><label>Class</label><select id="stuClassSelAdd"></select></div>
-            <div class="field"><label>Login Email</label><input type="email" id="stuEmail"></div>
-            <div class="field"><label>Temp Password</label><input type="text" id="stuPass" value="Student@123"></div>
-          </div>
-          <button class="btn btn-primary" id="stuAddBtn">Create Student Account</button>
-          <span id="stuMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
         </div>
 
+        <!-- 🔍 DEDICATED CLASS & ROLL NUMBER / REGISTER NUMBER INSTANT FINDER -->
+        <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, var(--white) 100%); border:1.5px solid var(--brand-green); margin-bottom:24px;">
+          <div class="card-header" style="margin-bottom:14px;">
+            <div>
+              <h3 style="color:#166534; display:flex; align-items:center; gap:8px;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                Instant Student Lookup by Class &amp; Roll Number
+              </h3>
+              <p>Quickly locate any student by choosing their class and typing their Roll No. or Register/Adm No.</p>
+            </div>
+          </div>
+
+          <div class="field-row" style="align-items:flex-end;">
+            <div class="field" style="flex:1.2;">
+              <label>1. Select Class Section</label>
+              <select id="finderClassSel"><option value="">-- Choose Class Section --</option></select>
+            </div>
+            <div class="field" style="flex:1;">
+              <label>2. Enter Roll Number or Register/Adm No.</label>
+              <input type="text" id="finderRollInput" placeholder="e.g. 23 or 2026-001">
+            </div>
+            <div class="field" style="flex:0;">
+              <button type="button" class="btn btn-primary" id="finderSearchBtn" style="white-space:nowrap;">🔍 Find Student</button>
+            </div>
+          </div>
+
+          <!-- Live Result Display Box -->
+          <div id="finderResultBox" style="display:none; margin-top:16px; padding:18px; background:var(--white); border-radius:14px; border:1px solid var(--line); box-shadow:var(--shadow-md);">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- UNIFIED ADMISSION FORM WITH SPEED-BOOSTED DOB -->
+        <div class="card">
+          <div class="form-section-title">Complete Unified Student &amp; Parent Admission Form</div>
+
+          <!-- Section 1: Student Identity & Academic Profile -->
+          <div class="admission-section">
+            <div class="admission-section-head">
+              <span class="badge-num">1</span>
+              Student Personal &amp; Academic Identity
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Student Full Name *</label>
+                <input type="text" id="stuName" required placeholder="Full legal name of student">
+              </div>
+              <div class="field">
+                <label>Admission Number *</label>
+                <input type="text" id="stuAdm" required placeholder="e.g. 2026-001 (Unique ID)">
+              </div>
+              <div class="field">
+                <label>Roll Number</label>
+                <input type="text" id="stuRollNo" placeholder="e.g. 23">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Assign Class Section *</label>
+                <select id="stuClassSelAdd"></select>
+              </div>
+
+              <!-- SPEED-BOOSTED DATE OF BIRTH PICKER (Day + Month + Year Quick Dropdown) -->
+              <div class="field">
+                <label>⚡ Date of Birth * (Speed Pick)</label>
+                <div style="display:flex; gap:6px;">
+                  <select id="stuDobDay" style="flex:1; padding:10px 6px;">
+                    <option value="">Day</option>
+                  </select>
+                  <select id="stuDobMonth" style="flex:1.4; padding:10px 6px;">
+                    <option value="">Month</option>
+                    <option value="01">Jan (01)</option>
+                    <option value="02">Feb (02)</option>
+                    <option value="03">Mar (03)</option>
+                    <option value="04">Apr (04)</option>
+                    <option value="05">May (05)</option>
+                    <option value="06">Jun (06)</option>
+                    <option value="07">Jul (07)</option>
+                    <option value="08">Aug (08)</option>
+                    <option value="09">Sep (09)</option>
+                    <option value="10">Oct (10)</option>
+                    <option value="11">Nov (11)</option>
+                    <option value="12">Dec (12)</option>
+                  </select>
+                  <select id="stuDobYear" style="flex:1.4; padding:10px 6px;">
+                    <option value="">Year</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Gender</label>
+                <select id="stuGender">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Blood Group</label>
+                <select id="stuBlood">
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Aadhaar / National ID Number</label>
+                <input type="text" id="stuAadhaar" placeholder="12-digit Aadhaar Number">
+              </div>
+              <div class="field">
+                <label>Student Login Email *</label>
+                <input type="email" id="stuEmail" required placeholder="student@school.edu.in">
+              </div>
+              <div class="field">
+                <label>Student Password *</label>
+                <input type="text" id="stuPass" value="Student@123">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Parent & Family Details -->
+          <div class="admission-section">
+            <div class="admission-section-head">
+              <span class="badge-num">2</span>
+              Parent &amp; Family Information (Auto-creates Parent Portal Account)
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Father's Name *</label>
+                <input type="text" id="parFatherName" required placeholder="Father / Primary Guardian Name">
+              </div>
+              <div class="field">
+                <label>Father's Mobile Number *</label>
+                <input type="tel" id="parFatherPhone" required placeholder="e.g. +91 9876543210">
+              </div>
+              <div class="field">
+                <label>Mother's Name</label>
+                <input type="text" id="parMotherName" placeholder="Mother's Name">
+              </div>
+              <div class="field">
+                <label>Mother's Mobile Number</label>
+                <input type="tel" id="parMotherPhone" placeholder="Mobile Number">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Parent Portal Login Email *</label>
+                <input type="email" id="parLoginEmail" required placeholder="parent@example.com">
+              </div>
+              <div class="field">
+                <label>Parent Portal Password *</label>
+                <input type="text" id="parLoginPass" value="Parent@123">
+              </div>
+              <div class="field">
+                <label>Emergency Contact Phone</label>
+                <input type="tel" id="stuEmergencyPhone" placeholder="Emergency contact phone">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Residential Address -->
+          <div class="admission-section">
+            <div class="admission-section-head">
+              <span class="badge-num">3</span>
+              Residential &amp; Postal Address
+            </div>
+            <div class="field">
+              <label>Street Address</label>
+              <input type="text" id="stuAddress" placeholder="Door No, Street name, Area">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>City / Town</label>
+                <input type="text" id="stuCity" placeholder="e.g. Chennai">
+              </div>
+              <div class="field">
+                <label>Pincode</label>
+                <input type="text" id="stuPincode" placeholder="e.g. 600001">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px;">
+            <button class="btn btn-primary" id="unifiedAdmissionBtn" style="padding:13px 26px; font-size:15px; font-weight:700;">
+              ✨ Complete Unified Student + Parent Admission
+            </button>
+            <span id="stuMsg" style="color:var(--good); font-weight:700; font-size:14px;"></span>
+          </div>
+        </div>
+
+        <!-- Student Directory Table with Filter by Class Section -->
         <div class="card table-wrap">
-          <table id="stuTable"><thead><tr><th>Name</th><th>Admission No.</th><th>Class</th><th>Parent Linked</th><th></th></tr></thead><tbody></tbody></table>
+          <div class="card-header" style="flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3>Campus Student Directory</h3>
+              <p>Click "View Profile" to open full ID card and family details</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <label style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin:0;">Filter Class:</label>
+              <select id="stuTableClassFilter" style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600;">
+                <option value="">All Classes (Show All)</option>
+              </select>
+            </div>
+          </div>
+          <table id="stuTable">
+            <thead>
+              <tr>
+                <th>Student Identity</th>
+                <th>Admission No.</th>
+                <th>Roll No.</th>
+                <th>Class Section</th>
+                <th>Father / Contact</th>
+                <th>Blood</th>
+                <th>Parent Account</th>
+                <th style="text-align:right;">Profile &amp; Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
 
-      <!-- PARENTS -->
+      <!-- ================= 5. PARENTS TAB ================= -->
       <section id="panel-parents" style="display:none;">
-        <div class="main-header"><div><h2>Parents</h2><p style="color:var(--ink-soft);">Create parent accounts and link them to students.</p></div></div>
-        
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="font-size:15px;">Register Parent</h3>
-          <div class="field-row">
-            <div class="field"><label>Parent Name</label><input type="text" id="parName"></div>
-            <div class="field"><label>Select Child (Student)</label><select id="parStudentSel"></select></div>
+        <div class="main-header">
+          <div>
+            <h2>Parent &amp; Guardian Portals</h2>
+            <p>View all registered parent accounts linked to students</p>
           </div>
-          <div class="field-row">
-            <div class="field"><label>Login Email</label><input type="email" id="parEmail"></div>
-            <div class="field"><label>Temp Password</label><input type="text" id="parPass" value="Parent@123"></div>
-          </div>
-          <button class="btn btn-primary" id="parAddBtn">Create Parent Account</button>
-          <span id="parMsg" style="margin-left:12px;color:var(--good);font-weight:600;"></span>
         </div>
 
         <div class="card table-wrap">
-          <table id="parTable"><thead><tr><th>Name</th><th>Email</th><th>Linked Child</th><th></th></tr></thead><tbody></tbody></table>
+          <table id="parTable">
+            <thead>
+              <tr>
+                <th>Parent Name</th>
+                <th>Login Email Address</th>
+                <th>Linked Child (Student)</th>
+                <th>Contact Phone</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
+      </section>
+
+      <!-- ================= 6. ATTENDANCE REPORTS TAB ================= -->
+      <section id="panel-attendance" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Campus Attendance Intelligence</h2>
+            <p>Generate full attendance percentage breakdowns across sections</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="field-row" style="align-items:flex-end;">
+            <div class="field">
+              <label>Filter by Class Section</label>
+              <select id="attClassFilter"><option value="">All Classes</option></select>
+            </div>
+            <div class="field" style="flex:0;">
+              <button class="btn btn-primary" id="attReportBtn">Generate Audit Report</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="attReportTable">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Days Present</th>
+                <th>Total Days</th>
+                <th>Attendance %</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="attReportEmpty" style="display:none;">Select a class and click "Generate Audit Report".</div>
+        </div>
+      </section>
+
+      <!-- ================= 7. MARKS REPORTS TAB ================= -->
+      <section id="panel-marks" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Academic Performance &amp; Marks</h2>
+            <p>Review subject marks and examination results by class</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px;">
+          <div class="field-row" style="align-items:flex-end;">
+            <div class="field">
+              <label>Filter by Class Section</label>
+              <select id="marksClassFilter"><option value="">All Classes</option></select>
+            </div>
+            <div class="field" style="flex:0;">
+              <button class="btn btn-primary" id="marksReportBtn">Generate Marks Sheet</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="marksReportTable">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Exam Name</th>
+                <th>Marks Obtained</th>
+                <th>Max Marks</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="marksReportEmpty" style="display:none;">Select a class and click "Generate Marks Sheet".</div>
+        </div>
+      </section>
+
+      <!-- ================= 8. EXAM CALENDAR TAB ================= -->
+      <section id="panel-exams" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Master Exam Calendar</h2>
+            <p>All scheduled examination dates and syllabi across grades</p>
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <table id="examCalTable">
+            <thead>
+              <tr>
+                <th>Exam Date</th>
+                <th>Exam Title</th>
+                <th>Class Section</th>
+                <th>Subject</th>
+                <th>Syllabus / Topics</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="examCalEmpty" style="display:none;">No exams scheduled yet.</div>
+        </div>
+      </section>
+
+      <!-- ================= 9. ANNOUNCEMENTS TAB ================= -->
+      <section id="panel-announcements" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>School Announcements &amp; Circulars</h2>
+            <p>Broadcast high-priority notices to students, parents, and faculty</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-section-title">Publish New Announcement</div>
+          <div class="field">
+            <label>Announcement Title</label>
+            <input type="text" id="annTitle" placeholder="e.g. Midterm Examination Schedule Released">
+          </div>
+          <div class="field">
+            <label>Detailed Message Content</label>
+            <textarea id="annMessage" rows="3" placeholder="Type circular text, instructions, or holiday notices here…"></textarea>
+          </div>
+          <button class="btn btn-primary" id="annPostBtn">📢 Broadcast to All Portals</button>
+          <span id="annMsg" style="color:var(--good); font-weight:700; font-size:13.5px; margin-left:12px;"></span>
+        </div>
+
+        <div id="annList"></div>
+        <div class="empty-state" id="annEmpty" style="display:none;">No school announcements posted yet.</div>
       </section>
 
     </div>
-  </div>
+  </main>
 </div>
 
 <script type="module">
 import {
   auth, db, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, where, getDocs, addDoc, serverTimestamp,
+  collection, query, where, getDocs, addDoc, serverTimestamp, orderBy,
   getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
-} from '../js/auth.js';
+} from '../../js/auth.js';
 
-document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
+// Mobile sidebar toggle
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+if (sidebarToggle) {
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('is-open');
+    sidebarToggle.classList.toggle('is-open');
+    sidebarOverlay.classList.toggle('active');
+  });
+}
+if (sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', () => {
+    sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    sidebarOverlay.classList.remove('active');
+  });
+}
+
+// Notification Dropdown Toggle
+const notifBellBtn = document.getElementById('notifBellBtn');
+const notifDropdown = document.getElementById('notifDropdown');
+if (notifBellBtn && notifDropdown) {
+  notifBellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notifDropdown.classList.toggle('show');
+  });
+  document.addEventListener('click', (e) => {
+    if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn) {
+      notifDropdown.classList.remove('show');
+    }
+  });
+}
+
+// Dark Mode Toggle
+const themeToggle = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('erp-theme') || 'light';
+if (savedTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  themeToggle.textContent = '☀️ Light Mode';
+}
+themeToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('erp-theme', isDark ? 'light' : 'dark');
+  themeToggle.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+});
+
+// Toast Helper
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', () => logout('../../login.html'));
+
+// Tab Switching
+function switchTab(tabName) {
+  document.querySelectorAll('.sidebar nav a').forEach(x => {
+    x.classList.toggle('active', x.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
+  const panel = document.getElementById('panel-' + tabName);
+  if (panel) {
+    panel.style.display = 'block';
+    panel.style.animation = 'fadeInUp 0.3s ease both';
+  }
+  if (tabName === 'classes') loadClasses();
+  if (tabName === 'staff') { loadStaff(); loadClasses(); }
+  if (tabName === 'students') { loadStudents(); loadClasses(); }
+  if (tabName === 'parents') { loadParents(); loadStudents(); }
+  if (tabName === 'exams') loadExamCalendar();
+  if (tabName === 'announcements') loadAnnouncements();
+
+  if (window.innerWidth <= 820) {
+    sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    sidebarOverlay.classList.remove('active');
+  }
+}
 
 document.querySelectorAll('.sidebar nav a').forEach(a => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
-    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
-    document.getElementById('panel-' + a.dataset.tab).style.display = 'block';
-    if (a.dataset.tab === 'classes') loadClasses();
-    if (a.dataset.tab === 'staff') { loadStaff(); loadClasses(); }
-    if (a.dataset.tab === 'students') loadStudents();
-    if (a.dataset.tab === 'parents') loadParents();
+    switchTab(a.dataset.tab);
   });
 });
 
+document.querySelectorAll('[data-go-tab]').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab(btn.dataset.goTab);
+  });
+});
+
+document.getElementById('sideQuickAddBtn')?.addEventListener('click', () => switchTab('students'));
+document.getElementById('overviewAnnBtn')?.addEventListener('click', () => switchTab('announcements'));
+
+// ======================== SPEED-BOOSTED DATE OF BIRTH PICKER INIT ========================
+function initSpeedDobPicker() {
+  const daySel = document.getElementById('stuDobDay');
+  const yearSel = document.getElementById('stuDobYear');
+
+  if (daySel && daySel.options.length <= 1) {
+    for (let d = 1; d <= 31; d++) {
+      const val = String(d).padStart(2, '0');
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      daySel.appendChild(opt);
+    }
+  }
+
+  if (yearSel && yearSel.options.length <= 1) {
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 3; y >= 1995; y--) {
+      const opt = document.createElement('option');
+      opt.value = String(y);
+      opt.textContent = String(y);
+      if (y === 2010) opt.selected = true; // sensible default school age
+      yearSel.appendChild(opt);
+    }
+  }
+}
+initSpeedDobPicker();
+
+// Live Global Search Filter (⌘F or Typing)
+const globalSearchInput = document.getElementById('globalSearchInput');
+if (globalSearchInput) {
+  globalSearchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('#stuTable tbody tr').forEach(row => {
+      const txt = row.textContent.toLowerCase();
+      row.style.display = txt.includes(term) ? '' : 'none';
+    });
+    document.querySelectorAll('#stfTable tbody tr').forEach(row => {
+      const txt = row.textContent.toLowerCase();
+      row.style.display = txt.includes(term) ? '' : 'none';
+    });
+    document.querySelectorAll('#clsTable tbody tr').forEach(row => {
+      const txt = row.textContent.toLowerCase();
+      row.style.display = txt.includes(term) ? '' : 'none';
+    });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      e.preventDefault();
+      globalSearchInput.focus();
+    }
+  });
+}
+
+// Student Full Profile Modal Handlers
+const studentDetailModal = document.getElementById('studentDetailModal');
+document.getElementById('closeProfileModal').addEventListener('click', () => {
+  studentDetailModal.classList.remove('open');
+});
+studentDetailModal.addEventListener('click', (e) => {
+  if (e.target === studentDetailModal) studentDetailModal.classList.remove('open');
+});
+
+// Cache
+let allClasses = [];
+let allStudentsCache = [];
+
 requirePortal(['admin'], async ({ user, profile }) => {
-  document.getElementById('uName').textContent = profile.name;
+  const adminName = profile.name || 'Administrator';
+  document.getElementById('uName').textContent = adminName;
+  document.getElementById('topAdminName').textContent = adminName;
+  const initial = adminName.charAt(0).toUpperCase();
+  document.getElementById('uAvatarInitial').textContent = initial;
+  document.getElementById('topAvatarInit').textContent = initial;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateEl = document.getElementById('todayDateStr');
+  if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
+
+  await loadClasses();
   await loadOverview();
+
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 });
 
+// ======================== OVERVIEW ========================
 async function loadOverview() {
-  const [c, s, st, p] = await Promise.all([
+  const [cSnap, sSnap, stSnap, pSnap] = await Promise.all([
     getDocs(collection(db, 'classes')),
     getDocs(collection(db, 'staff')),
     getDocs(collection(db, 'students')),
     getDocs(collection(db, 'parents'))
   ]);
-  document.getElementById('cntClasses').textContent = c.size;
-  document.getElementById('cntStaff').textContent = s.size;
-  document.getElementById('cntStudents').textContent = st.size;
-  document.getElementById('cntParents').textContent = p.size;
+
+  document.getElementById('cntClasses').textContent = cSnap.size;
+  document.getElementById('cntStaff').textContent = sSnap.size;
+  document.getElementById('cntStudents').textContent = stSnap.size;
+  document.getElementById('cntParents').textContent = pSnap.size;
+
+  // Render Class Distribution Widget
+  const distList = document.getElementById('classDistributionList');
+  distList.innerHTML = '';
+  if (cSnap.empty) {
+    distList.innerHTML = '<div class="empty-state" style="padding:18px 0;">No classes created yet.</div>';
+    return;
+  }
+
+  const studentsList = stSnap.docs.map(d => d.data());
+  const maxCap = Math.max(1, ...cSnap.docs.map(cd => studentsList.filter(s => s.classId === cd.id).length));
+
+  cSnap.docs.forEach(cd => {
+    const cls = cd.data();
+    const count = studentsList.filter(s => s.classId === cd.id).length;
+    const pct = Math.min(100, Math.round((count / Math.max(maxCap, 30)) * 100));
+
+    const row = document.createElement('div');
+    row.className = 'class-bar-row';
+    row.innerHTML = `
+      <div class="class-bar-name" title="${cls.name}">${cls.name}</div>
+      <div class="class-bar-track">
+        <div class="class-bar-fill" style="width:${pct}%;"></div>
+      </div>
+      <div class="class-bar-val">${count} std</div>
+    `;
+    distList.appendChild(row);
+  });
 }
 
-// ---------------- CLASSES ----------------
+// ======================== CLASSES ========================
 document.getElementById('clsAddBtn').addEventListener('click', async () => {
   const name = document.getElementById('clsName').value.trim();
   const code = document.getElementById('clsCode').value.trim();
@@ -195,15 +1401,18 @@ document.getElementById('clsAddBtn').addEventListener('click', async () => {
   await addDoc(collection(db, 'classes'), { name, code, classTeacherUid: null, createdAt: serverTimestamp() });
   document.getElementById('clsName').value = '';
   document.getElementById('clsCode').value = '';
-  document.getElementById('clsMsg').textContent = 'Class added.';
-  setTimeout(() => document.getElementById('clsMsg').textContent = '', 2500);
-  loadClasses();
+  showToast('✅ Class section added.');
+  await loadClasses();
+  await loadOverview();
 });
+
 async function loadClasses() {
   const snap = await getDocs(collection(db, 'classes'));
+  allClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   const body = document.querySelector('#clsTable tbody');
   body.innerHTML = '';
   const selOptions = [];
+
   for (const d of snap.docs) {
     const r = d.data();
     let teacherName = '—';
@@ -212,18 +1421,41 @@ async function loadClasses() {
       if (t.exists()) teacherName = t.data().name;
     }
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.name}</td><td><code>${r.code}</code></td><td>${teacherName}</td>
-      <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
-    tr.querySelector('button').addEventListener('click', async () => {
-      if (confirm('Delete this class? Existing student links will remain.')) { await deleteDoc(doc(db, 'classes', d.id)); loadClasses(); }
+    tr.innerHTML = `
+      <td><strong>${r.name}</strong></td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.code}</span></td>
+      <td>${teacherName}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-danger btn-sm clsDelBtn" data-id="${d.id}">Delete</button>
+      </td>
+    `;
+    tr.querySelector('.clsDelBtn').addEventListener('click', async () => {
+      if (confirm(`Delete class "${r.name}"?`)) {
+        await deleteDoc(doc(db, 'classes', d.id));
+        showToast('Class deleted.');
+        await loadClasses();
+        await loadOverview();
+      }
     });
     body.appendChild(tr);
     selOptions.push(`<option value="${d.id}">${r.name}</option>`);
   }
-  ['ctClassSel', 'subClassSel', 'stuClassSelAdd'].forEach(id => document.getElementById(id).innerHTML = selOptions.join(''));
+
+  ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = (id === 'finderClassSel' ? '<option value="">-- Choose Class Section --</option>' : '') + selOptions.join('');
+  });
+
+  const classOpts = '<option value="">All Classes</option>' + selOptions.join('');
+  const attF = document.getElementById('attClassFilter');
+  const mrkF = document.getElementById('marksClassFilter');
+  const stuTblF = document.getElementById('stuTableClassFilter');
+  if (attF) attF.innerHTML = classOpts;
+  if (mrkF) mrkF.innerHTML = classOpts;
+  if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
 }
 
-// ---------------- STAFF ----------------
+// ======================== STAFF ========================
 document.getElementById('stfAddBtn').addEventListener('click', async () => {
   const name = document.getElementById('stfName').value.trim();
   const email = document.getElementById('stfEmail').value.trim();
@@ -232,22 +1464,32 @@ document.getElementById('stfAddBtn').addEventListener('click', async () => {
   const btn = document.getElementById('stfAddBtn');
   btn.disabled = true; btn.textContent = 'Creating…';
   try {
-    // Use a secondary auth instance so creating this user doesn't sign the admin out.
     const secAuth = getSecondaryAuth();
-    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-    const uid = cred.user.uid;
-    await setDoc(doc(db, 'users', uid), { role: 'staff', name, email, createdAt: serverTimestamp() });
-    await setDoc(doc(db, 'staff', uid), { name, email, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() });
+    let uid = null;
+    try {
+      const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+      uid = cred.user.uid;
+    } catch(err) {
+      if (err.code === 'auth/email-already-in-use') {
+        const uQ = query(collection(db, 'users'), where('email', '==', email));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) uid = uSnap.docs[0].id;
+      }
+      if (!uid) throw err;
+    }
+
+    await setDoc(doc(db, 'users', uid), { role: 'staff', name, email, createdAt: serverTimestamp() }, { merge: true });
+    await setDoc(doc(db, 'staff', uid), { name, email, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() }, { merge: true });
     await fbSignOut(secAuth);
     document.getElementById('stfName').value = '';
     document.getElementById('stfEmail').value = '';
-    document.getElementById('stfMsg').textContent = 'Staff account created. Share the email + password with them.';
-    setTimeout(() => document.getElementById('stfMsg').textContent = '', 5000);
-    loadStaff();
+    showToast('✅ Faculty account created/updated.');
+    await loadStaff();
+    await loadOverview();
   } catch (err) {
     alert(err.message.replace('Firebase: ', ''));
   } finally {
-    btn.disabled = false; btn.textContent = 'Create Staff Account';
+    btn.disabled = false; btn.textContent = '+ Create Faculty Account';
   }
 });
 
@@ -256,26 +1498,41 @@ async function loadStaff() {
   const body = document.querySelector('#stfTable tbody');
   body.innerHTML = '';
   const selOptions = [];
+
   for (const d of snap.docs) {
     const r = d.data();
     let ctName = '—';
     if (r.classTeacherOf) {
       const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
-      if (c.exists()) ctName = c.data().name;
+      if (c.exists()) ctName = `<span class="badge badge-good">${c.data().name}</span>`;
     }
-    const subjects = (r.subjects || []).map(s => s.subject).join(', ') || '—';
+    const subjects = (r.subjects || []).map(s => `<span class="badge badge-purple" style="margin:2px;">${s.subject} (${s.className || ''})</span>`).join('') || '—';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.name}</td><td>${r.email}</td><td>${ctName}</td><td>${subjects}</td>
-      <td><button class="btn btn-danger btn-sm" data-id="${d.id}">Remove</button></td>`;
-    tr.querySelector('button').addEventListener('click', async () => {
-      if (confirm('Remove this staff profile? (Login account itself must be removed from Firebase Console.)')) {
-        await deleteDoc(doc(db, 'staff', d.id)); loadStaff();
+    tr.innerHTML = `
+      <td><strong>${r.name}</strong></td>
+      <td style="font-size:13px; color:var(--ink-soft);">${r.email}</td>
+      <td>${ctName}</td>
+      <td>${subjects}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}">Remove</button>
+      </td>
+    `;
+    tr.querySelector('.stfDelBtn').addEventListener('click', async () => {
+      if (confirm(`Remove faculty profile "${r.name}"?`)) {
+        await deleteDoc(doc(db, 'staff', d.id));
+        showToast('Faculty removed.');
+        await loadStaff();
+        await loadOverview();
       }
     });
     body.appendChild(tr);
     selOptions.push(`<option value="${d.id}">${r.name}</option>`);
   }
-  ['ctStaffSel', 'subStaffSel'].forEach(id => document.getElementById(id).innerHTML = selOptions.join(''));
+
+  ['ctStaffSel', 'subStaffSel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = selOptions.join('');
+  });
 }
 
 document.getElementById('ctAssignBtn').addEventListener('click', async () => {
@@ -289,9 +1546,8 @@ document.getElementById('ctAssignBtn').addEventListener('click', async () => {
     type: (current.subjects && current.subjects.length) ? 'both' : 'classTeacher'
   });
   await updateDoc(doc(db, 'classes', classId), { classTeacherUid: staffUid });
-  document.getElementById('assignMsg').textContent = 'Class teacher assigned.';
-  setTimeout(() => document.getElementById('assignMsg').textContent = '', 3000);
-  loadStaff(); loadClasses();
+  showToast('✅ Class teacher assigned.');
+  await loadStaff(); await loadClasses();
 });
 
 document.getElementById('subAssignBtn').addEventListener('click', async () => {
@@ -299,172 +1555,580 @@ document.getElementById('subAssignBtn').addEventListener('click', async () => {
   const classId = document.getElementById('subClassSel').value;
   const subject = document.getElementById('subSubject').value.trim();
   if (!staffUid || !classId || !subject) { alert('Fill all fields.'); return; }
+  
+  const classSnap = await getDoc(doc(db, 'classes', classId));
+  const className = classSnap.exists() ? classSnap.data().name : '';
+
   const staffSnap = await getDoc(doc(db, 'staff', staffUid));
   const current = staffSnap.data();
   const subjects = current.subjects || [];
   if (!subjects.some(s => s.classId === classId && s.subject === subject)) {
-    subjects.push({ classId, subject });
+    subjects.push({ classId, className, subject });
   }
   await updateDoc(doc(db, 'staff', staffUid), {
     subjects, type: current.classTeacherOf ? 'both' : 'subject'
   });
   document.getElementById('subSubject').value = '';
-  document.getElementById('assignMsg').textContent = 'Subject assigned.';
-  setTimeout(() => document.getElementById('assignMsg').textContent = '', 3000);
-  loadStaff();
+  showToast('✅ Subject assigned.');
+  await loadStaff();
 });
 
-// ---------------- STUDENTS ----------------
-document.getElementById('stuAddBtn').addEventListener('click', async () => {
+// ======================== UNIFIED STUDENT & PARENT ADMISSION ========================
+document.getElementById('unifiedAdmissionBtn').addEventListener('click', async () => {
+  // 1. Student fields
   const name = document.getElementById('stuName').value.trim();
   const admNo = document.getElementById('stuAdm').value.trim();
-  const dob = document.getElementById('stuDob').value;
+  const rollNo = document.getElementById('stuRollNo').value.trim();
   const classId = document.getElementById('stuClassSelAdd').value;
-  const email = document.getElementById('stuEmail').value.trim();
-  const pass = document.getElementById('stuPass').value;
-  if (!name || !admNo || !dob || !classId || !email || pass.length < 6) {
-    alert('Fill all fields — password needs 6+ characters.'); return;
+  
+  // Speed-boosted DOB composition
+  const d = document.getElementById('stuDobDay').value;
+  const m = document.getElementById('stuDobMonth').value;
+  const y = document.getElementById('stuDobYear').value;
+  const dob = (d && m && y) ? `${y}-${m}-${d}` : '';
+
+  const gender = document.getElementById('stuGender').value;
+  const blood = document.getElementById('stuBlood').value;
+  const aadhaar = document.getElementById('stuAadhaar').value.trim();
+  const stuEmail = document.getElementById('stuEmail').value.trim();
+  const stuPass = document.getElementById('stuPass').value;
+
+  // 2. Parent fields
+  const fatherName = document.getElementById('parFatherName').value.trim();
+  const fatherPhone = document.getElementById('parFatherPhone').value.trim();
+  const motherName = document.getElementById('parMotherName').value.trim();
+  const motherPhone = document.getElementById('parMotherPhone').value.trim();
+  const parEmail = document.getElementById('parLoginEmail').value.trim();
+  const parPass = document.getElementById('parLoginPass').value;
+  const emergencyPhone = document.getElementById('stuEmergencyPhone').value.trim();
+
+  // 3. Address fields
+  const address = document.getElementById('stuAddress').value.trim();
+  const city = document.getElementById('stuCity').value.trim();
+  const pincode = document.getElementById('stuPincode').value.trim();
+
+  if (!name || !admNo || !dob || !classId || !stuEmail || stuPass.length < 6 || !fatherName || !fatherPhone || !parEmail || parPass.length < 6) {
+    alert('Please fill all mandatory fields (*): Student Name, Admission No, Date of Birth (Day/Month/Year), Class, Student Email/Password, Father Name/Phone, and Parent Email/Password (6+ chars).');
+    return;
   }
-  const btn = document.getElementById('stuAddBtn');
-  btn.disabled = true; btn.textContent = 'Creating…';
+
+  const btn = document.getElementById('unifiedAdmissionBtn');
+  btn.disabled = true;
+  btn.textContent = 'Provisioning Accounts…';
+
   try {
     const classSnap = await getDoc(doc(db, 'classes', classId));
     const className = classSnap.exists() ? classSnap.data().name : '';
-    
+
     const secAuth = getSecondaryAuth();
-    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-    const uid = cred.user.uid;
-    
-    await setDoc(doc(db, 'users', uid), { role: 'student', name, email, createdAt: serverTimestamp() });
-    await setDoc(doc(db, 'students', uid), { 
-      name, email, admissionNo: admNo, dob, classId, className, parentUid: null, createdAt: serverTimestamp() 
-    });
+
+    // 1. Create or resolve Student Auth User
+    let stuUid = null;
+    try {
+      const stuCred = await createUserWithEmailAndPassword(secAuth, stuEmail, stuPass);
+      stuUid = stuCred.user.uid;
+    } catch(sErr) {
+      if (sErr.code === 'auth/email-already-in-use') {
+        const uQ = query(collection(db, 'users'), where('email', '==', stuEmail));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) {
+          stuUid = uSnap.docs[0].id;
+        } else {
+          const stQ = query(collection(db, 'students'), where('email', '==', stuEmail));
+          const stSnap = await getDocs(stQ);
+          if (!stSnap.empty) stuUid = stSnap.docs[0].id;
+        }
+      }
+      if (!stuUid) {
+        throw new Error(`Student email "${stuEmail}" already in use. Please use a unique email or log in with existing account.`);
+      }
+    }
+
+    // 2. Create or resolve Parent Auth User
+    let parUid = null;
+    try {
+      const parCred = await createUserWithEmailAndPassword(secAuth, parEmail, parPass);
+      parUid = parCred.user.uid;
+    } catch(pErr) {
+      if (pErr.code === 'auth/email-already-in-use') {
+        const uQ = query(collection(db, 'users'), where('email', '==', parEmail));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) {
+          parUid = uSnap.docs[0].id;
+        } else {
+          const pQ = query(collection(db, 'parents'), where('email', '==', parEmail));
+          const pSnap = await getDocs(pQ);
+          if (!pSnap.empty) parUid = pSnap.docs[0].id;
+        }
+      }
+    }
+
+    // 3. Save Student Record in Firestore
+    await setDoc(doc(db, 'users', stuUid), {
+      role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
+    }, { merge: true });
+
+    await setDoc(doc(db, 'students', stuUid), {
+      name, admissionNo: admNo, rollNo: rollNo || admNo, classId, className, dob, gender, bloodGroup: blood,
+      aadhaarNo: aadhaar, email: stuEmail, fatherName, fatherPhone, motherName, motherPhone,
+      parentEmail: parEmail, emergencyPhone: emergencyPhone || fatherPhone,
+      address, city, pincode, parentUid: parUid || null, createdAt: serverTimestamp()
+    }, { merge: true });
+
+    // 4. Save Parent Record & Link
+    if (parUid) {
+      await setDoc(doc(db, 'users', parUid), {
+        role: 'parent', name: fatherName, email: parEmail, createdAt: serverTimestamp()
+      }, { merge: true });
+
+      await setDoc(doc(db, 'parents', parUid), {
+        name: fatherName, email: parEmail, phone: fatherPhone, motherName, motherPhone,
+        childUid: stuUid, childName: name, createdAt: serverTimestamp()
+      }, { merge: true });
+    }
+
     await fbSignOut(secAuth);
-    
+
+    // Reset Form
     document.getElementById('stuName').value = '';
     document.getElementById('stuAdm').value = '';
+    document.getElementById('stuRollNo').value = '';
     document.getElementById('stuEmail').value = '';
-    document.getElementById('stuMsg').textContent = 'Student created successfully.';
-    setTimeout(() => document.getElementById('stuMsg').textContent = '', 5000);
-    loadStudents();
+    document.getElementById('stuAadhaar').value = '';
+    document.getElementById('parFatherName').value = '';
+    document.getElementById('parFatherPhone').value = '';
+    document.getElementById('parMotherName').value = '';
+    document.getElementById('parMotherPhone').value = '';
+    document.getElementById('parLoginEmail').value = '';
+    document.getElementById('stuAddress').value = '';
+    document.getElementById('stuCity').value = '';
+    document.getElementById('stuPincode').value = '';
+    document.getElementById('stuEmergencyPhone').value = '';
+    document.getElementById('stuDobDay').value = '';
+    document.getElementById('stuDobMonth').value = '';
+
+    showToast(`🎉 Admission Complete! Student "${name}" & Parent accounts linked.`);
+    await loadStudents();
+    await loadParents();
+    await loadOverview();
+
   } catch (err) {
-    alert(err.message.replace('Firebase: ', ''));
+    alert('Admission Error: ' + err.message.replace('Firebase: ', ''));
   } finally {
-    btn.disabled = false; btn.textContent = 'Create Student Account';
+    btn.disabled = false;
+    btn.textContent = '✨ Complete Unified Student + Parent Admission';
   }
 });
 
+// ======================== LOAD STUDENTS & DIRECTORY TABLE ========================
 async function loadStudents() {
   const snap = await getDocs(collection(db, 'students'));
+  allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
   const classesSnap = await getDocs(collection(db, 'classes'));
   const classOptions = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+  
+  renderStudentTable(allStudentsCache, classOptions);
+}
+
+function renderStudentTable(studentsList, classOptions) {
   const body = document.querySelector('#stuTable tbody');
   body.innerHTML = '';
-  
-  const parStudentOptions = [];
-  
-  snap.docs.forEach(d => {
-    const r = d.data();
+
+  if (!studentsList.length) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--ink-soft);">No students found matching this criteria.</td></tr>';
+    return;
+  }
+
+  studentsList.forEach(r => {
     const tr = document.createElement('tr');
     const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
-    tr.innerHTML = `<td>${r.name}</td><td>${r.admissionNo}</td>
-      <td><select class="stuClassSel" data-uid="${d.id}">${selHtml}</select></td>
-      <td>${r.parentUid ? '<span class="badge badge-good">Yes</span>' : '<span class="badge badge-bad">No</span>'}</td>
-      <td>
-        <button class="btn btn-outline btn-sm stuSaveBtn" data-uid="${d.id}">Save</button>
-        <button class="btn btn-danger btn-sm stuDelBtn" data-uid="${d.id}">Delete</button>
-      </td>`;
     
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
+            ${(r.name || 'S').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <strong>${r.name}</strong><br>
+            <small style="color:var(--ink-soft);">${r.email || ''}</small>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.admissionNo || '—'}</span></td>
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.rollNo || r.admissionNo || '—'}</span></td>
+      <td><select class="stuClassSel" data-uid="${r.uid}" style="padding:6px 10px; border-radius:8px; border:1px solid var(--line); font-size:13px;">${selHtml}</select></td>
+      <td>
+        <strong>${r.fatherName || 'Parent'}</strong><br>
+        <small style="color:var(--ink-soft); font-family:var(--font-mono);">${r.fatherPhone || r.phone || '—'}</small>
+      </td>
+      <td><span class="badge badge-purple">${r.bloodGroup || 'O+'}</span></td>
+      <td>${r.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">🪪 View Profile</button>
+        <button class="btn btn-outline btn-sm stuSaveBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Save</button>
+        <button class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
+      </td>
+    `;
+
+    // View Full Profile Modal Trigger
+    tr.querySelector('.stuViewBtn').addEventListener('click', () => {
+      openStudentProfileModal(r);
+    });
+
+    // Save Class change
     tr.querySelector('.stuSaveBtn').addEventListener('click', async () => {
       const sel = tr.querySelector('.stuClassSel');
       const newClassId = sel.value;
       const cname = classOptions.find(c => c.id === newClassId)?.name || '';
-      await updateDoc(doc(db, 'students', d.id), { classId: newClassId, className: cname });
-      alert('Class updated for ' + r.name);
+      await updateDoc(doc(db, 'students', r.uid), { classId: newClassId, className: cname });
+      showToast('✅ Class updated for ' + r.name);
+      await loadOverview();
     });
-    
+
+    // Delete
     tr.querySelector('.stuDelBtn').addEventListener('click', async () => {
-      if(confirm('Delete student record? This does not delete their auth login from Firebase Console.')) {
-        await deleteDoc(doc(db, 'students', d.id));
-        loadStudents();
+      if (confirm(`Delete student record "${r.name}"?`)) {
+        await deleteDoc(doc(db, 'students', r.uid));
+        showToast('Student deleted.');
+        await loadStudents();
+        await loadOverview();
       }
     });
-    
+
     body.appendChild(tr);
-    parStudentOptions.push(`<option value="${d.id}">${r.name} (${r.admissionNo})</option>`);
   });
-  
-  document.getElementById('parStudentSel').innerHTML = parStudentOptions.join('');
 }
 
-// ---------------- PARENTS ----------------
-document.getElementById('parAddBtn').addEventListener('click', async () => {
-  const name = document.getElementById('parName').value.trim();
-  const childUid = document.getElementById('parStudentSel').value;
-  const email = document.getElementById('parEmail').value.trim();
-  const pass = document.getElementById('parPass').value;
-  
-  if (!name || !childUid || !email || pass.length < 6) {
-    alert('Fill all fields — password needs 6+ characters.'); return;
-  }
-  const btn = document.getElementById('parAddBtn');
-  btn.disabled = true; btn.textContent = 'Creating…';
-  try {
-    const childSnap = await getDoc(doc(db, 'students', childUid));
-    if (!childSnap.exists()) throw new Error("Student not found.");
-    const childName = childSnap.data().name;
-    
-    const secAuth = getSecondaryAuth();
-    const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-    const uid = cred.user.uid;
-    
-    await setDoc(doc(db, 'users', uid), { role: 'parent', name, email, createdAt: serverTimestamp() });
-    await setDoc(doc(db, 'parents', uid), { 
-      name, email, childUid, childName, createdAt: serverTimestamp() 
-    });
-    
-    await updateDoc(doc(db, 'students', childUid), { parentUid: uid });
-    
-    await fbSignOut(secAuth);
-    
-    document.getElementById('parName').value = '';
-    document.getElementById('parEmail').value = '';
-    document.getElementById('parMsg').textContent = 'Parent created and linked.';
-    setTimeout(() => document.getElementById('parMsg').textContent = '', 5000);
-    loadParents();
-    loadStudents();
-  } catch (err) {
-    alert(err.message.replace('Firebase: ', ''));
-  } finally {
-    btn.disabled = false; btn.textContent = 'Create Parent Account';
-  }
-});
+// Table Class Filter Trigger
+const stuTableClassFilter = document.getElementById('stuTableClassFilter');
+if (stuTableClassFilter) {
+  stuTableClassFilter.addEventListener('change', async (e) => {
+    const selectedClassId = e.target.value;
+    const classesSnap = await getDocs(collection(db, 'classes'));
+    const classOptions = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
 
+    if (!selectedClassId) {
+      renderStudentTable(allStudentsCache, classOptions);
+    } else {
+      const filtered = allStudentsCache.filter(s => s.classId === selectedClassId);
+      renderStudentTable(filtered, classOptions);
+    }
+  });
+}
+
+// ======================== 🔍 CLASS & ROLL NUMBER INSTANT FINDER ========================
+const finderClassSel = document.getElementById('finderClassSel');
+const finderRollInput = document.getElementById('finderRollInput');
+const finderSearchBtn = document.getElementById('finderSearchBtn');
+const finderResultBox = document.getElementById('finderResultBox');
+
+function runStudentFinder() {
+  const selectedClassId = finderClassSel.value;
+  const rollTerm = finderRollInput.value.trim().toLowerCase();
+
+  if (!rollTerm && !selectedClassId) {
+    finderResultBox.style.display = 'none';
+    return;
+  }
+
+  let matches = allStudentsCache;
+  if (selectedClassId) {
+    matches = matches.filter(s => s.classId === selectedClassId);
+  }
+  if (rollTerm) {
+    matches = matches.filter(s => 
+      (s.rollNo && s.rollNo.toLowerCase().includes(rollTerm)) ||
+      (s.admissionNo && s.admissionNo.toLowerCase().includes(rollTerm)) ||
+      (s.name && s.name.toLowerCase().includes(rollTerm))
+    );
+  }
+
+  finderResultBox.style.display = 'block';
+  if (!matches.length) {
+    finderResultBox.innerHTML = `
+      <div style="text-align:center; padding:12px; color:var(--ink-soft); font-size:13.5px;">
+        ⚠️ No student found with Roll/Adm No. "<strong>${rollTerm}</strong>" in the selected class.
+      </div>
+    `;
+    return;
+  }
+
+  const s = matches[0]; // best match
+  finderResultBox.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="width:48px; height:48px; border-radius:12px; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">
+          ${(s.name || 'S').charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h3 style="margin:0; font-size:16px; color:var(--ink);">${s.name}</h3>
+            <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">Roll No: ${s.rollNo || '—'}</span>
+            <span class="badge badge-navy" style="font-family:var(--font-mono);">Adm: ${s.admissionNo || '—'}</span>
+          </div>
+          <div style="font-size:13px; color:var(--ink-soft); margin-top:3px;">
+            Class: <strong>${s.className || '—'}</strong> • Father: <strong>${s.fatherName || 'Parent'} (${s.fatherPhone || '—'})</strong> • Blood: <strong>${s.bloodGroup || '—'}</strong>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" id="finderOpenProfileBtn" style="padding:8px 16px;">
+        🪪 View Complete ID Card &amp; Profile &rarr;
+      </button>
+    </div>
+  `;
+
+  document.getElementById('finderOpenProfileBtn').addEventListener('click', () => {
+    openStudentProfileModal(s);
+  });
+}
+
+if (finderSearchBtn) finderSearchBtn.addEventListener('click', runStudentFinder);
+if (finderRollInput) finderRollInput.addEventListener('input', runStudentFinder);
+if (finderClassSel) finderClassSel.addEventListener('change', runStudentFinder);
+
+function openStudentProfileModal(s) {
+  const init = (s.name || 'S').charAt(0).toUpperCase();
+  document.getElementById('modalAvatarInit').textContent = init;
+  document.getElementById('modalStudentName').textContent = s.name || 'Student';
+  document.getElementById('modalStudentSub').textContent = `Class ${s.className || '—'} • Admission No: ${s.admissionNo || '—'}`;
+  
+  document.getElementById('modalTagClass').textContent = `Class: ${s.className || '—'}`;
+  document.getElementById('modalTagAdmNo').textContent = `Adm: ${s.admissionNo || '—'}`;
+  document.getElementById('modalTagRoll').textContent = `Roll: ${s.rollNo || s.admissionNo || '—'}`;
+  document.getElementById('modalTagBlood').textContent = `Blood: ${s.bloodGroup || '—'}`;
+  document.getElementById('modalTagAadhaar').textContent = `Aadhaar: ${s.aadhaarNo || '—'}`;
+
+  // Populate Personal Details
+  document.getElementById('mp_name').textContent = s.name || '—';
+  document.getElementById('mp_admNo').textContent = s.admissionNo || '—';
+  document.getElementById('mp_rollNo').textContent = s.rollNo || s.admissionNo || '—';
+  document.getElementById('mp_class').textContent = s.className || '—';
+  document.getElementById('mp_dob').textContent = s.dob || '—';
+  document.getElementById('mp_gender').textContent = s.gender || '—';
+  document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
+  document.getElementById('mp_aadhaar').textContent = s.aadhaarNo || '—';
+  document.getElementById('mp_email').textContent = s.email || '—';
+
+  // Family details
+  document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
+  document.getElementById('mp_fatherPhone').textContent = s.fatherPhone || '—';
+  document.getElementById('mp_motherName').textContent = s.motherName || '—';
+  document.getElementById('mp_motherPhone').textContent = s.motherPhone || '—';
+  document.getElementById('mp_parentEmail').textContent = s.parentEmail || '—';
+  document.getElementById('mp_emergencyPhone').textContent = s.emergencyPhone || s.fatherPhone || '—';
+
+  // Address
+  document.getElementById('mp_address').textContent = s.address || '—';
+  document.getElementById('mp_city').textContent = s.city || '—';
+  document.getElementById('mp_pincode').textContent = s.pincode || '—';
+
+  studentDetailModal.classList.add('open');
+}
+
+// ======================== PARENTS ========================
 async function loadParents() {
   const snap = await getDocs(collection(db, 'parents'));
   const body = document.querySelector('#parTable tbody');
   body.innerHTML = '';
+
   snap.docs.forEach(d => {
     const r = d.data();
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.name}</td><td>${r.email || '—'}</td><td>${r.childName || '—'}</td>
-      <td><button class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}">Delete</button></td>`;
+    tr.innerHTML = `
+      <td><strong>${r.name}</strong></td>
+      <td style="font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
+      <td><span class="badge badge-purple">${r.childName || 'Child'}</span></td>
+      <td style="font-family:var(--font-mono); font-size:13px;">${r.phone || '—'}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}">Delete</button>
+      </td>
+    `;
     tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-      if (confirm('Delete parent "' + r.name + '"? This removes the Firestore record. The auth login must be removed from Firebase Console separately.')) {
-        // Unlink parent from student
-        if (r.childUid) {
-          try { await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }); } catch(e) {}
-        }
-        // Delete parent doc and user doc
+      if (confirm(`Delete parent "${r.name}"?`)) {
+        if (r.childUid) { try { await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }); } catch(e) {} }
         await deleteDoc(doc(db, 'parents', d.id));
         try { await deleteDoc(doc(db, 'users', d.id)); } catch(e) {}
-        loadParents();
-        loadStudents();
+        showToast('Parent unlinked & removed.');
+        await loadParents(); await loadStudents(); await loadOverview();
       }
     });
     body.appendChild(tr);
   });
 }
+
+// ======================== ATTENDANCE REPORTS ========================
+document.getElementById('attReportBtn').addEventListener('click', async () => {
+  const classFilter = document.getElementById('attClassFilter').value;
+  const btn = document.getElementById('attReportBtn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+
+  let studentsQuery = classFilter
+    ? query(collection(db, 'students'), where('classId', '==', classFilter))
+    : collection(db, 'students');
+
+  const studentsSnap = await getDocs(studentsQuery);
+  const body = document.querySelector('#attReportTable tbody');
+  body.innerHTML = '';
+
+  if (studentsSnap.empty) {
+    document.getElementById('attReportEmpty').style.display = 'block';
+    document.getElementById('attReportEmpty').textContent = 'No students found in this class section.';
+    btn.disabled = false; btn.textContent = 'Generate Audit Report';
+    return;
+  }
+  document.getElementById('attReportEmpty').style.display = 'none';
+
+  for (const sd of studentsSnap.docs) {
+    const student = sd.data();
+    const attQ = query(collection(db, 'attendance'), where('studentUid', '==', sd.id));
+    const attSnap = await getDocs(attQ);
+    const total = attSnap.size;
+    const presentCount = attSnap.docs.filter(d => d.data().status === 'present').length;
+    const pct = total ? Math.round((presentCount / total) * 100) : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${student.name}</strong><br><small style="color:var(--ink-soft);">${student.admissionNo}</small></td>
+      <td>${student.className || '—'}</td>
+      <td><span class="badge badge-good">${presentCount}</span></td>
+      <td>${total}</td>
+      <td><strong>${pct}%</strong></td>
+      <td><span class="badge ${pct >= 75 ? 'badge-good' : 'badge-bad'}">${pct >= 75 ? 'Regular' : 'Shortage'}</span></td>
+    `;
+    body.appendChild(tr);
+  }
+  btn.disabled = false; btn.textContent = 'Generate Audit Report';
+});
+
+// ======================== MARKS REPORTS ========================
+document.getElementById('marksReportBtn').addEventListener('click', async () => {
+  const classFilter = document.getElementById('marksClassFilter').value;
+  const btn = document.getElementById('marksReportBtn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+
+  let marksQuery = classFilter
+    ? query(collection(db, 'marks'), where('classId', '==', classFilter))
+    : collection(db, 'marks');
+
+  const marksSnap = await getDocs(marksQuery);
+  const body = document.querySelector('#marksReportTable tbody');
+  body.innerHTML = '';
+
+  if (marksSnap.empty) {
+    document.getElementById('marksReportEmpty').style.display = 'block';
+    document.getElementById('marksReportEmpty').textContent = 'No marks records found for this selection.';
+    btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
+    return;
+  }
+  document.getElementById('marksReportEmpty').style.display = 'none';
+
+  for (const md of marksSnap.docs) {
+    const r = md.data();
+    let stuName = 'Student';
+    if (r.studentUid) {
+      const s = await getDoc(doc(db, 'students', r.studentUid));
+      if (s.exists()) stuName = s.data().name;
+    }
+    const pct = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${stuName}</strong></td>
+      <td>Class Section</td>
+      <td><span class="badge badge-purple">${r.subject}</span></td>
+      <td>${r.examName}</td>
+      <td><strong>${r.marks}</strong></td>
+      <td>${r.maxMarks}</td>
+      <td><span class="badge ${pct >= 40 ? 'badge-good' : 'badge-bad'}">${pct}%</span></td>
+    `;
+    body.appendChild(tr);
+  }
+  btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
+});
+
+// ======================== EXAM CALENDAR ========================
+async function loadExamCalendar() {
+  const snap = await getDocs(collection(db, 'exams'));
+  const body = document.querySelector('#examCalTable tbody');
+  body.innerHTML = '';
+  if (snap.empty) { document.getElementById('examCalEmpty').style.display = 'block'; return; }
+  document.getElementById('examCalEmpty').style.display = 'none';
+
+  snap.docs.forEach(d => {
+    const r = d.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono);">${r.date}</span></td>
+      <td><strong>${r.examName}</strong></td>
+      <td>${r.className || 'Class'}</td>
+      <td><span class="badge badge-purple">${r.subject}</span></td>
+      <td style="font-size:13px; color:var(--ink-soft);">${r.syllabus || '—'}</td>
+      <td style="text-align:right;">
+        <button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button>
+      </td>
+    `;
+    tr.querySelector('button').addEventListener('click', async () => {
+      if (confirm('Delete exam schedule?')) {
+        await deleteDoc(doc(db, 'exams', d.id));
+        showToast('Exam deleted.');
+        loadExamCalendar();
+      }
+    });
+    body.appendChild(tr);
+  });
+}
+
+// ======================== ANNOUNCEMENTS ========================
+document.getElementById('annPostBtn').addEventListener('click', async () => {
+  const title = document.getElementById('annTitle').value.trim();
+  const message = document.getElementById('annMessage').value.trim();
+  if (!title || !message) { alert('Enter both title and message.'); return; }
+  const btn = document.getElementById('annPostBtn');
+  btn.disabled = true; btn.textContent = 'Broadcasting…';
+  await addDoc(collection(db, 'announcements'), {
+    title, message, createdAt: serverTimestamp()
+  });
+  document.getElementById('annTitle').value = '';
+  document.getElementById('annMessage').value = '';
+  btn.disabled = false; btn.textContent = '📢 Broadcast to All Portals';
+  showToast('✅ Announcement published to all portals.');
+  loadAnnouncements();
+});
+
+async function loadAnnouncements() {
+  const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  const list = document.getElementById('annList');
+  list.innerHTML = '';
+  if (snap.empty) { document.getElementById('annEmpty').style.display = 'block'; return; }
+  document.getElementById('annEmpty').style.display = 'none';
+
+  snap.docs.forEach(d => {
+    const r = d.data();
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.marginBottom = '14px';
+    const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span class="badge badge-purple">📢 Broadcast</span>
+        <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
+      </div>
+      <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title}</h3>
+      <p style="color:var(--ink-soft); font-size:14px; margin:0 0 14px 0; line-height:1.6;">${r.message}</p>
+      <button class="btn btn-danger btn-sm annDelBtn" data-id="${d.id}">Remove Notice</button>
+    `;
+    div.querySelector('.annDelBtn').addEventListener('click', async () => {
+      if (confirm('Delete this announcement?')) {
+        await deleteDoc(doc(db, 'announcements', d.id));
+        showToast('Announcement removed.');
+        loadAnnouncements();
+      }
+    });
+    list.appendChild(div);
+  });
+}
 </script>
+<script src="../../js/site-brand.js"></script>
 </body>
 </html>
