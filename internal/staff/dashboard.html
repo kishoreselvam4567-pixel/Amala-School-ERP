@@ -130,6 +130,7 @@
     </div>
     <nav id="navLinks">
       <a href="#" data-tab="overview" class="active">📊 Overview</a>
+      <a href="#" data-tab="announcements">📢 Announcements</a>
       <a href="#" data-tab="lookup">🔍 Student Finder</a>
       <a href="#" data-tab="attendance">📋 Mark Attendance</a>
       <a href="#" data-tab="marks">📝 Upload Marks</a>
@@ -161,6 +162,32 @@
       <section id="panel-overview">
         <div class="main-header"><div><h2>Welcome <span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Your teaching assignments and class roster at a glance.</p></div></div>
         <div class="card card-static anim-fadeInUp" id="assignBox"></div>
+
+        <!-- Recent Faculty Notices & Circulars -->
+        <div class="card card-static anim-fadeInUp" style="margin-top:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
+              <span>📢</span> Recent Faculty Notices &amp; School Circulars
+            </h3>
+            <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnBtn" style="font-size:12px; padding:4px 10px;">View All Notices</button>
+          </div>
+          <div id="overviewAnnList">
+            <div style="color:var(--ink-soft); font-size:13.5px;">Loading latest notices…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 📢 ANNOUNCEMENTS & FACULTY CIRCULARS -->
+      <section id="panel-announcements" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>Announcements &amp; Faculty Circulars</h2>
+            <p style="color:var(--ink-soft);">Official school circulars and staff-exclusive notices broadcast by administration.</p>
+          </div>
+        </div>
+
+        <div id="staffAnnList"></div>
+        <div class="empty-state" id="staffAnnEmpty" style="display:none;">No announcements or staff notices posted yet.</div>
       </section>
 
       <!-- 🔍 DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
@@ -430,6 +457,7 @@ document.querySelectorAll('.sidebar nav a').forEach(a => {
       panel.style.display = 'block';
       panel.style.animation = 'fadeInUp 0.3s ease both';
     }
+    if (a.dataset.tab === 'announcements') loadStaffAnnouncements();
     if (a.dataset.tab === 'exams') loadExams();
     if (a.dataset.tab === 'notes') loadNotesList();
     if (a.dataset.tab === 'homework') loadHwList();
@@ -603,9 +631,90 @@ requirePortal(['staff'], async ({ user, profile }) => {
     document.getElementById('hwNoAccess').style.display = 'block';
   }
 
+  // Load staff circulars & announcements
+  loadStaffAnnouncements();
+
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('content').style.display = 'block';
 });
+
+// View all notices button from Overview
+document.getElementById('viewAllAnnBtn')?.addEventListener('click', () => {
+  const annNav = document.querySelector('.sidebar nav a[data-tab="announcements"]');
+  if (annNav) annNav.click();
+});
+
+// ======================== 📢 STAFF ANNOUNCEMENTS & CIRCULARS ========================
+async function loadStaffAnnouncements() {
+  try {
+    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    const list = document.getElementById('staffAnnList');
+    const overviewList = document.getElementById('overviewAnnList');
+    const emptyEl = document.getElementById('staffAnnEmpty');
+    
+    if (list) list.innerHTML = '';
+    if (overviewList) overviewList.innerHTML = '';
+    
+    let count = 0;
+    snap.docs.forEach(d => {
+      const r = d.data();
+      // Skip student/parent only notices
+      if (r.targetAudience === 'students_parents') return;
+      count++;
+      
+      const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
+      const isTeacherOnly = r.targetAudience === 'teachers';
+      const badgeHtml = isTeacherOnly 
+        ? '<span class="badge badge-good" style="font-weight:700;">👨‍🏫 Faculty &amp; Staff Only</span>'
+        : '<span class="badge badge-purple">📢 School-Wide Broadcast</span>';
+
+      // Full panel item
+      if (list) {
+        const card = document.createElement('div');
+        card.className = 'card card-static';
+        card.style.marginBottom = '14px';
+        if (isTeacherOnly) {
+          card.style.borderLeft = '4px solid var(--good)';
+        }
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            ${badgeHtml}
+            <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
+          </div>
+          <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title || ''}</h3>
+          <p style="color:var(--ink-soft); font-size:14px; margin:0; line-height:1.6; white-space:pre-line;">${r.message || ''}</p>
+        `;
+        list.appendChild(card);
+      }
+
+      // Overview top 3 items
+      if (overviewList && count <= 3) {
+        const item = document.createElement('div');
+        item.style.padding = '10px 0';
+        item.style.borderBottom = '1px solid var(--line)';
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            ${badgeHtml}
+            <span style="font-size:11.5px; color:var(--ink-soft);">${date}</span>
+          </div>
+          <div style="font-weight:600; font-size:14px; color:var(--ink);">${r.title || ''}</div>
+          <div style="font-size:13px; color:var(--ink-soft); margin-top:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${r.message || ''}</div>
+        `;
+        overviewList.appendChild(item);
+      }
+    });
+
+    if (count === 0) {
+      if (emptyEl) emptyEl.style.display = 'block';
+      if (overviewList) overviewList.innerHTML = '<div style="color:var(--ink-soft); font-size:13.5px; padding:8px 0;">No active faculty notices at this time.</div>';
+    } else {
+      if (emptyEl) emptyEl.style.display = 'none';
+    }
+  } catch (err) {
+    console.error('Error loading staff announcements:', err);
+  }
+}
 
 // ======================== 🔍 INSTANT STUDENT LOOKUP ========================
 const staffFinderClassSel = document.getElementById('staffFinderClassSel');

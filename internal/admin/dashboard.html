@@ -1327,23 +1327,49 @@
           <div class="main-header">
             <div>
               <h2>School Announcements &amp; Circulars</h2>
-              <p>Broadcast high-priority notices to students, parents, and faculty</p>
+              <p>Broadcast notices to students, parents, and faculty, or publish staff-exclusive circulars</p>
             </div>
           </div>
 
-          <div class="card">
-            <div class="form-section-title">Publish New Announcement</div>
-            <div class="field">
-              <label>Announcement Title</label>
-              <input type="text" id="annTitle" placeholder="e.g. Midterm Examination Schedule Released">
+          <div class="card" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
+            <div class="form-section-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+              <span>Publish New Announcement</span>
+              <span class="badge badge-purple" id="annAudienceBadge">📢 All Portals</span>
             </div>
+
+            <div class="field-row" style="margin-bottom:16px;">
+              <div class="field" style="flex:1;">
+                <label>Target Audience / Category</label>
+                <select id="annAudience" style="font-weight:600;">
+                  <option value="all">📢 All Portals (Students, Parents &amp; Faculty)</option>
+                  <option value="teachers">👨‍🏫 Teachers &amp; Staff Only (Faculty Circular)</option>
+                  <option value="students_parents">🎓 Students &amp; Parents Only</option>
+                </select>
+              </div>
+              <div class="field" style="flex:2;">
+                <label>Announcement Title</label>
+                <input type="text" id="annTitle" placeholder="e.g. Midterm Examination Schedule Released / Staff Meeting">
+              </div>
+            </div>
+
             <div class="field">
               <label>Detailed Message Content</label>
               <textarea id="annMessage" rows="3"
-                placeholder="Type circular text, instructions, or holiday notices here…"></textarea>
+                placeholder="Type circular text, instructions, staff notices, or holiday details here…"></textarea>
             </div>
-            <button class="btn btn-primary" id="annPostBtn">📢 Broadcast to All Portals</button>
-            <span id="annMsg" style="color:var(--good); font-weight:700; font-size:13.5px; margin-left:12px;"></span>
+
+            <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
+              <button class="btn btn-primary" id="annPostBtn">📢 Broadcast to All Portals</button>
+              <span id="annMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
+            </div>
+          </div>
+
+          <!-- Filter Category Tabs -->
+          <div style="display:flex; gap:10px; margin:28px 0 16px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:13px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;">Filter Notices:</span>
+            <button type="button" class="btn btn-sm ann-filter-btn active" data-filter="all" style="border-radius:20px; padding:6px 14px;">🌐 All Notices (<span id="countAllAnn">0</span>)</button>
+            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="teachers" style="border-radius:20px; padding:6px 14px;">👨‍🏫 Teachers &amp; Staff (<span id="countTeacherAnn">0</span>)</button>
+            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students_parents" style="border-radius:20px; padding:6px 14px;">🎓 Students &amp; Parents (<span id="countStudentAnn">0</span>)</button>
           </div>
 
           <div id="annList"></div>
@@ -2455,45 +2481,130 @@
     }
 
     // ======================== ANNOUNCEMENTS ========================
-    document.getElementById('annPostBtn').addEventListener('click', async () => {
+    const annAudienceEl = document.getElementById('annAudience');
+    const annPostBtn = document.getElementById('annPostBtn');
+    const annAudienceBadge = document.getElementById('annAudienceBadge');
+
+    if (annAudienceEl) {
+      annAudienceEl.addEventListener('change', () => {
+        const val = annAudienceEl.value;
+        if (val === 'teachers') {
+          annPostBtn.textContent = '👨‍🏫 Post Teachers & Staff Notice';
+          annAudienceBadge.className = 'badge badge-good';
+          annAudienceBadge.textContent = '👨‍🏫 Teachers & Staff Only';
+        } else if (val === 'students_parents') {
+          annPostBtn.textContent = '🎓 Post Students & Parents Notice';
+          annAudienceBadge.className = 'badge badge-navy';
+          annAudienceBadge.textContent = '🎓 Students & Parents Only';
+        } else {
+          annPostBtn.textContent = '📢 Broadcast to All Portals';
+          annAudienceBadge.className = 'badge badge-purple';
+          annAudienceBadge.textContent = '📢 All Portals';
+        }
+      });
+    }
+
+    annPostBtn.addEventListener('click', async () => {
       const title = document.getElementById('annTitle').value.trim();
       const message = document.getElementById('annMessage').value.trim();
+      const audience = annAudienceEl ? annAudienceEl.value : 'all';
       if (!title || !message) { alert('Enter both title and message.'); return; }
-      const btn = document.getElementById('annPostBtn');
-      btn.disabled = true; btn.textContent = 'Broadcasting…';
+      
+      const prevText = annPostBtn.textContent;
+      annPostBtn.disabled = true; 
+      annPostBtn.textContent = 'Publishing…';
+      
       await addDoc(collection(db, 'announcements'), {
-        title, message, createdAt: serverTimestamp()
+        title, 
+        message, 
+        targetAudience: audience,
+        createdAt: serverTimestamp()
       });
+      
       document.getElementById('annTitle').value = '';
       document.getElementById('annMessage').value = '';
-      btn.disabled = false; btn.textContent = '📢 Broadcast to All Portals';
-      showToast('✅ Announcement published to all portals.');
+      annPostBtn.disabled = false; 
+      annPostBtn.textContent = prevText;
+      
+      const successMsg = audience === 'teachers' 
+        ? '✅ Notice posted exclusively to Teachers & Staff portal.' 
+        : (audience === 'students_parents' ? '✅ Circular published for Students & Parents.' : '✅ Announcement broadcast to all portals.');
+      showToast(successMsg);
       loadAnnouncements();
     });
 
-    async function loadAnnouncements() {
-      const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
+    let cachedAnnouncements = [];
+    let activeAnnFilter = 'all';
+
+    document.querySelectorAll('.ann-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ann-filter-btn').forEach(b => {
+          b.classList.remove('active');
+          b.classList.add('btn-outline');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('btn-outline');
+        activeAnnFilter = btn.dataset.filter;
+        renderAnnouncements();
+      });
+    });
+
+    function renderAnnouncements() {
       const list = document.getElementById('annList');
       list.innerHTML = '';
-      if (snap.empty) { document.getElementById('annEmpty').style.display = 'block'; return; }
+      
+      // Update counts
+      const countAll = cachedAnnouncements.length;
+      const countTeachers = cachedAnnouncements.filter(a => a.targetAudience === 'teachers').length;
+      const countStudents = cachedAnnouncements.filter(a => a.targetAudience === 'students_parents').length;
+      
+      const countAllEl = document.getElementById('countAllAnn');
+      const countTeacherEl = document.getElementById('countTeacherAnn');
+      const countStudentEl = document.getElementById('countStudentAnn');
+      if (countAllEl) countAllEl.textContent = countAll;
+      if (countTeacherEl) countTeacherEl.textContent = countTeachers;
+      if (countStudentEl) countStudentEl.textContent = countStudents;
+
+      // Filter docs
+      let filtered = cachedAnnouncements;
+      if (activeAnnFilter === 'teachers') {
+        filtered = cachedAnnouncements.filter(a => a.targetAudience === 'teachers');
+      } else if (activeAnnFilter === 'students_parents') {
+        filtered = cachedAnnouncements.filter(a => a.targetAudience === 'students_parents');
+      }
+
+      if (filtered.length === 0) {
+        document.getElementById('annEmpty').style.display = 'block';
+        document.getElementById('annEmpty').textContent = activeAnnFilter === 'teachers' 
+          ? 'No teacher & staff announcements posted yet.' 
+          : (activeAnnFilter === 'students_parents' ? 'No student & parent circulars posted yet.' : 'No school announcements posted yet.');
+        return;
+      }
       document.getElementById('annEmpty').style.display = 'none';
 
-      snap.docs.forEach(d => {
-        const r = d.data();
+      filtered.forEach(d => {
+        const r = d;
         const div = document.createElement('div');
         div.className = 'card';
         div.style.marginBottom = '14px';
         const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
+        
+        let badgeHtml = '<span class="badge badge-purple">📢 Broadcast to All</span>';
+        if (r.targetAudience === 'teachers') {
+          badgeHtml = '<span class="badge badge-good" style="font-weight:700;">👨‍🏫 Teachers &amp; Staff Only</span>';
+        } else if (r.targetAudience === 'students_parents') {
+          badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">🎓 Students &amp; Parents</span>';
+        }
+
         div.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span class="badge badge-purple">📢 Broadcast</span>
-        <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
-      </div>
-      <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title}</h3>
-      <p style="color:var(--ink-soft); font-size:14px; margin:0 0 14px 0; line-height:1.6;">${r.message}</p>
-      <button class="btn btn-danger btn-sm annDelBtn" data-id="${d.id}">Remove Notice</button>
-    `;
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            ${badgeHtml}
+            <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
+          </div>
+          <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title}</h3>
+          <p style="color:var(--ink-soft); font-size:14px; margin:0 0 14px 0; line-height:1.6;">${r.message}</p>
+          <button class="btn btn-danger btn-sm annDelBtn" data-id="${d.id}">Remove Notice</button>
+        `;
         div.querySelector('.annDelBtn').addEventListener('click', async () => {
           if (confirm('Delete this announcement?')) {
             await deleteDoc(doc(db, 'announcements', d.id));
@@ -2503,6 +2614,13 @@
         });
         list.appendChild(div);
       });
+    }
+
+    async function loadAnnouncements() {
+      const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      cachedAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAnnouncements();
     }
 
     // Global Show / Hide Password Input Toggle Handler

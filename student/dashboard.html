@@ -717,9 +717,12 @@ requirePortal(['student'], async ({ user, profile }) => {
     const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
     const annSnap = await getDocs(annQ);
     const annList = document.getElementById('announcementsList');
-    if (annSnap.empty) { document.getElementById('annEmpty').style.display = 'block'; }
-    annSnap.docs.forEach((d, i) => {
+    annList.innerHTML = '';
+    let count = 0;
+    annSnap.docs.forEach((d) => {
       const r = d.data();
+      if (r.targetAudience === 'teachers') return; // Exclude teacher/staff-only notices
+      count++;
       const div = document.createElement('div');
       div.className = 'card';
       div.style.marginBottom = '14px';
@@ -729,9 +732,11 @@ requirePortal(['student'], async ({ user, profile }) => {
         <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
       </div>
       <h3 style="font-size:17px;">${r.title || ''}</h3>
-      <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;">${r.message || ''}</p>`;
+      <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>`;
       annList.appendChild(div);
     });
+    if (count === 0) { document.getElementById('annEmpty').style.display = 'block'; }
+    else { document.getElementById('annEmpty').style.display = 'none'; }
   } catch (e) {
     document.getElementById('annEmpty').style.display = 'block';
   }
