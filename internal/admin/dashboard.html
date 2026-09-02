@@ -874,7 +874,10 @@
               </div>
               <div class="field">
                 <label>Temp Password</label>
-                <input type="text" id="stfPass" value="Welcome@123">
+                <div style="position:relative; display:flex; align-items:center;">
+                  <input type="password" id="stfPass" value="Welcome@123" style="padding-right:40px;">
+                  <button type="button" class="pass-toggle-btn" data-target="stfPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
+                </div>
               </div>
             </div>
             <button class="btn btn-primary" id="stfAddBtn">+ Create Faculty Account</button>
@@ -886,7 +889,8 @@
               <thead>
                 <tr>
                   <th>Faculty Name</th>
-                  <th>Email</th>
+                  <th>Login Email</th>
+                  <th>Login Password</th>
                   <th>Class Teacher Of</th>
                   <th>Subject Assignments</th>
                   <th style="text-align:right;">Actions</th>
@@ -1063,7 +1067,10 @@
                 </div>
                 <div class="field">
                   <label>Student Password *</label>
-                  <input type="text" id="stuPass" value="Student@123">
+                  <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" id="stuPass" value="Student@123" style="padding-right:40px;">
+                    <button type="button" class="pass-toggle-btn" data-target="stuPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1099,7 +1106,10 @@
                 </div>
                 <div class="field">
                   <label>Parent Portal Password *</label>
-                  <input type="text" id="parLoginPass" value="Parent@123">
+                  <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" id="parLoginPass" value="Parent@123" style="padding-right:40px;">
+                    <button type="button" class="pass-toggle-btn" data-target="parLoginPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
+                  </div>
                 </div>
                 <div class="field">
                   <label>Emergency Contact Phone</label>
@@ -1672,7 +1682,7 @@
         }
 
         await setDoc(doc(db, 'users', uid), { role: 'staff', name, email, createdAt: serverTimestamp() }, { merge: true });
-        await setDoc(doc(db, 'staff', uid), { name, email, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'staff', uid), { name, email, tempPassword: pass, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() }, { merge: true });
         await fbSignOut(secAuth);
         document.getElementById('stfName').value = '';
         document.getElementById('stfEmail').value = '';
@@ -1710,16 +1720,45 @@
       </span>
     `).join('') || '—';
 
+        const facultyPass = r.tempPassword || 'Welcome@123';
         const tr = document.createElement('tr');
         tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
-      <td style="font-size:13px; color:var(--ink-soft);">${r.email}</td>
+      <td style="font-size:13px; color:var(--ink-soft); font-family:var(--font-mono);">${r.email}</td>
+      <td>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:12px; display:inline-flex; align-items:center; gap:6px; padding:4px 8px;">
+          <span class="pass-val">••••••••</span>
+          <button type="button" class="pass-reveal-btn" data-pass="${facultyPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:13px; line-height:1;" title="Show Password">👁️</button>
+        </span>
+      </td>
       <td>${ctName}</td>
       <td>${subjects}</td>
       <td style="text-align:right;">
         <button class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}">Remove Faculty</button>
       </td>
     `;
+
+        // Handle show / hide password toggle
+        tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const span = btn.previousElementSibling;
+            const pass = btn.dataset.pass || 'Welcome@123';
+            if (span.textContent === '••••••••') {
+              span.textContent = pass;
+              span.style.color = 'var(--brand-green)';
+              span.style.fontWeight = '700';
+              btn.textContent = '🙈';
+              btn.title = 'Hide Password';
+            } else {
+              span.textContent = '••••••••';
+              span.style.color = '';
+              span.style.fontWeight = '';
+              btn.textContent = '👁️';
+              btn.title = 'Show Password';
+            }
+          });
+        });
 
         // Handle single subject deletion
         tr.querySelectorAll('.subRemoveBtn').forEach(btn => {
@@ -2465,6 +2504,26 @@
         list.appendChild(div);
       });
     }
+
+    // Global Show / Hide Password Input Toggle Handler
+    document.querySelectorAll('.pass-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = btn.dataset.target;
+        const inp = document.getElementById(targetId);
+        if (inp) {
+          if (inp.type === 'password') {
+            inp.type = 'text';
+            btn.textContent = '🙈';
+            btn.title = 'Hide Password';
+          } else {
+            inp.type = 'password';
+            btn.textContent = '👁️';
+            btn.title = 'Show Password';
+          }
+        }
+      });
+    });
   </script>
   <script src="../../js/site-brand.js"></script>
 </body>
