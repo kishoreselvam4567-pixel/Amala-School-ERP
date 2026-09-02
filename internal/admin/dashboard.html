@@ -1504,9 +1504,19 @@ async function loadStaff() {
     let ctName = '—';
     if (r.classTeacherOf) {
       const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
-      if (c.exists()) ctName = `<span class="badge badge-good">${c.data().name}</span>`;
+      const cName = c.exists() ? c.data().name : 'Assigned Class';
+      ctName = `<span class="badge badge-good" style="display:inline-flex; align-items:center; gap:6px; padding:3px 8px;">
+        <span>${cName}</span>
+        <button type="button" class="ctUnassignBtn" data-id="${d.id}" data-cid="${r.classTeacherOf}" data-name="${r.name}" title="Unassign as Class Teacher" style="background:none; border:none; color:#065f46; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#065f46'">&times;</button>
+      </span>`;
     }
-    const subjects = (r.subjects || []).map(s => `<span class="badge badge-purple" style="margin:2px;">${s.subject} (${s.className || ''})</span>`).join('') || '—';
+    const subjects = (r.subjects || []).map((s, idx) => `
+      <span class="badge badge-purple" style="display:inline-flex; align-items:center; gap:6px; margin:2px; padding:3px 8px;">
+        <span>${s.subject} (${s.className || ''})</span>
+        <button type="button" class="subRemoveBtn" data-id="${d.id}" data-idx="${idx}" data-sub="${s.subject}" data-cls="${s.className || ''}" data-name="${r.name}" title="Remove this subject assignment" style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#6b21a8'">&times;</button>
+      </span>
+    `).join('') || '—';
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -1514,14 +1524,67 @@ async function loadStaff() {
       <td>${ctName}</td>
       <td>${subjects}</td>
       <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}">Remove</button>
+        <button class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}">Remove Faculty</button>
       </td>
     `;
+
+    // Handle single subject deletion
+    tr.querySelectorAll('.subRemoveBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const staffId = btn.dataset.id;
+        const subIdx = parseInt(btn.dataset.idx, 10);
+        const subName = btn.dataset.sub;
+        const clsName = btn.dataset.cls;
+        const staffName = btn.dataset.name;
+        if (confirm(`Remove "${subName} (${clsName})" from ${staffName}?`)) {
+          const staffSnap = await getDoc(doc(db, 'staff', staffId));
+          const current = staffSnap.data() || {};
+          const newSubs = (current.subjects || []).filter((_, i) => i !== subIdx);
+          await updateDoc(doc(db, 'staff', staffId), {
+            subjects: newSubs,
+            type: current.classTeacherOf ? 'both' : 'subject'
+          });
+          showToast(`✅ Removed ${subName} (${clsName}).`);
+          await loadStaff();
+        }
+      });
+    });
+
+    // Handle class teacher unassignment
+    tr.querySelectorAll('.ctUnassignBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const staffId = btn.dataset.id;
+        const classId = btn.dataset.cid;
+        const staffName = btn.dataset.name;
+        if (confirm(`Unassign ${staffName} as Class Teacher?`)) {
+          const staffSnap = await getDoc(doc(db, 'staff', staffId));
+          const current = staffSnap.data() || {};
+          await updateDoc(doc(db, 'staff', staffId), {
+            classTeacherOf: null,
+            type: (current.subjects && current.subjects.length) ? 'subject' : 'subject'
+          });
+          if (classId) {
+            await updateDoc(doc(db, 'classes', classId), { classTeacherUid: null }).catch(() => {});
+          }
+          showToast('✅ Class teacher unassigned.');
+          await loadStaff();
+          await loadClasses();
+        }
+      });
+    });
+
+    // Handle full faculty removal
     tr.querySelector('.stfDelBtn').addEventListener('click', async () => {
       if (confirm(`Remove faculty profile "${r.name}"?`)) {
+        if (r.classTeacherOf) {
+          await updateDoc(doc(db, 'classes', r.classTeacherOf), { classTeacherUid: null }).catch(() => {});
+        }
         await deleteDoc(doc(db, 'staff', d.id));
         showToast('Faculty removed.');
         await loadStaff();
+        await loadClasses();
         await loadOverview();
       }
     });
