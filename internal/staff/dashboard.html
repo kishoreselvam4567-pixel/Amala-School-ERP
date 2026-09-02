@@ -763,8 +763,18 @@ document.getElementById('marksSaveBtn').addEventListener('click', async () => {
     const inp = document.querySelector(`.marks-input[data-uid="${s.uid}"]`);
     const marks = inp ? (parseFloat(inp.value) || 0) : 0;
     await addDoc(collection(db, 'marks'), {
-      studentUid: s.uid, rollNo: s.rollNo || '', classId: a.classId, subject: a.subject,
-      examName, marks, maxMarks, uploadedBy: staffUid, uploadedAt: serverTimestamp()
+      studentUid: s.uid,
+      studentName: s.name || '',
+      admissionNo: s.admissionNo || '',
+      rollNo: s.rollNo || '',
+      classId: a.classId,
+      className: a.className || '',
+      subject: a.subject,
+      examName,
+      marks,
+      maxMarks,
+      uploadedBy: staffUid,
+      uploadedAt: serverTimestamp()
     });
   }
   btn.disabled = false; btn.textContent = 'Save Marks';

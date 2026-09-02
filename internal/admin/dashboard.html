@@ -2070,43 +2070,77 @@ document.getElementById('marksReportBtn').addEventListener('click', async () => 
   const btn = document.getElementById('marksReportBtn');
   btn.disabled = true; btn.textContent = 'Generating…';
 
-  let marksQuery = classFilter
-    ? query(collection(db, 'marks'), where('classId', '==', classFilter))
-    : collection(db, 'marks');
+  try {
+    let marksQuery = classFilter
+      ? query(collection(db, 'marks'), where('classId', '==', classFilter))
+      : collection(db, 'marks');
 
-  const marksSnap = await getDocs(marksQuery);
-  const body = document.querySelector('#marksReportTable tbody');
-  body.innerHTML = '';
+    const [marksSnap, allStudentsSnap, allClassesSnap] = await Promise.all([
+      getDocs(marksQuery),
+      getDocs(collection(db, 'students')),
+      getDocs(collection(db, 'classes'))
+    ]);
 
-  if (marksSnap.empty) {
-    document.getElementById('marksReportEmpty').style.display = 'block';
-    document.getElementById('marksReportEmpty').textContent = 'No marks records found for this selection.';
-    btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
-    return;
-  }
-  document.getElementById('marksReportEmpty').style.display = 'none';
+    const body = document.querySelector('#marksReportTable tbody');
+    body.innerHTML = '';
 
-  for (const md of marksSnap.docs) {
-    const r = md.data();
-    let stuName = 'Student';
-    if (r.studentUid) {
-      const s = await getDoc(doc(db, 'students', r.studentUid));
-      if (s.exists()) stuName = s.data().name;
+    if (marksSnap.empty) {
+      document.getElementById('marksReportEmpty').style.display = 'block';
+      document.getElementById('marksReportEmpty').textContent = 'No marks records found for this selection.';
+      btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
+      return;
     }
-    const pct = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${stuName}</strong></td>
-      <td>Class Section</td>
-      <td><span class="badge badge-purple">${r.subject}</span></td>
-      <td>${r.examName}</td>
-      <td><strong>${r.marks}</strong></td>
-      <td>${r.maxMarks}</td>
-      <td><span class="badge ${pct >= 40 ? 'badge-good' : 'badge-bad'}">${pct}%</span></td>
-    `;
-    body.appendChild(tr);
+    document.getElementById('marksReportEmpty').style.display = 'none';
+
+    // Index students by UID and admission number for quick lookup
+    const studentsMap = {};
+    allStudentsSnap.forEach(d => {
+      const data = { id: d.id, ...d.data() };
+      studentsMap[d.id] = data;
+      if (data.admissionNo) studentsMap[data.admissionNo] = data;
+    });
+
+    // Index classes by ID
+    const classesMap = {};
+    allClassesSnap.forEach(d => {
+      classesMap[d.id] = d.data().name;
+    });
+
+    for (const md of marksSnap.docs) {
+      const r = md.data();
+      let studentObj = r.studentUid ? studentsMap[r.studentUid] : null;
+      if (!studentObj && r.admissionNo) studentObj = studentsMap[r.admissionNo];
+      if (!studentObj && r.rollNo) {
+        studentObj = Object.values(studentsMap).find(s => s.rollNo === r.rollNo && (!r.classId || s.classId === r.classId));
+      }
+
+      const stuName = r.studentName || (studentObj ? studentObj.name : 'Student');
+      const admNo = r.admissionNo || (studentObj ? studentObj.admissionNo : '');
+      const rollNo = r.rollNo || (studentObj ? studentObj.rollNo : '');
+      const clsName = r.className || (r.classId ? (classesMap[r.classId] || (studentObj ? studentObj.className : '—')) : (studentObj ? studentObj.className : '—'));
+
+      const pct = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <strong>${stuName}</strong>
+          ${admNo ? `<br><small style="color:var(--ink-soft); font-family:var(--font-mono);">Adm: ${admNo}${rollNo ? ` • Roll: ${rollNo}` : ''}</small>` : ''}
+        </td>
+        <td><span class="badge badge-navy" style="font-weight:600;">${clsName}</span></td>
+        <td><span class="badge badge-purple">${r.subject || '—'}</span></td>
+        <td>${r.examName || '—'}</td>
+        <td><strong style="color:var(--brand-green); font-size:14px;">${r.marks}</strong></td>
+        <td>${r.maxMarks}</td>
+        <td><span class="badge ${pct >= 40 ? 'badge-good' : 'badge-bad'}">${pct}%</span></td>
+      `;
+      body.appendChild(tr);
+    }
+  } catch (err) {
+    console.error('Marks load error:', err);
+    alert('Error loading marks sheet: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
   }
-  btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
 });
 
 // ======================== EXAM CALENDAR ========================
