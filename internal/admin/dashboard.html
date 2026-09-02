@@ -295,6 +295,11 @@
   <div class="profile-modal-overlay" id="studentDetailModal">
     <div class="profile-modal-card">
       <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
+      <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="printStudentProfileBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
+          🖨️ Print ID Profile
+        </button>
+      </div>
 
       <div class="profile-hero-card" style="margin-bottom:20px;">
         <div class="profile-hero-left">
@@ -885,6 +890,15 @@
           </div>
 
           <div class="card table-wrap" style="margin-bottom:24px;">
+            <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <h3>Faculty &amp; Staff Directory</h3>
+                <p>All active teachers, login credentials, and assignments</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="printStaffBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                🖨️ Print Faculty Roster
+              </button>
+            </div>
             <table id="stfTable">
               <thead>
                 <tr>
@@ -1156,7 +1170,7 @@
                 <h3>Campus Student Directory</h3>
                 <p>Click "View Profile" to open full ID card and family details</p>
               </div>
-              <div style="display:flex; align-items:center; gap:10px;">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <label
                   style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin:0;">Filter
                   Class:</label>
@@ -1164,6 +1178,9 @@
                   style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600;">
                   <option value="">All Classes (Show All)</option>
                 </select>
+                <button type="button" class="btn btn-outline btn-sm" id="printStudentsBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  🖨️ Print Student List
+                </button>
               </div>
             </div>
             <table id="stuTable">
@@ -1194,6 +1211,15 @@
           </div>
 
           <div class="card table-wrap">
+            <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <h3>Registered Parent Directory</h3>
+                <p>Official record of all guardian accounts and student linkages</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="printParentsBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                🖨️ Print Parent Directory
+              </button>
+            </div>
             <table id="parTable">
               <thead>
                 <tr>
@@ -1558,6 +1584,9 @@
     // Cache
     let allClasses = [];
     let allStudentsCache = [];
+    let allStaffCache = [];
+    let allParentsCache = [];
+    let currentModalStudent = null;
 
     requirePortal(['admin'], async ({ user, profile }) => {
       const adminName = profile.name || 'Administrator';
@@ -1727,24 +1756,36 @@
       const body = document.querySelector('#stfTable tbody');
       body.innerHTML = '';
       const selOptions = [];
+      allStaffCache = [];
 
       for (const d of snap.docs) {
         const r = d.data();
+        let ctNamePlain = '—';
         let ctName = '—';
         if (r.classTeacherOf) {
           const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
           const cName = c.exists() ? c.data().name : 'Assigned Class';
+          ctNamePlain = cName;
           ctName = `<span class="badge badge-good" style="display:inline-flex; align-items:center; gap:6px; padding:3px 8px;">
         <span>${cName}</span>
         <button type="button" class="ctUnassignBtn" data-id="${d.id}" data-cid="${r.classTeacherOf}" data-name="${r.name}" title="Unassign as Class Teacher" style="background:none; border:none; color:#065f46; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#065f46'">&times;</button>
       </span>`;
         }
+        const subjectsPlain = (r.subjects || []).map(s => `${s.subject} (${s.className || ''})`).join(', ') || '—';
         const subjects = (r.subjects || []).map((s, idx) => `
       <span class="badge badge-purple" style="display:inline-flex; align-items:center; gap:6px; margin:2px; padding:3px 8px;">
         <span>${s.subject} (${s.className || ''})</span>
         <button type="button" class="subRemoveBtn" data-id="${d.id}" data-idx="${idx}" data-sub="${s.subject}" data-cls="${s.className || ''}" data-name="${r.name}" title="Remove this subject assignment" style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#6b21a8'">&times;</button>
       </span>
     `).join('') || '—';
+
+        allStaffCache.push({
+          id: d.id,
+          name: r.name || 'Faculty',
+          email: r.email || '—',
+          classTeacherName: ctNamePlain,
+          subjectsText: subjectsPlain
+        });
 
         const facultyPass = r.tempPassword || 'Welcome@123';
         const tr = document.createElement('tr');
@@ -2210,6 +2251,7 @@
     if (finderClassSel) finderClassSel.addEventListener('change', runStudentFinder);
 
     function openStudentProfileModal(s) {
+      currentModalStudent = s;
       const init = (s.name || 'S').charAt(0).toUpperCase();
       document.getElementById('modalAvatarInit').textContent = init;
       document.getElementById('modalStudentName').textContent = s.name || 'Student';
@@ -2253,9 +2295,18 @@
       const snap = await getDocs(collection(db, 'parents'));
       const body = document.querySelector('#parTable tbody');
       body.innerHTML = '';
+      allParentsCache = [];
 
       snap.docs.forEach(d => {
         const r = d.data();
+        allParentsCache.push({
+          id: d.id,
+          name: r.name || 'Parent',
+          email: r.email || '—',
+          childName: r.childName || 'Child',
+          phone: r.phone || '—'
+        });
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -2278,6 +2329,486 @@
         body.appendChild(tr);
       });
     }
+
+    // ======================== 🖨️ PRINTING ENGINE ========================
+    function openPrintDocument(title, subtitle, tableHtml, extraStatsHtml = '') {
+      const printWin = window.open('', '_blank', 'width=950,height=750');
+      if (!printWin) {
+        alert('Please allow popups to open the print preview.');
+        return;
+      }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title} — Amala HSS</title>
+  <style>
+    @page { size: auto; margin: 12mm 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.4;
+      background: #fff;
+    }
+    .print-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f1b33;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .brand-sub {
+      font-size: 11.5px;
+      color: #475569;
+      margin-top: 3px;
+    }
+    .meta-tag {
+      font-size: 11px;
+      color: #64748b;
+      text-align: right;
+      line-height: 1.5;
+    }
+    .report-title-box {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .report-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .report-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid #cbd5e1;
+      padding: 9px 10px;
+      text-align: left;
+    }
+    td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      background: #f1f5f9;
+    }
+    .footer-sign-grid {
+      margin-top: 45px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 20px;
+      page-break-inside: avoid;
+    }
+    .sign-box {
+      text-align: center;
+      width: 170px;
+      border-top: 1.5px dashed #94a3b8;
+      padding-top: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-header">
+    <div>
+      <div class="brand-title">Amala Higher Secondary School</div>
+      <div class="brand-sub">Campus Management System • Official Administrative Records</div>
+    </div>
+    <div class="meta-tag">
+      <div>Generated: <strong>${dateStr}</strong></div>
+      <div>Portal: <strong>Super Admin Console</strong></div>
+    </div>
+  </div>
+
+  <div class="report-title-box">
+    <div>
+      <div class="report-title">${title}</div>
+      ${subtitle ? `<div class="report-sub">${subtitle}</div>` : ''}
+    </div>
+    ${extraStatsHtml ? `<div>${extraStatsHtml}</div>` : ''}
+  </div>
+
+  ${tableHtml}
+
+  <div class="footer-sign-grid">
+    <div class="sign-box">Prepared By (Admin)</div>
+    <div class="sign-box">Administrative Officer</div>
+    <div class="sign-box">Principal / Headmaster</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+      printWin.document.open();
+      printWin.document.write(html);
+      printWin.document.close();
+    }
+
+    function printSingleStudentProfile(s) {
+      if (!s) { alert('No student profile loaded.'); return; }
+      const printWin = window.open('', '_blank', 'width=850,height=750');
+      if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Profile — ${s.name || 'Student'}</title>
+  <style>
+    @page { size: auto; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .school-head {
+      text-align: center;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .school-name { font-size: 22px; font-weight: 800; color: #0f1b33; text-transform: uppercase; }
+    .doc-type { font-size: 13.5px; font-weight: 700; color: #059669; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    
+    .profile-hero {
+      display: flex;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .student-title { font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+    .hero-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hero-badge { background: #e2e8f0; padding: 4px 9px; border-radius: 5px; font-size: 11.5px; font-weight: 700; color: #1e293b; }
+    
+    .section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f1b33;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+      letter-spacing: 0.5px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .field-item { display: flex; font-size: 12.5px; border-bottom: 1px dotted #cbd5e1; padding: 5px 0; }
+    .field-lbl { width: 140px; font-weight: 700; color: #64748b; }
+    .field-val { flex: 1; color: #0f172a; font-weight: 600; }
+    
+    .photo-placeholder {
+      width: 105px;
+      height: 125px;
+      border: 1.5px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fff;
+    }
+    .footer-sign {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 15px;
+      page-break-inside: avoid;
+    }
+    .sign-col { text-align: center; width: 160px; border-top: 1.5px dashed #64748b; font-size: 12px; padding-top: 6px; font-weight: 700; color: #475569; }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="school-head">
+    <div class="school-name">Amala Higher Secondary School</div>
+    <div class="doc-type">Official Student Identity &amp; Admission Profile</div>
+    <div style="font-size:11px; color:#64748b; margin-top:3px;">Generated on: ${dateStr}</div>
+  </div>
+
+  <div class="profile-hero">
+    <div>
+      <h2 class="student-title">${s.name || 'Student Name'}</h2>
+      <div style="color:#64748b; font-size:13px;">Class: <strong>${s.className || '—'}</strong> • Adm No: <strong>${s.admissionNo || '—'}</strong></div>
+      <div class="hero-tags">
+        <span class="hero-badge">Roll: ${s.rollNo || s.admissionNo || '—'}</span>
+        <span class="hero-badge">Blood: ${s.bloodGroup || 'O+'}</span>
+        <span class="hero-badge">Gender: ${s.gender || '—'}</span>
+        <span class="hero-badge">Aadhaar: ${s.aadhaarNo || '—'}</span>
+      </div>
+    </div>
+    <div class="photo-placeholder">Affix Student Photograph</div>
+  </div>
+
+  <div class="section-title">1. Personal &amp; Academic Identity</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Full Name:</span><span class="field-val">${s.name || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Admission No:</span><span class="field-val">${s.admissionNo || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Roll Number:</span><span class="field-val">${s.rollNo || s.admissionNo || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Class Section:</span><span class="field-val">${s.className || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Date of Birth:</span><span class="field-val">${s.dob || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${s.gender || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
+    <div class="field-item" style="grid-column:1 / -1;"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
+  </div>
+
+  <div class="section-title">2. Parent &amp; Family Information</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Father's Name:</span><span class="field-val">${s.fatherName || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Father's Contact:</span><span class="field-val">${s.fatherPhone || s.phone || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Mother's Name:</span><span class="field-val">${s.motherName || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Mother's Contact:</span><span class="field-val">${s.motherPhone || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Parent Login Email:</span><span class="field-val">${s.parentEmail || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Emergency Phone:</span><span class="field-val">${s.emergencyPhone || s.fatherPhone || '—'}</span></div>
+  </div>
+
+  <div class="section-title">3. Residential Address</div>
+  <div class="grid-2">
+    <div class="field-item" style="grid-column: 1 / -1;"><span class="field-lbl">Permanent Address:</span><span class="field-val">${s.address || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">City / Town:</span><span class="field-val">${s.city || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Pincode:</span><span class="field-val">${s.pincode || '—'}</span></div>
+  </div>
+
+  <div class="footer-sign">
+    <div class="sign-col">Parent / Guardian Signature</div>
+    <div class="sign-col">Class Teacher</div>
+    <div class="sign-col">Principal Stamp &amp; Signature</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+      printWin.document.open();
+      printWin.document.write(html);
+      printWin.document.close();
+    }
+
+    // 🖨️ Event Listeners for Print Buttons
+    // 1. Print Student List (respects class filter)
+    document.getElementById('printStudentsBtn')?.addEventListener('click', () => {
+      const classFilterEl = document.getElementById('stuTableClassFilter');
+      const selectedClassId = classFilterEl ? classFilterEl.value : '';
+      let list = allStudentsCache;
+      let sub = 'Campus-wide Student Registry (All Sections)';
+      let title = 'CAMPUS STUDENT DIRECTORY';
+
+      if (selectedClassId) {
+        list = allStudentsCache.filter(s => s.classId === selectedClassId);
+        const className = classFilterEl.options[classFilterEl.selectedIndex]?.textContent || 'Selected Class';
+        title = `STUDENT ROSTER — ${className.toUpperCase()}`;
+        sub = `Official Student Enrollment List for ${className}`;
+      }
+
+      if (!list.length) {
+        alert('No student records found to print.');
+        return;
+      }
+
+      // Sort by roll number if available
+      const sorted = [...list].sort((a, b) => {
+        const rA = parseInt(a.rollNo, 10) || 9999;
+        const rB = parseInt(b.rollNo, 10) || 9999;
+        return rA - rB;
+      });
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">#</th>
+              <th style="width:70px;">Roll No.</th>
+              <th>Student Full Name</th>
+              <th style="width:90px;">Adm No.</th>
+              <th style="width:90px;">Class</th>
+              <th style="width:70px;">Gender</th>
+              <th style="width:60px;">Blood</th>
+              <th>Father / Guardian</th>
+              <th style="width:110px;">Contact Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      sorted.forEach((s, idx) => {
+        tableHtml += `
+          <tr>
+            <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td style="font-weight:700;">${s.rollNo || '—'}</td>
+            <td><strong>${s.name || '—'}</strong></td>
+            <td><span class="badge">${s.admissionNo || '—'}</span></td>
+            <td><strong>${s.className || '—'}</strong></td>
+            <td>${s.gender || '—'}</td>
+            <td>${s.bloodGroup || '—'}</td>
+            <td>${s.fatherName || '—'}</td>
+            <td>${s.fatherPhone || s.phone || '—'}</td>
+          </tr>
+        `;
+      });
+      tableHtml += '</tbody></table>';
+
+      const statsHtml = `<span class="badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd; font-size:12px; padding:5px 12px; font-weight:700;">Total Students: ${sorted.length}</span>`;
+      openPrintDocument(title, sub, tableHtml, statsHtml);
+    });
+
+    // 2. Print Single Student Profile (from Modal)
+    document.getElementById('printStudentProfileBtn')?.addEventListener('click', () => {
+      if (currentModalStudent) {
+        printSingleStudentProfile(currentModalStudent);
+      } else {
+        alert('Please open a student profile first.');
+      }
+    });
+
+    // 3. Print Faculty & Staff Roster
+    document.getElementById('printStaffBtn')?.addEventListener('click', () => {
+      if (!allStaffCache.length) {
+        alert('No faculty records found to print.');
+        return;
+      }
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">#</th>
+              <th>Faculty Name</th>
+              <th>Login Email Address</th>
+              <th style="width:160px;">Class Teacher Of</th>
+              <th>Subject Allocations</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      allStaffCache.forEach((stf, idx) => {
+        tableHtml += `
+          <tr>
+            <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td><strong>${stf.name}</strong></td>
+            <td style="font-family:monospace; color:#475569;">${stf.email}</td>
+            <td>${stf.classTeacherName !== '—' ? `<span class="badge" style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0; font-weight:700;">${stf.classTeacherName}</span>` : '—'}</td>
+            <td>${stf.subjectsText}</td>
+          </tr>
+        `;
+      });
+      tableHtml += '</tbody></table>';
+
+      const statsHtml = `<span class="badge" style="background:#fef3c7; color:#92400e; border-color:#fde68a; font-size:12px; padding:5px 12px; font-weight:700;">Total Faculty: ${allStaffCache.length}</span>`;
+      openPrintDocument('TEACHING FACULTY & STAFF ROSTER', 'Official Directory of Teaching Staff, Class Teachers & Subject Teachers', tableHtml, statsHtml);
+    });
+
+    // 4. Print Parent Directory
+    document.getElementById('printParentsBtn')?.addEventListener('click', () => {
+      if (!allParentsCache.length) {
+        alert('No parent records found to print.');
+        return;
+      }
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px; text-align:center;">#</th>
+              <th>Parent / Guardian Name</th>
+              <th>Login Email Address</th>
+              <th>Linked Child (Student)</th>
+              <th style="width:130px;">Contact Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      allParentsCache.forEach((p, idx) => {
+        tableHtml += `
+          <tr>
+            <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td><strong>${p.name}</strong></td>
+            <td style="font-family:monospace; color:#475569;">${p.email}</td>
+            <td><span class="badge" style="background:#f3e8ff; color:#6b21a8; border-color:#e9d5ff; font-weight:700;">${p.childName}</span></td>
+            <td><strong>${p.phone}</strong></td>
+          </tr>
+        `;
+      });
+      tableHtml += '</tbody></table>';
+
+      const statsHtml = `<span class="badge" style="background:#d1fae5; color:#065f46; border-color:#a7f3d0; font-size:12px; padding:5px 12px; font-weight:700;">Total Parent Accounts: ${allParentsCache.length}</span>`;
+      openPrintDocument('REGISTERED PARENT & GUARDIAN DIRECTORY', 'Official Registry of Connected Parent Portals & Student Linkages', tableHtml, statsHtml);
+    });
 
     // ======================== ATTENDANCE REPORTS ========================
     document.getElementById('attReportBtn').addEventListener('click', async () => {
