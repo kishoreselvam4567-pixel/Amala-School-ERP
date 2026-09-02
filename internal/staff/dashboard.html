@@ -139,11 +139,18 @@
       <a href="#" data-tab="students" id="navStudents" style="display:none;">👥 Manage Students</a>
     </nav>
     <div class="user-box">
-      <div class="u-name" id="uName">Loading…</div>
-      <div class="u-role" id="uType">—</div>
-      <button class="btn btn-ghost btn-sm btn-block" id="logoutBtn">Log out</button>
-      <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+      <div class="u-avatar" id="uAvatarInitial">F</div>
+      <div class="u-info">
+        <div class="u-name" id="uName">Loading…</div>
+        <div class="u-role" id="uType" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Staff Faculty</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn" title="Log out">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+        </svg>
+      </button>
     </div>
+    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   </div>
 
   <div class="main">
@@ -505,8 +512,11 @@ let allSchoolStudentsCache = [];
 requirePortal(['staff'], async ({ user, profile }) => {
   staffUid = user.uid;
   staffProfile = profile;
-  document.getElementById('uName').textContent = profile.name || 'Faculty';
-  document.getElementById('welcomeName').textContent = ', ' + (profile.name || 'Faculty');
+  const facultyName = profile.name || 'Faculty';
+  document.getElementById('uName').textContent = facultyName;
+  const avatarEl = document.getElementById('uAvatarInitial');
+  if (avatarEl) avatarEl.textContent = facultyName.charAt(0).toUpperCase() || 'F';
+  document.getElementById('welcomeName').textContent = ', ' + facultyName;
 
   const staffDoc = await getDoc(doc(db, 'staff', staffUid));
   const staffData = staffDoc.exists() ? staffDoc.data() : {};
@@ -523,7 +533,20 @@ requirePortal(['staff'], async ({ user, profile }) => {
   const roles = [];
   if (classTeacherClass) roles.push(`Class Teacher (${classTeacherClass.name})`);
   if (subjectAssignments.length) roles.push(`Subject Teacher (${subjectAssignments.length})`);
-  document.getElementById('uType').textContent = roles.join(' • ') || 'Staff';
+  
+  const uTypeEl = document.getElementById('uType');
+  if (uTypeEl) {
+    if (classTeacherClass && subjectAssignments.length) {
+      uTypeEl.textContent = `CT: ${classTeacherClass.name} • Subjects (${subjectAssignments.length})`;
+    } else if (classTeacherClass) {
+      uTypeEl.textContent = `Class Teacher (${classTeacherClass.name})`;
+    } else if (subjectAssignments.length) {
+      uTypeEl.textContent = `Subject Teacher (${subjectAssignments.length})`;
+    } else {
+      uTypeEl.textContent = 'Staff Faculty';
+    }
+    uTypeEl.title = roles.join(' • ') || 'Staff Faculty';
+  }
 
   // Overview box
   let html = '<h3>Assigned Classes &amp; Subjects</h3>';
