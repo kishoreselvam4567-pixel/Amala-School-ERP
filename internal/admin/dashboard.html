@@ -1032,7 +1032,7 @@
               <div class="field">
                 <label>Temp Password <span style="color:var(--bad);">*</span></label>
                 <div style="position:relative; display:flex; align-items:center;">
-                  <input type="password" id="stfPass" value="Welcome@123" style="padding-right:40px;" required>
+                  <input type="password" id="stfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;">
                   <button type="button" class="pass-toggle-btn" data-target="stfPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
                 </div>
               </div>
@@ -1238,7 +1238,7 @@
                 <div class="field">
                   <label>Student Password *</label>
                   <div style="position:relative; display:flex; align-items:center;">
-                    <input type="password" id="stuPass" value="Student@123" style="padding-right:40px;">
+                    <input type="password" id="stuPass" placeholder="e.g. Student@123" style="padding-right:40px;">
                     <button type="button" class="pass-toggle-btn" data-target="stuPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
                   </div>
                 </div>
@@ -1277,7 +1277,7 @@
                 <div class="field">
                   <label>Parent Portal Password *</label>
                   <div style="position:relative; display:flex; align-items:center;">
-                    <input type="password" id="parLoginPass" value="Parent@123" style="padding-right:40px;">
+                    <input type="password" id="parLoginPass" placeholder="e.g. Parent@123" style="padding-right:40px;">
                     <button type="button" class="pass-toggle-btn" data-target="parLoginPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
                   </div>
                 </div>
@@ -1884,13 +1884,18 @@
       const name = document.getElementById('stfName').value.trim();
       let username = document.getElementById('stfUsername').value.trim();
       const email = document.getElementById('stfEmail').value.trim();
-      const pass = document.getElementById('stfPass').value;
+      const rawPass = document.getElementById('stfPass').value.trim();
+      const pass = rawPass || 'Welcome@123';
       const phone = document.getElementById('stfPhone').value.trim();
       const majorSubject = document.getElementById('stfMajorSubject').value.trim();
       const gender = document.getElementById('stfGender').value;
 
-      if (!name || !email || pass.length < 6 || !phone || !majorSubject) {
-        alert('Please fill all required fields: Name, Username, Contact Number, Major Subject, Login Email, and Password (min 6 chars).');
+      if (!name || !email || !phone || !majorSubject) {
+        alert('Please fill all required fields: Name, Username, Contact Number, Major Subject, and Login Email.');
+        return;
+      }
+      if (pass.length < 6) {
+        alert('Password must be at least 6 characters.');
         return;
       }
 
@@ -1947,6 +1952,7 @@
         document.getElementById('stfName').value = '';
         document.getElementById('stfUsername').value = '';
         document.getElementById('stfEmail').value = '';
+        document.getElementById('stfPass').value = '';
         document.getElementById('stfPhone').value = '';
         document.getElementById('stfMajorSubject').value = '';
         showToast('✅ Faculty account created & credentials recorded.');
@@ -2278,7 +2284,8 @@
       const blood = document.getElementById('stuBlood').value;
       const aadhaar = document.getElementById('stuAadhaar').value.trim();
       const stuEmail = document.getElementById('stuEmail').value.trim();
-      const stuPass = document.getElementById('stuPass').value;
+      const rawStuPass = document.getElementById('stuPass').value.trim();
+      const stuPass = rawStuPass || 'Student@123';
 
       // 2. Parent fields
       const fatherName = document.getElementById('parFatherName').value.trim();
@@ -2286,7 +2293,8 @@
       const motherName = document.getElementById('parMotherName').value.trim();
       const motherPhone = document.getElementById('parMotherPhone').value.trim();
       const parEmail = document.getElementById('parLoginEmail').value.trim();
-      const parPass = document.getElementById('parLoginPass').value;
+      const rawParPass = document.getElementById('parLoginPass').value.trim();
+      const parPass = rawParPass || 'Parent@123';
       const emergencyPhone = document.getElementById('stuEmergencyPhone').value.trim();
 
       // 3. Address fields
@@ -2294,8 +2302,16 @@
       const city = document.getElementById('stuCity').value.trim();
       const pincode = document.getElementById('stuPincode').value.trim();
 
-      if (!name || !admNo || !dob || !classId || !stuEmail || stuPass.length < 6 || !fatherName || !fatherPhone || !parEmail || parPass.length < 6) {
-        alert('Please fill all mandatory fields (*): Student Name, Admission No, Date of Birth (Day/Month/Year), Class, Student Email/Password, Father Name/Phone, and Parent Email/Password (6+ chars).');
+      if (!name || !admNo || !dob || !classId || !stuEmail || !fatherName || !fatherPhone || !parEmail) {
+        alert('Please fill all mandatory fields (*): Student Name, Admission No, Date of Birth (Day/Month/Year), Class, Student Email, Father Name/Phone, and Parent Email.');
+        return;
+      }
+      if (stuPass.length < 6) {
+        alert('Student password needs at least 6 characters.');
+        return;
+      }
+      if (parPass.length < 6) {
+        alert('Parent password needs at least 6 characters.');
         return;
       }
 
@@ -2381,12 +2397,14 @@
         document.getElementById('stuAdm').value = '';
         document.getElementById('stuRollNo').value = '';
         document.getElementById('stuEmail').value = '';
+        document.getElementById('stuPass').value = '';
         document.getElementById('stuAadhaar').value = '';
         document.getElementById('parFatherName').value = '';
         document.getElementById('parFatherPhone').value = '';
         document.getElementById('parMotherName').value = '';
         document.getElementById('parMotherPhone').value = '';
         document.getElementById('parLoginEmail').value = '';
+        document.getElementById('parLoginPass').value = '';
         document.getElementById('stuAddress').value = '';
         document.getElementById('stuCity').value = '';
         document.getElementById('stuPincode').value = '';
