@@ -215,11 +215,10 @@ if (regDaySel) {
   }
 }
 if (regYearSel) {
-  const currentY = new Date().getFullYear();
-  for (let y = currentY - 3; y >= 1995; y--) {
+  for (let y = 2030; y >= 1995; y--) {
     const opt = document.createElement('option');
     opt.value = String(y); opt.textContent = String(y);
-    if (y === 2010) opt.selected = true;
+    if (y === 2030) opt.selected = true;
     regYearSel.appendChild(opt);
   }
 }

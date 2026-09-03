@@ -296,13 +296,13 @@
     <div class="profile-modal-card">
       <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
       <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
-        <button type="button" class="btn btn-outline btn-sm" id="printStudentProfileBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
-          🖨️ Print ID Profile
+        <button type="button" class="btn btn-outline btn-sm printStudentProfileBtn" id="printStudentProfileBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--line);">
+          🖨️ Print Student Profile
         </button>
       </div>
 
-      <div class="profile-hero-card" style="margin-bottom:20px;">
-        <div class="profile-hero-left">
+      <div class="profile-hero-card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div class="profile-hero-left" style="flex:1; min-width:260px;">
           <div class="profile-big-avatar" id="modalAvatarInit">S</div>
           <div class="profile-hero-info">
             <h2 id="modalStudentName">Student Name</h2>
@@ -315,6 +315,11 @@
               <span class="hero-tag" id="modalTagAadhaar">Aadhaar: —</span>
             </div>
           </div>
+        </div>
+        <div class="profile-hero-right">
+          <button type="button" class="btn btn-sm printStudentHeroBtn" id="printStudentHeroBtn" style="background:#ffffff; color:#0f172a; font-weight:700; font-size:13px; padding:9px 18px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.18); border:none; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.25)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(0,0,0,0.18)';">
+            🖨️ Print Student Profile
+          </button>
         </div>
       </div>
 
@@ -1374,9 +1379,14 @@
                 <h3>Registered Parent Directory</h3>
                 <p>Official record of all guardian accounts and student linkages</p>
               </div>
-              <button type="button" class="btn btn-outline btn-sm" id="printParentsBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
-                🖨️ Print Parent Directory
-              </button>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="cleanupOrphanedParentsBtn" style="display:none; align-items:center; gap:6px; font-weight:700; color:#dc2626; border-color:#fca5a5; background:#fff5f5;">
+                  🧹 Clear Orphaned Parents
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="printParentsBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  🖨️ Print Parent Directory
+                </button>
+              </div>
             </div>
             <table id="parTable">
               <thead>
@@ -1485,25 +1495,98 @@
           <div class="main-header">
             <div>
               <h2>Master Exam Calendar</h2>
-              <p>All scheduled examination dates and syllabi across grades</p>
+              <p>Schedule examination dates, subjects, timings, and syllabi across grades</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-outline btn-sm" id="printExamCalBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                🖨️ Print Exam Timetable
+              </button>
+            </div>
+          </div>
+
+          <!-- Schedule Exam Form -->
+          <div class="card" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm); margin-bottom: 24px;">
+            <div class="form-section-title" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+              <span style="font-weight:700; font-size:15px; color:var(--ink);">📅 Schedule New Examination / Timetable</span>
+              <span class="badge badge-purple">Published to Students &amp; Parents</span>
+            </div>
+
+            <div class="field-row" style="margin-bottom:14px;">
+              <div class="field" style="flex:1;">
+                <label>Target Class / Grade *</label>
+                <select id="examClassSel" style="font-weight:600;">
+                  <option value="">-- Choose Class Section --</option>
+                </select>
+              </div>
+              <div class="field" style="flex:1.5;">
+                <label>Exam Title / Type *</label>
+                <input type="text" id="examTitle" placeholder="e.g. Midterm Examination 2026, Unit Test 1, Quarterly">
+              </div>
+              <div class="field" style="flex:1.2;">
+                <label>Subject *</label>
+                <input type="text" id="examSubject" placeholder="e.g. Mathematics, Science, English">
+              </div>
+            </div>
+
+            <div class="field-row" style="margin-bottom:14px;">
+              <div class="field" style="flex:1;">
+                <label>Exam Date *</label>
+                <input type="date" id="examDate">
+              </div>
+              <div class="field" style="flex:1.2;">
+                <label>Timing / Session</label>
+                <input type="text" id="examTime" placeholder="e.g. 09:30 AM – 12:30 PM (Morning Session)">
+              </div>
+              <div class="field" style="flex:0.8;">
+                <label>Max Marks</label>
+                <input type="number" id="examMaxMarks" placeholder="100" value="100">
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:16px;">
+              <label>Syllabus &amp; Exam Instructions (Portions)</label>
+              <textarea id="examSyllabus" rows="2" placeholder="e.g. Chapters 1–4: Geometry, Trigonometry, and Statistics. Bring geometry instruments and hall ticket."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="font-size:12.5px; color:var(--ink-soft);">
+                💡 Once published, this exam will instantly appear on the <strong>Student Portal</strong>, <strong>Parent Portal</strong>, and <strong>Staff Schedule</strong>.
+              </div>
+              <button type="button" class="btn btn-primary" id="scheduleExamBtn" style="padding:10px 24px; font-weight:700;">
+                ✨ Publish Exam to Calendar
+              </button>
             </div>
           </div>
 
           <div class="card table-wrap">
+            <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <h3>Scheduled Examination Registry</h3>
+                <p>Official timetable entries currently active for upcoming school evaluations</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="examCalFilterClass" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
+                  <option value="">All Classes (Show All)</option>
+                </select>
+              </div>
+            </div>
             <table id="examCalTable">
               <thead>
                 <tr>
-                  <th>Exam Date</th>
+                  <th>Exam Date &amp; Time</th>
                   <th>Exam Title</th>
                   <th>Class Section</th>
                   <th>Subject</th>
+                  <th>Max Marks</th>
                   <th>Syllabus / Topics</th>
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
-            <div class="empty-state" id="examCalEmpty" style="display:none;">No exams scheduled yet.</div>
+            <div class="empty-state" id="examCalEmpty" style="display:none; padding:35px 20px; text-align:center;">
+              📅 No exams scheduled yet. Use the form above to post your first exam!
+            </div>
           </div>
         </section>
 
@@ -1648,7 +1731,7 @@
       if (tabName === 'classes') loadClasses();
       if (tabName === 'staff') { loadStaff(); loadClasses(); }
       if (tabName === 'students') { loadStudents(); loadClasses(); }
-      if (tabName === 'parents') { loadParents(); loadStudents(); }
+      if (tabName === 'parents') { loadStudents().then(() => loadParents()); }
       if (tabName === 'exams') loadExamCalendar();
       if (tabName === 'announcements') loadAnnouncements();
 
@@ -1692,12 +1775,11 @@
       }
 
       if (yearSel && yearSel.options.length <= 1) {
-        const currentYear = new Date().getFullYear();
-        for (let y = currentYear - 3; y >= 1995; y--) {
+        for (let y = 2030; y >= 1995; y--) {
           const opt = document.createElement('option');
           opt.value = String(y);
           opt.textContent = String(y);
-          if (y === 2010) opt.selected = true; // sensible default school age
+          if (y === 2030) opt.selected = true;
           yearSel.appendChild(opt);
         }
       }
@@ -1754,6 +1836,7 @@
     let allStudentsCache = [];
     let allStaffCache = [];
     let allParentsCache = [];
+    let allExamsCache = [];
     let currentModalStudent = null;
     let currentModalStaff = null;
 
@@ -1919,18 +2002,20 @@
         selOptions.push(`<option value="${r.id}">${r.name}</option>`);
       }
 
-      ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel'].forEach(id => {
+      ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel', 'examClassSel'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.innerHTML = (id === 'finderClassSel' ? '<option value="">-- Choose Class Section --</option>' : '') + selOptions.join('');
+        if (el) el.innerHTML = (id === 'finderClassSel' || id === 'examClassSel' ? '<option value="">-- Choose Class Section --</option>' : '') + selOptions.join('');
       });
 
       const classOpts = '<option value="">All Classes</option>' + selOptions.join('');
       const attF = document.getElementById('attClassFilter');
       const mrkF = document.getElementById('marksClassFilter');
       const stuTblF = document.getElementById('stuTableClassFilter');
+      const examCalF = document.getElementById('examCalFilterClass');
       if (attF) attF.innerHTML = classOpts;
       if (mrkF) mrkF.innerHTML = classOpts;
       if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+      if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
     }
 
     // ======================== STAFF ========================
@@ -2564,8 +2649,9 @@
       </td>
       <td><span class="badge badge-purple">${r.bloodGroup || 'O+'}</span></td>
       <td>${r.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
-      <td style="text-align:right;">
+      <td style="text-align:right; white-space:nowrap;">
         <button class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">🪪 View Profile</button>
+        <button class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">🖨️ Print</button>
         <button class="btn btn-outline btn-sm stuSaveBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Save</button>
         <button class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
       </td>
@@ -2574,6 +2660,11 @@
         // View Full Profile Modal Trigger
         tr.querySelector('.stuViewBtn').addEventListener('click', () => {
           openStudentProfileModal(r);
+        });
+
+        // 1-Click Print Profile from Table Row
+        tr.querySelector('.stuPrintRowBtn').addEventListener('click', () => {
+          printSingleStudentProfile(r);
         });
 
         // Save Class change
@@ -2586,16 +2677,83 @@
           await loadOverview();
         });
 
-        // Delete
-        // Delete student and revoke login access
+        // Delete student and automatically cascade-delete linked parent, credentials, and academic data
         tr.querySelector('.stuDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete student record "${r.name}" and permanently revoke login access?`)) {
+          const confirmMsg = `Are you sure you want to permanently delete student "${r.name}"?\n\n` +
+            `This will automatically:\n` +
+            `• Delete and revoke the linked parent account (${r.fatherName || 'Parent'})\n` +
+            `• Clear all associated academic records (Marks & Attendance)\n` +
+            `• Permanently revoke student and parent portal login credentials\n\n` +
+            `This action cannot be undone.`;
+
+          if (confirm(confirmMsg)) {
             try {
+              // 1. Identify all parent accounts linked to this student
+              const parentUidsToDelete = new Set();
               if (r.parentUid) {
-                await updateDoc(doc(db, 'parents', r.parentUid), { childUid: null, childName: null }).catch(() => { });
+                parentUidsToDelete.add(r.parentUid);
               }
 
-              // Mark disabled/deleted and delete from users collection
+              // Query parents collection by childUid
+              try {
+                const parChildQ = query(collection(db, 'parents'), where('childUid', '==', r.uid));
+                const parChildSnap = await getDocs(parChildQ);
+                parChildSnap.docs.forEach(pd => parentUidsToDelete.add(pd.id));
+              } catch (e) {
+                console.warn('Error querying parents by childUid:', e);
+              }
+
+              // Match by parentEmail or fatherPhone if available
+              if (r.parentEmail) {
+                try {
+                  const parEmailQ = query(collection(db, 'parents'), where('email', '==', r.parentEmail));
+                  const parEmailSnap = await getDocs(parEmailQ);
+                  parEmailSnap.docs.forEach(pd => parentUidsToDelete.add(pd.id));
+                } catch (e) { }
+              }
+              if (r.fatherPhone) {
+                try {
+                  const parPhoneQ = query(collection(db, 'parents'), where('phone', '==', r.fatherPhone));
+                  const parPhoneSnap = await getDocs(parPhoneQ);
+                  parPhoneSnap.docs.forEach(pd => parentUidsToDelete.add(pd.id));
+                } catch (e) { }
+              }
+
+              // Permanently delete linked parent accounts & credentials
+              for (const pUid of parentUidsToDelete) {
+                await setDoc(doc(db, 'users', pUid), {
+                  role: null,
+                  disabled: true,
+                  deleted: true,
+                  revokedAt: serverTimestamp()
+                }, { merge: true }).catch(() => { });
+                await deleteDoc(doc(db, 'users', pUid)).catch(() => { });
+                await deleteDoc(doc(db, 'parents', pUid)).catch(() => { });
+              }
+
+              // 2. Cascade delete all academic marks for this student
+              try {
+                const marksQ = query(collection(db, 'marks'), where('studentUid', '==', r.uid));
+                const marksSnap = await getDocs(marksQ);
+                for (const md of marksSnap.docs) {
+                  await deleteDoc(doc(db, 'marks', md.id)).catch(() => { });
+                }
+              } catch (e) {
+                console.warn('Error cascade deleting marks:', e);
+              }
+
+              // 3. Cascade delete all attendance records for this student
+              try {
+                const attQ = query(collection(db, 'attendance'), where('studentUid', '==', r.uid));
+                const attSnap = await getDocs(attQ);
+                for (const ad of attSnap.docs) {
+                  await deleteDoc(doc(db, 'attendance', ad.id)).catch(() => { });
+                }
+              } catch (e) {
+                console.warn('Error cascade deleting attendance:', e);
+              }
+
+              // 4. Mark disabled/deleted and delete from users collection
               await setDoc(doc(db, 'users', r.uid), {
                 role: null,
                 disabled: true,
@@ -2604,11 +2762,12 @@
               }, { merge: true }).catch(() => { });
               await deleteDoc(doc(db, 'users', r.uid)).catch(() => { });
 
-              // Delete from students collection
+              // 5. Delete from students collection
               await deleteDoc(doc(db, 'students', r.uid));
 
-              showToast(`✅ Student "${r.name}" deleted and login access permanently revoked.`);
+              showToast(`✅ Student "${r.name}", linked parent account, and all associated records permanently cleared.`);
               await loadStudents();
+              await loadParents();
               await loadOverview();
             } catch (err) {
               alert('Error deleting student: ' + err.message);
@@ -2748,30 +2907,86 @@
       studentDetailModal.classList.add('open');
     }
 
-    // ======================== PARENTS ========================
+    // ======================== PARENTS & GUARDIANS ========================
+    function updateOrphanCleanupBtn(count) {
+      const btn = document.getElementById('cleanupOrphanedParentsBtn');
+      if (!btn) return;
+      if (count > 0) {
+        btn.style.display = 'inline-flex';
+        btn.innerHTML = `🧹 Clear Orphaned Parents (${count})`;
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
     async function loadParents() {
+      // Ensure students cache is populated
+      if (!allStudentsCache || !allStudentsCache.length) {
+        const stuSnap = await getDocs(collection(db, 'students'));
+        allStudentsCache = stuSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+      }
+      const stuMap = new Map();
+      allStudentsCache.forEach(s => stuMap.set(s.uid, s));
+
       const snap = await getDocs(collection(db, 'parents'));
       const body = document.querySelector('#parTable tbody');
       body.innerHTML = '';
       allParentsCache = [];
 
+      let orphanCount = 0;
+
+      if (snap.empty) {
+        body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--ink-soft);">No parent accounts registered yet.</td></tr>';
+        updateOrphanCleanupBtn(0);
+        return;
+      }
+
       snap.docs.forEach(d => {
         const r = d.data();
         const parentPass = r.tempPassword || 'Parent@123';
+
+        // Check if linked student exists in database
+        let linkedStudent = null;
+        if (r.childUid && stuMap.has(r.childUid)) {
+          linkedStudent = stuMap.get(r.childUid);
+        } else if (r.email || r.phone) {
+          linkedStudent = allStudentsCache.find(s =>
+            (r.email && s.parentEmail && s.parentEmail.toLowerCase() === r.email.toLowerCase()) ||
+            (r.phone && s.fatherPhone && s.fatherPhone === r.phone)
+          );
+        }
+
+        const isOrphan = !linkedStudent;
+        if (isOrphan) {
+          orphanCount++;
+        }
+
+        const childBadgeHtml = linkedStudent
+          ? `<span class="badge badge-purple" style="font-weight:600;">🎓 ${linkedStudent.name} (${linkedStudent.className || 'Class'})</span>`
+          : `<span class="badge badge-bad" style="font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;">⚠️ Student Deleted / Unlinked</span>`;
+
         allParentsCache.push({
           id: d.id,
           name: r.name || 'Parent',
           email: r.email || '—',
-          childName: r.childName || 'Child',
+          childName: linkedStudent ? linkedStudent.name : 'Deleted Student',
           phone: r.phone || '—',
-          tempPassword: parentPass
+          tempPassword: parentPass,
+          isOrphan
         });
 
         const tr = document.createElement('tr');
+        if (isOrphan) {
+          tr.style.background = '#fff8f8';
+        }
+
         tr.innerHTML = `
-      <td><strong>${r.name}</strong></td>
+      <td>
+        <strong>${r.name || 'Parent'}</strong>
+        ${isOrphan ? '<div style="font-size:11px; color:#dc2626; font-weight:700; margin-top:2px;">⚠️ Orphaned Parent Account</div>' : ''}
+      </td>
       <td style="font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
-      <td><span class="badge badge-purple">${r.childName || 'Child'}</span></td>
+      <td>${childBadgeHtml}</td>
       <td>
         <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">📱 ${r.phone || '—'}</span>
         <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
@@ -2809,11 +3024,12 @@
           });
         });
 
+        // Individual parent delete button
         tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete parent "${r.name}" and permanently revoke login access?`)) {
+          if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
             try {
               if (r.childUid) {
-                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null });
+                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
               }
 
               // Mark disabled/deleted and delete from users collection
@@ -2828,7 +3044,7 @@
               // Delete from parents collection
               await deleteDoc(doc(db, 'parents', d.id));
 
-              showToast(`✅ Parent "${r.name}" removed and login access permanently revoked.`);
+              showToast(`✅ Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
               await loadParents();
               await loadStudents();
               await loadOverview();
@@ -2839,7 +3055,47 @@
         });
         body.appendChild(tr);
       });
+
+      updateOrphanCleanupBtn(orphanCount);
     }
+
+    // 🧹 Bulk Clear Orphaned Parents
+    document.getElementById('cleanupOrphanedParentsBtn')?.addEventListener('click', async () => {
+      const orphans = allParentsCache.filter(p => p.isOrphan);
+      if (!orphans.length) {
+        showToast('No orphaned parent records found.');
+        return;
+      }
+
+      if (confirm(`Found ${orphans.length} orphaned parent account(s) whose students no longer exist in the directory.\n\nDo you want to permanently delete them and clear their login credentials?`)) {
+        const cleanupBtn = document.getElementById('cleanupOrphanedParentsBtn');
+        if (cleanupBtn) {
+          cleanupBtn.disabled = true;
+          cleanupBtn.textContent = 'Clearing…';
+        }
+
+        try {
+          for (const p of orphans) {
+            await setDoc(doc(db, 'users', p.id), {
+              role: null,
+              disabled: true,
+              deleted: true,
+              revokedAt: serverTimestamp()
+            }, { merge: true }).catch(() => { });
+            await deleteDoc(doc(db, 'users', p.id)).catch(() => { });
+            await deleteDoc(doc(db, 'parents', p.id)).catch(() => { });
+          }
+
+          showToast(`✅ Successfully cleared ${orphans.length} orphaned parent account(s).`);
+          await loadParents();
+          await loadOverview();
+        } catch (err) {
+          alert('Error clearing orphaned parents: ' + err.message);
+        } finally {
+          if (cleanupBtn) cleanupBtn.disabled = false;
+        }
+      }
+    });
 
     // ======================== 🖨️ PRINTING ENGINE ========================
     function openPrintDocument(title, subtitle, tableHtml, extraStatsHtml = '') {
@@ -3405,6 +3661,13 @@
         alert('Please open a student profile first.');
       }
     });
+    document.getElementById('printStudentHeroBtn')?.addEventListener('click', () => {
+      if (currentModalStudent) {
+        printSingleStudentProfile(currentModalStudent);
+      } else {
+        alert('Please open a student profile first.');
+      }
+    });
 
     // 3. Print Faculty & Staff Roster
     document.getElementById('printStaffBtn')?.addEventListener('click', () => {
@@ -3479,7 +3742,7 @@
             <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
             <td><strong>${p.name}</strong></td>
             <td style="font-family:monospace; color:#475569;">${p.email}</td>
-            <td><span class="badge" style="background:#f3e8ff; color:#6b21a8; border-color:#e9d5ff; font-weight:700;">${p.childName}</span></td>
+            <td><span class="badge" style="${p.isOrphan ? 'background:#fef2f2; color:#dc2626; border-color:#fca5a5;' : 'background:#f3e8ff; color:#6b21a8; border-color:#e9d5ff;'} font-weight:700;">${p.isOrphan ? '⚠️ Student Deleted' : p.childName}</span></td>
             <td><strong>${p.phone}</strong></td>
           </tr>
         `;
@@ -3660,36 +3923,197 @@
     });
 
     // ======================== EXAM CALENDAR ========================
+    // 📅 1. Publish / Schedule Exam
+    document.getElementById('scheduleExamBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('examClassSel').value;
+      const title = document.getElementById('examTitle').value.trim();
+      const subject = document.getElementById('examSubject').value.trim();
+      const date = document.getElementById('examDate').value;
+      const time = document.getElementById('examTime').value.trim();
+      const maxMarks = document.getElementById('examMaxMarks').value.trim() || '100';
+      const syllabus = document.getElementById('examSyllabus').value.trim();
+
+      if (!classId) {
+        alert('Please select a Target Class Section (*).');
+        return;
+      }
+      if (!title) {
+        alert('Please enter an Exam Title or Type (e.g. Midterm Examination 2026, Unit Test 1).');
+        return;
+      }
+      if (!subject) {
+        alert('Please enter a Subject name (*).');
+        return;
+      }
+      if (!date) {
+        alert('Please choose an Exam Date (*).');
+        return;
+      }
+
+      const btn = document.getElementById('scheduleExamBtn');
+      btn.disabled = true;
+      btn.textContent = 'Publishing…';
+
+      try {
+        let className = 'Class';
+        const foundClass = allClasses.find(c => c.id === classId);
+        if (foundClass) {
+          className = foundClass.name;
+        } else {
+          const cSnap = await getDoc(doc(db, 'classes', classId));
+          if (cSnap.exists()) className = cSnap.data().name;
+        }
+
+        await addDoc(collection(db, 'exams'), {
+          classId,
+          className,
+          examName: title,
+          subject,
+          date,
+          time: time || '10:00 AM – 01:00 PM',
+          maxMarks: Number(maxMarks) || 100,
+          syllabus: syllabus || 'Full Unit Syllabus',
+          scheduledBy: document.getElementById('uName')?.textContent || 'Administrator',
+          createdAt: serverTimestamp()
+        });
+
+        showToast(`🎉 Exam "${title}" (${subject}) published for ${className}!`);
+
+        // Clear form fields
+        document.getElementById('examTitle').value = '';
+        document.getElementById('examSubject').value = '';
+        document.getElementById('examDate').value = '';
+        document.getElementById('examTime').value = '';
+        document.getElementById('examSyllabus').value = '';
+
+        await loadExamCalendar();
+      } catch (err) {
+        alert('Error publishing exam: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Publish Exam to Calendar';
+      }
+    });
+
+    // 🔍 2. Filter exams by Class Section
+    document.getElementById('examCalFilterClass')?.addEventListener('change', (e) => {
+      renderExamCalendar(e.target.value);
+    });
+
+    // 📋 3. Load & Render Exam Registry
     async function loadExamCalendar() {
       const snap = await getDocs(collection(db, 'exams'));
+      allExamsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Sort chronologically by date
+      allExamsCache.sort((a, b) => (a.date || '') > (b.date || '') ? 1 : -1);
+
+      const filterVal = document.getElementById('examCalFilterClass')?.value || '';
+      renderExamCalendar(filterVal);
+    }
+
+    function renderExamCalendar(filterClassId = '') {
       const body = document.querySelector('#examCalTable tbody');
       body.innerHTML = '';
-      if (snap.empty) { document.getElementById('examCalEmpty').style.display = 'block'; return; }
+
+      let list = allExamsCache;
+      if (filterClassId) {
+        list = list.filter(e => e.classId === filterClassId);
+      }
+
+      if (!list.length) {
+        document.getElementById('examCalEmpty').style.display = 'block';
+        return;
+      }
       document.getElementById('examCalEmpty').style.display = 'none';
 
-      snap.docs.forEach(d => {
-        const r = d.data();
+      list.forEach(d => {
+        const r = d;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono);">${r.date}</span></td>
-      <td><strong>${r.examName}</strong></td>
-      <td>${r.className || 'Class'}</td>
-      <td><span class="badge badge-purple">${r.subject}</span></td>
-      <td style="font-size:13px; color:var(--ink-soft);">${r.syllabus || '—'}</td>
+      <td>
+        <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">📅 ${r.date || '—'}</span>
+        ${r.time ? `<div style="font-size:11.5px; color:var(--ink-soft); margin-top:3px; font-weight:600;">⏰ ${r.time}</div>` : ''}
+      </td>
+      <td>
+        <strong>${r.examName || 'Examination'}</strong>
+        <div style="font-size:11px; color:var(--ink-soft);">Official Scheduled Evaluation</div>
+      </td>
+      <td><span class="badge badge-navy" style="font-weight:700;">${r.className || 'Class'}</span></td>
+      <td><span class="badge badge-purple" style="font-weight:600;">${r.subject}</span></td>
+      <td><strong style="color:var(--brand-green);">${r.maxMarks || 100} M</strong></td>
+      <td style="font-size:13px; color:var(--ink); max-width:280px; line-height:1.4;">${r.syllabus || '—'}</td>
       <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button>
+        <button class="btn btn-danger btn-sm examDelBtn" data-id="${d.id}" style="font-size:12px; padding:4px 10px;">Delete</button>
       </td>
     `;
-        tr.querySelector('button').addEventListener('click', async () => {
-          if (confirm('Delete exam schedule?')) {
+        tr.querySelector('.examDelBtn').addEventListener('click', async () => {
+          if (confirm(`Delete scheduled exam "${r.examName}" (${r.subject} - ${r.className})?`)) {
             await deleteDoc(doc(db, 'exams', d.id));
             showToast('Exam deleted.');
-            loadExamCalendar();
+            await loadExamCalendar();
           }
         });
         body.appendChild(tr);
       });
     }
+
+    // 🖨️ 4. Print Master Exam Timetable
+    document.getElementById('printExamCalBtn')?.addEventListener('click', () => {
+      if (!allExamsCache.length) {
+        alert('No exams scheduled yet to print.');
+        return;
+      }
+      const filterVal = document.getElementById('examCalFilterClass')?.value;
+      let list = allExamsCache;
+      let subTitle = 'Campus-wide Master Examination Schedule & Syllabi';
+      if (filterVal) {
+        list = list.filter(e => e.classId === filterVal);
+        const clsName = allClasses.find(c => c.id === filterVal)?.name || 'Class';
+        subTitle = `Official Examination Timetable for ${clsName}`;
+      }
+
+      if (!list.length) {
+        alert('No scheduled exams found matching this class filter.');
+        return;
+      }
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:35px; text-align:center;">#</th>
+              <th style="width:105px;">Exam Date</th>
+              <th style="width:125px;">Timing</th>
+              <th style="width:90px;">Class</th>
+              <th style="width:115px;">Subject</th>
+              <th>Exam Title</th>
+              <th style="width:75px; text-align:center;">Max Marks</th>
+              <th>Syllabus &amp; Portions</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      list.forEach((e, idx) => {
+        tableHtml += `
+          <tr>
+            <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td style="font-weight:700; font-family:monospace;">${e.date || '—'}</td>
+            <td style="font-size:11.5px;">${e.time || '10:00 AM – 01:00 PM'}</td>
+            <td><strong>${e.className || '—'}</strong></td>
+            <td><strong style="color:#0369a1;">${e.subject || '—'}</strong></td>
+            <td><strong>${e.examName || '—'}</strong></td>
+            <td style="text-align:center; font-weight:700;">${e.maxMarks || 100}</td>
+            <td style="font-size:11.5px; color:#334155;">${e.syllabus || '—'}</td>
+          </tr>
+        `;
+      });
+      tableHtml += '</tbody></table>';
+
+      const statsHtml = `<span class="badge" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe; font-size:12px; padding:5px 12px; font-weight:700;">Total Papers: ${list.length}</span>`;
+      openPrintDocument('OFFICIAL MASTER EXAMINATION TIMETABLE', subTitle, tableHtml, statsHtml);
+    });
 
     // ======================== ANNOUNCEMENTS ========================
     const annAudienceEl = document.getElementById('annAudience');

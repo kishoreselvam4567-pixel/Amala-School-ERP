@@ -678,7 +678,10 @@ requirePortal(['student'], async ({ user, profile }) => {
   document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} (${upcoming.subject})` : 'None scheduled';
   examsRows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${r.examName}</strong></td><td>${r.subject}</td><td>${r.date}</td><td>${r.syllabus || '—'}</td>`;
+    tr.innerHTML = `<td><strong>${r.examName}</strong>${r.maxMarks ? ` <span class="badge badge-navy" style="font-size:10.5px;">${r.maxMarks} M</span>` : ''}</td>
+      <td><span class="badge badge-purple">${r.subject}</span></td>
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">⏰ ${r.time}</div>` : ''}</td>
+      <td>${r.syllabus || '—'}</td>`;
     examsBody.appendChild(tr);
   });
 
