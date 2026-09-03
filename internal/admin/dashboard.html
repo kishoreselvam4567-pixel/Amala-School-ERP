@@ -2048,6 +2048,7 @@
 
       for (const d of snap.docs) {
         const r = d.data();
+        if (r.deleted === true) continue; // Skip deleted faculty
         let ctNamePlain = '—';
         let ctName = '—';
         if (r.classTeacherOf) {
@@ -2206,17 +2207,55 @@
           });
         });
 
-        // Handle full faculty removal
+        // Handle full faculty removal & total login access revocation
         tr.querySelector('.stfDelBtn').addEventListener('click', async () => {
-          if (confirm(`Remove faculty profile "${r.name}"?`)) {
-            if (r.classTeacherOf) {
-              await updateDoc(doc(db, 'classes', r.classTeacherOf), { classTeacherUid: null }).catch(() => { });
+          if (confirm(`Remove faculty profile "${r.name}" and completely revoke portal login access?`)) {
+            try {
+              // 1. Unassign as class teacher if assigned
+              if (r.classTeacherOf) {
+                await updateDoc(doc(db, 'classes', r.classTeacherOf), { classTeacherUid: null }).catch(() => { });
+              }
+
+              // 2. Remove from all class subject allocations
+              const classesSnap = await getDocs(collection(db, 'classes')).catch(() => null);
+              if (classesSnap && !classesSnap.empty) {
+                for (const cDoc of classesSnap.docs) {
+                  const cData = cDoc.data();
+                  if (cData.subjects && Array.isArray(cData.subjects)) {
+                    let changed = false;
+                    const cleanedSubs = cData.subjects.map(sub => {
+                      if (sub.staffUid === d.id) {
+                        changed = true;
+                        return { ...sub, staffUid: null, staffName: '—' };
+                      }
+                      return sub;
+                    });
+                    if (changed) {
+                      await updateDoc(doc(db, 'classes', cDoc.id), { subjects: cleanedSubs }).catch(() => { });
+                    }
+                  }
+                }
+              }
+
+              // 3. Mark disabled/deleted and delete from users collection so login is permanently blocked
+              await setDoc(doc(db, 'users', d.id), {
+                role: null,
+                disabled: true,
+                deleted: true,
+                revokedAt: serverTimestamp()
+              }, { merge: true }).catch(() => { });
+              await deleteDoc(doc(db, 'users', d.id)).catch(() => { });
+
+              // 4. Delete from staff collection
+              await deleteDoc(doc(db, 'staff', d.id));
+
+              showToast(`✅ Faculty "${r.name}" removed and login access permanently revoked.`);
+              await loadStaff();
+              await loadClasses();
+              await loadOverview();
+            } catch (err) {
+              alert('Error removing faculty: ' + err.message);
             }
-            await deleteDoc(doc(db, 'staff', d.id));
-            showToast('Faculty removed.');
-            await loadStaff();
-            await loadClasses();
-            await loadOverview();
           }
         });
         body.appendChild(tr);
@@ -2494,12 +2533,32 @@
         });
 
         // Delete
+        // Delete student and revoke login access
         tr.querySelector('.stuDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete student record "${r.name}"?`)) {
-            await deleteDoc(doc(db, 'students', r.uid));
-            showToast('Student deleted.');
-            await loadStudents();
-            await loadOverview();
+          if (confirm(`Delete student record "${r.name}" and permanently revoke login access?`)) {
+            try {
+              if (r.parentUid) {
+                await updateDoc(doc(db, 'parents', r.parentUid), { childUid: null, childName: null }).catch(() => { });
+              }
+
+              // Mark disabled/deleted and delete from users collection
+              await setDoc(doc(db, 'users', r.uid), {
+                role: null,
+                disabled: true,
+                deleted: true,
+                revokedAt: serverTimestamp()
+              }, { merge: true }).catch(() => { });
+              await deleteDoc(doc(db, 'users', r.uid)).catch(() => { });
+
+              // Delete from students collection
+              await deleteDoc(doc(db, 'students', r.uid));
+
+              showToast(`✅ Student "${r.name}" deleted and login access permanently revoked.`);
+              await loadStudents();
+              await loadOverview();
+            } catch (err) {
+              alert('Error deleting student: ' + err.message);
+            }
           }
         });
 
@@ -2696,12 +2755,31 @@
         });
 
         tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete parent "${r.name}"?`)) {
-            if (r.childUid) { try { await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }); } catch (e) { } }
-            await deleteDoc(doc(db, 'parents', d.id));
-            try { await deleteDoc(doc(db, 'users', d.id)); } catch (e) { }
-            showToast('Parent unlinked & removed.');
-            await loadParents(); await loadStudents(); await loadOverview();
+          if (confirm(`Delete parent "${r.name}" and permanently revoke login access?`)) {
+            try {
+              if (r.childUid) {
+                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null });
+              }
+
+              // Mark disabled/deleted and delete from users collection
+              await setDoc(doc(db, 'users', d.id), {
+                role: null,
+                disabled: true,
+                deleted: true,
+                revokedAt: serverTimestamp()
+              }, { merge: true }).catch(() => { });
+              await deleteDoc(doc(db, 'users', d.id)).catch(() => { });
+
+              // Delete from parents collection
+              await deleteDoc(doc(db, 'parents', d.id));
+
+              showToast(`✅ Parent "${r.name}" removed and login access permanently revoked.`);
+              await loadParents();
+              await loadStudents();
+              await loadOverview();
+            } catch (err) {
+              alert('Error removing parent: ' + err.message);
+            }
           }
         });
         body.appendChild(tr);

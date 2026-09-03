@@ -761,9 +761,37 @@ form.addEventListener('submit', async (e) => {
 
     const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
     const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-    const role = userDoc.exists() ? userDoc.data().role : null;
-    const dest = ROLE_ROUTES[role];
+    const userData = userDoc.exists() ? userDoc.data() : null;
 
+    if (!userData || userData.deleted === true || userData.disabled === true || !userData.role) {
+      await fbSignOut(auth);
+      throw new Error('This account has been deleted or deactivated by the school administrator. Access revoked.');
+    }
+
+    const role = userData.role;
+
+    // Strict role collection verification: if the document in its specific collection is deleted or missing, reject login
+    if (role === 'staff') {
+      const stfSnap = await getDoc(doc(db, 'staff', cred.user.uid));
+      if (!stfSnap.exists() || stfSnap.data().deleted === true) {
+        await fbSignOut(auth);
+        throw new Error('This faculty account has been removed by the administrator. Portal access denied.');
+      }
+    } else if (role === 'student') {
+      const stuSnap = await getDoc(doc(db, 'students', cred.user.uid));
+      if (!stuSnap.exists() || stuSnap.data().deleted === true) {
+        await fbSignOut(auth);
+        throw new Error('This student account has been removed by the administrator. Portal access denied.');
+      }
+    } else if (role === 'parent') {
+      const parSnap = await getDoc(doc(db, 'parents', cred.user.uid));
+      if (!parSnap.exists() || parSnap.data().deleted === true) {
+        await fbSignOut(auth);
+        throw new Error('This parent account has been removed by the administrator. Portal access denied.');
+      }
+    }
+
+    const dest = ROLE_ROUTES[role];
     if (!dest) {
       await fbSignOut(auth);
       throw new Error('User role is unassigned or unrecognized. Contact school IT support.');

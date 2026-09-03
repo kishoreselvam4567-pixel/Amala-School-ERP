@@ -53,12 +53,40 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginPath; return; }
     const profile = await getUserProfile(user.uid);
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      alert("You don't have access to this portal.");
+    if (!profile || !allowedRoles.includes(profile.role) || profile.deleted || profile.disabled) {
+      alert("This account has been deleted or deactivated by the school administrator.");
       await fbSignOut(auth);
       window.location.href = loginPath;
       return;
     }
+
+    // Role-specific collection check to ensure deleted records are revoked immediately
+    if (profile.role === 'staff') {
+      const sSnap = await getDoc(doc(db, 'staff', user.uid));
+      if (!sSnap.exists() || sSnap.data().deleted) {
+        alert("Your faculty account has been removed by the administrator. Access revoked.");
+        await fbSignOut(auth);
+        window.location.href = loginPath;
+        return;
+      }
+    } else if (profile.role === 'student') {
+      const stSnap = await getDoc(doc(db, 'students', user.uid));
+      if (!stSnap.exists() || stSnap.data().deleted) {
+        alert("Your student account has been removed by the administrator. Access revoked.");
+        await fbSignOut(auth);
+        window.location.href = loginPath;
+        return;
+      }
+    } else if (profile.role === 'parent') {
+      const pSnap = await getDoc(doc(db, 'parents', user.uid));
+      if (!pSnap.exists() || pSnap.data().deleted) {
+        alert("Your parent account has been removed by the administrator. Access revoked.");
+        await fbSignOut(auth);
+        window.location.href = loginPath;
+        return;
+      }
+    }
+
     onReady({ user, profile });
   });
 }
