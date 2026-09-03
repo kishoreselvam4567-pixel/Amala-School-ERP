@@ -755,6 +755,12 @@ form.addEventListener('submit', async (e) => {
         }
       }
 
+      // 5. Admin alias (amala, amala123, admin)
+      if (!resolved && (cleanInput === 'admin' || cleanInput === 'amala' || cleanInput === 'amala123')) {
+        authEmail = 'amala@123.gmail.com';
+        resolved = true;
+      }
+
       if (!resolved) {
         throw new Error(`No account found matching "${rawUser}". Parents can log in with their registered Mobile Number or Email.`);
       }
