@@ -637,10 +637,31 @@ requirePortal(['staff'], async ({ user, profile }) => {
   ]);
   allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
 
+  function getClassSortKey(className = '') {
+    const norm = (className || '').trim().toUpperCase();
+    if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
+    if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
+    if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
+    const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
+               || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
+               || norm.match(/(\d{1,2})[-\s]*(.*)/);
+    if (match) {
+      return { level: parseInt(match[1], 10), sub: (match[2] || '').trim() };
+    }
+    return { level: 99, sub: norm };
+  }
+
+  const sortedClasses = clSnap.docs.map(d => ({ id: d.id, name: d.data().name })).sort((a, b) => {
+    const kA = getClassSortKey(a.name);
+    const kB = getClassSortKey(b.name);
+    if (kA.level !== kB.level) return kA.level - kB.level;
+    return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
+  });
+
   const finderClassSel = document.getElementById('staffFinderClassSel');
   if (finderClassSel) {
     finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
-      clSnap.docs.map(d => `<option value="${d.id}">${d.data().name}</option>`).join('');
+      sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   }
 
   // Configure Attendance Access

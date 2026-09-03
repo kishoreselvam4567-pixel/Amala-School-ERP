@@ -936,12 +936,14 @@
             <div class="form-section-title">Create New Class Section</div>
             <div class="field-row">
               <div class="field">
-                <label>Class Name</label>
-                <input type="text" id="clsName" placeholder="e.g. Class 10 - Section A">
+                <label>Class Name <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="clsName" placeholder="e.g. 10-A, 10-B, or 12th-STD BIO-Maths" required>
+                <div style="font-size:11.5px; color:var(--ink-soft); margin-top:4px;">Unique section name (e.g. 10-A, 10-B). Duplicate names are automatically blocked.</div>
               </div>
               <div class="field">
-                <label>Registration Code</label>
-                <input type="text" id="clsCode" placeholder="e.g. 10A-2026">
+                <label>Registration Code <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="clsCode" placeholder="e.g. 10A-2026" required>
+                <div style="font-size:11.5px; color:var(--ink-soft); margin-top:4px;">Unique code for student registration.</div>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:12px;">
@@ -1818,28 +1820,79 @@
       });
     }
 
+    // Helper: Natural Academic School Sorting (Pre-KG, LKG, UKG, 1st ... 10th-A, 10th-B ... 12th)
+    function getClassSortKey(className = '') {
+      const norm = (className || '').trim().toUpperCase();
+      if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
+      if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
+      if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
+      const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
+                 || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
+                 || norm.match(/(\d{1,2})[-\s]*(.*)/);
+      if (match) {
+        const level = parseInt(match[1], 10);
+        const sub = (match[2] || '').trim();
+        return { level, sub };
+      }
+      return { level: 99, sub: norm };
+    }
+
+    function sortClassList(list) {
+      return [...list].sort((a, b) => {
+        const kA = getClassSortKey(a.name || '');
+        const kB = getClassSortKey(b.name || '');
+        if (kA.level !== kB.level) return kA.level - kB.level;
+        return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
+      });
+    }
+
     // ======================== CLASSES ========================
     document.getElementById('clsAddBtn').addEventListener('click', async () => {
       const name = document.getElementById('clsName').value.trim();
       const code = document.getElementById('clsCode').value.trim();
-      if (!name || !code) { alert('Enter class name and code.'); return; }
-      await addDoc(collection(db, 'classes'), { name, code, classTeacherUid: null, createdAt: serverTimestamp() });
-      document.getElementById('clsName').value = '';
-      document.getElementById('clsCode').value = '';
-      showToast('✅ Class section added.');
-      await loadClasses();
-      await loadOverview();
+      if (!name || !code) { alert('Please enter both Class Name and Registration Code.'); return; }
+
+      // Duplicate Class Prevention (Normalized match against existing classes)
+      const cleanName = name.toLowerCase().replace(/[\s\-_]/g, '');
+      const cleanCode = code.toLowerCase().replace(/[\s\-_]/g, '');
+
+      const existingName = (allClasses || []).find(c => (c.name || '').toLowerCase().replace(/[\s\-_]/g, '') === cleanName);
+      if (existingName) {
+        alert(`⚠️ Class "${name}" already exists! You cannot create duplicate classes with the same name.\n\nYou can create different sections such as "${name}-B", "${name}-C", etc.`);
+        return;
+      }
+
+      const existingCode = (allClasses || []).find(c => (c.code || '').toLowerCase().replace(/[\s\-_]/g, '') === cleanCode);
+      if (existingCode) {
+        alert(`⚠️ Registration Code "${code}" is already assigned to "${existingCode.name}". Please enter a unique registration code.`);
+        return;
+      }
+
+      const btn = document.getElementById('clsAddBtn');
+      btn.disabled = true; btn.textContent = 'Creating…';
+      try {
+        await addDoc(collection(db, 'classes'), { name, code, classTeacherUid: null, createdAt: serverTimestamp() });
+        document.getElementById('clsName').value = '';
+        document.getElementById('clsCode').value = '';
+        showToast(`✅ Class "${name}" added in proper order.`);
+        await loadClasses();
+        await loadOverview();
+      } catch (err) {
+        alert('Error creating class: ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '+ Add Class Section';
+      }
     });
 
     async function loadClasses() {
       const snap = await getDocs(collection(db, 'classes'));
-      allClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allClasses = sortClassList(rawClasses);
       const body = document.querySelector('#clsTable tbody');
       body.innerHTML = '';
       const selOptions = [];
 
-      for (const d of snap.docs) {
-        const r = d.data();
+      for (const r of allClasses) {
         let teacherName = '—';
         if (r.classTeacherUid) {
           const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
@@ -1851,19 +1904,19 @@
       <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.code}</span></td>
       <td>${teacherName}</td>
       <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm clsDelBtn" data-id="${d.id}">Delete</button>
+        <button class="btn btn-danger btn-sm clsDelBtn" data-id="${r.id}">Delete</button>
       </td>
     `;
         tr.querySelector('.clsDelBtn').addEventListener('click', async () => {
           if (confirm(`Delete class "${r.name}"?`)) {
-            await deleteDoc(doc(db, 'classes', d.id));
-            showToast('Class deleted.');
+            await deleteDoc(doc(db, 'classes', r.id));
+            showToast(`Class "${r.name}" deleted.`);
             await loadClasses();
             await loadOverview();
           }
         });
         body.appendChild(tr);
-        selOptions.push(`<option value="${d.id}">${r.name}</option>`);
+        selOptions.push(`<option value="${r.id}">${r.name}</option>`);
       }
 
       ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel'].forEach(id => {
@@ -2471,7 +2524,8 @@
       allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
 
       const classesSnap = await getDocs(collection(db, 'classes'));
-      const classOptions = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      const classOptions = sortClassList(rawClasses);
 
       renderStudentTable(allStudentsCache, classOptions);
     }
@@ -2572,7 +2626,8 @@
       stuTableClassFilter.addEventListener('change', async (e) => {
         const selectedClassId = e.target.value;
         const classesSnap = await getDocs(collection(db, 'classes'));
-        const classOptions = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+        const classOptions = sortClassList(rawClasses);
 
         if (!selectedClassId) {
           renderStudentTable(allStudentsCache, classOptions);
