@@ -1382,7 +1382,8 @@
                   <th>Parent Name</th>
                   <th>Login Email Address</th>
                   <th>Linked Child (Student)</th>
-                  <th>Contact Phone</th>
+                  <th>Contact Phone (Login Mobile)</th>
+                  <th>Login Password</th>
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
@@ -2381,11 +2382,11 @@
         // 4. Save Parent Record & Link
         if (parUid) {
           await setDoc(doc(db, 'users', parUid), {
-            role: 'parent', name: fatherName, email: parEmail, createdAt: serverTimestamp()
+            role: 'parent', name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass, createdAt: serverTimestamp()
           }, { merge: true });
 
           await setDoc(doc(db, 'parents', parUid), {
-            name: fatherName, email: parEmail, phone: fatherPhone, motherName, motherPhone,
+            name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass,
             childUid: stuUid, childName: name, createdAt: serverTimestamp()
           }, { merge: true });
         }
@@ -2642,12 +2643,14 @@
 
       snap.docs.forEach(d => {
         const r = d.data();
+        const parentPass = r.tempPassword || 'Parent@123';
         allParentsCache.push({
           id: d.id,
           name: r.name || 'Parent',
           email: r.email || '—',
           childName: r.childName || 'Child',
-          phone: r.phone || '—'
+          phone: r.phone || '—',
+          tempPassword: parentPass
         });
 
         const tr = document.createElement('tr');
@@ -2655,11 +2658,43 @@
       <td><strong>${r.name}</strong></td>
       <td style="font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
       <td><span class="badge badge-purple">${r.childName || 'Child'}</span></td>
-      <td style="font-family:var(--font-mono); font-size:13px;">${r.phone || '—'}</td>
+      <td>
+        <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">📱 ${r.phone || '—'}</span>
+        <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
+      </td>
+      <td>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+          <span class="pass-val">••••••••</span>
+          <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password">👁️</button>
+        </span>
+      </td>
       <td style="text-align:right;">
         <button class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}">Delete</button>
       </td>
     `;
+
+        // Handle show / hide password toggle
+        tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const span = btn.previousElementSibling;
+            const pass = btn.dataset.pass || 'Parent@123';
+            if (span.textContent === '••••••••') {
+              span.textContent = pass;
+              span.style.color = 'var(--brand-green)';
+              span.style.fontWeight = '700';
+              btn.textContent = '🙈';
+              btn.title = 'Hide Password';
+            } else {
+              span.textContent = '••••••••';
+              span.style.color = '';
+              span.style.fontWeight = '';
+              btn.textContent = '👁️';
+              btn.title = 'Show Password';
+            }
+          });
+        });
+
         tr.querySelector('.parDelBtn').addEventListener('click', async () => {
           if (confirm(`Delete parent "${r.name}"?`)) {
             if (r.childUid) { try { await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }); } catch (e) { } }

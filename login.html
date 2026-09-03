@@ -521,11 +521,14 @@
         <div class="success-box" id="okBox"></div>
 
         <form id="erpLoginForm">
-          <!-- User ID (Admission No / Email) -->
+          <!-- User ID (Admission No / Mobile / Email) -->
           <div class="erp-field">
-            <label for="loginUserId">User ID (Admission No, Staff Username, or Email)</label>
+            <label for="loginUserId">User ID (Parent Mobile No, Student Adm No, or Email)</label>
             <div class="erp-input-wrap">
-              <input type="text" id="loginUserId" required autocomplete="username" placeholder="e.g. 2026-001, staff_username, or email@school.edu.in">
+              <input type="text" id="loginUserId" required autocomplete="username" placeholder="Parent Mobile No. / Student Adm No. / Email">
+            </div>
+            <div style="font-size:11.5px; color:#64748b; margin-top:5px; line-height:1.4;">
+              📱 <strong>Parents:</strong> Enter your registered mobile number &bull; 🎓 <strong>Students:</strong> Admission No &bull; 🧑‍🏫 <strong>Staff:</strong> Username / Email
             </div>
           </div>
 
@@ -658,20 +661,80 @@ form.addEventListener('submit', async (e) => {
   try {
     let authEmail = rawUser;
 
-    // If user entered Admission Number or Username (e.g. not an email)
+    // If user entered Admission Number, Mobile Number, or Username (e.g. not an email)
     if (!rawUser.includes('@')) {
-      const cleanInput = rawUser.replace(/^@/, '').toLowerCase();
+      const rawTrimmed = rawUser.trim();
+      const cleanInput = rawTrimmed.replace(/^@/, '').toLowerCase();
+      const digitsOnly = rawTrimmed.replace(/\D/g, '');
       let resolved = false;
 
       // 1. Check students by admissionNo
-      const qStd = query(collection(db, 'students'), where('admissionNo', '==', rawUser));
+      const qStd = query(collection(db, 'students'), where('admissionNo', '==', rawTrimmed));
       const snapStd = await getDocs(qStd).catch(() => null);
       if (snapStd && !snapStd.empty) {
         authEmail = snapStd.docs[0].data().email;
         resolved = true;
       }
 
-      // 2. Check staff by username
+      // 2. Check parents by phone number (Mobile Number Login)
+      if (!resolved && digitsOnly.length >= 7) {
+        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+        const phoneVariants = [
+          rawTrimmed,
+          digitsOnly,
+          last10,
+          '+91 ' + last10,
+          '+91' + last10,
+          '+91-' + last10,
+          '0' + last10
+        ];
+        const uniqueVariants = [...new Set(phoneVariants)].slice(0, 10);
+
+        // A. Check parents collection by phone
+        let snapPar = await getDocs(query(collection(db, 'parents'), where('phone', 'in', uniqueVariants))).catch(() => null);
+        if (snapPar && !snapPar.empty) {
+          authEmail = snapPar.docs[0].data().email;
+          resolved = true;
+        }
+
+        // B. Check parents collection by motherPhone
+        if (!resolved) {
+          const snapMother = await getDocs(query(collection(db, 'parents'), where('motherPhone', 'in', uniqueVariants))).catch(() => null);
+          if (snapMother && !snapMother.empty) {
+            authEmail = snapMother.docs[0].data().email;
+            resolved = true;
+          }
+        }
+
+        // C. Check users collection by phone
+        if (!resolved) {
+          const snapUsrPhone = await getDocs(query(collection(db, 'users'), where('phone', 'in', uniqueVariants))).catch(() => null);
+          if (snapUsrPhone && !snapUsrPhone.empty) {
+            authEmail = snapUsrPhone.docs[0].data().email;
+            resolved = true;
+          }
+        }
+
+        // D. Flexible fallback: scan parents collection by normalized digit comparison
+        if (!resolved) {
+          const allParSnap = await getDocs(collection(db, 'parents')).catch(() => null);
+          if (allParSnap && !allParSnap.empty) {
+            const match = allParSnap.docs.find(doc => {
+              const d = doc.data();
+              const p1 = (d.phone || '').replace(/\D/g, '');
+              const p2 = (d.motherPhone || '').replace(/\D/g, '');
+              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
+                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
+            });
+            if (match) {
+              authEmail = match.data().email;
+              resolved = true;
+            }
+          }
+        }
+      }
+
+      // 3. Check staff by username
       if (!resolved) {
         const qStf = query(collection(db, 'staff'), where('username', '==', cleanInput));
         const snapStf = await getDocs(qStf).catch(() => null);
@@ -681,7 +744,7 @@ form.addEventListener('submit', async (e) => {
         }
       }
 
-      // 3. Fallback: check users collection by username
+      // 4. Fallback: check users collection by username
       if (!resolved) {
         const qUsr = query(collection(db, 'users'), where('username', '==', cleanInput));
         const snapUsr = await getDocs(qUsr).catch(() => null);
@@ -692,7 +755,7 @@ form.addEventListener('submit', async (e) => {
       }
 
       if (!resolved) {
-        throw new Error(`No account found with ID / Username "${rawUser}". Please enter your registered email address or contact school IT support.`);
+        throw new Error(`No account found matching "${rawUser}". Parents can log in with their registered Mobile Number or Email.`);
       }
     }
 
