@@ -6,7 +6,8 @@ import { firebaseConfig } from './firebase-config.js';
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut as fbSignOut, onAuthStateChanged, sendPasswordResetEmail
+  signOut as fbSignOut, onAuthStateChanged, sendPasswordResetEmail,
+  setPersistence, browserSessionPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
@@ -19,22 +20,27 @@ import {
 // Primary app — used for the normal signed-in session on every page.
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Enable tab-isolated session persistence so multiple roles / users can be open simultaneously in different tabs without conflict
+setPersistence(auth, browserSessionPersistence).catch(() => {});
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// A SECOND, isolated Firebase app instance.
-// Needed only when Admin/Class-Teacher creates a new login for someone else —
-// createUserWithEmailAndPassword() auto-signs-in as the new user, which would
-// otherwise kick the admin out of their own session. Using a second app avoids that.
+// A SECOND, isolated Firebase app instance with in-memory persistence.
+// Runs purely in RAM so creating staff/student accounts never interferes with the active session or emits cross-tab events.
 export function getSecondaryAuth() {
   const name = "secondary";
   const secondaryApp = getApps().find(a => a.name === name) || initializeApp(firebaseConfig, name);
-  return getAuth(secondaryApp);
+  const secAuth = getAuth(secondaryApp);
+  setPersistence(secAuth, inMemoryPersistence).catch(() => {});
+  return secAuth;
 }
 
 export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, fbSignOut,
   onAuthStateChanged, sendPasswordResetEmail,
+  setPersistence, browserSessionPersistence, inMemoryPersistence,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
   deleteDoc, serverTimestamp, orderBy,
   ref, uploadBytes, getDownloadURL, deleteObject
@@ -53,10 +59,25 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = loginPath; return; }
     const profile = await getUserProfile(user.uid);
-    if (!profile || !allowedRoles.includes(profile.role) || profile.deleted || profile.disabled) {
+    if (!profile) {
+      window.location.href = loginPath;
+      return;
+    }
+
+    // Only sign out if the user was explicitly deleted or deactivated by the admin
+    if (profile.deleted || profile.disabled) {
       alert("This account has been deleted or deactivated by the school administrator.");
       await fbSignOut(auth);
       window.location.href = loginPath;
+      return;
+    }
+
+    // If role does not match this portal (e.g. another tab or role was active):
+    // DO NOT call fbSignOut(auth)! Calling fbSignOut would terminate sessions for other active tabs!
+    // Instead, simply route to the correct portal for this account.
+    if (!allowedRoles.includes(profile.role)) {
+      const correctPath = portalPathForRole(profile.role);
+      window.location.href = correctPath;
       return;
     }
 
@@ -94,11 +115,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 // Central redirect used right after login on login.html
 export function portalPathForRole(role) {
   switch (role) {
-    case "student": return "student/dashboard.html";
-    case "parent": return "parent/dashboard.html";
-    case "staff": return "internal/staff/dashboard.html";
-    case "admin": return "internal/admin/dashboard.html";
-    default: return "login.html";
+    case "student": return "/student/dashboard.html";
+    case "parent": return "/parent/dashboard.html";
+    case "staff": return "/internal/staff/dashboard.html";
+    case "admin": return "/internal/admin/dashboard.html";
+    default: return "/login.html";
   }
 }
 

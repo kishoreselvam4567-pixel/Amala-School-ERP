@@ -565,7 +565,8 @@
 <script type="module">
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, collection,
-  query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox
+  query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
+  setPersistence, browserSessionPersistence
 } from './js/auth.js';
 
 const errBox = document.getElementById('errBox');
@@ -651,6 +652,7 @@ form.addEventListener('submit', async (e) => {
       authEmail = snap.docs[0].data().email;
     }
 
+    await setPersistence(auth, browserSessionPersistence).catch(() => {});
     const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
     const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
     const role = userDoc.exists() ? userDoc.data().role : null;
