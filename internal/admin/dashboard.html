@@ -416,6 +416,114 @@
     </div>
   </div>
 
+  <!-- STAFF FULL PROFILE MODAL (ID & SERVICE DOSSIER) -->
+  <div class="profile-modal-overlay" id="staffDetailModal">
+    <div class="profile-modal-card">
+      <button type="button" class="modal-close" id="closeStaffProfileModal">&times;</button>
+      <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="printStaffProfileModalBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
+          🖨️ Print Faculty Profile
+        </button>
+      </div>
+
+      <div class="profile-hero-card" style="margin-bottom:20px;">
+        <div class="profile-hero-left">
+          <div class="profile-big-avatar" id="modalStaffAvatarInit" style="background:var(--brand-green);">T</div>
+          <div class="profile-hero-info">
+            <h2 id="modalStaffName">Faculty Name</h2>
+            <p id="modalStaffSub">Major Subject • Staff ID: —</p>
+            <div class="profile-hero-tags">
+              <span class="hero-tag" id="modalStaffTagUsername">User: —</span>
+              <span class="hero-tag" id="modalStaffTagGender">Gender: —</span>
+              <span class="hero-tag" id="modalStaffTagMajor">Major: —</span>
+              <span class="hero-tag" id="modalStaffTagPhone">📞 —</span>
+              <span class="hero-tag" id="modalStaffTagCT">Class Teacher: —</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal & Faculty Identity -->
+      <div class="profile-group-card">
+        <div class="profile-group-header">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Faculty Identity &amp; Profile Details
+        </div>
+        <div class="profile-fields-grid">
+          <div class="detail-item"><label>Full Name</label>
+            <div class="detail-val" id="msp_name">—</div>
+          </div>
+          <div class="detail-item"><label>User Name / Staff ID</label>
+            <div class="detail-val" id="msp_username" style="font-family:var(--font-mono); font-weight:700; color:#6b21a8;">—</div>
+          </div>
+          <div class="detail-item"><label>Gender</label>
+            <div class="detail-val" id="msp_gender">—</div>
+          </div>
+          <div class="detail-item"><label>Contact Mobile Number</label>
+            <div class="detail-val" id="msp_phone" style="font-family:var(--font-mono); font-weight:600;">—</div>
+          </div>
+          <div class="detail-item"><label>Major Subject (Specialization)</label>
+            <div class="detail-val" id="msp_majorSubject" style="font-weight:700; color:var(--brand-green);">—</div>
+          </div>
+          <div class="detail-item"><label>Account Status</label>
+            <div class="detail-val"><span class="badge badge-good">Active Faculty</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Authentication & Login Credentials -->
+      <div class="profile-group-card">
+        <div class="profile-group-header">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Portal Login &amp; Security Credentials
+        </div>
+        <div class="profile-fields-grid">
+          <div class="detail-item"><label>Login Email Address</label>
+            <div class="detail-val" id="msp_email" style="font-family:var(--font-mono); font-weight:600;">—</div>
+          </div>
+          <div class="detail-item"><label>Portal Password</label>
+            <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+              <span id="msp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
+              <button type="button" class="btn btn-outline btn-sm" id="msp_togglePassBtn" style="padding:2px 8px; font-size:11px;">Reveal</button>
+            </div>
+          </div>
+          <div class="detail-item"><label>Assigned Portal Role</label>
+            <div class="detail-val"><span class="badge badge-purple">Staff / Teaching Faculty</span></div>
+          </div>
+          <div class="detail-item"><label>Login ID Allowed</label>
+            <div class="detail-val" style="color:var(--ink-soft); font-size:12px;">Both Email &amp; Username supported</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teaching Matrix & Allocations -->
+      <div class="profile-group-card">
+        <div class="profile-group-header">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          Teaching Responsibilities &amp; Class Allocations
+        </div>
+        <div class="profile-fields-grid">
+          <div class="detail-item"><label>Class Teacher Allocation</label>
+            <div class="detail-val" id="msp_classTeacher">—</div>
+          </div>
+          <div class="detail-item" style="grid-column: 1 / -1;"><label>Subject Teaching Allocations</label>
+            <div class="detail-val" id="msp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div class="app-shell">
 
     <!-- SIDEBAR -->
@@ -869,24 +977,71 @@
           <div class="card">
             <div class="form-section-title">Register New Faculty Account</div>
             <div class="field-row">
-              <div class="field">
-                <label>Full Name</label>
-                <input type="text" id="stfName" placeholder="e.g. Dr. K. Ramesh">
+              <div class="field" style="flex:1.2;">
+                <label>Full Name <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="stfName" placeholder="e.g. Dr. K. Ramesh" required>
               </div>
               <div class="field">
-                <label>Login Email</label>
-                <input type="email" id="stfEmail" placeholder="staff@amalaschool.edu.in">
+                <label>User Name / Staff ID <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="stfUsername" placeholder="e.g. ramesh_k or TCH101" required>
+              </div>
+              <div class="field" style="max-width:140px;">
+                <label>Gender <span style="color:var(--bad);">*</span></label>
+                <select id="stfGender">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div class="field">
-                <label>Temp Password</label>
+                <label>Contact Number <span style="color:var(--bad);">*</span></label>
+                <input type="tel" id="stfPhone" placeholder="e.g. +91 98765 43210" required>
+              </div>
+            </div>
+
+            <div class="field-row" style="margin-top:10px;">
+              <div class="field" style="flex:1.2;">
+                <label>Major Subject (Specialization) <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="stfMajorSubject" list="majorSubjectList" placeholder="e.g. Mathematics, Physics, English..." required>
+                <datalist id="majorSubjectList">
+                  <option value="Mathematics">
+                  <option value="Physics">
+                  <option value="Chemistry">
+                  <option value="Biology">
+                  <option value="Computer Science">
+                  <option value="English">
+                  <option value="Tamil">
+                  <option value="Hindi">
+                  <option value="French">
+                  <option value="Social Science">
+                  <option value="History">
+                  <option value="Geography">
+                  <option value="Commerce">
+                  <option value="Accountancy">
+                  <option value="Economics">
+                  <option value="Business Studies">
+                  <option value="Physical Education">
+                  <option value="Environmental Science">
+                  <option value="Art & Craft">
+                </datalist>
+              </div>
+              <div class="field" style="flex:1.2;">
+                <label>Login Email <span style="color:var(--bad);">*</span></label>
+                <input type="email" id="stfEmail" placeholder="staff@amalaschool.edu.in" required>
+              </div>
+              <div class="field">
+                <label>Temp Password <span style="color:var(--bad);">*</span></label>
                 <div style="position:relative; display:flex; align-items:center;">
-                  <input type="password" id="stfPass" value="Welcome@123" style="padding-right:40px;">
+                  <input type="password" id="stfPass" value="Welcome@123" style="padding-right:40px;" required>
                   <button type="button" class="pass-toggle-btn" data-target="stfPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
                 </div>
               </div>
             </div>
-            <button class="btn btn-primary" id="stfAddBtn">+ Create Faculty Account</button>
-            <span id="stfMsg" style="color:var(--good); font-weight:700; font-size:13.5px; margin-left:12px;"></span>
+
+            <div style="margin-top:14px; display:flex; align-items:center; gap:12px;">
+              <button class="btn btn-primary" id="stfAddBtn">+ Create Faculty Account</button>
+              <span id="stfMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
+            </div>
           </div>
 
           <div class="card table-wrap" style="margin-bottom:24px;">
@@ -902,11 +1057,12 @@
             <table id="stfTable">
               <thead>
                 <tr>
-                  <th>Faculty Name</th>
-                  <th>Login Email</th>
-                  <th>Login Password</th>
-                  <th>Class Teacher Of</th>
-                  <th>Subject Assignments</th>
+                  <th>Faculty &amp; Username</th>
+                  <th>Gender</th>
+                  <th>Contact Number</th>
+                  <th>Major Subject</th>
+                  <th>Login Credentials</th>
+                  <th>Teaching Allocations</th>
                   <th style="text-align:right;">Actions</th>
                 </tr>
               </thead>
@@ -1581,12 +1737,22 @@
       if (e.target === studentDetailModal) studentDetailModal.classList.remove('open');
     });
 
+    // Staff Full Profile Modal Handlers
+    const staffDetailModal = document.getElementById('staffDetailModal');
+    document.getElementById('closeStaffProfileModal')?.addEventListener('click', () => {
+      staffDetailModal.classList.remove('open');
+    });
+    staffDetailModal?.addEventListener('click', (e) => {
+      if (e.target === staffDetailModal) staffDetailModal.classList.remove('open');
+    });
+
     // Cache
     let allClasses = [];
     let allStudentsCache = [];
     let allStaffCache = [];
     let allParentsCache = [];
     let currentModalStudent = null;
+    let currentModalStaff = null;
 
     requirePortal(['admin'], async ({ user, profile }) => {
       const adminName = profile.name || 'Administrator';
@@ -1716,9 +1882,25 @@
     // ======================== STAFF ========================
     document.getElementById('stfAddBtn').addEventListener('click', async () => {
       const name = document.getElementById('stfName').value.trim();
+      let username = document.getElementById('stfUsername').value.trim();
       const email = document.getElementById('stfEmail').value.trim();
       const pass = document.getElementById('stfPass').value;
-      if (!name || !email || pass.length < 6) { alert('Fill all fields — password needs 6+ characters.'); return; }
+      const phone = document.getElementById('stfPhone').value.trim();
+      const majorSubject = document.getElementById('stfMajorSubject').value.trim();
+      const gender = document.getElementById('stfGender').value;
+
+      if (!name || !email || pass.length < 6 || !phone || !majorSubject) {
+        alert('Please fill all required fields: Name, Username, Contact Number, Major Subject, Login Email, and Password (min 6 chars).');
+        return;
+      }
+
+      // Format username: lowercase, replace spaces/specials with underscore
+      if (!username) {
+        username = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 16);
+      } else {
+        username = username.toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+      }
+
       const btn = document.getElementById('stfAddBtn');
       btn.disabled = true; btn.textContent = 'Creating…';
       try {
@@ -1736,18 +1918,117 @@
           if (!uid) throw err;
         }
 
-        await setDoc(doc(db, 'users', uid), { role: 'staff', name, email, createdAt: serverTimestamp() }, { merge: true });
-        await setDoc(doc(db, 'staff', uid), { name, email, tempPassword: pass, type: 'subject', classTeacherOf: null, subjects: [], createdAt: serverTimestamp() }, { merge: true });
+        await setDoc(doc(db, 'users', uid), {
+          role: 'staff',
+          name,
+          username,
+          email,
+          phone,
+          majorSubject,
+          gender,
+          createdAt: serverTimestamp()
+        }, { merge: true });
+
+        await setDoc(doc(db, 'staff', uid), {
+          name,
+          username,
+          email,
+          phone,
+          majorSubject,
+          gender,
+          tempPassword: pass,
+          type: 'subject',
+          classTeacherOf: null,
+          subjects: [],
+          createdAt: serverTimestamp()
+        }, { merge: true });
+
         await fbSignOut(secAuth);
         document.getElementById('stfName').value = '';
+        document.getElementById('stfUsername').value = '';
         document.getElementById('stfEmail').value = '';
-        showToast('✅ Faculty account created/updated.');
+        document.getElementById('stfPhone').value = '';
+        document.getElementById('stfMajorSubject').value = '';
+        showToast('✅ Faculty account created & credentials recorded.');
         await loadStaff();
         await loadOverview();
       } catch (err) {
         alert(err.message.replace('Firebase: ', ''));
       } finally {
         btn.disabled = false; btn.textContent = '+ Create Faculty Account';
+      }
+    });
+
+    // Open Staff Details Modal
+    function openStaffDetailModal(stf) {
+      if (!stf) return;
+      currentModalStaff = stf;
+      document.getElementById('modalStaffName').textContent = stf.name || 'Faculty Member';
+      document.getElementById('modalStaffSub').textContent = `${stf.majorSubject || 'Faculty'} • Staff ID: @${stf.username || '—'}`;
+      document.getElementById('modalStaffAvatarInit').textContent = (stf.name || 'F').charAt(0).toUpperCase();
+
+      document.getElementById('modalStaffTagUsername').textContent = `User: @${stf.username || '—'}`;
+      document.getElementById('modalStaffTagGender').textContent = `Gender: ${stf.gender || '—'}`;
+      document.getElementById('modalStaffTagMajor').textContent = `Major: ${stf.majorSubject || '—'}`;
+      document.getElementById('modalStaffTagPhone').textContent = `📞 ${stf.phone || '—'}`;
+      document.getElementById('modalStaffTagCT').textContent = `CT: ${stf.classTeacherName && stf.classTeacherName !== '—' ? stf.classTeacherName : 'None'}`;
+
+      // Personal & Faculty Identity
+      document.getElementById('msp_name').textContent = stf.name || '—';
+      document.getElementById('msp_username').textContent = stf.username ? `@${stf.username}` : '—';
+      document.getElementById('msp_gender').textContent = stf.gender || '—';
+      document.getElementById('msp_phone').textContent = stf.phone || '—';
+      document.getElementById('msp_majorSubject').textContent = stf.majorSubject || '—';
+
+      // Login Credentials
+      document.getElementById('msp_email').textContent = stf.email || '—';
+      const passSpan = document.getElementById('msp_pass');
+      passSpan.textContent = '••••••••';
+      passSpan.dataset.realPass = stf.tempPassword || 'Welcome@123';
+      passSpan.dataset.revealed = 'false';
+      const toggleBtn = document.getElementById('msp_togglePassBtn');
+      if (toggleBtn) toggleBtn.textContent = 'Reveal';
+
+      // Teaching Allocations
+      document.getElementById('msp_classTeacher').innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
+        ? `<span class="badge badge-good">${stf.classTeacherName}</span>`
+        : '<span style="color:var(--ink-soft);">Not assigned as Class Teacher</span>';
+
+      const subsContainer = document.getElementById('msp_subjects');
+      if (stf.subjects && stf.subjects.length > 0) {
+        subsContainer.innerHTML = stf.subjects.map(s => `
+          <span class="badge badge-purple" style="padding:4px 10px; font-size:12px;">
+            ${s.subject} <strong style="margin-left:4px;">(${s.className || 'Class'})</strong>
+          </span>
+        `).join('');
+      } else {
+        subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
+      }
+
+      staffDetailModal.classList.add('open');
+    }
+
+    // Modal Password Reveal Listener
+    document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
+      const passSpan = document.getElementById('msp_pass');
+      const btn = document.getElementById('msp_togglePassBtn');
+      if (passSpan.dataset.revealed === 'true') {
+        passSpan.textContent = '••••••••';
+        passSpan.dataset.revealed = 'false';
+        btn.textContent = 'Reveal';
+      } else {
+        passSpan.textContent = passSpan.dataset.realPass || 'Welcome@123';
+        passSpan.dataset.revealed = 'true';
+        btn.textContent = 'Hide';
+      }
+    });
+
+    // Modal Print Profile Button
+    document.getElementById('printStaffProfileModalBtn')?.addEventListener('click', () => {
+      if (currentModalStaff) {
+        printSingleStaffProfile(currentModalStaff);
+      } else {
+        alert('Please select a faculty profile to print.');
       }
     });
 
@@ -1779,31 +2060,75 @@
       </span>
     `).join('') || '—';
 
+        const facultyUsername = r.username || (r.email ? r.email.split('@')[0] : 'staff');
+        const facultyPass = r.tempPassword || 'Welcome@123';
+        const facultyGender = r.gender || '—';
+        const facultyPhone = r.phone || '—';
+        const facultyMajor = r.majorSubject || '—';
+
         allStaffCache.push({
           id: d.id,
           name: r.name || 'Faculty',
+          username: facultyUsername,
+          gender: facultyGender,
+          phone: facultyPhone,
+          majorSubject: facultyMajor,
           email: r.email || '—',
+          tempPassword: facultyPass,
+          classTeacherOf: r.classTeacherOf || null,
           classTeacherName: ctNamePlain,
+          subjects: r.subjects || [],
           subjectsText: subjectsPlain
         });
 
-        const facultyPass = r.tempPassword || 'Welcome@123';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td><strong>${r.name}</strong></td>
-      <td style="font-size:13px; color:var(--ink-soft); font-family:var(--font-mono);">${r.email}</td>
       <td>
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:12px; display:inline-flex; align-items:center; gap:6px; padding:4px 8px;">
-          <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${facultyPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:13px; line-height:1;" title="Show Password">👁️</button>
+        <strong style="color:var(--ink); font-size:13.5px;">${r.name}</strong>
+        <div style="margin-top:3px;">
+          <span class="badge badge-purple" style="font-family:var(--font-mono); font-size:11px; padding:2px 6px;">@${facultyUsername}</span>
+        </div>
+      </td>
+      <td>
+        <span class="badge ${facultyGender === 'Female' ? 'badge-amber' : 'badge-navy'}" style="font-size:12px; font-weight:700;">
+          ${facultyGender === 'Female' ? '👩 Female' : (facultyGender === 'Male' ? '👨 Male' : facultyGender)}
         </span>
       </td>
-      <td>${ctName}</td>
-      <td>${subjects}</td>
-      <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}">Remove Faculty</button>
+      <td style="font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--ink);">${facultyPhone}</td>
+      <td>
+        <span class="badge badge-blue" style="font-weight:700; font-size:12px;">${facultyMajor}</span>
+      </td>
+      <td>
+        <div style="font-size:12.5px; color:var(--ink-soft); font-family:var(--font-mono); margin-bottom:4px;">${r.email}</div>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+          <span class="pass-val">••••••••</span>
+          <button type="button" class="pass-reveal-btn" data-pass="${facultyPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password">👁️</button>
+        </span>
+      </td>
+      <td>
+        <div style="margin-bottom:4px;">${ctName}</div>
+        <div>${subjects}</div>
+      </td>
+      <td style="text-align:right; white-space:nowrap;">
+        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-outline btn-sm stfViewBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="View Full Profile">👁️ View</button>
+          <button type="button" class="btn btn-outline btn-sm stfPrintRowBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="Print Official Profile">🖨️ Print</button>
+          <button type="button" class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;">Remove</button>
+        </div>
       </td>
     `;
+
+        // View Details modal click
+        tr.querySelector('.stfViewBtn').addEventListener('click', () => {
+          const item = allStaffCache.find(x => x.id === d.id);
+          if (item) openStaffDetailModal(item);
+        });
+
+        // Row Print Profile click
+        tr.querySelector('.stfPrintRowBtn').addEventListener('click', () => {
+          const item = allStaffCache.find(x => x.id === d.id);
+          if (item) printSingleStaffProfile(item);
+        });
 
         // Handle show / hide password toggle
         tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
@@ -2658,6 +2983,167 @@
       printWin.document.close();
     }
 
+    // 🖨️ Print Single Faculty Profile Dossier (Service Slip)
+    function printSingleStaffProfile(stf) {
+      if (!stf) { alert('No faculty profile loaded.'); return; }
+      const printWin = window.open('', '_blank', 'width=850,height=750');
+      if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const subsAllocated = (stf.subjects || []).map(s => `• <strong>${s.subject}</strong> for ${s.className || 'Class'}`).join('<br>') || 'None assigned yet';
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Faculty Profile — ${stf.name || 'Staff'}</title>
+  <style>
+    @page { size: auto; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .school-head {
+      text-align: center;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .school-name { font-size: 22px; font-weight: 800; color: #0f1b33; text-transform: uppercase; }
+    .doc-type { font-size: 13.5px; font-weight: 700; color: #059669; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    
+    .profile-hero {
+      display: flex;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .faculty-title { font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+    .hero-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hero-badge { background: #e2e8f0; padding: 4px 9px; border-radius: 5px; font-size: 11.5px; font-weight: 700; color: #1e293b; }
+    
+    .section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f1b33;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+      letter-spacing: 0.5px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .field-item { display: flex; font-size: 12.5px; border-bottom: 1px dotted #cbd5e1; padding: 5px 0; }
+    .field-lbl { width: 145px; font-weight: 700; color: #64748b; }
+    .field-val { flex: 1; color: #0f172a; font-weight: 600; }
+    
+    .photo-placeholder {
+      width: 105px;
+      height: 125px;
+      border: 1.5px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fff;
+    }
+    .footer-sign {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 15px;
+      page-break-inside: avoid;
+    }
+    .sign-col { text-align: center; width: 180px; border-top: 1.5px dashed #64748b; font-size: 12px; padding-top: 6px; font-weight: 700; color: #475569; }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="school-head">
+    <div class="school-name">Amala Higher Secondary School</div>
+    <div class="doc-type">Official Faculty &amp; Staff Service Dossier Profile</div>
+    <div style="font-size:11.5px; color:#64748b; margin-top:3px;">Generated Date: ${dateStr} • Institutional Human Resources Record</div>
+  </div>
+
+  <div class="profile-hero">
+    <div style="flex:1;">
+      <h1 class="faculty-title">${stf.name || 'Faculty Member'}</h1>
+      <div style="font-size:13.5px; color:#475569; font-weight:600;">Specialization: ${stf.majorSubject || 'General Faculty'} • Staff ID: @${stf.username || '—'}</div>
+      <div class="hero-tags">
+        <span class="hero-badge" style="background:#f3e8ff; color:#6b21a8;">User: @${stf.username || '—'}</span>
+        <span class="hero-badge" style="background:#e0f2fe; color:#0369a1;">Gender: ${stf.gender || '—'}</span>
+        <span class="hero-badge" style="background:#ecfdf5; color:#065f46;">Major: ${stf.majorSubject || '—'}</span>
+        <span class="hero-badge" style="background:#fef3c7; color:#92400e;">Phone: ${stf.phone || '—'}</span>
+        <span class="hero-badge" style="background:#f1f5f9; color:#334155;">CT: ${stf.classTeacherName || 'Not Assigned'}</span>
+      </div>
+    </div>
+    <div class="photo-placeholder">
+      AFFIX FACULTY PASSPORT PHOTO
+    </div>
+  </div>
+
+  <div class="section-title">1. Faculty Identity &amp; Contact Particulars</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Full Name:</span><span class="field-val">${stf.name || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Username / Staff ID:</span><span class="field-val" style="font-family:monospace;">@${stf.username || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${stf.gender || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Contact Phone:</span><span class="field-val" style="font-family:monospace;">${stf.phone || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Official Login Email:</span><span class="field-val" style="font-family:monospace;">${stf.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Institutional Role:</span><span class="field-val">Teaching Faculty / Staff</span></div>
+  </div>
+
+  <div class="section-title">2. Academic Specialization &amp; Teaching Allocations</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Major Subject:</span><span class="field-val" style="font-weight:700; color:#059669;">${stf.majorSubject || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Class Teacher Of:</span><span class="field-val">${stf.classTeacherName || 'None assigned'}</span></div>
+    <div class="field-item" style="grid-column: 1 / -1; align-items:flex-start;">
+      <span class="field-lbl">Subject Assignments:</span>
+      <span class="field-val" style="line-height:1.6;">${subsAllocated}</span>
+    </div>
+  </div>
+
+  <div class="section-title">3. Portal Access &amp; Authentication Information</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
+    <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Email (${stf.email}) OR Username (@${stf.username})</span></div>
+    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${stf.tempPassword || 'Welcome@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Account Status:</span><span class="field-val" style="color:#059669; font-weight:700;">Verified &amp; Active</span></div>
+  </div>
+
+  <div class="footer-sign">
+    <div class="sign-col">Staff Member Signature</div>
+    <div class="sign-col">Academic Dean / HOD</div>
+    <div class="sign-col">Principal / Correspondent Seal</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+
+      printWin.document.open();
+      printWin.document.write(html);
+      printWin.document.close();
+    }
+
     // 🖨️ Event Listeners for Print Buttons
     // 1. Print Student List (respects class filter)
     document.getElementById('printStudentsBtn')?.addEventListener('click', () => {
@@ -2745,10 +3231,14 @@
         <table>
           <thead>
             <tr>
-              <th style="width:40px; text-align:center;">#</th>
+              <th style="width:35px; text-align:center;">#</th>
               <th>Faculty Name</th>
+              <th style="width:110px;">Username</th>
+              <th style="width:75px;">Gender</th>
+              <th style="width:120px;">Contact No.</th>
+              <th style="width:120px;">Major Subject</th>
               <th>Login Email Address</th>
-              <th style="width:160px;">Class Teacher Of</th>
+              <th style="width:140px;">Class Teacher Of</th>
               <th>Subject Allocations</th>
             </tr>
           </thead>
@@ -2760,6 +3250,10 @@
           <tr>
             <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
             <td><strong>${stf.name}</strong></td>
+            <td style="font-family:monospace; color:#6b21a8; font-weight:600;">@${stf.username || '—'}</td>
+            <td>${stf.gender || '—'}</td>
+            <td style="font-family:monospace;">${stf.phone || '—'}</td>
+            <td><strong style="color:#0369a1;">${stf.majorSubject || '—'}</strong></td>
             <td style="font-family:monospace; color:#475569;">${stf.email}</td>
             <td>${stf.classTeacherName !== '—' ? `<span class="badge" style="background:#ecfdf5; color:#065f46; border-color:#a7f3d0; font-weight:700;">${stf.classTeacherName}</span>` : '—'}</td>
             <td>${stf.subjectsText}</td>
@@ -2769,7 +3263,7 @@
       tableHtml += '</tbody></table>';
 
       const statsHtml = `<span class="badge" style="background:#fef3c7; color:#92400e; border-color:#fde68a; font-size:12px; padding:5px 12px; font-weight:700;">Total Faculty: ${allStaffCache.length}</span>`;
-      openPrintDocument('TEACHING FACULTY & STAFF ROSTER', 'Official Directory of Teaching Staff, Class Teachers & Subject Teachers', tableHtml, statsHtml);
+      openPrintDocument('TEACHING FACULTY & STAFF ROSTER', 'Official Directory of Teaching Staff, Specializations & Teaching Assignments', tableHtml, statsHtml);
     });
 
     // 4. Print Parent Directory

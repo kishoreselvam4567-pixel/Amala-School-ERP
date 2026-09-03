@@ -576,8 +576,31 @@ requirePortal(['staff'], async ({ user, profile }) => {
     uTypeEl.title = roles.join(' • ') || 'Staff Faculty';
   }
 
-  // Overview box
-  let html = '<h3>Assigned Classes &amp; Subjects</h3>';
+  // Overview box & Faculty Profile Particulars
+  const stfMajor = staffData.majorSubject || profile.majorSubject || 'General Faculty';
+  const stfUser = staffData.username || profile.username || (user.email ? user.email.split('@')[0] : 'staff');
+  const stfGender = staffData.gender || profile.gender || '—';
+  const stfPhone = staffData.phone || profile.phone || '—';
+
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:16px;">
+      <div>
+        <div style="font-size:11.5px; font-weight:700; color:var(--brand-green); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Faculty Profile Details</div>
+        <h3 style="margin:0 0 6px 0; font-size:18px; color:var(--ink);">${facultyName}</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+          <span class="badge badge-purple" style="font-family:var(--font-mono); font-size:11.5px;">@${stfUser}</span>
+          <span class="badge badge-blue" style="font-weight:700;">Major: ${stfMajor}</span>
+          <span class="badge ${stfGender === 'Female' ? 'badge-amber' : 'badge-navy'}">${stfGender === 'Female' ? '👩 Female' : (stfGender === 'Male' ? '👨 Male' : stfGender)}</span>
+          <span class="badge" style="font-family:var(--font-mono);">📞 ${stfPhone}</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="printMyProfileBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
+        🖨️ Print My Service Dossier
+      </button>
+    </div>
+    <h4 style="margin:0 0 10px 0; font-size:14px;">Assigned Classes &amp; Subjects</h4>
+  `;
+
   if (classTeacherClass) {
     html += `<div style="margin-bottom:12px;"><span class="badge badge-good">Class Teacher</span> <strong>${classTeacherClass.name}</strong></div>`;
   }
@@ -592,6 +615,20 @@ requirePortal(['staff'], async ({ user, profile }) => {
     html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
   }
   document.getElementById('assignBox').innerHTML = html;
+
+  // Print Own Profile button handler
+  document.getElementById('printMyProfileBtn')?.addEventListener('click', () => {
+    printSingleStaffProfile({
+      name: facultyName,
+      username: stfUser,
+      gender: stfGender,
+      phone: stfPhone,
+      majorSubject: stfMajor,
+      email: user.email,
+      classTeacherName: classTeacherClass ? classTeacherClass.name : '—',
+      subjects: subjectAssignments
+    });
+  });
 
   // Cache school students & classes for finder
   const [stSnap, clSnap] = await Promise.all([
@@ -1139,6 +1176,159 @@ async function loadStudentsForTeacher() {
     parStudentOptions.push(`<option value="${s.uid}">${s.name} (${s.admissionNo})</option>`);
   });
   document.getElementById('parStudentSel').innerHTML = parStudentOptions.join('');
+}
+
+// 🖨️ Print Faculty Profile Service Dossier Slip
+function printSingleStaffProfile(stf) {
+  if (!stf) { alert('No faculty profile loaded.'); return; }
+  const printWin = window.open('', '_blank', 'width=850,height=750');
+  if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const subsAllocated = (stf.subjects || []).map(s => `• <strong>${s.subject}</strong> for ${s.className || 'Class'}`).join('<br>') || 'None assigned yet';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Faculty Profile — ${stf.name || 'Staff'}</title>
+  <style>
+    @page { size: auto; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .school-head {
+      text-align: center;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .school-name { font-size: 22px; font-weight: 800; color: #0f1b33; text-transform: uppercase; }
+    .doc-type { font-size: 13.5px; font-weight: 700; color: #059669; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    
+    .profile-hero {
+      display: flex;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .faculty-title { font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+    .hero-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hero-badge { background: #e2e8f0; padding: 4px 9px; border-radius: 5px; font-size: 11.5px; font-weight: 700; color: #1e293b; }
+    
+    .section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f1b33;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+      letter-spacing: 0.5px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .field-item { display: flex; font-size: 12.5px; border-bottom: 1px dotted #cbd5e1; padding: 5px 0; }
+    .field-lbl { width: 145px; font-weight: 700; color: #64748b; }
+    .field-val { flex: 1; color: #0f172a; font-weight: 600; }
+    
+    .photo-placeholder {
+      width: 105px;
+      height: 125px;
+      border: 1.5px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fff;
+    }
+    .footer-sign {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 15px;
+      page-break-inside: avoid;
+    }
+    .sign-col { text-align: center; width: 180px; border-top: 1.5px dashed #64748b; font-size: 12px; padding-top: 6px; font-weight: 700; color: #475569; }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="school-head">
+    <div class="school-name">Amala Higher Secondary School</div>
+    <div class="doc-type">Official Faculty &amp; Staff Service Dossier Profile</div>
+    <div style="font-size:11.5px; color:#64748b; margin-top:3px;">Generated Date: ${dateStr} • Institutional Human Resources Record</div>
+  </div>
+
+  <div class="profile-hero">
+    <div style="flex:1;">
+      <h1 class="faculty-title">${stf.name || 'Faculty Member'}</h1>
+      <div style="font-size:13.5px; color:#475569; font-weight:600;">Specialization: ${stf.majorSubject || 'General Faculty'} • Staff ID: @${stf.username || '—'}</div>
+      <div class="hero-tags">
+        <span class="hero-badge" style="background:#f3e8ff; color:#6b21a8;">User: @${stf.username || '—'}</span>
+        <span class="hero-badge" style="background:#e0f2fe; color:#0369a1;">Gender: ${stf.gender || '—'}</span>
+        <span class="hero-badge" style="background:#ecfdf5; color:#065f46;">Major: ${stf.majorSubject || '—'}</span>
+        <span class="hero-badge" style="background:#fef3c7; color:#92400e;">Phone: ${stf.phone || '—'}</span>
+        <span class="hero-badge" style="background:#f1f5f9; color:#334155;">CT: ${stf.classTeacherName || 'Not Assigned'}</span>
+      </div>
+    </div>
+    <div class="photo-placeholder">
+      AFFIX FACULTY PASSPORT PHOTO
+    </div>
+  </div>
+
+  <div class="section-title">1. Faculty Identity &amp; Contact Particulars</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Full Name:</span><span class="field-val">${stf.name || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Username / Staff ID:</span><span class="field-val" style="font-family:monospace;">@${stf.username || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${stf.gender || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Contact Phone:</span><span class="field-val" style="font-family:monospace;">${stf.phone || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Official Login Email:</span><span class="field-val" style="font-family:monospace;">${stf.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Institutional Role:</span><span class="field-val">Teaching Faculty / Staff</span></div>
+  </div>
+
+  <div class="section-title">2. Academic Specialization &amp; Teaching Allocations</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Major Subject:</span><span class="field-val" style="font-weight:700; color:#059669;">${stf.majorSubject || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Class Teacher Of:</span><span class="field-val">${stf.classTeacherName || 'None assigned'}</span></div>
+    <div class="field-item" style="grid-column: 1 / -1; align-items:flex-start;">
+      <span class="field-lbl">Subject Assignments:</span>
+      <span class="field-val" style="line-height:1.6;">${subsAllocated}</span>
+    </div>
+  </div>
+
+  <div class="footer-sign">
+    <div class="sign-col">Staff Member Signature</div>
+    <div class="sign-col">Academic Dean / HOD</div>
+    <div class="sign-col">Principal / Correspondent Seal</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+
+  printWin.document.open();
+  printWin.document.write(html);
+  printWin.document.close();
 }
 </script>
 <script src="../../js/site-brand.js"></script>

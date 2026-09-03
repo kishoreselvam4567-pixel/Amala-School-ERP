@@ -523,9 +523,9 @@
         <form id="erpLoginForm">
           <!-- User ID (Admission No / Email) -->
           <div class="erp-field">
-            <label for="loginUserId">User ID (Admission No. or Email)</label>
+            <label for="loginUserId">User ID (Admission No, Staff Username, or Email)</label>
             <div class="erp-input-wrap">
-              <input type="text" id="loginUserId" required autocomplete="username" placeholder="e.g. 2026-001 or name@school.edu.in">
+              <input type="text" id="loginUserId" required autocomplete="username" placeholder="e.g. 2026-001, staff_username, or email@school.edu.in">
             </div>
           </div>
 
@@ -658,14 +658,42 @@ form.addEventListener('submit', async (e) => {
   try {
     let authEmail = rawUser;
 
-    // If user entered Admission Number (e.g. not an email)
+    // If user entered Admission Number or Username (e.g. not an email)
     if (!rawUser.includes('@')) {
-      const q = query(collection(db, 'students'), where('admissionNo', '==', rawUser));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        throw new Error(`No student account found with Admission No. "${rawUser}". Check with school admin or enter your email.`);
+      const cleanInput = rawUser.replace(/^@/, '').toLowerCase();
+      let resolved = false;
+
+      // 1. Check students by admissionNo
+      const qStd = query(collection(db, 'students'), where('admissionNo', '==', rawUser));
+      const snapStd = await getDocs(qStd).catch(() => null);
+      if (snapStd && !snapStd.empty) {
+        authEmail = snapStd.docs[0].data().email;
+        resolved = true;
       }
-      authEmail = snap.docs[0].data().email;
+
+      // 2. Check staff by username
+      if (!resolved) {
+        const qStf = query(collection(db, 'staff'), where('username', '==', cleanInput));
+        const snapStf = await getDocs(qStf).catch(() => null);
+        if (snapStf && !snapStf.empty) {
+          authEmail = snapStf.docs[0].data().email;
+          resolved = true;
+        }
+      }
+
+      // 3. Fallback: check users collection by username
+      if (!resolved) {
+        const qUsr = query(collection(db, 'users'), where('username', '==', cleanInput));
+        const snapUsr = await getDocs(qUsr).catch(() => null);
+        if (snapUsr && !snapUsr.empty) {
+          authEmail = snapUsr.docs[0].data().email;
+          resolved = true;
+        }
+      }
+
+      if (!resolved) {
+        throw new Error(`No account found with ID / Username "${rawUser}". Please enter your registered email address or contact school IT support.`);
+      }
     }
 
     const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
