@@ -1528,14 +1528,46 @@
               </div>
             </div>
 
-            <div class="field-row" style="margin-bottom:14px;">
+            <div class="field-row" style="margin-bottom:14px; align-items:flex-start;">
               <div class="field" style="flex:1;">
                 <label>Exam Date *</label>
                 <input type="date" id="examDate">
               </div>
-              <div class="field" style="flex:1.2;">
-                <label>Timing / Session</label>
-                <input type="text" id="examTime" placeholder="e.g. 09:30 AM – 12:30 PM (Morning Session)">
+              <div class="field" style="flex:1.8;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                  <label style="margin:0;">Exam Timing / Session *</label>
+                  <span style="font-size:11px; color:var(--brand-green); font-weight:700;">AM &amp; PM Pre-marked</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <!-- Start Time -->
+                  <div style="display:inline-flex; align-items:center; background:var(--white); border:1.5px solid var(--line); border-radius:8px; overflow:hidden; box-shadow:var(--shadow-sm);">
+                    <input type="text" id="examStartTime" value="10:00" placeholder="10:00" style="width:72px; border:none; padding:8px 8px; font-size:13.5px; font-weight:700; text-align:center; font-family:var(--font-mono); outline:none;">
+                    <select id="examStartAmPm" style="border:none; border-left:1px solid var(--line); background:#f1f5f9; padding:8px 8px; font-size:12px; font-weight:800; color:var(--brand-navy); cursor:pointer; outline:none;">
+                      <option value="AM" selected>AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+
+                  <span style="font-weight:700; color:var(--ink-soft); font-size:12.5px;">to</span>
+
+                  <!-- End Time -->
+                  <div style="display:inline-flex; align-items:center; background:var(--white); border:1.5px solid var(--line); border-radius:8px; overflow:hidden; box-shadow:var(--shadow-sm);">
+                    <input type="text" id="examEndTime" value="12:00" placeholder="12:00" style="width:72px; border:none; padding:8px 8px; font-size:13.5px; font-weight:700; text-align:center; font-family:var(--font-mono); outline:none;">
+                    <select id="examEndAmPm" style="border:none; border-left:1px solid var(--line); background:#f1f5f9; padding:8px 8px; font-size:12px; font-weight:800; color:var(--brand-navy); cursor:pointer; outline:none;">
+                      <option value="AM">AM</option>
+                      <option value="PM" selected>PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Fast preset chips -->
+                <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+                  <button type="button" class="preset-chip" onclick="setExamTiming('10:00','AM','12:00','PM')" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; color:#334155;">⚡ 10:00 AM – 12:00 PM</button>
+                  <button type="button" class="preset-chip" onclick="setExamTiming('10:00','AM','01:00','PM')" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; color:#334155;">⚡ 10:00 AM – 01:00 PM</button>
+                  <button type="button" class="preset-chip" onclick="setExamTiming('09:30','AM','12:30','PM')" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; color:#334155;">⚡ 09:30 AM – 12:30 PM</button>
+                  <button type="button" class="preset-chip" onclick="setExamTiming('02:00','PM','05:00','PM')" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; color:#334155;">⚡ 02:00 PM – 05:00 PM</button>
+                </div>
               </div>
               <div class="field" style="flex:0.8;">
                 <label>Max Marks</label>
@@ -3923,13 +3955,30 @@
     });
 
     // ======================== EXAM CALENDAR ========================
+    window.setExamTiming = function(sTime, sAmPm, eTime, eAmPm) {
+      const sInp = document.getElementById('examStartTime');
+      const sSel = document.getElementById('examStartAmPm');
+      const eInp = document.getElementById('examEndTime');
+      const eSel = document.getElementById('examEndAmPm');
+      if (sInp) sInp.value = sTime;
+      if (sSel) sSel.value = sAmPm;
+      if (eInp) eInp.value = eTime;
+      if (eSel) eSel.value = eAmPm;
+    };
+
     // 📅 1. Publish / Schedule Exam
     document.getElementById('scheduleExamBtn')?.addEventListener('click', async () => {
       const classId = document.getElementById('examClassSel').value;
       const title = document.getElementById('examTitle').value.trim();
       const subject = document.getElementById('examSubject').value.trim();
       const date = document.getElementById('examDate').value;
-      const time = document.getElementById('examTime').value.trim();
+      
+      const sTime = document.getElementById('examStartTime')?.value.trim() || '10:00';
+      const sAmPm = document.getElementById('examStartAmPm')?.value || 'AM';
+      const eTime = document.getElementById('examEndTime')?.value.trim() || '12:00';
+      const eAmPm = document.getElementById('examEndAmPm')?.value || 'PM';
+      const time = `${sTime} ${sAmPm} – ${eTime} ${eAmPm}`;
+
       const maxMarks = document.getElementById('examMaxMarks').value.trim() || '100';
       const syllabus = document.getElementById('examSyllabus').value.trim();
 
@@ -3970,7 +4019,7 @@
           examName: title,
           subject,
           date,
-          time: time || '10:00 AM – 01:00 PM',
+          time,
           maxMarks: Number(maxMarks) || 100,
           syllabus: syllabus || 'Full Unit Syllabus',
           scheduledBy: document.getElementById('uName')?.textContent || 'Administrator',
@@ -3983,7 +4032,10 @@
         document.getElementById('examTitle').value = '';
         document.getElementById('examSubject').value = '';
         document.getElementById('examDate').value = '';
-        document.getElementById('examTime').value = '';
+        if (document.getElementById('examStartTime')) document.getElementById('examStartTime').value = '10:00';
+        if (document.getElementById('examStartAmPm')) document.getElementById('examStartAmPm').value = 'AM';
+        if (document.getElementById('examEndTime')) document.getElementById('examEndTime').value = '12:00';
+        if (document.getElementById('examEndAmPm')) document.getElementById('examEndAmPm').value = 'PM';
         document.getElementById('examSyllabus').value = '';
 
         await loadExamCalendar();
