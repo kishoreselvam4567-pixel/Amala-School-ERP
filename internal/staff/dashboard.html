@@ -789,6 +789,42 @@ document.getElementById('saveEditStudentBtn')?.addEventListener('click', async (
       updatedAt: serverTimestamp()
     }, { merge: true });
 
+    // 3. Update or link parent doc if parent info exists
+    const currentStudent = (typeof myStudentsCache !== 'undefined' ? myStudentsCache : []).find(x => x.uid === uid);
+    let parentUid = currentStudent?.parentUid;
+    if (!parentUid && (fatherName || parentEmail || fatherPhone)) {
+      try {
+        if (parentEmail) {
+          const pQ = query(collection(db, 'parents'), where('email', '==', parentEmail));
+          const pSnap = await getDocs(pQ);
+          if (!pSnap.empty) parentUid = pSnap.docs[0].id;
+        }
+        if (!parentUid && fatherPhone) {
+          const pQ2 = query(collection(db, 'parents'), where('phone', '==', fatherPhone));
+          const pSnap2 = await getDocs(pQ2);
+          if (!pSnap2.empty) parentUid = pSnap2.docs[0].id;
+        }
+      } catch (e) { }
+      if (!parentUid) {
+        parentUid = doc(collection(db, 'parents')).id;
+      }
+      await updateDoc(doc(db, 'students', uid), { parentUid }).catch(() => { });
+    }
+    if (parentUid) {
+      const parData = {
+        name: fatherName || 'Parent',
+        phone: fatherPhone || '',
+        email: parentEmail || '',
+        motherPhone: motherPhone || '',
+        childUid: uid,
+        childName: name,
+        tempPassword: 'Parent@123',
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(doc(db, 'parents', parentUid), parData, { merge: true }).catch(() => { });
+      await setDoc(doc(db, 'users', parentUid), { role: 'parent', ...parData }, { merge: true }).catch(() => { });
+    }
+
     showToast(`✅ Student "${name}" profile updated!`);
     editStudentModal.classList.remove('open');
     await loadStudentsForTeacher();

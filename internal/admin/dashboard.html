@@ -2948,6 +2948,9 @@
             }
           }
         }
+        if (!parUid && (fatherName || parEmail || fatherPhone)) {
+          parUid = doc(collection(db, 'parents')).id;
+        }
 
         // 3. Save Student Record in Firestore
         await setDoc(doc(db, 'users', stuUid), {
@@ -3008,10 +3011,72 @@
       }
     });
 
+    // ======================== AUTO-SYNC & LINK PARENTS ========================
+    async function syncUnlinkedParents() {
+      if (!allStudentsCache || !allStudentsCache.length) {
+        try {
+          const stuSnap = await getDocs(collection(db, 'students'));
+          allStudentsCache = stuSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        } catch (e) { }
+      }
+      if (!allStudentsCache || !allStudentsCache.length) return false;
+
+      let newlySynced = false;
+      try {
+        const initialParentDocs = await getDocs(collection(db, 'parents'));
+        const existingParSet = new Set(initialParentDocs.docs.map(d => d.id));
+        const existingParEmails = new Set(initialParentDocs.docs.map(d => (d.data().email || '').toLowerCase()).filter(Boolean));
+        const existingParPhones = new Set(initialParentDocs.docs.map(d => d.data().phone).filter(Boolean));
+
+        for (const s of allStudentsCache) {
+          const hasParentInfo = !!(s.fatherName || s.fatherPhone || s.parentEmail);
+          const isLinkedToExisting = s.parentUid && existingParSet.has(s.parentUid);
+
+          if (hasParentInfo && !isLinkedToExisting) {
+            let matchId = null;
+            if (s.parentEmail && existingParEmails.has(s.parentEmail.toLowerCase())) {
+              const found = initialParentDocs.docs.find(d => (d.data().email || '').toLowerCase() === s.parentEmail.toLowerCase());
+              if (found) matchId = found.id;
+            }
+            if (!matchId && s.fatherPhone && existingParPhones.has(s.fatherPhone)) {
+              const found = initialParentDocs.docs.find(d => d.data().phone === s.fatherPhone);
+              if (found) matchId = found.id;
+            }
+
+            const targetParId = matchId || s.parentUid || doc(collection(db, 'parents')).id;
+            const cleanEmail = s.parentEmail || '';
+            const parData = {
+              name: s.fatherName || 'Parent',
+              email: cleanEmail,
+              phone: s.fatherPhone || s.phone || '',
+              motherPhone: s.motherPhone || '',
+              childUid: s.uid,
+              childName: s.name,
+              tempPassword: 'Parent@123',
+              updatedAt: serverTimestamp()
+            };
+
+            await setDoc(doc(db, 'parents', targetParId), parData, { merge: true }).catch(() => { });
+            await setDoc(doc(db, 'users', targetParId), { role: 'parent', ...parData }, { merge: true }).catch(() => { });
+            await updateDoc(doc(db, 'students', s.uid), { parentUid: targetParId }).catch(() => { });
+            s.parentUid = targetParId;
+            existingParSet.add(targetParId);
+            newlySynced = true;
+          }
+        }
+      } catch (err) {
+        console.warn('syncUnlinkedParents error:', err);
+      }
+      return newlySynced;
+    }
+
     // ======================== LOAD STUDENTS & DIRECTORY TABLE ========================
     async function loadStudents() {
       const snap = await getDocs(collection(db, 'students'));
       allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+      // Auto-sync any student whose parent document is missing
+      await syncUnlinkedParents();
 
       const classesSnap = await getDocs(collection(db, 'classes'));
       const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
@@ -3446,25 +3511,45 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
 
-        // 3. Update linked parent if present
+        // 3. Update or create linked parent account
         const currentStudent = allStudentsCache.find(x => x.uid === uid);
-        const parentUid = currentStudent?.parentUid;
-        if (parentUid) {
-          await updateDoc(doc(db, 'parents', parentUid), {
-            name: fatherName,
-            phone: fatherPhone,
-            email: parentEmail,
-            motherPhone,
-            childName: name,
-            updatedAt: serverTimestamp()
-          }).catch(err => console.warn('Could not update linked parent:', err));
+        let parentUid = currentStudent?.parentUid;
 
-          await setDoc(doc(db, 'users', parentUid), {
-            name: fatherName,
-            phone: fatherPhone,
-            email: parentEmail,
+        if (!parentUid && (fatherName || parentEmail || fatherPhone)) {
+          // Resolve existing parent or generate new ID
+          try {
+            if (parentEmail) {
+              const pQ = query(collection(db, 'parents'), where('email', '==', parentEmail));
+              const pSnap = await getDocs(pQ);
+              if (!pSnap.empty) parentUid = pSnap.docs[0].id;
+            }
+            if (!parentUid && fatherPhone) {
+              const pQ2 = query(collection(db, 'parents'), where('phone', '==', fatherPhone));
+              const pSnap2 = await getDocs(pQ2);
+              if (!pSnap2.empty) parentUid = pSnap2.docs[0].id;
+            }
+          } catch (e) { }
+
+          if (!parentUid) {
+            parentUid = doc(collection(db, 'parents')).id;
+          }
+          await updateDoc(doc(db, 'students', uid), { parentUid }).catch(() => { });
+        }
+
+        if (parentUid) {
+          const parData = {
+            name: fatherName || 'Parent',
+            phone: fatherPhone || '',
+            email: parentEmail || '',
+            motherPhone: motherPhone || '',
+            childUid: uid,
+            childName: name,
+            tempPassword: 'Parent@123',
             updatedAt: serverTimestamp()
-          }, { merge: true }).catch(err => console.warn('Could not update parent user:', err));
+          };
+
+          await setDoc(doc(db, 'parents', parentUid), parData, { merge: true }).catch(err => console.warn('Could not update parent doc:', err));
+          await setDoc(doc(db, 'users', parentUid), { role: 'parent', ...parData }, { merge: true }).catch(err => console.warn('Could not update parent user:', err));
         }
 
         showToast(`✅ Student "${name}" profile updated successfully!`);
@@ -3493,11 +3578,9 @@
     }
 
     async function loadParents() {
-      // Ensure students cache is populated
-      if (!allStudentsCache || !allStudentsCache.length) {
-        const stuSnap = await getDocs(collection(db, 'students'));
-        allStudentsCache = stuSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
-      }
+      // Ensure students cache is populated and unlinked parents are provisioned
+      await syncUnlinkedParents();
+
       const stuMap = new Map();
       allStudentsCache.forEach(s => stuMap.set(s.uid, s));
 
@@ -3522,8 +3605,9 @@
         let linkedStudent = null;
         if (r.childUid && stuMap.has(r.childUid)) {
           linkedStudent = stuMap.get(r.childUid);
-        } else if (r.email || r.phone) {
+        } else {
           linkedStudent = allStudentsCache.find(s =>
+            s.parentUid === d.id ||
             (r.email && s.parentEmail && s.parentEmail.toLowerCase() === r.email.toLowerCase()) ||
             (r.phone && s.fatherPhone && s.fatherPhone === r.phone)
           );
