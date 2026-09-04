@@ -49,6 +49,9 @@
   <div class="profile-modal-card">
     <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
     <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
+      <button type="button" class="btn btn-outline btn-sm" id="staffEditStudentFromModalBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--brand-green); color:var(--brand-green);">
+        ✏️ Edit Student
+      </button>
       <button type="button" class="btn btn-outline btn-sm printStudentProfileBtn" id="printStudentProfileBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--line);">
         🖨️ Print Student Profile
       </button>
@@ -124,6 +127,142 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- EDIT STUDENT MODAL -->
+<div class="profile-modal-overlay" id="editStudentModal">
+  <div class="profile-modal-card" style="max-width:760px;">
+    <button type="button" class="modal-close" id="closeEditStudentModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
+        ✏️
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Student Profile</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Modify academic, personal, parent/guardian, and residential information</p>
+      </div>
+    </div>
+
+    <form id="editStudentForm" onsubmit="return false;">
+      <input type="hidden" id="editStuUid">
+
+      <!-- Section 1: Academic & Personal -->
+      <div class="form-section-title" style="margin-bottom:10px; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+        <span>🎓</span> Academic &amp; Personal Details
+      </div>
+      <div class="field-row">
+        <div class="field" style="flex:1.5;">
+          <label>Student Full Name <span style="color:var(--bad);">*</span></label>
+          <input type="text" id="editStuName" required placeholder="Full Name">
+        </div>
+        <div class="field">
+          <label>Admission No. <span style="color:var(--bad);">*</span></label>
+          <input type="text" id="editStuAdm" required placeholder="e.g. 2026-001" readonly style="background:var(--paper-2); cursor:not-allowed;">
+        </div>
+        <div class="field">
+          <label>Roll Number</label>
+          <input type="text" id="editStuRollNo" placeholder="e.g. 101">
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-top:10px;">
+        <div class="field">
+          <label>Date of Birth <span style="color:var(--bad);">*</span></label>
+          <input type="date" id="editStuDob" required>
+        </div>
+        <div class="field">
+          <label>Gender <span style="color:var(--bad);">*</span></label>
+          <select id="editStuGender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Blood Group</label>
+          <select id="editStuBlood">
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-top:10px;">
+        <div class="field">
+          <label>Aadhaar Number</label>
+          <input type="text" id="editStuAadhaar" placeholder="12-digit Aadhaar Number">
+        </div>
+        <div class="field" style="flex:1.4;">
+          <label>Student Login Email <span style="color:var(--bad);">*</span></label>
+          <input type="email" id="editStuEmail" required placeholder="student@amalaschool.edu.in">
+        </div>
+      </div>
+
+      <!-- Section 2: Parent & Family -->
+      <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+        <span>👨‍👩‍👦</span> Parent &amp; Family Information
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Father / Guardian Name <span style="color:var(--bad);">*</span></label>
+          <input type="text" id="editStuFatherName" required placeholder="Father's Name">
+        </div>
+        <div class="field">
+          <label>Father's Contact Number <span style="color:var(--bad);">*</span></label>
+          <input type="tel" id="editStuFatherPhone" required placeholder="10-digit mobile">
+        </div>
+        <div class="field">
+          <label>Parent Portal Email <span style="color:var(--bad);">*</span></label>
+          <input type="email" id="editStuParentEmail" required placeholder="parent@gmail.com">
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-top:10px;">
+        <div class="field">
+          <label>Mother's Name</label>
+          <input type="text" id="editStuMotherName" placeholder="Mother's Name">
+        </div>
+        <div class="field">
+          <label>Mother's Contact Number</label>
+          <input type="tel" id="editStuMotherPhone" placeholder="10-digit mobile">
+        </div>
+        <div class="field">
+          <label>Emergency Contact</label>
+          <input type="tel" id="editStuEmergencyPhone" placeholder="Emergency phone">
+        </div>
+      </div>
+
+      <!-- Section 3: Residential Address -->
+      <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+        <span>🏠</span> Residential Address
+      </div>
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label>Permanent Address</label>
+          <input type="text" id="editStuAddress" placeholder="Door No, Street Name, Area">
+        </div>
+        <div class="field">
+          <label>City / Town</label>
+          <input type="text" id="editStuCity" placeholder="e.g. Chennai">
+        </div>
+        <div class="field">
+          <label>Pincode</label>
+          <input type="text" id="editStuPincode" placeholder="e.g. 600001">
+        </div>
+      </div>
+
+      <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn btn-outline" id="cancelEditStudentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveEditStudentBtn" style="min-width:140px; font-weight:700;">💾 Save Changes</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -545,6 +684,121 @@ function openStudentProfileModal(s) {
 
   studentDetailModal.classList.add('open');
 }
+
+// ======================== EDIT STUDENT (STAFF PORTAL) ========================
+const editStudentModal = document.getElementById('editStudentModal');
+document.getElementById('closeEditStudentModal')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
+document.getElementById('cancelEditStudentBtn')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
+editStudentModal?.addEventListener('click', (e) => { if (e.target === editStudentModal) editStudentModal.classList.remove('open'); });
+
+document.getElementById('staffEditStudentFromModalBtn')?.addEventListener('click', () => {
+  if (currentModalStudent) {
+    studentDetailModal.classList.remove('open');
+    openEditStudentModal(currentModalStudent);
+  }
+});
+
+function openEditStudentModal(s) {
+  if (!s) return;
+  document.getElementById('editStuUid').value = s.uid;
+  document.getElementById('editStuName').value = s.name || '';
+  document.getElementById('editStuAdm').value = s.admissionNo || '';
+  document.getElementById('editStuRollNo').value = s.rollNo || '';
+  document.getElementById('editStuDob').value = s.dob || '';
+  document.getElementById('editStuGender').value = s.gender || 'Male';
+  document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
+  document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
+  document.getElementById('editStuEmail').value = s.email || '';
+
+  document.getElementById('editStuFatherName').value = s.fatherName || '';
+  document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
+  document.getElementById('editStuParentEmail').value = s.parentEmail || '';
+  document.getElementById('editStuMotherName').value = s.motherName || '';
+  document.getElementById('editStuMotherPhone').value = s.motherPhone || '';
+  document.getElementById('editStuEmergencyPhone').value = s.emergencyPhone || '';
+
+  document.getElementById('editStuAddress').value = s.address || '';
+  document.getElementById('editStuCity').value = s.city || '';
+  document.getElementById('editStuPincode').value = s.pincode || '';
+
+  editStudentModal.classList.add('open');
+}
+
+document.getElementById('saveEditStudentBtn')?.addEventListener('click', async (e) => {
+  e.preventDefault();
+  const uid = document.getElementById('editStuUid').value;
+  const name = document.getElementById('editStuName').value.trim();
+  const admissionNo = document.getElementById('editStuAdm').value.trim();
+  const rollNo = document.getElementById('editStuRollNo').value.trim();
+  const dob = document.getElementById('editStuDob').value;
+  const gender = document.getElementById('editStuGender').value;
+  const bloodGroup = document.getElementById('editStuBlood').value;
+  const aadhaarNo = document.getElementById('editStuAadhaar').value.trim();
+  const email = document.getElementById('editStuEmail').value.trim();
+
+  const fatherName = document.getElementById('editStuFatherName').value.trim();
+  const fatherPhone = document.getElementById('editStuFatherPhone').value.trim();
+  const parentEmail = document.getElementById('editStuParentEmail').value.trim();
+  const motherName = document.getElementById('editStuMotherName').value.trim();
+  const motherPhone = document.getElementById('editStuMotherPhone').value.trim();
+  const emergencyPhone = document.getElementById('editStuEmergencyPhone').value.trim();
+
+  const address = document.getElementById('editStuAddress').value.trim();
+  const city = document.getElementById('editStuCity').value.trim();
+  const pincode = document.getElementById('editStuPincode').value.trim();
+
+  if (!uid || !name || !dob || !email || !fatherName || !fatherPhone || !parentEmail) {
+    alert('Please fill all mandatory fields (*): Student Name, DOB, Student Email, Father Name/Phone, and Parent Email.');
+    return;
+  }
+
+  const btn = document.getElementById('saveEditStudentBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const studentUpdate = {
+      name,
+      admissionNo,
+      rollNo: rollNo || admissionNo,
+      dob,
+      gender,
+      bloodGroup,
+      aadhaarNo,
+      email,
+      fatherName,
+      fatherPhone,
+      motherName,
+      motherPhone,
+      parentEmail,
+      emergencyPhone: emergencyPhone || fatherPhone,
+      address,
+      city,
+      pincode,
+      updatedAt: serverTimestamp()
+    };
+
+    // 1. Update student document
+    await updateDoc(doc(db, 'students', uid), studentUpdate);
+
+    // 2. Update user doc for student
+    await setDoc(doc(db, 'users', uid), {
+      role: 'student',
+      name,
+      email,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    showToast(`✅ Student "${name}" profile updated!`);
+    editStudentModal.classList.remove('open');
+    await loadStudentsForTeacher();
+  } catch (err) {
+    alert('Error updating student: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Save Changes';
+  }
+});
 
 let staffUid, staffProfile, classTeacherClass = null, subjectAssignments = [];
 let allSchoolStudentsCache = [];
@@ -1200,11 +1454,15 @@ async function loadStudentsForTeacher() {
       <td>${s.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
       <td style="text-align:right; white-space:nowrap;">
         <button class="btn btn-primary btn-sm staffViewProfileBtn" style="font-size:12px; padding:4px 10px;">🪪 View ID Profile</button>
+        <button class="btn btn-outline btn-sm staffEditProfileBtn" style="font-size:12px; padding:4px 10px; color:var(--brand-green); border-color:var(--brand-green); font-weight:600;" title="Edit Student Profile">✏️ Edit</button>
         <button class="btn btn-outline btn-sm staffPrintProfileBtn" style="font-size:12px; padding:4px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">🖨️ Print</button>
       </td>
     `;
     tr.querySelector('.staffViewProfileBtn').addEventListener('click', () => {
       openStudentProfileModal(s);
+    });
+    tr.querySelector('.staffEditProfileBtn').addEventListener('click', () => {
+      openEditStudentModal(s);
     });
     tr.querySelector('.staffPrintProfileBtn').addEventListener('click', () => {
       printSingleStudentProfile(s);

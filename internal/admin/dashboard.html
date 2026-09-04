@@ -296,6 +296,9 @@
     <div class="profile-modal-card">
       <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
       <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="editStudentFromDetailBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--brand-green); color:var(--brand-green);">
+          ✏️ Edit Student
+        </button>
         <button type="button" class="btn btn-outline btn-sm printStudentProfileBtn" id="printStudentProfileBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--line);">
           🖨️ Print Student Profile
         </button>
@@ -426,6 +429,9 @@
     <div class="profile-modal-card">
       <button type="button" class="modal-close" id="closeStaffProfileModal">&times;</button>
       <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="editStaffFromDetailBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
+          ✏️ Edit Faculty
+        </button>
         <button type="button" class="btn btn-outline btn-sm" id="printStaffProfileModalBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
           🖨️ Print Faculty Profile
         </button>
@@ -526,6 +532,279 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- EDIT FACULTY MODAL -->
+  <div class="profile-modal-overlay" id="editStaffModal">
+    <div class="profile-modal-card" style="max-width:640px;">
+      <button type="button" class="modal-close" id="closeEditStaffModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
+          ✏️
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Faculty Member</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update profile particulars, contact info, and portal credentials</p>
+        </div>
+      </div>
+
+      <form id="editStaffForm" onsubmit="return false;">
+        <input type="hidden" id="editStfId">
+        <div class="field-row">
+          <div class="field" style="flex:1.5;">
+            <label>Full Name <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStfName" required placeholder="e.g. Ravi Kumar">
+          </div>
+          <div class="field">
+            <label>Staff ID / Username <span style="color:var(--bad);">*</span></label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <span style="position:absolute; left:10px; color:var(--ink-soft); font-weight:700; font-family:var(--font-mono);">@</span>
+              <input type="text" id="editStfUsername" style="padding-left:26px; font-family:var(--font-mono);" required placeholder="e.g. ravi123">
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field">
+            <label>Gender <span style="color:var(--bad);">*</span></label>
+            <select id="editStfGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Contact Mobile Number <span style="color:var(--bad);">*</span></label>
+            <input type="tel" id="editStfPhone" required placeholder="e.g. 9876543210">
+          </div>
+          <div class="field" style="flex:1.2;">
+            <label>Major Subject <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStfMajorSubject" list="subList" required placeholder="e.g. Mathematics">
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field" style="flex:1.4;">
+            <label>Portal Login Email <span style="color:var(--bad);">*</span></label>
+            <input type="email" id="editStfEmail" required placeholder="staff@amalaschool.edu.in">
+          </div>
+          <div class="field">
+            <label>Portal Password</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input type="password" id="editStfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;">
+              <button type="button" class="pass-toggle-btn" data-target="editStfPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" id="cancelEditStaffBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEditStaffBtn" style="min-width:140px; font-weight:700;">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT STUDENT MODAL -->
+  <div class="profile-modal-overlay" id="editStudentModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeEditStudentModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
+          ✏️
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Student Profile</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Modify academic, personal, parent/guardian, and residential information</p>
+        </div>
+      </div>
+
+      <form id="editStudentForm" onsubmit="return false;">
+        <input type="hidden" id="editStuUid">
+
+        <!-- Section 1: Academic & Personal -->
+        <div class="form-section-title" style="margin-bottom:10px; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+          <span>🎓</span> Academic &amp; Personal Details
+        </div>
+        <div class="field-row">
+          <div class="field" style="flex:1.5;">
+            <label>Student Full Name <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStuName" required placeholder="Full Name">
+          </div>
+          <div class="field">
+            <label>Admission No. <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStuAdm" required placeholder="e.g. 2026-001">
+          </div>
+          <div class="field">
+            <label>Roll Number</label>
+            <input type="text" id="editStuRollNo" placeholder="e.g. 101">
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:10px;">
+          <div class="field">
+            <label>Class Section <span style="color:var(--bad);">*</span></label>
+            <select id="editStuClassSel" required></select>
+          </div>
+          <div class="field">
+            <label>Date of Birth <span style="color:var(--bad);">*</span></label>
+            <input type="date" id="editStuDob" required>
+          </div>
+          <div class="field">
+            <label>Gender <span style="color:var(--bad);">*</span></label>
+            <select id="editStuGender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:10px;">
+          <div class="field">
+            <label>Blood Group</label>
+            <select id="editStuBlood">
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Aadhaar Number</label>
+            <input type="text" id="editStuAadhaar" placeholder="12-digit Aadhaar Number">
+          </div>
+          <div class="field" style="flex:1.4;">
+            <label>Student Login Email <span style="color:var(--bad);">*</span></label>
+            <input type="email" id="editStuEmail" required placeholder="student@amalaschool.edu.in">
+          </div>
+        </div>
+
+        <!-- Section 2: Parent & Family -->
+        <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+          <span>👨‍👩‍👦</span> Parent &amp; Family Information
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Father / Guardian Name <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStuFatherName" required placeholder="Father's Name">
+          </div>
+          <div class="field">
+            <label>Father's Contact Number <span style="color:var(--bad);">*</span></label>
+            <input type="tel" id="editStuFatherPhone" required placeholder="10-digit mobile">
+          </div>
+          <div class="field">
+            <label>Parent Portal Email <span style="color:var(--bad);">*</span></label>
+            <input type="email" id="editStuParentEmail" required placeholder="parent@gmail.com">
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:10px;">
+          <div class="field">
+            <label>Mother's Name</label>
+            <input type="text" id="editStuMotherName" placeholder="Mother's Name">
+          </div>
+          <div class="field">
+            <label>Mother's Contact Number</label>
+            <input type="tel" id="editStuMotherPhone" placeholder="10-digit mobile">
+          </div>
+          <div class="field">
+            <label>Emergency Contact</label>
+            <input type="tel" id="editStuEmergencyPhone" placeholder="Emergency phone">
+          </div>
+        </div>
+
+        <!-- Section 3: Residential Address -->
+        <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+          <span>🏠</span> Residential Address
+        </div>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>Permanent Address</label>
+            <input type="text" id="editStuAddress" placeholder="Door No, Street Name, Area">
+          </div>
+          <div class="field">
+            <label>City / Town</label>
+            <input type="text" id="editStuCity" placeholder="e.g. Chennai">
+          </div>
+          <div class="field">
+            <label>Pincode</label>
+            <input type="text" id="editStuPincode" placeholder="e.g. 600001">
+          </div>
+        </div>
+
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" id="cancelEditStudentBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEditStudentBtn" style="min-width:140px; font-weight:700;">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT PARENT MODAL -->
+  <div class="profile-modal-overlay" id="editParentModal">
+    <div class="profile-modal-card" style="max-width:600px;">
+      <button type="button" class="modal-close" id="closeEditParentModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
+          ✏️
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Parent / Guardian</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update parent contact credentials and linked student record</p>
+        </div>
+      </div>
+
+      <form id="editParentForm" onsubmit="return false;">
+        <input type="hidden" id="editParUid">
+        <div class="field-row">
+          <div class="field" style="flex:1.5;">
+            <label>Parent / Guardian Name <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editParName" required placeholder="e.g. Rajesh Sharma">
+          </div>
+          <div class="field">
+            <label>Login Mobile Number <span style="color:var(--bad);">*</span></label>
+            <input type="tel" id="editParPhone" required placeholder="10-digit mobile">
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field">
+            <label>Mother's Phone / Alternate</label>
+            <input type="tel" id="editParMotherPhone" placeholder="Alternate phone">
+          </div>
+          <div class="field" style="flex:1.4;">
+            <label>Portal Login Email <span style="color:var(--bad);">*</span></label>
+            <input type="email" id="editParEmail" required placeholder="parent@gmail.com">
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div class="field">
+            <label>Portal Password</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input type="password" id="editParPass" placeholder="e.g. Parent@123" style="padding-right:40px;">
+              <button type="button" class="pass-toggle-btn" data-target="editParPass" style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;" title="Show/Hide Password">👁️</button>
+            </div>
+          </div>
+          <div class="field" style="flex:1.3;">
+            <label>Linked Child / Student</label>
+            <select id="editParChildSel">
+              <option value="">— Unlinked / No Student —</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" id="cancelEditParentBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEditParentBtn" style="min-width:140px; font-weight:700;">💾 Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2200,6 +2479,93 @@
       }
     });
 
+    // ======================== EDIT FACULTY / STAFF ========================
+    const editStaffModal = document.getElementById('editStaffModal');
+    document.getElementById('closeEditStaffModal')?.addEventListener('click', () => editStaffModal.classList.remove('open'));
+    document.getElementById('cancelEditStaffBtn')?.addEventListener('click', () => editStaffModal.classList.remove('open'));
+    editStaffModal?.addEventListener('click', (e) => { if (e.target === editStaffModal) editStaffModal.classList.remove('open'); });
+
+    document.getElementById('editStaffFromDetailBtn')?.addEventListener('click', () => {
+      if (currentModalStaff) {
+        staffDetailModal.classList.remove('open');
+        openEditStaffModal(currentModalStaff);
+      }
+    });
+
+    function openEditStaffModal(stf) {
+      if (!stf) return;
+      document.getElementById('editStfId').value = stf.id;
+      document.getElementById('editStfName').value = stf.name || '';
+      document.getElementById('editStfUsername').value = (stf.username || '').replace(/^@/, '');
+      document.getElementById('editStfGender').value = stf.gender || 'Male';
+      document.getElementById('editStfPhone').value = stf.phone || '';
+      document.getElementById('editStfMajorSubject').value = stf.majorSubject || '';
+      document.getElementById('editStfEmail').value = stf.email || '';
+      document.getElementById('editStfPass').value = stf.tempPassword || '';
+      editStaffModal.classList.add('open');
+    }
+
+    document.getElementById('saveEditStaffBtn')?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editStfId').value;
+      const name = document.getElementById('editStfName').value.trim();
+      let username = document.getElementById('editStfUsername').value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+      const gender = document.getElementById('editStfGender').value;
+      const phone = document.getElementById('editStfPhone').value.trim();
+      const majorSubject = document.getElementById('editStfMajorSubject').value.trim();
+      const email = document.getElementById('editStfEmail').value.trim();
+      const pass = document.getElementById('editStfPass').value.trim();
+
+      if (!id || !name || !email || !phone || !majorSubject) {
+        alert('Please fill all required fields: Name, Username, Contact Number, Major Subject, and Login Email.');
+        return;
+      }
+
+      const btn = document.getElementById('saveEditStaffBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const updateData = {
+          name,
+          username,
+          gender,
+          phone,
+          majorSubject,
+          email,
+          updatedAt: serverTimestamp()
+        };
+        if (pass) {
+          updateData.tempPassword = pass;
+        }
+
+        // 1. Update staff doc
+        await updateDoc(doc(db, 'staff', id), updateData);
+
+        // 2. Update user doc
+        await setDoc(doc(db, 'users', id), {
+          role: 'staff',
+          name,
+          username,
+          gender,
+          phone,
+          majorSubject,
+          email,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        showToast(`✅ Faculty "${name}" updated successfully!`);
+        editStaffModal.classList.remove('open');
+        await loadStaff();
+        await loadOverview();
+      } catch (err) {
+        alert('Error updating faculty: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Changes';
+      }
+    });
+
     // Modal Print Profile Button
     document.getElementById('printStaffProfileModalBtn')?.addEventListener('click', () => {
       if (currentModalStaff) {
@@ -2290,6 +2656,7 @@
       <td style="text-align:right; white-space:nowrap;">
         <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
           <button type="button" class="btn btn-outline btn-sm stfViewBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="View Full Profile">👁️ View</button>
+          <button type="button" class="btn btn-sm stfEditBtn" data-id="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Faculty Details">✏️ Edit</button>
           <button type="button" class="btn btn-outline btn-sm stfPrintRowBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="Print Official Profile">🖨️ Print</button>
           <button type="button" class="btn btn-danger btn-sm stfDelBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;">Remove</button>
         </div>
@@ -2300,6 +2667,12 @@
         tr.querySelector('.stfViewBtn').addEventListener('click', () => {
           const item = allStaffCache.find(x => x.id === d.id);
           if (item) openStaffDetailModal(item);
+        });
+
+        // Edit Details modal click
+        tr.querySelector('.stfEditBtn').addEventListener('click', () => {
+          const item = allStaffCache.find(x => x.id === d.id);
+          if (item) openEditStaffModal(item);
         });
 
         // Row Print Profile click
@@ -2674,7 +3047,7 @@
       </td>
       <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.admissionNo || '—'}</span></td>
       <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.rollNo || r.admissionNo || '—'}</span></td>
-      <td><select class="stuClassSel" data-uid="${r.uid}" style="padding:6px 10px; border-radius:8px; border:1px solid var(--line); font-size:13px;">${selHtml}</select></td>
+      <td><span class="badge badge-purple" style="font-weight:700; font-size:12px; padding:4px 10px;">${r.className || '—'}</span></td>
       <td>
         <strong>${r.fatherName || 'Parent'}</strong><br>
         <small style="color:var(--ink-soft); font-family:var(--font-mono);">${r.fatherPhone || r.phone || '—'}</small>
@@ -2682,10 +3055,12 @@
       <td><span class="badge badge-purple">${r.bloodGroup || 'O+'}</span></td>
       <td>${r.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
       <td style="text-align:right; white-space:nowrap;">
-        <button class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">🪪 View Profile</button>
-        <button class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">🖨️ Print</button>
-        <button class="btn btn-outline btn-sm stuSaveBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Save</button>
-        <button class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
+        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">🪪 View Profile</button>
+          <button type="button" class="btn btn-sm stuEditBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Student Profile">✏️ Edit</button>
+          <button type="button" class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">🖨️ Print</button>
+          <button type="button" class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
+        </div>
       </td>
     `;
 
@@ -2694,19 +3069,14 @@
           openStudentProfileModal(r);
         });
 
+        // Edit Student Modal Trigger
+        tr.querySelector('.stuEditBtn').addEventListener('click', () => {
+          openEditStudentModal(r);
+        });
+
         // 1-Click Print Profile from Table Row
         tr.querySelector('.stuPrintRowBtn').addEventListener('click', () => {
           printSingleStudentProfile(r);
-        });
-
-        // Save Class change
-        tr.querySelector('.stuSaveBtn').addEventListener('click', async () => {
-          const sel = tr.querySelector('.stuClassSel');
-          const newClassId = sel.value;
-          const cname = classOptions.find(c => c.id === newClassId)?.name || '';
-          await updateDoc(doc(db, 'students', r.uid), { classId: newClassId, className: cname });
-          showToast('✅ Class updated for ' + r.name);
-          await loadOverview();
         });
 
         // Delete student and automatically cascade-delete linked parent, credentials, and academic data
@@ -2939,6 +3309,177 @@
       studentDetailModal.classList.add('open');
     }
 
+    // ======================== EDIT STUDENT ========================
+    const editStudentModal = document.getElementById('editStudentModal');
+    document.getElementById('closeEditStudentModal')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
+    document.getElementById('cancelEditStudentBtn')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
+    editStudentModal?.addEventListener('click', (e) => { if (e.target === editStudentModal) editStudentModal.classList.remove('open'); });
+
+    document.getElementById('editStudentFromDetailBtn')?.addEventListener('click', () => {
+      if (currentModalStudent) {
+        studentDetailModal.classList.remove('open');
+        openEditStudentModal(currentModalStudent);
+      }
+    });
+
+    async function openEditStudentModal(s) {
+      if (!s) return;
+      document.getElementById('editStuUid').value = s.uid;
+      document.getElementById('editStuName').value = s.name || '';
+      document.getElementById('editStuAdm').value = s.admissionNo || '';
+      document.getElementById('editStuRollNo').value = s.rollNo || '';
+
+      // Populate class options in dropdown
+      const sel = document.getElementById('editStuClassSel');
+      sel.innerHTML = '';
+      let classList = (typeof allClasses !== 'undefined' && allClasses && allClasses.length) ? allClasses : [];
+      if (!classList.length) {
+        try {
+          const cSnap = await getDocs(collection(db, 'classes'));
+          const raw = cSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          classList = sortClassList(raw);
+        } catch (e) { }
+      }
+      if (classList.length) {
+        classList.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          if (c.id === s.classId || c.name === s.className) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      } else {
+        const opt = document.createElement('option');
+        opt.value = s.classId || '';
+        opt.textContent = s.className || 'Assigned Class';
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+
+      document.getElementById('editStuDob').value = s.dob || '';
+      document.getElementById('editStuGender').value = s.gender || 'Male';
+      document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
+      document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
+      document.getElementById('editStuEmail').value = s.email || '';
+
+      document.getElementById('editStuFatherName').value = s.fatherName || '';
+      document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
+      document.getElementById('editStuParentEmail').value = s.parentEmail || '';
+      document.getElementById('editStuMotherName').value = s.motherName || '';
+      document.getElementById('editStuMotherPhone').value = s.motherPhone || '';
+      document.getElementById('editStuEmergencyPhone').value = s.emergencyPhone || '';
+
+      document.getElementById('editStuAddress').value = s.address || '';
+      document.getElementById('editStuCity').value = s.city || '';
+      document.getElementById('editStuPincode').value = s.pincode || '';
+
+      editStudentModal.classList.add('open');
+    }
+
+    document.getElementById('saveEditStudentBtn')?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('editStuUid').value;
+      const name = document.getElementById('editStuName').value.trim();
+      const admissionNo = document.getElementById('editStuAdm').value.trim();
+      const rollNo = document.getElementById('editStuRollNo').value.trim();
+      const classSel = document.getElementById('editStuClassSel');
+      const classId = classSel.value;
+      const className = classSel.options[classSel.selectedIndex]?.textContent || '';
+      const dob = document.getElementById('editStuDob').value;
+      const gender = document.getElementById('editStuGender').value;
+      const bloodGroup = document.getElementById('editStuBlood').value;
+      const aadhaarNo = document.getElementById('editStuAadhaar').value.trim();
+      const email = document.getElementById('editStuEmail').value.trim();
+
+      const fatherName = document.getElementById('editStuFatherName').value.trim();
+      const fatherPhone = document.getElementById('editStuFatherPhone').value.trim();
+      const parentEmail = document.getElementById('editStuParentEmail').value.trim();
+      const motherName = document.getElementById('editStuMotherName').value.trim();
+      const motherPhone = document.getElementById('editStuMotherPhone').value.trim();
+      const emergencyPhone = document.getElementById('editStuEmergencyPhone').value.trim();
+
+      const address = document.getElementById('editStuAddress').value.trim();
+      const city = document.getElementById('editStuCity').value.trim();
+      const pincode = document.getElementById('editStuPincode').value.trim();
+
+      if (!uid || !name || !admissionNo || !classId || !email || !fatherName || !fatherPhone || !parentEmail) {
+        alert('Please fill all mandatory fields (*): Student Name, Admission No, Class, Student Email, Father Name/Phone, and Parent Email.');
+        return;
+      }
+
+      const btn = document.getElementById('saveEditStudentBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const studentUpdate = {
+          name,
+          admissionNo,
+          rollNo: rollNo || admissionNo,
+          classId,
+          className,
+          dob,
+          gender,
+          bloodGroup,
+          aadhaarNo,
+          email,
+          fatherName,
+          fatherPhone,
+          motherName,
+          motherPhone,
+          parentEmail,
+          emergencyPhone: emergencyPhone || fatherPhone,
+          address,
+          city,
+          pincode,
+          updatedAt: serverTimestamp()
+        };
+
+        // 1. Update student document
+        await updateDoc(doc(db, 'students', uid), studentUpdate);
+
+        // 2. Update user doc for student
+        await setDoc(doc(db, 'users', uid), {
+          role: 'student',
+          name,
+          email,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        // 3. Update linked parent if present
+        const currentStudent = allStudentsCache.find(x => x.uid === uid);
+        const parentUid = currentStudent?.parentUid;
+        if (parentUid) {
+          await updateDoc(doc(db, 'parents', parentUid), {
+            name: fatherName,
+            phone: fatherPhone,
+            email: parentEmail,
+            motherPhone,
+            childName: name,
+            updatedAt: serverTimestamp()
+          }).catch(err => console.warn('Could not update linked parent:', err));
+
+          await setDoc(doc(db, 'users', parentUid), {
+            name: fatherName,
+            phone: fatherPhone,
+            email: parentEmail,
+            updatedAt: serverTimestamp()
+          }, { merge: true }).catch(err => console.warn('Could not update parent user:', err));
+        }
+
+        showToast(`✅ Student "${name}" profile updated successfully!`);
+        editStudentModal.classList.remove('open');
+        await loadStudents();
+        await loadParents();
+        await loadOverview();
+      } catch (err) {
+        alert('Error updating student: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Changes';
+      }
+    });
+
     // ======================== PARENTS & GUARDIANS ========================
     function updateOrphanCleanupBtn(count) {
       const btn = document.getElementById('cleanupOrphanedParentsBtn');
@@ -3029,8 +3570,11 @@
           <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password">👁️</button>
         </span>
       </td>
-      <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}">Delete</button>
+      <td style="text-align:right; white-space:nowrap;">
+        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-sm parEditBtn" data-uid="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">✏️ Edit</button>
+          <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px;">Delete</button>
+        </div>
       </td>
     `;
 
@@ -3054,6 +3598,11 @@
               btn.title = 'Show Password';
             }
           });
+        });
+
+        // Edit parent button
+        tr.querySelector('.parEditBtn').addEventListener('click', () => {
+          openEditParentModal({ id: d.id, ...r });
         });
 
         // Individual parent delete button
@@ -3126,6 +3675,114 @@
         } finally {
           if (cleanupBtn) cleanupBtn.disabled = false;
         }
+      }
+    });
+
+    // ======================== EDIT PARENT / GUARDIAN ========================
+    const editParentModal = document.getElementById('editParentModal');
+    document.getElementById('closeEditParentModal')?.addEventListener('click', () => editParentModal.classList.remove('open'));
+    document.getElementById('cancelEditParentBtn')?.addEventListener('click', () => editParentModal.classList.remove('open'));
+    editParentModal?.addEventListener('click', (e) => { if (e.target === editParentModal) editParentModal.classList.remove('open'); });
+
+    function openEditParentModal(p) {
+      if (!p) return;
+      document.getElementById('editParUid').value = p.id;
+      document.getElementById('editParName').value = p.name || '';
+      document.getElementById('editParPhone').value = p.phone || '';
+      document.getElementById('editParMotherPhone').value = p.motherPhone || '';
+      document.getElementById('editParEmail').value = p.email || '';
+      document.getElementById('editParPass').value = p.tempPassword || '';
+
+      const sel = document.getElementById('editParChildSel');
+      sel.innerHTML = '<option value="">— Unlinked / No Student —</option>';
+      if (allStudentsCache && allStudentsCache.length) {
+        allStudentsCache.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.uid;
+          opt.textContent = `${s.name} (${s.className || 'Class'} • ${s.admissionNo || 'No Adm'})`;
+          if (s.uid === p.childUid || (s.parentUid && s.parentUid === p.id)) {
+            opt.selected = true;
+          }
+          sel.appendChild(opt);
+        });
+      }
+      editParentModal.classList.add('open');
+    }
+
+    document.getElementById('saveEditParentBtn')?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('editParUid').value;
+      const name = document.getElementById('editParName').value.trim();
+      const phone = document.getElementById('editParPhone').value.trim();
+      const motherPhone = document.getElementById('editParMotherPhone').value.trim();
+      const email = document.getElementById('editParEmail').value.trim();
+      const pass = document.getElementById('editParPass').value.trim();
+      const childUid = document.getElementById('editParChildSel').value;
+
+      if (!uid || !name || !phone || !email) {
+        alert('Please fill all required fields (*): Parent Name, Login Mobile, and Portal Login Email.');
+        return;
+      }
+
+      const btn = document.getElementById('saveEditParentBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        let childName = '';
+        if (childUid && allStudentsCache) {
+          const s = allStudentsCache.find(x => x.uid === childUid);
+          if (s) childName = s.name;
+        }
+
+        const updateData = {
+          name,
+          phone,
+          motherPhone,
+          email,
+          childUid: childUid || null,
+          childName: childName || null,
+          updatedAt: serverTimestamp()
+        };
+        if (pass) {
+          updateData.tempPassword = pass;
+        }
+
+        // 1. Update parent doc
+        await updateDoc(doc(db, 'parents', uid), updateData);
+
+        // 2. Update user doc for parent
+        const userUpdate = {
+          role: 'parent',
+          name,
+          phone,
+          motherPhone,
+          email,
+          updatedAt: serverTimestamp()
+        };
+        if (pass) userUpdate.tempPassword = pass;
+        await setDoc(doc(db, 'users', uid), userUpdate, { merge: true });
+
+        // 3. Update student link
+        if (childUid) {
+          await updateDoc(doc(db, 'students', childUid), {
+            parentUid: uid,
+            parentEmail: email,
+            fatherPhone: phone,
+            fatherName: name,
+            updatedAt: serverTimestamp()
+          }).catch(err => console.warn('Could not update student linkage:', err));
+        }
+
+        showToast(`✅ Parent "${name}" profile updated successfully!`);
+        editParentModal.classList.remove('open');
+        await loadParents();
+        await loadStudents();
+      } catch (err) {
+        alert('Error updating parent: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Changes';
       }
     });
 
