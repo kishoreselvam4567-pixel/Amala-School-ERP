@@ -646,6 +646,37 @@ input,select,textarea{font-family:var(--font-body);}
 }
 .field-row{display:flex;gap:14px;}
 .field-row .field{flex:1;}
+.field-feedback{
+  font-size:11.5px;
+  margin-top:5px;
+  min-height:16px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  line-height:1.3;
+  transition:all .18s ease;
+}
+.field-feedback:empty{display:none;}
+.field-feedback.err{color:#dc2626;}
+.field-feedback.warn{color:#d97706;}
+.field-feedback.ok{color:#059669;}
+.input-invalid{
+  border-color:#dc2626 !important;
+  background-color:#fffaf0 !important;
+  box-shadow:0 0 0 3px rgba(220,38,38,0.15) !important;
+}
+.input-valid{
+  border-color:#059669 !important;
+  background-color:#f0fdf4 !important;
+  box-shadow:0 0 0 3px rgba(5,150,105,0.15) !important;
+}
+@keyframes fieldShake{
+  0%,100%{transform:translateX(0);}
+  20%,60%{transform:translateX(-6px);}
+  40%,80%{transform:translateX(6px);}
+}
+.shake-anim{animation:fieldShake .38s ease;}
 .form-section-title{
   font-size:14.5px;
   font-weight:700;
@@ -873,7 +904,7 @@ tr:hover td{background:#fafafa;}
   top:20px;
   right:20px;
   background:#f1f5f9;
-  border:none;
+  border:1px solid #e2e8f0;
   width:36px;
   height:36px;
   border-radius:50%;
@@ -883,6 +914,13 @@ tr:hover td{background:#fafafa;}
   justify-content:center;
   color:var(--ink-soft);
   cursor:pointer;
+  transition:all 0.15s ease;
+}
+.modal-close:hover{
+  background:#fee2e2;
+  border-color:#fca5a5;
+  color:#ef4444;
+  transform:scale(1.05);
 }
 
 /* ---------------- AUTH PAGES ---------------- */

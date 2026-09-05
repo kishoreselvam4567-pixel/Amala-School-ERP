@@ -226,12 +226,17 @@
       line-height: 1.4;
     }
 
-    /* Full Student Profile Modal */
+    /* Body scroll lock when modal is open */
+    body.modal-open {
+      overflow: hidden !important;
+    }
+
+    /* Full Profile & Edit Modals */
     .profile-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(5px);
+      background: rgba(15, 23, 42, 0.68);
+      backdrop-filter: blur(6px);
       z-index: 2000;
       display: none;
       align-items: center;
@@ -251,9 +256,165 @@
       max-height: 90vh;
       overflow-y: auto;
       padding: 30px;
-      box-shadow: var(--shadow-xl);
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.05);
       position: relative;
-      animation: fadeInScale 0.3s ease both;
+      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* Keep close button sticky on form modals */
+    .profile-modal-card > .modal-close {
+      position: sticky;
+      top: 0;
+      float: right;
+      z-index: 30;
+      margin-top: -10px;
+      margin-right: -10px;
+    }
+
+    /* Structured Profile Modals with Pinned Header & Footer */
+    .profile-modal-card.has-header {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-width: 780px;
+    }
+
+    .profile-modal-header {
+      padding: 16px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .pm-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .pm-header-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      color: var(--brand-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .pm-header-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pm-header-subtitle {
+      margin: 2px 0 0 0;
+      font-size: 12px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pm-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .profile-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      overscroll-behavior: contain;
+    }
+
+    .profile-modal-body::-webkit-scrollbar {
+      width: 7px;
+    }
+    .profile-modal-body::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .profile-modal-body::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .profile-modal-body::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .profile-modal-footer {
+      padding: 12px 24px;
+      background: #f8fafc;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .modal-close-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .modal-close-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #ef4444;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 640px) {
+      .profile-modal-header {
+        padding: 12px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .pm-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      .profile-modal-body {
+        padding: 16px;
+      }
+      .profile-modal-footer {
+        padding: 10px 16px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -293,245 +454,288 @@
 
   <!-- STUDENT FULL PROFILE MODAL (ID CARD) -->
   <div class="profile-modal-overlay" id="studentDetailModal">
-    <div class="profile-modal-card">
-      <button type="button" class="modal-close" id="closeProfileModal">&times;</button>
-      <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
-        <button type="button" class="btn btn-outline btn-sm" id="editStudentFromDetailBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--brand-green); color:var(--brand-green);">
-          ✏️ Edit Student
-        </button>
-        <button type="button" class="btn btn-outline btn-sm printStudentProfileBtn" id="printStudentProfileBtn" style="font-size:12px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1.5px solid var(--line);">
-          🖨️ Print Student Profile
-        </button>
+    <div class="profile-modal-card has-header">
+      <div class="profile-modal-header">
+        <div class="pm-header-left">
+          <div class="pm-header-icon">🎓</div>
+          <div>
+            <h3 class="pm-header-title">Student Profile Dossier</h3>
+            <p class="pm-header-subtitle">Official Student Identity &amp; Academic Record</p>
+          </div>
+        </div>
+        <div class="pm-header-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="editStudentFromDetailBtn" style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
+            ✏️ Edit Student
+          </button>
+          <button type="button" class="btn btn-outline btn-sm printStudentProfileBtn" id="printStudentProfileBtn" style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--line);">
+            🖨️ Print Profile
+          </button>
+          <button type="button" class="modal-close-btn" id="closeProfileModal" title="Close modal (Esc)">&times;</button>
+        </div>
       </div>
 
-      <div class="profile-hero-card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-        <div class="profile-hero-left" style="flex:1; min-width:260px;">
-          <div class="profile-big-avatar" id="modalAvatarInit">S</div>
-          <div class="profile-hero-info">
-            <h2 id="modalStudentName">Student Name</h2>
-            <p id="modalStudentSub">Class Section • Admission No: —</p>
-            <div class="profile-hero-tags">
-              <span class="hero-tag" id="modalTagClass">Class: —</span>
-              <span class="hero-tag" id="modalTagAdmNo">Adm: —</span>
-              <span class="hero-tag" id="modalTagRoll">Roll: —</span>
-              <span class="hero-tag" id="modalTagBlood">Blood: —</span>
-              <span class="hero-tag" id="modalTagAadhaar">Aadhaar: —</span>
+      <div class="profile-modal-body">
+        <div id="modalDataQualityAlert" style="display:none; margin-bottom:18px;"></div>
+        <div class="profile-hero-card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div class="profile-hero-left" style="flex:1; min-width:260px;">
+            <div class="profile-big-avatar" id="modalAvatarInit">S</div>
+            <div class="profile-hero-info">
+              <h2 id="modalStudentName">Student Name</h2>
+              <p id="modalStudentSub">Class Section • Admission No: —</p>
+              <div class="profile-hero-tags">
+                <span class="hero-tag" id="modalTagClass">Class: —</span>
+                <span class="hero-tag" id="modalTagAdmNo">Adm: —</span>
+                <span class="hero-tag" id="modalTagRoll">Roll: —</span>
+                <span class="hero-tag" id="modalTagBlood">Blood: —</span>
+                <span class="hero-tag" id="modalTagAadhaar">Aadhaar: —</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-hero-right">
+            <button type="button" class="btn btn-sm printStudentHeroBtn" id="printStudentHeroBtn" style="background:#ffffff; color:#0f172a; font-weight:700; font-size:13px; padding:9px 18px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.18); border:none; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.25)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(0,0,0,0.18)';">
+              🖨️ Print Student Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Personal & Academic Details -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Personal &amp; Academic Identity
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item"><label>Full Name</label>
+              <div class="detail-val" id="mp_name">—</div>
+            </div>
+            <div class="detail-item"><label>Admission Number</label>
+              <div class="detail-val" id="mp_admNo">—</div>
+            </div>
+            <div class="detail-item"><label>Roll Number</label>
+              <div class="detail-val" id="mp_rollNo">—</div>
+            </div>
+            <div class="detail-item"><label>Class Section</label>
+              <div class="detail-val" id="mp_class">—</div>
+            </div>
+            <div class="detail-item"><label>Date of Birth</label>
+              <div class="detail-val" id="mp_dob">—</div>
+            </div>
+            <div class="detail-item"><label>Gender</label>
+              <div class="detail-val" id="mp_gender">—</div>
+            </div>
+            <div class="detail-item"><label>Blood Group</label>
+              <div class="detail-val" id="mp_blood">—</div>
+            </div>
+            <div class="detail-item"><label>Aadhaar Number</label>
+              <div class="detail-val" id="mp_aadhaar">—</div>
+            </div>
+            <div class="detail-item"><label>Student Login Email</label>
+              <div class="detail-val" id="mp_email">—</div>
             </div>
           </div>
         </div>
-        <div class="profile-hero-right">
-          <button type="button" class="btn btn-sm printStudentHeroBtn" id="printStudentHeroBtn" style="background:#ffffff; color:#0f172a; font-weight:700; font-size:13px; padding:9px 18px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.18); border:none; transition:all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0,0,0,0.25)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 14px rgba(0,0,0,0.18)';">
-            🖨️ Print Student Profile
-          </button>
+
+        <!-- Parent & Guardian Information -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Parent &amp; Family Information
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item"><label>Father's Name</label>
+              <div class="detail-val" id="mp_fatherName">—</div>
+            </div>
+            <div class="detail-item"><label>Father's Contact Number</label>
+              <div class="detail-val" id="mp_fatherPhone">—</div>
+            </div>
+            <div class="detail-item"><label>Mother's Name</label>
+              <div class="detail-val" id="mp_motherName">—</div>
+            </div>
+            <div class="detail-item"><label>Mother's Contact Number</label>
+              <div class="detail-val" id="mp_motherPhone">—</div>
+            </div>
+            <div class="detail-item"><label>Parent Portal Login Email</label>
+              <div class="detail-val" id="mp_parentEmail">—</div>
+            </div>
+            <div class="detail-item"><label>Emergency Contact</label>
+              <div class="detail-val" id="mp_emergencyPhone">—</div>
+            </div>
+          </div>
         </div>
+
+        <!-- Residential Address -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Residential Address
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item" style="grid-column: 1 / -1;"><label>Permanent Residential Address</label>
+              <div class="detail-val" id="mp_address">—</div>
+            </div>
+            <div class="detail-item"><label>City / Town</label>
+              <div class="detail-val" id="mp_city">—</div>
+            </div>
+            <div class="detail-item"><label>Pincode / Postal Code</label>
+              <div class="detail-val" id="mp_pincode">—</div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Personal & Academic Details -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          Personal &amp; Academic Identity
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item"><label>Full Name</label>
-            <div class="detail-val" id="mp_name">—</div>
-          </div>
-          <div class="detail-item"><label>Admission Number</label>
-            <div class="detail-val" id="mp_admNo">—</div>
-          </div>
-          <div class="detail-item"><label>Roll Number</label>
-            <div class="detail-val" id="mp_rollNo">—</div>
-          </div>
-          <div class="detail-item"><label>Class Section</label>
-            <div class="detail-val" id="mp_class">—</div>
-          </div>
-          <div class="detail-item"><label>Date of Birth</label>
-            <div class="detail-val" id="mp_dob">—</div>
-          </div>
-          <div class="detail-item"><label>Gender</label>
-            <div class="detail-val" id="mp_gender">—</div>
-          </div>
-          <div class="detail-item"><label>Blood Group</label>
-            <div class="detail-val" id="mp_blood">—</div>
-          </div>
-          <div class="detail-item"><label>Aadhaar Number</label>
-            <div class="detail-val" id="mp_aadhaar">—</div>
-          </div>
-          <div class="detail-item"><label>Student Login Email</label>
-            <div class="detail-val" id="mp_email">—</div>
-          </div>
-        </div>
+      <div class="profile-modal-footer">
+        <span style="font-size:12px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Amala Higher Secondary School • Student Record System
+        </span>
+        <button type="button" class="btn btn-outline btn-sm closeProfileModalFooter" style="font-size:12px; padding:6px 18px; font-weight:600;">
+          Close
+        </button>
       </div>
-
-      <!-- Parent & Guardian Information -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          Parent &amp; Family Information
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item"><label>Father's Name</label>
-            <div class="detail-val" id="mp_fatherName">—</div>
-          </div>
-          <div class="detail-item"><label>Father's Contact Number</label>
-            <div class="detail-val" id="mp_fatherPhone">—</div>
-          </div>
-          <div class="detail-item"><label>Mother's Name</label>
-            <div class="detail-val" id="mp_motherName">—</div>
-          </div>
-          <div class="detail-item"><label>Mother's Contact Number</label>
-            <div class="detail-val" id="mp_motherPhone">—</div>
-          </div>
-          <div class="detail-item"><label>Parent Portal Login Email</label>
-            <div class="detail-val" id="mp_parentEmail">—</div>
-          </div>
-          <div class="detail-item"><label>Emergency Contact</label>
-            <div class="detail-val" id="mp_emergencyPhone">—</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Residential Address -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Residential Address
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item" style="grid-column: 1 / -1;"><label>Permanent Residential Address</label>
-            <div class="detail-val" id="mp_address">—</div>
-          </div>
-          <div class="detail-item"><label>City / Town</label>
-            <div class="detail-val" id="mp_city">—</div>
-          </div>
-          <div class="detail-item"><label>Pincode / Postal Code</label>
-            <div class="detail-val" id="mp_pincode">—</div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <!-- STAFF FULL PROFILE MODAL (ID & SERVICE DOSSIER) -->
   <div class="profile-modal-overlay" id="staffDetailModal">
-    <div class="profile-modal-card">
-      <button type="button" class="modal-close" id="closeStaffProfileModal">&times;</button>
-      <div style="position:absolute; top:20px; right:64px; display:flex; gap:8px;">
-        <button type="button" class="btn btn-outline btn-sm" id="editStaffFromDetailBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
-          ✏️ Edit Faculty
-        </button>
-        <button type="button" class="btn btn-outline btn-sm" id="printStaffProfileModalBtn" style="font-size:12px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white);">
-          🖨️ Print Faculty Profile
-        </button>
+    <div class="profile-modal-card has-header">
+      <div class="profile-modal-header">
+        <div class="pm-header-left">
+          <div class="pm-header-icon" style="background:#f3e8ff; color:#9333ea;">👨‍🏫</div>
+          <div>
+            <h3 class="pm-header-title">Faculty Profile Dossier</h3>
+            <p class="pm-header-subtitle">Official Staff Particulars &amp; Teaching Dossier</p>
+          </div>
+        </div>
+        <div class="pm-header-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="editStaffFromDetailBtn" style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
+            ✏️ Edit Faculty
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="printStaffProfileModalBtn" style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--line);">
+            🖨️ Print Profile
+          </button>
+          <button type="button" class="modal-close-btn" id="closeStaffProfileModal" title="Close modal (Esc)">&times;</button>
+        </div>
       </div>
 
-      <div class="profile-hero-card" style="margin-bottom:20px;">
-        <div class="profile-hero-left">
-          <div class="profile-big-avatar" id="modalStaffAvatarInit" style="background:var(--brand-green);">T</div>
-          <div class="profile-hero-info">
-            <h2 id="modalStaffName">Faculty Name</h2>
-            <p id="modalStaffSub">Major Subject • Staff ID: —</p>
-            <div class="profile-hero-tags">
-              <span class="hero-tag" id="modalStaffTagUsername">User: —</span>
-              <span class="hero-tag" id="modalStaffTagGender">Gender: —</span>
-              <span class="hero-tag" id="modalStaffTagMajor">Major: —</span>
-              <span class="hero-tag" id="modalStaffTagPhone">📞 —</span>
-              <span class="hero-tag" id="modalStaffTagCT">Class Teacher: —</span>
+      <div class="profile-modal-body">
+        <div class="profile-hero-card" style="margin-bottom:20px;">
+          <div class="profile-hero-left">
+            <div class="profile-big-avatar" id="modalStaffAvatarInit" style="background:var(--brand-green);">T</div>
+            <div class="profile-hero-info">
+              <h2 id="modalStaffName">Faculty Name</h2>
+              <p id="modalStaffSub">Major Subject • Staff ID: —</p>
+              <div class="profile-hero-tags">
+                <span class="hero-tag" id="modalStaffTagUsername">User: —</span>
+                <span class="hero-tag" id="modalStaffTagGender">Gender: —</span>
+                <span class="hero-tag" id="modalStaffTagMajor">Major: —</span>
+                <span class="hero-tag" id="modalStaffTagPhone">📞 —</span>
+                <span class="hero-tag" id="modalStaffTagCT">Class Teacher: —</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Personal & Faculty Identity -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          Faculty Identity &amp; Profile Details
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item"><label>Full Name</label>
-            <div class="detail-val" id="msp_name">—</div>
+        <!-- Personal & Faculty Identity -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Faculty Identity &amp; Profile Details
           </div>
-          <div class="detail-item"><label>User Name / Staff ID</label>
-            <div class="detail-val" id="msp_username" style="font-family:var(--font-mono); font-weight:700; color:#6b21a8;">—</div>
-          </div>
-          <div class="detail-item"><label>Gender</label>
-            <div class="detail-val" id="msp_gender">—</div>
-          </div>
-          <div class="detail-item"><label>Contact Mobile Number</label>
-            <div class="detail-val" id="msp_phone" style="font-family:var(--font-mono); font-weight:600;">—</div>
-          </div>
-          <div class="detail-item"><label>Major Subject (Specialization)</label>
-            <div class="detail-val" id="msp_majorSubject" style="font-weight:700; color:var(--brand-green);">—</div>
-          </div>
-          <div class="detail-item"><label>Account Status</label>
-            <div class="detail-val"><span class="badge badge-good">Active Faculty</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Authentication & Login Credentials -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          Portal Login &amp; Security Credentials
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item"><label>Login Email Address</label>
-            <div class="detail-val" id="msp_email" style="font-family:var(--font-mono); font-weight:600;">—</div>
-          </div>
-          <div class="detail-item"><label>Portal Password</label>
-            <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
-              <span id="msp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
-              <button type="button" class="btn btn-outline btn-sm" id="msp_togglePassBtn" style="padding:2px 8px; font-size:11px;">Reveal</button>
+          <div class="profile-fields-grid">
+            <div class="detail-item"><label>Full Name</label>
+              <div class="detail-val" id="msp_name">—</div>
+            </div>
+            <div class="detail-item"><label>User Name / Staff ID</label>
+              <div class="detail-val" id="msp_username" style="font-family:var(--font-mono); font-weight:700; color:#6b21a8;">—</div>
+            </div>
+            <div class="detail-item"><label>Gender</label>
+              <div class="detail-val" id="msp_gender">—</div>
+            </div>
+            <div class="detail-item"><label>Primary Subject / Major</label>
+              <div class="detail-val" id="msp_major">—</div>
+            </div>
+            <div class="detail-item"><label>Contact Mobile Number</label>
+              <div class="detail-val" id="msp_phone">—</div>
+            </div>
+            <div class="detail-item"><label>Official Email Address</label>
+              <div class="detail-val" id="msp_email">—</div>
+            </div>
+            <div class="detail-item"><label>Residential Address</label>
+              <div class="detail-val" id="msp_address">—</div>
             </div>
           </div>
-          <div class="detail-item"><label>Assigned Portal Role</label>
-            <div class="detail-val"><span class="badge badge-purple">Staff / Teaching Faculty</span></div>
+        </div>
+
+        <!-- Academic & Teaching Credentials -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Portal Credentials &amp; Access Role
           </div>
-          <div class="detail-item"><label>Login ID Allowed</label>
-            <div class="detail-val" style="color:var(--ink-soft); font-size:12px;">Both Email &amp; Username supported</div>
+          <div class="profile-fields-grid">
+            <div class="detail-item"><label>Access Role</label>
+              <div class="detail-val"><span class="badge badge-good">Teaching Faculty</span></div>
+            </div>
+            <div class="detail-item"><label>Portal Login Password</label>
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+                <span id="msp_pass" style="font-family:var(--font-mono); font-size:14px; letter-spacing:2px; font-weight:700; color:#1e293b;">••••••••</span>
+                <button type="button" class="btn btn-outline btn-sm" id="msp_togglePassBtn" style="font-size:11px; padding:3px 8px; height:auto;">Reveal</button>
+              </div>
+            </div>
+            <div class="detail-item"><label>Login ID Allowed</label>
+              <div class="detail-val" style="color:var(--ink-soft); font-size:12px;">Both Email &amp; Username supported</div>
+            </div>
           </div>
         </div>
+
+        <!-- Teaching Matrix & Allocations -->
+        <div class="profile-group-card">
+          <div class="profile-group-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            Teaching Responsibilities &amp; Class Allocations
+          </div>
+          <div class="profile-fields-grid">
+            <div class="detail-item"><label>Class Teacher Allocation</label>
+              <div class="detail-val" id="msp_classTeacher">—</div>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;"><label>Subject Teaching Allocations</label>
+              <div class="detail-val" id="msp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—</div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Teaching Matrix & Allocations -->
-      <div class="profile-group-card">
-        <div class="profile-group-header">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
-          Teaching Responsibilities &amp; Class Allocations
-        </div>
-        <div class="profile-fields-grid">
-          <div class="detail-item"><label>Class Teacher Allocation</label>
-            <div class="detail-val" id="msp_classTeacher">—</div>
-          </div>
-          <div class="detail-item" style="grid-column: 1 / -1;"><label>Subject Teaching Allocations</label>
-            <div class="detail-val" id="msp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—</div>
-          </div>
-        </div>
+      <div class="profile-modal-footer">
+        <span style="font-size:12px; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Amala Higher Secondary School • Faculty Dossier
+        </span>
+        <button type="button" class="btn btn-outline btn-sm closeStaffModalFooter" style="font-size:12px; padding:6px 18px; font-weight:600;">
+          Close
+        </button>
       </div>
-
     </div>
   </div>
 
@@ -676,8 +880,9 @@
             </select>
           </div>
           <div class="field">
-            <label>Aadhaar Number</label>
-            <input type="text" id="editStuAadhaar" placeholder="12-digit Aadhaar Number">
+            <label>Aadhaar Number <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="editStuAadhaar" required maxlength="12" placeholder="12-digit Aadhaar Number" inputmode="numeric">
+            <div id="editStuAadhaarFeedback" class="field-feedback"></div>
           </div>
           <div class="field" style="flex:1.4;">
             <label>Student Login Email <span style="color:var(--bad);">*</span></label>
@@ -696,7 +901,8 @@
           </div>
           <div class="field">
             <label>Father's Contact Number <span style="color:var(--bad);">*</span></label>
-            <input type="tel" id="editStuFatherPhone" required placeholder="10-digit mobile">
+            <input type="tel" id="editStuFatherPhone" required maxlength="10" placeholder="10-digit mobile" inputmode="numeric">
+            <div id="editStuFatherPhoneFeedback" class="field-feedback"></div>
           </div>
           <div class="field">
             <label>Parent Portal Email <span style="color:var(--bad);">*</span></label>
@@ -711,11 +917,13 @@
           </div>
           <div class="field">
             <label>Mother's Contact Number</label>
-            <input type="tel" id="editStuMotherPhone" placeholder="10-digit mobile">
+            <input type="tel" id="editStuMotherPhone" maxlength="10" placeholder="10-digit mobile (optional)" inputmode="numeric">
+            <div id="editStuMotherPhoneFeedback" class="field-feedback"></div>
           </div>
           <div class="field">
             <label>Emergency Contact</label>
-            <input type="tel" id="editStuEmergencyPhone" placeholder="Emergency phone">
+            <input type="tel" id="editStuEmergencyPhone" maxlength="10" placeholder="10-digit emergency phone (optional)" inputmode="numeric">
+            <div id="editStuEmergencyPhoneFeedback" class="field-feedback"></div>
           </div>
         </div>
 
@@ -769,14 +977,16 @@
           </div>
           <div class="field">
             <label>Login Mobile Number <span style="color:var(--bad);">*</span></label>
-            <input type="tel" id="editParPhone" required placeholder="10-digit mobile">
+            <input type="tel" id="editParPhone" required maxlength="10" placeholder="10-digit mobile" inputmode="numeric">
+            <div id="editParPhoneFeedback" class="field-feedback"></div>
           </div>
         </div>
 
         <div class="field-row" style="margin-top:12px;">
           <div class="field">
             <label>Mother's Phone / Alternate</label>
-            <input type="tel" id="editParMotherPhone" placeholder="Alternate phone">
+            <input type="tel" id="editParMotherPhone" maxlength="10" placeholder="10-digit mobile (optional)" inputmode="numeric">
+            <div id="editParMotherPhoneFeedback" class="field-feedback"></div>
           </div>
           <div class="field" style="flex:1.4;">
             <label>Portal Login Email <span style="color:var(--bad);">*</span></label>
@@ -1514,8 +1724,9 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label>Aadhaar / National ID Number</label>
-                  <input type="text" id="stuAadhaar" placeholder="12-digit Aadhaar Number">
+                  <label>Aadhaar / National ID Number <span style="color:var(--bad);">*</span></label>
+                  <input type="text" id="stuAadhaar" required maxlength="12" placeholder="12-digit Aadhaar Number" inputmode="numeric" autocomplete="off">
+                  <div id="stuAadhaarFeedback" class="field-feedback"></div>
                 </div>
                 <div class="field">
                   <label>Student Login Email *</label>
@@ -1543,8 +1754,9 @@
                   <input type="text" id="parFatherName" required placeholder="Father / Primary Guardian Name">
                 </div>
                 <div class="field">
-                  <label>Father's Mobile Number *</label>
-                  <input type="tel" id="parFatherPhone" required placeholder="e.g. +91 9876543210">
+                  <label>Father's Mobile Number <span style="color:var(--bad);">*</span></label>
+                  <input type="tel" id="parFatherPhone" required maxlength="10" placeholder="10-digit mobile number" inputmode="numeric" autocomplete="tel">
+                  <div id="parFatherPhoneFeedback" class="field-feedback"></div>
                 </div>
                 <div class="field">
                   <label>Mother's Name</label>
@@ -1552,7 +1764,8 @@
                 </div>
                 <div class="field">
                   <label>Mother's Mobile Number</label>
-                  <input type="tel" id="parMotherPhone" placeholder="Mobile Number">
+                  <input type="tel" id="parMotherPhone" maxlength="10" placeholder="10-digit mobile number (optional)" inputmode="numeric" autocomplete="tel">
+                  <div id="parMotherPhoneFeedback" class="field-feedback"></div>
                 </div>
               </div>
               <div class="field-row">
@@ -1569,7 +1782,8 @@
                 </div>
                 <div class="field">
                   <label>Emergency Contact Phone</label>
-                  <input type="tel" id="stuEmergencyPhone" placeholder="Emergency contact phone">
+                  <input type="tel" id="stuEmergencyPhone" maxlength="10" placeholder="10-digit emergency phone (optional)" inputmode="numeric" autocomplete="tel">
+                  <div id="stuEmergencyPhoneFeedback" class="field-feedback"></div>
                 </div>
               </div>
             </div>
@@ -2025,6 +2239,96 @@
       setTimeout(() => toast.remove(), 3500);
     }
 
+    // ======================== DIGIT VALIDATION HELPERS ========================
+    // Live UI formatter & validator for Aadhaar (12 digits) and Mobile (10 digits)
+    function setupDigitValidation(inputId, feedbackId, requiredDigits, isMandatory, fieldLabel) {
+      const input = document.getElementById(inputId);
+      const fb = document.getElementById(feedbackId);
+      if (!input || !fb) return;
+
+      function updateUI(isBlur = false) {
+        input.value = input.value.replace(/\D/g, '').slice(0, requiredDigits);
+        const len = input.value.length;
+
+        if (len === 0) {
+          if (isMandatory && isBlur) {
+            input.classList.add('input-invalid');
+            input.classList.remove('input-valid');
+            fb.className = 'field-feedback err';
+            fb.innerHTML = `<span>⚠️</span> ${fieldLabel} is mandatory (${requiredDigits} digits required).`;
+          } else {
+            input.classList.remove('input-invalid', 'input-valid');
+            fb.className = 'field-feedback';
+            fb.textContent = '';
+          }
+          return;
+        }
+
+        if (len < requiredDigits) {
+          input.classList.add('input-invalid');
+          input.classList.remove('input-valid');
+          fb.className = 'field-feedback warn';
+          fb.innerHTML = `<span>⚠️</span> <strong>${len}/${requiredDigits} digits</strong> — Please fill correctly (${requiredDigits} digits required)`;
+        } else {
+          input.classList.remove('input-invalid');
+          input.classList.add('input-valid');
+          fb.className = 'field-feedback ok';
+          fb.innerHTML = `<span>✓</span> <strong>${len}/${requiredDigits} digits</strong> — Valid ${fieldLabel}`;
+        }
+      }
+
+      input.addEventListener('input', () => updateUI(false));
+      input.addEventListener('blur', () => updateUI(true));
+    }
+
+    // Strict validation function on submit / next action
+    function enforceDigitLength(inputId, feedbackId, requiredDigits, isMandatory, fieldLabel) {
+      const input = document.getElementById(inputId);
+      const fb = document.getElementById(feedbackId);
+      if (!input) return true;
+
+      const val = input.value.replace(/\D/g, '').slice(0, requiredDigits);
+      input.value = val;
+      const len = val.length;
+
+      if (len === 0) {
+        if (isMandatory) {
+          if (fb) {
+            fb.className = 'field-feedback err';
+            fb.innerHTML = `<span>❌</span> <strong>${fieldLabel} is mandatory!</strong> Please enter all ${requiredDigits} digits.`;
+          }
+          input.classList.add('input-invalid', 'shake-anim');
+          setTimeout(() => input.classList.remove('shake-anim'), 400);
+          alert(`Please fill ${fieldLabel} correctly! It is mandatory and requires exactly ${requiredDigits} digits.`);
+          input.focus();
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return false;
+        }
+        return true;
+      }
+
+      if (len < requiredDigits) {
+        if (fb) {
+          fb.className = 'field-feedback err';
+          fb.innerHTML = `<span>❌</span> <strong>${len}/${requiredDigits} digits entered!</strong> Please fill correctly (${requiredDigits} digits required).`;
+        }
+        input.classList.add('input-invalid', 'shake-anim');
+        setTimeout(() => input.classList.remove('shake-anim'), 400);
+        alert(`Please fill ${fieldLabel} correctly! It must be exactly ${requiredDigits} digits, but you entered only ${len} digits. Less than ${requiredDigits} digits is not allowed.`);
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+
+      if (fb) {
+        fb.className = 'field-feedback ok';
+        fb.innerHTML = `<span>✓</span> <strong>${len}/${requiredDigits} digits</strong> — Valid ${fieldLabel}`;
+      }
+      input.classList.remove('input-invalid');
+      input.classList.add('input-valid');
+      return true;
+    }
+
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => logout('../../login.html'));
 
@@ -2124,22 +2428,64 @@
       });
     }
 
+    // Modal Scroll-Lock Helper
+    function updateBodyModalState() {
+      const anyOpen = document.querySelector('.profile-modal-overlay.open, .modal-overlay.open');
+      if (anyOpen) {
+        document.body.classList.add('modal-open');
+      } else {
+        document.body.classList.remove('modal-open');
+      }
+    }
+
     // Student Full Profile Modal Handlers
     const studentDetailModal = document.getElementById('studentDetailModal');
-    document.getElementById('closeProfileModal').addEventListener('click', () => {
+    document.getElementById('closeProfileModal')?.addEventListener('click', () => {
       studentDetailModal.classList.remove('open');
+      updateBodyModalState();
     });
-    studentDetailModal.addEventListener('click', (e) => {
-      if (e.target === studentDetailModal) studentDetailModal.classList.remove('open');
+    studentDetailModal?.addEventListener('click', (e) => {
+      if (e.target === studentDetailModal) {
+        studentDetailModal.classList.remove('open');
+        updateBodyModalState();
+      }
     });
 
     // Staff Full Profile Modal Handlers
     const staffDetailModal = document.getElementById('staffDetailModal');
     document.getElementById('closeStaffProfileModal')?.addEventListener('click', () => {
       staffDetailModal.classList.remove('open');
+      updateBodyModalState();
     });
     staffDetailModal?.addEventListener('click', (e) => {
-      if (e.target === staffDetailModal) staffDetailModal.classList.remove('open');
+      if (e.target === staffDetailModal) {
+        staffDetailModal.classList.remove('open');
+        updateBodyModalState();
+      }
+    });
+
+    // Modal Footer Close Buttons
+    document.querySelectorAll('.closeProfileModalFooter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        studentDetailModal?.classList.remove('open');
+        updateBodyModalState();
+      });
+    });
+    document.querySelectorAll('.closeStaffModalFooter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        staffDetailModal?.classList.remove('open');
+        updateBodyModalState();
+      });
+    });
+
+    // Close Modals on ESC Key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.profile-modal-overlay.open, .modal-overlay.open').forEach(m => {
+          m.classList.remove('open');
+        });
+        updateBodyModalState();
+      }
     });
 
     // Cache
@@ -2462,6 +2808,9 @@
       }
 
       staffDetailModal.classList.add('open');
+      updateBodyModalState();
+      const stfBody = staffDetailModal.querySelector('.profile-modal-body');
+      if (stfBody) stfBody.scrollTop = 0;
     }
 
     // Modal Password Reveal Listener
@@ -2885,8 +3234,24 @@
       const city = document.getElementById('stuCity').value.trim();
       const pincode = document.getElementById('stuPincode').value.trim();
 
-      if (!name || !admNo || !dob || !classId || !stuEmail || !fatherName || !fatherPhone || !parEmail) {
-        alert('Please fill all mandatory fields (*): Student Name, Admission No, Date of Birth (Day/Month/Year), Class, Student Email, Father Name/Phone, and Parent Email.');
+      if (!name || !admNo || !dob || !classId || !stuEmail || !fatherName || !parEmail) {
+        alert('Please fill all mandatory fields (*): Student Name, Admission No, Date of Birth (Day/Month/Year), Class, Student Email, Father Name, and Parent Email.');
+        return;
+      }
+      // Strict Aadhaar validation: Must be exactly 12 digits
+      if (!enforceDigitLength('stuAadhaar', 'stuAadhaarFeedback', 12, true, 'Aadhaar / National ID Number')) {
+        return;
+      }
+      // Strict Father's Mobile validation: Must be exactly 10 digits
+      if (!enforceDigitLength('parFatherPhone', 'parFatherPhoneFeedback', 10, true, "Father's Mobile Number")) {
+        return;
+      }
+      // Optional Mother's Mobile: If entered, must be exactly 10 digits
+      if (!enforceDigitLength('parMotherPhone', 'parMotherPhoneFeedback', 10, false, "Mother's Mobile Number")) {
+        return;
+      }
+      // Optional Emergency Contact Phone: If entered, must be exactly 10 digits
+      if (!enforceDigitLength('stuEmergencyPhone', 'stuEmergencyPhoneFeedback', 10, false, 'Emergency Contact Phone')) {
         return;
       }
       if (stuPass.length < 6) {
@@ -2997,6 +3362,13 @@
         document.getElementById('stuEmergencyPhone').value = '';
         document.getElementById('stuDobDay').value = '';
         document.getElementById('stuDobMonth').value = '';
+
+        ['stuAadhaar', 'parFatherPhone', 'parMotherPhone', 'stuEmergencyPhone'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove('input-invalid', 'input-valid');
+          const fb = document.getElementById(id + 'Feedback');
+          if (fb) { fb.className = 'field-feedback'; fb.textContent = ''; }
+        });
 
         showToast(`🎉 Admission Complete! Student "${name}" & Parent accounts linked.`);
         await loadStudents();
@@ -3334,6 +3706,30 @@
     if (finderRollInput) finderRollInput.addEventListener('input', runStudentFinder);
     if (finderClassSel) finderClassSel.addEventListener('change', runStudentFinder);
 
+    function formatAadhaarDisplay(val) {
+      if (!val) return '<span style="color:var(--ink-soft);">—</span>';
+      const clean = String(val).replace(/\D/g, '');
+      if (clean.length === 12) {
+        const formatted = clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+        return `<span style="font-family:var(--font-mono); font-weight:700; color:var(--ink);">${formatted}</span> <span class="badge badge-good" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">✓ Valid 12-Digit</span>`;
+      }
+      return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">⚠️ Incomplete (${clean.length}/12 digits — 12 digits required)</span>`;
+    }
+
+    function formatPhoneDisplay(val, isMandatory = false) {
+      if (!val || val === '—') {
+        return isMandatory
+          ? '<span style="color:#dc2626; font-weight:600;">⚠️ Missing (10 digits required)</span>'
+          : '<span style="color:var(--ink-soft);">Not provided</span>';
+      }
+      const clean = String(val).replace(/\D/g, '');
+      if (clean.length === 10) {
+        const formatted = clean.replace(/(\d{5})(\d{5})/, '$1 $2');
+        return `<span style="font-family:var(--font-mono); font-weight:700; color:var(--ink);">${formatted}</span> <span class="badge badge-good" style="font-size:10px; padding:1px 6px; margin-left:4px;">✓ 10-Digit</span>`;
+      }
+      return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">⚠️ Incomplete (${clean.length}/10 digits — 10 digits required)</span>`;
+    }
+
     function openStudentProfileModal(s) {
       currentModalStudent = s;
       const init = (s.name || 'S').charAt(0).toUpperCase();
@@ -3345,7 +3741,71 @@
       document.getElementById('modalTagAdmNo').textContent = `Adm: ${s.admissionNo || '—'}`;
       document.getElementById('modalTagRoll').textContent = `Roll: ${s.rollNo || s.admissionNo || '—'}`;
       document.getElementById('modalTagBlood').textContent = `Blood: ${s.bloodGroup || '—'}`;
-      document.getElementById('modalTagAadhaar').textContent = `Aadhaar: ${s.aadhaarNo || '—'}`;
+
+      const cleanAadhaar = String(s.aadhaarNo || '').replace(/\D/g, '');
+      const cleanFatherPhone = String(s.fatherPhone || '').replace(/\D/g, '');
+      const cleanMotherPhone = String(s.motherPhone || '').replace(/\D/g, '');
+      const cleanEmergencyPhone = String(s.emergencyPhone || '').replace(/\D/g, '');
+
+      // Aadhaar Hero Tag
+      const tagAadhaarEl = document.getElementById('modalTagAadhaar');
+      if (cleanAadhaar.length === 12) {
+        tagAadhaarEl.textContent = `Aadhaar: ${cleanAadhaar.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}`;
+        tagAadhaarEl.style.background = '';
+        tagAadhaarEl.style.color = '';
+      } else if (cleanAadhaar.length > 0) {
+        tagAadhaarEl.textContent = `⚠️ Aadhaar: Incomplete (${cleanAadhaar.length}/12)`;
+        tagAadhaarEl.style.background = '#fef2f2';
+        tagAadhaarEl.style.color = '#dc2626';
+      } else {
+        tagAadhaarEl.textContent = `Aadhaar: —`;
+        tagAadhaarEl.style.background = '';
+        tagAadhaarEl.style.color = '';
+      }
+
+      // Check for data quality warnings and show interactive banner
+      const issues = [];
+      if (cleanAadhaar.length !== 12) {
+        issues.push(`Aadhaar Number has only <strong>${cleanAadhaar.length} of 12 digits</strong>`);
+      }
+      if (cleanFatherPhone.length !== 10) {
+        issues.push(`Father's Contact has only <strong>${cleanFatherPhone.length} of 10 digits</strong>`);
+      }
+      if (cleanMotherPhone.length > 0 && cleanMotherPhone.length !== 10) {
+        issues.push(`Mother's Contact has <strong>${cleanMotherPhone.length} of 10 digits</strong>`);
+      }
+      if (cleanEmergencyPhone.length > 0 && cleanEmergencyPhone.length !== 10) {
+        issues.push(`Emergency Contact has <strong>${cleanEmergencyPhone.length} of 10 digits</strong>`);
+      }
+
+      const alertEl = document.getElementById('modalDataQualityAlert');
+      if (alertEl) {
+        if (issues.length > 0) {
+          alertEl.style.display = 'block';
+          alertEl.innerHTML = `
+            <div style="background:#fffbeb; border:1.5px solid #fde68a; border-left:5px solid #f59e0b; border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:260px;">
+                <span style="font-size:20px; line-height:1;">⚠️</span>
+                <div>
+                  <div style="font-weight:700; font-size:13.5px; color:#92400e;">Incomplete Identification &amp; Contact Digits Detected</div>
+                  <div style="font-size:12px; color:#b45309; margin-top:3px; line-height:1.4;">
+                    ${issues.join(' • ')}. Valid records require <strong>12-digit Aadhaar</strong> and <strong>10-digit Mobile numbers</strong>.
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm fixNowModalBtn" style="font-size:12px; padding:6px 14px; font-weight:700; background:#d97706; color:#ffffff; border:none; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                ✏️ Correct Incomplete Digits
+              </button>
+            </div>
+          `;
+          alertEl.querySelector('.fixNowModalBtn')?.addEventListener('click', () => {
+            document.getElementById('editStudentFromDetailBtn')?.click();
+          });
+        } else {
+          alertEl.style.display = 'none';
+          alertEl.innerHTML = '';
+        }
+      }
 
       // Populate Personal Details
       document.getElementById('mp_name').textContent = s.name || '—';
@@ -3355,16 +3815,16 @@
       document.getElementById('mp_dob').textContent = s.dob || '—';
       document.getElementById('mp_gender').textContent = s.gender || '—';
       document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
-      document.getElementById('mp_aadhaar').textContent = s.aadhaarNo || '—';
+      document.getElementById('mp_aadhaar').innerHTML = formatAadhaarDisplay(s.aadhaarNo);
       document.getElementById('mp_email').textContent = s.email || '—';
 
       // Family details
       document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
-      document.getElementById('mp_fatherPhone').textContent = s.fatherPhone || '—';
+      document.getElementById('mp_fatherPhone').innerHTML = formatPhoneDisplay(s.fatherPhone, true);
       document.getElementById('mp_motherName').textContent = s.motherName || '—';
-      document.getElementById('mp_motherPhone').textContent = s.motherPhone || '—';
+      document.getElementById('mp_motherPhone').innerHTML = formatPhoneDisplay(s.motherPhone, false);
       document.getElementById('mp_parentEmail').textContent = s.parentEmail || '—';
-      document.getElementById('mp_emergencyPhone').textContent = s.emergencyPhone || s.fatherPhone || '—';
+      document.getElementById('mp_emergencyPhone').innerHTML = formatPhoneDisplay(s.emergencyPhone || s.fatherPhone, false);
 
       // Address
       document.getElementById('mp_address').textContent = s.address || '—';
@@ -3372,13 +3832,27 @@
       document.getElementById('mp_pincode').textContent = s.pincode || '—';
 
       studentDetailModal.classList.add('open');
+      updateBodyModalState();
+      const sBody = studentDetailModal.querySelector('.profile-modal-body');
+      if (sBody) sBody.scrollTop = 0;
     }
 
     // ======================== EDIT STUDENT ========================
     const editStudentModal = document.getElementById('editStudentModal');
-    document.getElementById('closeEditStudentModal')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
-    document.getElementById('cancelEditStudentBtn')?.addEventListener('click', () => editStudentModal.classList.remove('open'));
-    editStudentModal?.addEventListener('click', (e) => { if (e.target === editStudentModal) editStudentModal.classList.remove('open'); });
+    document.getElementById('closeEditStudentModal')?.addEventListener('click', () => {
+      editStudentModal.classList.remove('open');
+      updateBodyModalState();
+    });
+    document.getElementById('cancelEditStudentBtn')?.addEventListener('click', () => {
+      editStudentModal.classList.remove('open');
+      updateBodyModalState();
+    });
+    editStudentModal?.addEventListener('click', (e) => {
+      if (e.target === editStudentModal) {
+        editStudentModal.classList.remove('open');
+        updateBodyModalState();
+      }
+    });
 
     document.getElementById('editStudentFromDetailBtn')?.addEventListener('click', () => {
       if (currentModalStudent) {
@@ -3438,7 +3912,12 @@
       document.getElementById('editStuCity').value = s.city || '';
       document.getElementById('editStuPincode').value = s.pincode || '';
 
+      ['editStuAadhaar', 'editStuFatherPhone', 'editStuMotherPhone', 'editStuEmergencyPhone'].forEach(id => {
+        document.getElementById(id)?.dispatchEvent(new Event('input'));
+      });
+
       editStudentModal.classList.add('open');
+      updateBodyModalState();
     }
 
     document.getElementById('saveEditStudentBtn')?.addEventListener('click', async (e) => {
@@ -3467,8 +3946,20 @@
       const city = document.getElementById('editStuCity').value.trim();
       const pincode = document.getElementById('editStuPincode').value.trim();
 
-      if (!uid || !name || !admissionNo || !classId || !email || !fatherName || !fatherPhone || !parentEmail) {
-        alert('Please fill all mandatory fields (*): Student Name, Admission No, Class, Student Email, Father Name/Phone, and Parent Email.');
+      if (!uid || !name || !admissionNo || !classId || !email || !fatherName || !parentEmail) {
+        alert('Please fill all mandatory fields (*): Student Name, Admission No, Class, Student Email, Father Name, and Parent Email.');
+        return;
+      }
+      if (!enforceDigitLength('editStuAadhaar', 'editStuAadhaarFeedback', 12, true, 'Aadhaar Number')) {
+        return;
+      }
+      if (!enforceDigitLength('editStuFatherPhone', 'editStuFatherPhoneFeedback', 10, true, "Father's Contact Number")) {
+        return;
+      }
+      if (!enforceDigitLength('editStuMotherPhone', 'editStuMotherPhoneFeedback', 10, false, "Mother's Contact Number")) {
+        return;
+      }
+      if (!enforceDigitLength('editStuEmergencyPhone', 'editStuEmergencyPhoneFeedback', 10, false, 'Emergency Contact Phone')) {
         return;
       }
 
@@ -3564,6 +4055,20 @@
         btn.textContent = '💾 Save Changes';
       }
     });
+
+    // Initialize digit validations with live feedback for Aadhaar (12 digits) & Mobile (10 digits)
+    setupDigitValidation('stuAadhaar', 'stuAadhaarFeedback', 12, true, 'Aadhaar / National ID');
+    setupDigitValidation('parFatherPhone', 'parFatherPhoneFeedback', 10, true, "Father's Mobile Number");
+    setupDigitValidation('parMotherPhone', 'parMotherPhoneFeedback', 10, false, "Mother's Mobile Number");
+    setupDigitValidation('stuEmergencyPhone', 'stuEmergencyPhoneFeedback', 10, false, "Emergency Contact Phone");
+
+    setupDigitValidation('editStuAadhaar', 'editStuAadhaarFeedback', 12, true, 'Aadhaar Number');
+    setupDigitValidation('editStuFatherPhone', 'editStuFatherPhoneFeedback', 10, true, "Father's Contact Number");
+    setupDigitValidation('editStuMotherPhone', 'editStuMotherPhoneFeedback', 10, false, "Mother's Contact Number");
+    setupDigitValidation('editStuEmergencyPhone', 'editStuEmergencyPhoneFeedback', 10, false, "Emergency Contact Phone");
+
+    setupDigitValidation('editParPhone', 'editParPhoneFeedback', 10, true, 'Parent Login Mobile');
+    setupDigitValidation('editParMotherPhone', 'editParMotherPhoneFeedback', 10, false, "Mother's Alternate Phone");
 
     // ======================== PARENTS & GUARDIANS ========================
     function updateOrphanCleanupBtn(count) {
@@ -3790,6 +4295,11 @@
           sel.appendChild(opt);
         });
       }
+
+      ['editParPhone', 'editParMotherPhone'].forEach(id => {
+        document.getElementById(id)?.dispatchEvent(new Event('input'));
+      });
+
       editParentModal.classList.add('open');
     }
 
@@ -3803,8 +4313,14 @@
       const pass = document.getElementById('editParPass').value.trim();
       const childUid = document.getElementById('editParChildSel').value;
 
-      if (!uid || !name || !phone || !email) {
-        alert('Please fill all required fields (*): Parent Name, Login Mobile, and Portal Login Email.');
+      if (!uid || !name || !email) {
+        alert('Please fill all required fields (*): Parent Name and Portal Login Email.');
+        return;
+      }
+      if (!enforceDigitLength('editParPhone', 'editParPhoneFeedback', 10, true, 'Parent Login Mobile Number')) {
+        return;
+      }
+      if (!enforceDigitLength('editParMotherPhone', 'editParMotherPhoneFeedback', 10, false, "Mother's Alternate Phone")) {
         return;
       }
 
