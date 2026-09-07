@@ -458,7 +458,12 @@
     <div class="profile-modal-card has-header">
       <div class="profile-modal-header">
         <div class="pm-header-left">
-          <div class="pm-header-icon">🎓</div>
+          <div class="pm-header-icon" style="display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
           <div>
             <h3 class="pm-header-title">Student Profile Dossier</h3>
             <p class="pm-header-subtitle">Official Student Identity &amp; Academic Record</p>
@@ -613,7 +618,14 @@
     <div class="profile-modal-card has-header">
       <div class="profile-modal-header">
         <div class="pm-header-left">
-          <div class="pm-header-icon" style="background:#f3e8ff; color:#9333ea;">👨‍🏫</div>
+          <div class="pm-header-icon" style="background:#f3e8ff; color:#9333ea; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
           <div>
             <h3 class="pm-header-title">Faculty Profile Dossier</h3>
             <p class="pm-header-subtitle">Official Staff Particulars &amp; Teaching Dossier</p>
@@ -745,12 +757,15 @@
     <div class="profile-modal-card" style="max-width:640px;">
       <button type="button" class="modal-close" id="closeEditStaffModal">&times;</button>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
-        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
-          ✏️
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
         </div>
         <div>
           <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Faculty Member</h3>
-          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update profile particulars, contact info, and portal credentials</p>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update Profile Particulars, Contact Info &amp; Portal Credentials</p>
         </div>
       </div>
 
@@ -816,12 +831,15 @@
     <div class="profile-modal-card" style="max-width:760px;">
       <button type="button" class="modal-close" id="closeEditStudentModal">&times;</button>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
-        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
-          ✏️
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
         </div>
         <div>
           <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Student Profile</h3>
-          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Modify academic, personal, parent/guardian, and residential information</p>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Modify Academic, Personal, Parent/Guardian &amp; Residential Information</p>
         </div>
       </div>
 
@@ -830,7 +848,7 @@
 
         <!-- Section 1: Academic & Personal -->
         <div class="form-section-title" style="margin-bottom:10px; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
-          <span>🎓</span> Academic &amp; Personal Details
+          Academic &amp; Personal Details
         </div>
         <div class="field-row">
           <div class="field" style="flex:1.5;">
@@ -893,7 +911,7 @@
 
         <!-- Section 2: Parent & Family -->
         <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
-          <span>👨‍👩‍👦</span> Parent &amp; Family Information
+          Parent &amp; Family Information
         </div>
         <div class="field-row">
           <div class="field">
@@ -930,7 +948,7 @@
 
         <!-- Section 3: Residential Address -->
         <div class="form-section-title" style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
-          <span>🏠</span> Residential Address
+          Residential Address
         </div>
         <div class="field-row">
           <div class="field" style="flex:2;">
@@ -960,12 +978,15 @@
     <div class="profile-modal-card" style="max-width:600px;">
       <button type="button" class="modal-close" id="closeEditParentModal">&times;</button>
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
-        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center; font-size:22px;">
-          ✏️
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
         </div>
         <div>
           <h3 style="margin:0; font-size:18px; color:var(--ink);">Edit Parent / Guardian</h3>
-          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update parent contact credentials and linked student record</p>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Update Parent Contact Credentials &amp; Linked Student Record</p>
         </div>
       </div>
 
@@ -1114,11 +1135,6 @@
 
       <!-- Quick Register Mini-Card -->
       <div class="sidebar-promo-card">
-        <div class="avatar-pile">
-          <div class="pile-user">🎓</div>
-          <div class="pile-user">👨‍🏫</div>
-          <div class="pile-user">👨‍👩‍👧</div>
-        </div>
         <h4>Unified Student + Parent Admission</h4>
         <button type="button" class="btn-quick-add" id="sideQuickAddBtn">+ New Admission</button>
       </div>
@@ -1184,8 +1200,7 @@
           <div class="main-header">
             <div>
               <h2>Dashboard Overview</h2>
-              <p id="todayDateStr" style="color:var(--ink-soft);font-size:13.5px;">Live campus metrics and management
-                control center</p>
+              <p id="todayDateStr" style="color:var(--ink-soft);font-size:13.5px;">Live Campus Metrics &amp; Management Control Center</p>
             </div>
             <div>
               <button class="btn btn-primary btn-sm" id="overviewAnnBtn"
@@ -1203,7 +1218,6 @@
             <div class="metric-card yellow anim-fadeInUp anim-delay-1">
               <div class="metric-header">
                 <div class="metric-title-wrap">
-                  <div class="metric-icon">🎓</div>
                   <span>Total Students</span>
                 </div>
                 <span class="badge badge-yellow">Enrolled</span>
@@ -1213,7 +1227,7 @@
                 <div class="metric-trend trend-up">Active Roster</div>
               </div>
               <div class="metric-footer">
-                <span>Class distribution ready</span>
+                <span>Class Distribution Ready</span>
                 <a href="#" class="metric-link" data-go-tab="students">View Directory &rarr;</a>
               </div>
             </div>
@@ -1221,7 +1235,6 @@
             <div class="metric-card pink anim-fadeInUp anim-delay-2">
               <div class="metric-header">
                 <div class="metric-title-wrap">
-                  <div class="metric-icon">👨‍🏫</div>
                   <span>Teaching Staff</span>
                 </div>
                 <span class="badge badge-bad" style="background:#ffe4e6;color:#9f1239;">Faculty</span>
@@ -1239,7 +1252,6 @@
             <div class="metric-card purple anim-fadeInUp anim-delay-3">
               <div class="metric-header">
                 <div class="metric-title-wrap">
-                  <div class="metric-icon">🏫</div>
                   <span>Classes &amp; Sections</span>
                 </div>
                 <span class="badge badge-purple">Academic</span>
@@ -1257,7 +1269,6 @@
             <div class="metric-card teal anim-fadeInUp anim-delay-4">
               <div class="metric-header">
                 <div class="metric-title-wrap">
-                  <div class="metric-icon">👨‍👩‍👧</div>
                   <span>Parent Portals</span>
                 </div>
                 <span class="badge" style="background:#ccfbf1;color:#115e59;">Connected</span>
@@ -1278,7 +1289,7 @@
             <div class="card-header">
               <div>
                 <h3>Master Control Panel</h3>
-                <p>Quick operational shortcuts for day-to-day campus administration</p>
+                <p>Quick Operational Shortcuts for Day-to-Day Campus Administration</p>
               </div>
             </div>
 
@@ -1294,7 +1305,7 @@
                     </svg>
                   </div>
                   <h4>Student Admissions</h4>
-                  <p>Register new student &amp; parent profile combined</p>
+                  <p>Register New Student &amp; Parent Profile Combined</p>
                 </div>
               </div>
 
@@ -1309,7 +1320,7 @@
                     </svg>
                   </div>
                   <h4>Teacher Matrix</h4>
-                  <p>Provision staff credentials &amp; assign class teachers</p>
+                  <p>Provision Staff Credentials &amp; Assign Class Teachers</p>
                 </div>
               </div>
 
@@ -1322,7 +1333,7 @@
                     </svg>
                   </div>
                   <h4>Class Sections</h4>
-                  <p>Create sections and generate self-registration codes</p>
+                  <p>Create Class Sections &amp; Generate Self-Registration Codes</p>
                 </div>
               </div>
 
@@ -1336,7 +1347,7 @@
                     </svg>
                   </div>
                   <h4>Attendance Audit</h4>
-                  <p>Cross-class attendance analytics &amp; absent lists</p>
+                  <p>Cross-Class Attendance Analytics &amp; Absent Lists</p>
                 </div>
               </div>
 
@@ -1348,7 +1359,7 @@
                     </svg>
                   </div>
                   <h4>Notice Broadcast</h4>
-                  <p>Post school-wide circulars visible across all portals</p>
+                  <p>Post School-Wide Circulars Visible Across All Portals</p>
                 </div>
               </div>
             </div>
@@ -1360,7 +1371,7 @@
               <div class="card-header">
                 <div>
                   <h3>Class Enrollment Distribution</h3>
-                  <p>Student strength per active academic class</p>
+                  <p>Student Strength Per Active Academic Class</p>
                 </div>
                 <button class="btn btn-outline btn-sm" data-go-tab="classes">All Classes</button>
               </div>
@@ -1373,7 +1384,7 @@
               <div class="card-header">
                 <div>
                   <h3>System Status</h3>
-                  <p>Cloud database &amp; services</p>
+                  <p>Cloud Database &amp; Services</p>
                 </div>
               </div>
               <div style="display:flex; flex-direction:column; gap:14px;">
@@ -1423,7 +1434,7 @@
           <div class="main-header">
             <div>
               <h2>Classes &amp; Registration Codes</h2>
-              <p>Define academic sections and issue student registration codes</p>
+              <p>Define Academic Sections &amp; Issue Student Registration Codes</p>
             </div>
           </div>
 
@@ -1467,7 +1478,7 @@
           <div class="main-header">
             <div>
               <h2>Teachers &amp; Faculty Management</h2>
-              <p>Create staff credentials and assign teaching roles</p>
+              <p>Create Staff Credentials &amp; Assign Teaching Roles</p>
             </div>
           </div>
 
@@ -1545,7 +1556,7 @@
             <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
               <div>
                 <h3>Faculty &amp; Staff Directory</h3>
-                <p>All active teachers, login credentials, and assignments</p>
+                <p>All Active Teachers, Login Credentials &amp; Class Assignments</p>
               </div>
               <button type="button" class="btn btn-outline btn-sm" id="printStaffBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
                 🖨️ Print Faculty Roster
@@ -1598,8 +1609,7 @@
           <div class="main-header">
             <div>
               <h2>Student Admissions &amp; Comprehensive Directory</h2>
-              <p>Unified admission portal: register student identity, family details &amp; parent credentials in one
-                step</p>
+              <p>Unified Admission Portal: Register Student Identity, Family Details &amp; Parent Credentials</p>
             </div>
           </div>
 
@@ -1615,7 +1625,7 @@
                   </svg>
                   Instant Student Lookup by Class &amp; Roll Number
                 </h3>
-                <p>Quickly locate any student by choosing their class and typing their Roll No. or Register/Adm No.</p>
+                <p>Quickly Locate Any Student by Class, Roll Number or Register Number</p>
               </div>
             </div>
 
@@ -1825,7 +1835,7 @@
             <div class="card-header" style="flex-wrap:wrap; gap:12px;">
               <div>
                 <h3>Campus Student Directory</h3>
-                <p>Click "View Profile" to open full ID card and family details</p>
+                <p>Full Student Directory, Credentials, Family Details &amp; ID Cards</p>
               </div>
               <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <label
@@ -1863,7 +1873,7 @@
           <div class="main-header">
             <div>
               <h2>Parent &amp; Guardian Portals</h2>
-              <p>View all registered parent accounts linked to students</p>
+              <p>View All Registered Parent Accounts Linked to Students</p>
             </div>
           </div>
 
@@ -1871,7 +1881,7 @@
             <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
               <div>
                 <h3>Registered Parent Directory</h3>
-                <p>Official record of all guardian accounts and student linkages</p>
+                <p>Official Registry of Connected Parent Accounts &amp; Ward Linkages</p>
               </div>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                 <button type="button" class="btn btn-outline btn-sm" id="cleanupOrphanedParentsBtn" style="display:none; align-items:center; gap:6px; font-weight:700; color:#dc2626; border-color:#fca5a5; background:#fff5f5;">
@@ -1903,7 +1913,7 @@
           <div class="main-header">
             <div>
               <h2>Campus Attendance Intelligence</h2>
-              <p>Generate full attendance percentage breakdowns across sections</p>
+              <p>Generate Full Attendance Percentage Breakdowns Across Sections</p>
             </div>
           </div>
 
@@ -1945,7 +1955,7 @@
           <div class="main-header">
             <div>
               <h2>Academic Performance &amp; Marks</h2>
-              <p>Review subject marks and examination results by class</p>
+              <p>Review Subject Marks &amp; Examination Results by Class</p>
             </div>
           </div>
 
@@ -1989,7 +1999,7 @@
           <div class="main-header">
             <div>
               <h2>Master Exam Calendar</h2>
-              <p>Schedule examination dates, subjects, timings, and syllabi across grades</p>
+              <p>Schedule Examination Dates, Subjects, Timings &amp; Syllabi Across Grades</p>
             </div>
             <div style="display:flex; gap:8px;">
               <button type="button" class="btn btn-outline btn-sm" id="printExamCalBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
@@ -2088,7 +2098,7 @@
             <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
               <div>
                 <h3>Scheduled Examination Registry</h3>
-                <p>Official timetable entries currently active for upcoming school evaluations</p>
+                <p>Active Timetable Entries &amp; Scheduled Assessments</p>
               </div>
               <div style="display:flex; gap:8px; align-items:center;">
                 <select id="examCalFilterClass" style="padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
@@ -2121,7 +2131,7 @@
           <div class="main-header">
             <div>
               <h2>School Announcements &amp; Circulars</h2>
-              <p>Broadcast notices to students, parents, and faculty, or publish staff-exclusive circulars</p>
+              <p>Broadcast Notices to Students, Parents &amp; Faculty, or Publish Staff-Exclusive Circulars</p>
             </div>
           </div>
 
@@ -2136,8 +2146,8 @@
                 <label>Target Audience / Category</label>
                 <select id="annAudience" style="font-weight:600;">
                   <option value="all">📢 All Portals (Students, Parents &amp; Faculty)</option>
-                  <option value="teachers">👨‍🏫 Teachers &amp; Staff Only (Faculty Circular)</option>
-                  <option value="students_parents">🎓 Students &amp; Parents Only</option>
+                  <option value="teachers">Teachers &amp; Staff Only (Faculty Circular)</option>
+                  <option value="students_parents">Students &amp; Parents Only</option>
                 </select>
               </div>
               <div class="field" style="flex:2;">
@@ -2162,8 +2172,8 @@
           <div style="display:flex; gap:10px; margin:28px 0 16px; align-items:center; flex-wrap:wrap;">
             <span style="font-size:13px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;">Filter Notices:</span>
             <button type="button" class="btn btn-sm ann-filter-btn active" data-filter="all" style="border-radius:20px; padding:6px 14px;">🌐 All Notices (<span id="countAllAnn">0</span>)</button>
-            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="teachers" style="border-radius:20px; padding:6px 14px;">👨‍🏫 Teachers &amp; Staff (<span id="countTeacherAnn">0</span>)</button>
-            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students_parents" style="border-radius:20px; padding:6px 14px;">🎓 Students &amp; Parents (<span id="countStudentAnn">0</span>)</button>
+            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="teachers" style="border-radius:20px; padding:6px 14px;">Teachers &amp; Staff (<span id="countTeacherAnn">0</span>)</button>
+            <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students_parents" style="border-radius:20px; padding:6px 14px;">Students &amp; Parents (<span id="countStudentAnn">0</span>)</button>
           </div>
 
           <div id="annList"></div>
@@ -5663,17 +5673,17 @@
       annAudienceEl.addEventListener('change', () => {
         const val = annAudienceEl.value;
         if (val === 'teachers') {
-          annPostBtn.textContent = '👨‍🏫 Post Teachers & Staff Notice';
+          annPostBtn.textContent = 'Post Teachers & Staff Notice';
           annAudienceBadge.className = 'badge badge-good';
-          annAudienceBadge.textContent = '👨‍🏫 Teachers & Staff Only';
+          annAudienceBadge.textContent = 'Teachers & Staff Only';
         } else if (val === 'students_parents') {
-          annPostBtn.textContent = '🎓 Post Students & Parents Notice';
+          annPostBtn.textContent = 'Post Students & Parents Notice';
           annAudienceBadge.className = 'badge badge-navy';
-          annAudienceBadge.textContent = '🎓 Students & Parents Only';
+          annAudienceBadge.textContent = 'Students & Parents Only';
         } else {
-          annPostBtn.textContent = '📢 Broadcast to All Portals';
+          annPostBtn.textContent = 'Broadcast to All Portals';
           annAudienceBadge.className = 'badge badge-purple';
-          annAudienceBadge.textContent = '📢 All Portals';
+          annAudienceBadge.textContent = 'All Portals';
         }
       });
     }
@@ -5763,11 +5773,11 @@
         div.style.marginBottom = '14px';
         const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
         
-        let badgeHtml = '<span class="badge badge-purple">📢 Broadcast to All</span>';
+        let badgeHtml = '<span class="badge badge-purple">Broadcast to All</span>';
         if (r.targetAudience === 'teachers') {
-          badgeHtml = '<span class="badge badge-good" style="font-weight:700;">👨‍🏫 Teachers &amp; Staff Only</span>';
+          badgeHtml = '<span class="badge badge-good" style="font-weight:700;">Teachers &amp; Staff Only</span>';
         } else if (r.targetAudience === 'students_parents') {
-          badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">🎓 Students &amp; Parents</span>';
+          badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
         }
 
         div.innerHTML = `
