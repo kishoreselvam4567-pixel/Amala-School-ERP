@@ -11,6 +11,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/site-brand.js"></script>
   <style>
     .master-control-grid {
       display: grid;
@@ -4161,6 +4162,7 @@
       </td>
       <td style="text-align:right; white-space:nowrap;">
         <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">🖨️ Print</button>
           <button type="button" class="btn btn-sm parEditBtn" data-uid="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">✏️ Edit</button>
           <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px;">Delete</button>
         </div>
@@ -4187,6 +4189,12 @@
               btn.title = 'Show Password';
             }
           });
+        });
+
+        // Print parent button
+        tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
+          const item = allParentsCache.find(x => x.id === d.id);
+          if (item) printSingleParentProfile(item);
         });
 
         // Edit parent button
@@ -4395,6 +4403,7 @@
       }
       const now = new Date();
       const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const logoUrl = (typeof getSchoolLogoUrl === 'function' ? getSchoolLogoUrl() : (window.SCHOOL_LOGO_DATA_URL || document.querySelector('[data-school-logo]')?.src || '/image/school logo.jpg'));
       
       const html = `<!DOCTYPE html>
 <html lang="en">
@@ -4420,6 +4429,13 @@
       border-bottom: 2.5px solid #0f1b33;
       padding-bottom: 14px;
       margin-bottom: 18px;
+    }
+    .print-header-logo {
+      height: 56px;
+      width: 56px;
+      object-fit: contain;
+      border-radius: 6px;
+      flex-shrink: 0;
     }
     .brand-title {
       font-size: 20px;
@@ -4520,9 +4536,12 @@
 </head>
 <body>
   <div class="print-header">
-    <div>
-      <div class="brand-title">Amala Higher Secondary School</div>
-      <div class="brand-sub">Campus Management System • Official Administrative Records</div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <img src="${logoUrl}" alt="Amala Higher Secondary School Logo" class="print-header-logo">
+      <div>
+        <div class="brand-title">Amala Higher Secondary School</div>
+        <div class="brand-sub">Campus Management System • Official Administrative Records</div>
+      </div>
     </div>
     <div class="meta-tag">
       <div>Generated: <strong>${dateStr}</strong></div>
@@ -4564,6 +4583,7 @@
       if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
       const now = new Date();
       const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const logoUrl = (typeof getSchoolLogoUrl === 'function' ? getSchoolLogoUrl() : (window.SCHOOL_LOGO_DATA_URL || document.querySelector('[data-school-logo]')?.src || '/image/school logo.jpg'));
       
       const html = `<!DOCTYPE html>
 <html lang="en">
@@ -4587,8 +4607,20 @@
       padding-bottom: 12px;
       margin-bottom: 20px;
     }
-    .school-name { font-size: 22px; font-weight: 800; color: #0f1b33; text-transform: uppercase; }
-    .doc-type { font-size: 13.5px; font-weight: 700; color: #059669; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    .school-logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .school-head-logo {
+      height: 65px;
+      max-width: 140px;
+      object-fit: contain;
+      display: block;
+    }
+    .school-name { font-size: 21px; font-weight: 800; color: #0f1b33; text-transform: uppercase; letter-spacing: 0.5px; }
+    .doc-type { font-size: 13px; font-weight: 700; color: #059669; letter-spacing: 0.8px; margin-top: 4px; text-transform: uppercase; }
     
     .profile-hero {
       display: flex;
@@ -4647,6 +4679,9 @@
 </head>
 <body>
   <div class="school-head">
+    <div class="school-logo-wrap">
+      <img src="${logoUrl}" alt="Amala Higher Secondary School Logo" class="school-head-logo">
+    </div>
     <div class="school-name">Amala Higher Secondary School</div>
     <div class="doc-type">Official Student Identity &amp; Admission Profile</div>
     <div style="font-size:11px; color:#64748b; margin-top:3px;">Generated on: ${dateStr}</div>
@@ -4721,6 +4756,7 @@
       if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
       const now = new Date();
       const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const logoUrl = (typeof getSchoolLogoUrl === 'function' ? getSchoolLogoUrl() : (window.SCHOOL_LOGO_DATA_URL || document.querySelector('[data-school-logo]')?.src || '/image/school logo.jpg'));
 
       const subsAllocated = (stf.subjects || []).map(s => `• <strong>${s.subject}</strong> for ${s.className || 'Class'}`).join('<br>') || 'None assigned yet';
 
@@ -4746,8 +4782,20 @@
       padding-bottom: 12px;
       margin-bottom: 20px;
     }
-    .school-name { font-size: 22px; font-weight: 800; color: #0f1b33; text-transform: uppercase; }
-    .doc-type { font-size: 13.5px; font-weight: 700; color: #059669; letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+    .school-logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .school-head-logo {
+      height: 65px;
+      max-width: 140px;
+      object-fit: contain;
+      display: block;
+    }
+    .school-name { font-size: 21px; font-weight: 800; color: #0f1b33; text-transform: uppercase; letter-spacing: 0.5px; }
+    .doc-type { font-size: 13px; font-weight: 700; color: #059669; letter-spacing: 0.8px; margin-top: 4px; text-transform: uppercase; }
     
     .profile-hero {
       display: flex;
@@ -4806,6 +4854,9 @@
 </head>
 <body>
   <div class="school-head">
+    <div class="school-logo-wrap">
+      <img src="${logoUrl}" alt="Amala Higher Secondary School Logo" class="school-head-logo">
+    </div>
     <div class="school-name">Amala Higher Secondary School</div>
     <div class="doc-type">Official Faculty &amp; Staff Service Dossier Profile</div>
     <div style="font-size:11.5px; color:#64748b; margin-top:3px;">Generated Date: ${dateStr} • Institutional Human Resources Record</div>
@@ -4859,6 +4910,185 @@
   <div class="footer-sign">
     <div class="sign-col">Staff Member Signature</div>
     <div class="sign-col">Academic Dean / HOD</div>
+    <div class="sign-col">Principal / Correspondent Seal</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+
+      printWin.document.open();
+      printWin.document.write(html);
+      printWin.document.close();
+    }
+
+    // 🖨️ Print Single Parent & Guardian Dossier Slip
+    function printSingleParentProfile(p) {
+      if (!p) { alert('No parent profile loaded.'); return; }
+      const printWin = window.open('', '_blank', 'width=850,height=750');
+      if (!printWin) { alert('Please allow popups to open the print preview.'); return; }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const logoUrl = (typeof getSchoolLogoUrl === 'function' ? getSchoolLogoUrl() : (window.SCHOOL_LOGO_DATA_URL || document.querySelector('[data-school-logo]')?.src || '/image/school logo.jpg'));
+
+      // Find linked student details if available
+      const linkedStudent = allStudentsCache.find(s => s.uid === p.childUid || s.admissionNo === p.admissionNo || s.email === p.childEmail || s.name === p.childName);
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Parent Profile — ${p.name || 'Parent'}</title>
+  <style>
+    @page { size: auto; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .school-head {
+      text-align: center;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .school-logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .school-head-logo {
+      height: 65px;
+      max-width: 140px;
+      object-fit: contain;
+      display: block;
+    }
+    .school-name { font-size: 21px; font-weight: 800; color: #0f1b33; text-transform: uppercase; letter-spacing: 0.5px; }
+    .doc-type { font-size: 13px; font-weight: 700; color: #059669; letter-spacing: 0.8px; margin-top: 4px; text-transform: uppercase; }
+    
+    .profile-hero {
+      display: flex;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .parent-title { font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+    .hero-tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hero-badge { background: #e2e8f0; padding: 4px 9px; border-radius: 5px; font-size: 11.5px; font-weight: 700; color: #1e293b; }
+    
+    .section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f1b33;
+      border-bottom: 1.5px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin: 18px 0 10px 0;
+      letter-spacing: 0.5px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+    .field-item { display: flex; font-size: 12.5px; border-bottom: 1px dotted #cbd5e1; padding: 5px 0; }
+    .field-lbl { width: 145px; font-weight: 700; color: #64748b; }
+    .field-val { flex: 1; color: #0f172a; font-weight: 600; }
+    
+    .photo-placeholder {
+      width: 105px;
+      height: 125px;
+      border: 1.5px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fff;
+    }
+    .footer-sign {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 15px;
+      page-break-inside: avoid;
+    }
+    .sign-col { text-align: center; width: 180px; border-top: 1.5px dashed #64748b; font-size: 12px; padding-top: 6px; font-weight: 700; color: #475569; }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="school-head">
+    <div class="school-logo-wrap">
+      <img src="${logoUrl}" alt="Amala Higher Secondary School Logo" class="school-head-logo">
+    </div>
+    <div class="school-name">Amala Higher Secondary School</div>
+    <div class="doc-type">Official Parent &amp; Guardian Profile Dossier</div>
+    <div style="font-size:11.5px; color:#64748b; margin-top:3px;">Generated Date: ${dateStr} • Institutional Family &amp; Guardian Record</div>
+  </div>
+
+  <div class="profile-hero">
+    <div style="flex:1;">
+      <h1 class="parent-title">${p.name || 'Parent / Guardian'}</h1>
+      <div style="font-size:13.5px; color:#475569; font-weight:600;">Linked Child: ${linkedStudent ? linkedStudent.name : (p.childName || '—')} • Mobile Login: ${p.phone || '—'}</div>
+      <div class="hero-tags">
+        <span class="hero-badge" style="background:#f3e8ff; color:#6b21a8;">Role: Parent / Legal Guardian</span>
+        <span class="hero-badge" style="background:#e0f2fe; color:#0369a1;">Phone: ${p.phone || '—'}</span>
+        <span class="hero-badge" style="background:#ecfdf5; color:#065f46;">Child: ${linkedStudent ? linkedStudent.name : (p.childName || '—')}</span>
+        <span class="hero-badge" style="background:#fef3c7; color:#92400e;">Class: ${linkedStudent ? linkedStudent.className : '—'}</span>
+      </div>
+    </div>
+    <div class="photo-placeholder">
+      AFFIX GUARDIAN PHOTOGRAPH
+    </div>
+  </div>
+
+  <div class="section-title">1. Parent &amp; Guardian Particulars</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Full Name:</span><span class="field-val">${p.name || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Contact Phone:</span><span class="field-val" style="font-family:monospace; font-weight:700;">${p.phone || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Official Login Email:</span><span class="field-val" style="font-family:monospace;">${p.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Portal Access Role:</span><span class="field-val">Parent / Legal Guardian</span></div>
+    <div class="field-item"><span class="field-lbl">Account Status:</span><span class="field-val" style="color:#059669; font-weight:700;">Verified &amp; Active</span></div>
+    <div class="field-item"><span class="field-lbl">Residential City:</span><span class="field-val">${linkedStudent?.city || '—'}</span></div>
+  </div>
+
+  <div class="section-title">2. Linked Student (Ward) Particulars</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Student Full Name:</span><span class="field-val" style="font-weight:700; color:#0369a1;">${linkedStudent ? linkedStudent.name : (p.childName || '—')}</span></div>
+    <div class="field-item"><span class="field-lbl">Class &amp; Section:</span><span class="field-val" style="font-weight:700;">${linkedStudent ? linkedStudent.className : '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Admission Number:</span><span class="field-val" style="font-family:monospace;">${linkedStudent?.admissionNo || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Roll Number:</span><span class="field-val" style="font-family:monospace;">${linkedStudent?.rollNo || linkedStudent?.admissionNo || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${linkedStudent?.gender || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${linkedStudent?.bloodGroup || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val" style="font-family:monospace;">${linkedStudent?.aadhaarNo || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Permanent Address:</span><span class="field-val">${linkedStudent?.address || '—'}</span></div>
+  </div>
+
+  <div class="section-title">3. Portal Access &amp; Authentication Information</div>
+  <div class="grid-2">
+    <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
+    <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Phone (${p.phone}) OR Email (${p.email})</span></div>
+    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${p.tempPassword || 'Parent@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Account Privileges:</span><span class="field-val" style="color:#059669; font-weight:700;">Attendance, Marks, Circulars, Homework</span></div>
+  </div>
+
+  <div class="footer-sign">
+    <div class="sign-col">Parent / Guardian Signature</div>
+    <div class="sign-col">Class Teacher</div>
     <div class="sign-col">Principal / Correspondent Seal</div>
   </div>
 
