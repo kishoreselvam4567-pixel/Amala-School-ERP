@@ -521,6 +521,10 @@
             <h2>Announcements &amp; Faculty Circulars</h2>
             <p style="color:var(--ink-soft);">Official school circulars and staff-exclusive notices broadcast by administration.</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
 
         <div id="staffAnnList"></div>
@@ -534,6 +538,10 @@
             <h2>Instant Student Lookup</h2>
             <p style="color:var(--ink-soft);">Search any student by class section and Roll Number or Admission Number</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
 
         <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, var(--white) 100%); border:1.5px solid var(--brand-green); margin-bottom:24px;">
@@ -559,7 +567,16 @@
 
       <!-- ATTENDANCE (class teacher only) -->
       <section id="panel-attendance" style="display:none;">
-        <div class="main-header"><div><h2>Mark Attendance</h2><p style="color:var(--ink-soft);">Available to the class teacher of a section (ordered by Roll Number).</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Mark Attendance</h2>
+            <p style="color:var(--ink-soft);">Available to the class teacher of a section (ordered by Roll Number).</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         <div id="attNoAccess" class="empty-state" style="display:none;">You are not set as a class teacher. Ask admin to assign you a class.</div>
         <div id="attAccess" style="display:none;">
           <div class="card card-static" style="margin-bottom:20px;">
@@ -580,7 +597,16 @@
 
       <!-- MARKS -->
       <section id="panel-marks" style="display:none;">
-        <div class="main-header"><div><h2>Upload Marks</h2><p style="color:var(--ink-soft);">Pick a class and subject you teach, then enter student marks by Roll No.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Upload Marks</h2>
+            <p style="color:var(--ink-soft);">Pick a class and subject you teach, then enter student marks by Roll No.</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         <div id="marksNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet. Ask admin.</div>
         <div id="marksAccess" style="display:none;">
           <div class="card card-static" style="margin-bottom:20px;">
@@ -603,7 +629,16 @@
 
       <!-- EXAMS -->
       <section id="panel-exams" style="display:none;">
-        <div class="main-header"><div><h2>Exam Schedule</h2><p style="color:var(--ink-soft);">All upcoming exams scheduled for the school.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Exam Schedule</h2>
+            <p style="color:var(--ink-soft);">All upcoming exams scheduled for the school.</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         <div class="card card-static table-wrap">
           <table id="examsTable"><thead><tr><th>Date</th><th>Exam</th><th>Class</th><th>Subject</th><th>Syllabus</th></tr></thead><tbody></tbody></table>
           <div class="empty-state" id="examsEmpty" style="display:none;">No exams scheduled.</div>
@@ -612,7 +647,16 @@
 
       <!-- NOTES -->
       <section id="panel-notes" style="display:none;">
-        <div class="main-header"><div><h2>Syllabus Notes</h2><p style="color:var(--ink-soft);">Upload PDF study materials for your subjects.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Syllabus Notes</h2>
+            <p style="color:var(--ink-soft);">Upload PDF study materials for your subjects.</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         <div id="notesNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
         <div id="notesAccess" style="display:none;">
           <div class="card card-static" style="margin-bottom:20px;">
@@ -634,7 +678,16 @@
 
       <!-- HOMEWORK -->
       <section id="panel-homework" style="display:none;">
-        <div class="main-header"><div><h2>Homework</h2><p style="color:var(--ink-soft);">Assign homework with an optional PDF attachment.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Homework</h2>
+            <p style="color:var(--ink-soft);">Assign homework with an optional PDF attachment.</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         <div id="hwNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
         <div id="hwAccess" style="display:none;">
           <div class="card card-static" style="margin-bottom:20px;">
@@ -658,7 +711,16 @@
 
       <!-- MANAGE STUDENTS (Class Teacher Only) -->
       <section id="panel-students" style="display:none;">
-        <div class="main-header"><div><h2>Class Student Roster</h2><p style="color:var(--ink-soft);">Register new students for your class with speed-boosted DOB and view ID cards.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Class Student Roster</h2>
+            <p style="color:var(--ink-soft);">Register new students for your class with speed-boosted DOB and view ID cards.</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
         
         <div class="card card-static" style="margin-bottom:20px;">
           <h3 style="font-size:15px; margin-bottom:14px;">Register New Student to Your Section</h3>
@@ -875,30 +937,66 @@ function enforceDigitLength(inputId, feedbackId, requiredDigits, isMandatory, fi
 
 document.getElementById('logoutBtn').addEventListener('click', () => logout('../../login.html'));
 
+function switchTab(tabName, pushState = true) {
+  if (!tabName) tabName = 'overview';
+  document.querySelectorAll('.sidebar nav a').forEach(x => {
+    x.classList.toggle('active', x.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
+  const panel = document.getElementById('panel-' + tabName);
+  if (panel) {
+    panel.style.display = 'block';
+    panel.style.animation = 'fadeInUp 0.3s ease both';
+  }
+
+  if (pushState) {
+    const targetHash = '#' + tabName;
+    if (window.location.hash !== targetHash) {
+      history.pushState({ tab: tabName }, '', targetHash);
+    }
+  }
+
+  if (tabName === 'announcements') loadStaffAnnouncements();
+  if (tabName === 'exams') loadExams();
+  if (tabName === 'notes') loadNotesList();
+  if (tabName === 'homework') loadHwList();
+  if (tabName === 'students') loadStudentsForTeacher();
+
+  if (window.innerWidth <= 820 && sidebar) {
+    sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+  }
+}
+
+// Handle browser back button / mobile back gesture to exit tabs and show Home Overview automatically
+window.addEventListener('popstate', (e) => {
+  const stateTab = e.state && e.state.tab;
+  const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+  const destTab = stateTab || hashTab || 'overview';
+  switchTab(destTab, false);
+});
+
 document.querySelectorAll('.sidebar nav a').forEach(a => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
-    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
-    const panel = document.getElementById('panel-' + a.dataset.tab);
-    if (panel) {
-      panel.style.display = 'block';
-      panel.style.animation = 'fadeInUp 0.3s ease both';
-    }
-    if (a.dataset.tab === 'announcements') loadStaffAnnouncements();
-    if (a.dataset.tab === 'exams') loadExams();
-    if (a.dataset.tab === 'notes') loadNotesList();
-    if (a.dataset.tab === 'homework') loadHwList();
-    if (a.dataset.tab === 'students') loadStudentsForTeacher();
-
-    if (window.innerWidth <= 820 && sidebar) {
-      sidebar.classList.remove('is-open');
-      if (sidebarToggle) sidebarToggle.classList.remove('is-open');
-      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-    }
+    switchTab(a.dataset.tab);
   });
 });
+
+document.querySelectorAll('[data-go-tab]').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchTab(btn.dataset.goTab);
+  });
+});
+
+// Initialize tab state from hash or default to overview
+const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'overview';
+history.replaceState({ tab: initialHash }, '', '#' + initialHash);
+if (initialHash !== 'overview') {
+  setTimeout(() => switchTab(initialHash, false), 50);
+}
 
 // Speed DOB dropdown options init
 const staffDaySel = document.getElementById('stuDobDay');

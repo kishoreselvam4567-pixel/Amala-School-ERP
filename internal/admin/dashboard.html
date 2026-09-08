@@ -1436,6 +1436,10 @@
               <h2>Classes &amp; Registration Codes</h2>
               <p>Define Academic Sections &amp; Issue Student Registration Codes</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card">
@@ -1480,6 +1484,10 @@
               <h2>Teachers &amp; Faculty Management</h2>
               <p>Create Staff Credentials &amp; Assign Teaching Roles</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card">
@@ -1611,6 +1619,10 @@
               <h2>Student Admissions &amp; Comprehensive Directory</h2>
               <p>Unified Admission Portal: Register Student Identity, Family Details &amp; Parent Credentials</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <!-- 🔍 DEDICATED CLASS & ROLL NUMBER / REGISTER NUMBER INSTANT FINDER -->
@@ -1875,6 +1887,10 @@
               <h2>Parent &amp; Guardian Portals</h2>
               <p>View All Registered Parent Accounts Linked to Students</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card table-wrap">
@@ -1915,6 +1931,10 @@
               <h2>Campus Attendance Intelligence</h2>
               <p>Generate Full Attendance Percentage Breakdowns Across Sections</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card" style="margin-bottom:20px;">
@@ -1957,6 +1977,10 @@
               <h2>Academic Performance &amp; Marks</h2>
               <p>Review Subject Marks &amp; Examination Results by Class</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card" style="margin-bottom:20px;">
@@ -2001,9 +2025,13 @@
               <h2>Master Exam Calendar</h2>
               <p>Schedule Examination Dates, Subjects, Timings &amp; Syllabi Across Grades</p>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;">
               <button type="button" class="btn btn-outline btn-sm" id="printExamCalBtn" style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
                 🖨️ Print Exam Timetable
+              </button>
+              <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Exit to Home
               </button>
             </div>
           </div>
@@ -2133,6 +2161,10 @@
               <h2>School Announcements &amp; Circulars</h2>
               <p>Broadcast Notices to Students, Parents &amp; Faculty, or Publish Staff-Exclusive Circulars</p>
             </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
           </div>
 
           <div class="card" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
@@ -2343,8 +2375,13 @@
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => logout('../../login.html'));
 
-    // Tab Switching
-    function switchTab(tabName) {
+    // Tab Switching with History State & Browser Back Support
+    let currentActiveTab = 'overview';
+
+    function switchTab(tabName, pushState = true) {
+      if (!tabName) tabName = 'overview';
+      currentActiveTab = tabName;
+
       document.querySelectorAll('.sidebar nav a').forEach(x => {
         x.classList.toggle('active', x.dataset.tab === tabName);
       });
@@ -2354,6 +2391,14 @@
         panel.style.display = 'block';
         panel.style.animation = 'fadeInUp 0.3s ease both';
       }
+
+      if (pushState) {
+        const targetHash = '#' + tabName;
+        if (window.location.hash !== targetHash) {
+          history.pushState({ tab: tabName }, '', targetHash);
+        }
+      }
+
       if (tabName === 'classes') loadClasses();
       if (tabName === 'staff') { loadStaff(); loadClasses(); }
       if (tabName === 'students') { loadStudents(); loadClasses(); }
@@ -2361,12 +2406,20 @@
       if (tabName === 'exams') loadExamCalendar();
       if (tabName === 'announcements') loadAnnouncements();
 
-      if (window.innerWidth <= 820) {
+      if (window.innerWidth <= 820 && sidebar) {
         sidebar.classList.remove('is-open');
         if (sidebarToggle) sidebarToggle.classList.remove('is-open');
-        sidebarOverlay.classList.remove('active');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
       }
     }
+
+    // Handle browser back button / mobile back gesture to exit tabs and show Home Overview automatically
+    window.addEventListener('popstate', (e) => {
+      const stateTab = e.state && e.state.tab;
+      const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+      const destTab = stateTab || hashTab || 'overview';
+      switchTab(destTab, false);
+    });
 
     document.querySelectorAll('.sidebar nav a').forEach(a => {
       a.addEventListener('click', (e) => {
@@ -2384,6 +2437,13 @@
 
     document.getElementById('sideQuickAddBtn')?.addEventListener('click', () => switchTab('students'));
     document.getElementById('overviewAnnBtn')?.addEventListener('click', () => switchTab('announcements'));
+
+    // Initialize tab state from hash or default to overview
+    const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'overview';
+    history.replaceState({ tab: initialHash }, '', '#' + initialHash);
+    if (initialHash !== 'overview') {
+      setTimeout(() => switchTab(initialHash, false), 50);
+    }
 
     // ======================== SPEED-BOOSTED DATE OF BIRTH PICKER INIT ========================
     function initSpeedDobPicker() {

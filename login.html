@@ -586,8 +586,23 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence
+  setPersistence, browserLocalPersistence, onAuthStateChanged
 } from './js/auth.js';
+
+// Auto-redirect if already signed in
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists() && snap.data().role && !snap.data().deleted && !snap.data().disabled) {
+        const dest = ROLE_ROUTES[snap.data().role];
+        if (dest) {
+          window.location.replace(dest);
+        }
+      }
+    } catch (e) {}
+  }
+});
 
 const errBox = document.getElementById('errBox');
 const okBox = document.getElementById('okBox');
@@ -845,7 +860,7 @@ form.addEventListener('submit', async (e) => {
 
     showBox(okBox, 'Login successful! Redirecting to your dashboard…');
     setTimeout(() => {
-      window.location.href = dest;
+      window.location.replace(dest);
     }, 400);
 
   } catch (err) {

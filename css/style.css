@@ -1346,3 +1346,34 @@ tr:hover td{background:#fafafa;}
   }
 }
 
+/* Tab Exit & Return to Home Button */
+.btn-exit-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 15px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(15, 27, 51, 0.06);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn-exit-tab:hover {
+  background: #f0fdf4;
+  border-color: #059669;
+  color: #059669;
+  transform: translateX(-2px);
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.15);
+}
+.btn-exit-tab svg {
+  transition: transform 0.2s ease;
+}
+.btn-exit-tab:hover svg {
+  transform: translateX(-2px);
+}

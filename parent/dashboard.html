@@ -237,10 +237,16 @@
             <h2>Child Comprehensive Profile</h2>
             <p>Official student identity, family, Aadhaar, and address records</p>
           </div>
-          <button class="btn btn-outline" id="printChildProfileBtn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Profile
-          </button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-outline" id="printChildProfileBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Print Profile
+            </button>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
+          </div>
         </div>
 
         <!-- Profile Hero Card -->
@@ -369,6 +375,10 @@
             <h2>Attendance Records</h2>
             <p>Official record marked daily by the class teacher</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div class="card" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
           <div>
@@ -390,6 +400,10 @@
             <h2>Exam Marks & Grades</h2>
             <p>Subject-wise marks and scores uploaded by teachers</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div class="card table-wrap">
           <table id="marksTable"><thead><tr><th>Subject</th><th>Exam</th><th>Marks Obtained</th><th>Maximum Marks</th><th>Percentage</th><th>Grade</th></tr></thead><tbody></tbody></table>
@@ -404,6 +418,10 @@
             <h2>Exam Schedule</h2>
             <p>Upcoming and past examination dates and syllabi</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div class="card table-wrap">
           <table id="examsTable"><thead><tr><th>Exam Name</th><th>Subject</th><th>Date</th><th>Syllabus / Topics</th></tr></thead><tbody></tbody></table>
@@ -418,6 +436,10 @@
             <h2>Syllabus Notes</h2>
             <p>Downloadable subject notes and study material</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div class="grid" id="notesGrid" style="grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));"></div>
         <div class="empty-state" id="notesEmpty" style="display:none;">No notes uploaded yet.</div>
@@ -430,6 +452,10 @@
             <h2>Homework & Assignments</h2>
             <p>Assignments given per subject with due dates</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div class="card table-wrap">
           <table id="hwTable"><thead><tr><th>Subject</th><th>Assignment Title</th><th>Due Date</th><th>Action</th></tr></thead><tbody></tbody></table>
@@ -444,6 +470,10 @@
             <h2>Announcements</h2>
             <p>School-wide notices from the administration</p>
           </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
         </div>
         <div id="announcementsList"></div>
         <div class="empty-state" id="annEmpty" style="display:none;">No announcements yet.</div>
@@ -493,13 +523,24 @@ if (sidebar && sidebarToggle) {
   });
 }
 
-function switchTab(targetTab) {
+function switchTab(targetTab, pushState = true) {
+  if (!targetTab) targetTab = 'overview';
   document.querySelectorAll('.sidebar nav a').forEach(x => {
     x.classList.toggle('active', x.dataset.tab === targetTab);
   });
   document.querySelectorAll('.main section').forEach(s => s.style.display = 'none');
   const panel = document.getElementById('panel-' + targetTab);
-  if (panel) panel.style.display = 'block';
+  if (panel) {
+    panel.style.display = 'block';
+    panel.style.animation = 'fadeInUp 0.3s ease both';
+  }
+
+  if (pushState) {
+    const targetHash = '#' + targetTab;
+    if (window.location.hash !== targetHash) {
+      history.pushState({ tab: targetTab }, '', targetHash);
+    }
+  }
 
   if (window.innerWidth <= 820 && sidebar) {
     sidebar.classList.remove('is-open');
@@ -508,6 +549,14 @@ function switchTab(targetTab) {
   }
 }
 
+// Handle browser back button / mobile back gesture to exit tabs and show Home Overview automatically
+window.addEventListener('popstate', (e) => {
+  const stateTab = e.state && e.state.tab;
+  const hashTab = window.location.hash ? window.location.hash.replace('#', '') : '';
+  const destTab = stateTab || hashTab || 'overview';
+  switchTab(destTab, false);
+});
+
 document.querySelectorAll('.sidebar nav a').forEach(a => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
@@ -515,13 +564,20 @@ document.querySelectorAll('.sidebar nav a').forEach(a => {
   });
 });
 
-document.querySelectorAll('.tab-switch-btn, .btn-quick-add').forEach(btn => {
+document.querySelectorAll('.tab-switch-btn, .btn-quick-add, [data-go-tab]').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    const tab = btn.dataset.tab || 'profile';
+    const tab = btn.dataset.goTab || btn.dataset.tab || 'overview';
     switchTab(tab);
   });
 });
+
+// Initialize tab state from hash or default to overview
+const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'overview';
+history.replaceState({ tab: initialHash }, '', '#' + initialHash);
+if (initialHash !== 'overview') {
+  setTimeout(() => switchTab(initialHash, false), 50);
+}
 
 let currentChildProfile = null;
 
