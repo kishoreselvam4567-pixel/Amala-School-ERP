@@ -1204,7 +1204,16 @@ tr:hover td{background:#fafafa;}
 @media (max-width: 820px) {
   .app-shell { flex-direction: column; min-height: 100vh; }
   
-  /* Off-canvas Sliding Sidebar Drawer */
+  /* Lock background page scrolling when mobile menu drawer is open */
+  body.sidebar-open,
+  html.sidebar-open {
+    overflow: hidden !important;
+    height: 100% !important;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
+  }
+
+  /* Off-canvas Sliding Sidebar Drawer with isolated scroll */
   .sidebar {
     position: fixed;
     top: 0;
@@ -1213,6 +1222,7 @@ tr:hover td{background:#fafafa;}
     width: 280px;
     max-width: 85vw;
     height: 100vh;
+    height: 100dvh;
     z-index: 100;
     background: var(--white);
     border-right: 1px solid var(--line);
@@ -1221,7 +1231,10 @@ tr:hover td{background:#fafafa;}
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    touch-action: pan-y !important;
     max-height: none;
     opacity: 1;
     visibility: visible;
@@ -1236,7 +1249,7 @@ tr:hover td{background:#fafafa;}
     border-right-color: #30363d;
   }
 
-  /* Overlay behind drawer */
+  /* Overlay behind drawer - blocks touches to background page */
   .sidebar-overlay {
     display: none;
     position: fixed;
@@ -1246,6 +1259,8 @@ tr:hover td{background:#fafafa;}
     z-index: 95;
     opacity: 0;
     transition: opacity 0.25s ease;
+    touch-action: none !important;
+    overscroll-behavior: none !important;
   }
   .sidebar-overlay.active {
     display: block;

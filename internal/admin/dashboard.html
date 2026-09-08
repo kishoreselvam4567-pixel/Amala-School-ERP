@@ -2223,25 +2223,43 @@
       getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
     } from '../../js/auth.js';
 
-    // Mobile sidebar toggle
+    // Mobile sidebar toggle with background scroll lock
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
+    function openSidebar() {
+      if (sidebar) sidebar.classList.add('is-open');
+      if (sidebarToggle) sidebarToggle.classList.add('is-open');
+      if (sidebarOverlay) sidebarOverlay.classList.add('active');
+      document.body.classList.add('sidebar-open');
+      document.documentElement.classList.add('sidebar-open');
+    }
+
+    function closeSidebar() {
+      if (sidebar) sidebar.classList.remove('is-open');
+      if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+      document.documentElement.classList.remove('sidebar-open');
+    }
+
     if (sidebarToggle) {
       sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('is-open');
-        sidebarToggle.classList.toggle('is-open');
-        sidebarOverlay.classList.toggle('active');
+        if (sidebar && sidebar.classList.contains('is-open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
       });
     }
     if (sidebarOverlay) {
-      sidebarOverlay.addEventListener('click', () => {
-        sidebar.classList.remove('is-open');
-        if (sidebarToggle) sidebarToggle.classList.remove('is-open');
-        sidebarOverlay.classList.remove('active');
-      });
+      sidebarOverlay.addEventListener('click', closeSidebar);
+      sidebarOverlay.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
     }
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 820) closeSidebar();
+    });
 
     // Notification Dropdown Toggle
     const notifBellBtn = document.getElementById('notifBellBtn');
@@ -2406,10 +2424,8 @@
       if (tabName === 'exams') loadExamCalendar();
       if (tabName === 'announcements') loadAnnouncements();
 
-      if (window.innerWidth <= 820 && sidebar) {
-        sidebar.classList.remove('is-open');
-        if (sidebarToggle) sidebarToggle.classList.remove('is-open');
-        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+      if (window.innerWidth <= 820) {
+        closeSidebar();
       }
     }
 
