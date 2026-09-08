@@ -234,8 +234,10 @@ input,select,textarea{font-family:var(--font-body);}
 .main{
   flex:1;
   padding:24px 36px 40px;
-  max-width:1200px;
+  max-width:1440px;
   min-width:0;
+  width:100%;
+  box-sizing:border-box;
 }
 
 /* ---------------- TOP BAR ---------------- */
@@ -1166,10 +1168,53 @@ tr:hover td{background:#fafafa;}
   flex-wrap: wrap;
   gap: 14px;
   margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .field-row .field {
   flex: 1 1 200px;
   min-width: 0;
+  box-sizing: border-box;
+}
+/* Action Button Containers inside .field-row (Never overflow, stay aligned) */
+.field-row .field.field-action,
+.field-row .field.field-btn,
+.field-row .field:has(> button),
+.field-row .field:has(> .btn) {
+  flex: 0 0 auto !important;
+  min-width: max-content;
+  align-self: flex-end;
+  margin-bottom: 16px;
+}
+.field-row .field.field-action .btn,
+.field-row .field.field-btn .btn,
+.field-row .field.field-action button,
+.field-row .field.field-btn button,
+.field-row .field:has(> button) button,
+.field-row .field:has(> .btn) .btn {
+  white-space: nowrap !important;
+  min-height: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 640px) {
+  .field-row .field.field-action,
+  .field-row .field.field-btn,
+  .field-row .field:has(> button),
+  .field-row .field:has(> .btn) {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .field-row .field.field-action .btn,
+  .field-row .field.field-btn .btn,
+  .field-row .field.field-action button,
+  .field-row .field.field-btn button,
+  .field-row .field:has(> button) button,
+  .field-row .field:has(> .btn) .btn {
+    width: 100% !important;
+  }
 }
 
 /* Large Screens & Smart TVs (1920px and above) */

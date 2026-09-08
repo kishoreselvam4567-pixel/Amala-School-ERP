@@ -1590,21 +1590,21 @@
             <div class="form-section-title">Teaching Assignment Matrix</div>
 
             <h4 style="font-size:14px; margin:16px 0 8px 0;">1. Assign Class Teacher (Attendance &amp; Mentorship)</h4>
-            <div class="field-row">
+            <div class="field-row" style="align-items:flex-end;">
               <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
               <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
-              <div class="field" style="flex:0; align-self:flex-end;">
+              <div class="field field-action">
                 <button class="btn btn-dark" id="ctAssignBtn">Assign Class Teacher</button>
               </div>
             </div>
 
             <h4 style="font-size:14px; margin:22px 0 8px 0;">2. Assign Subject Teaching (Marks, Notes &amp; Exams)</h4>
-            <div class="field-row">
+            <div class="field-row" style="align-items:flex-end;">
               <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
               <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
               <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
                   placeholder="e.g. Mathematics / Physics"></div>
-              <div class="field" style="flex:0; align-self:flex-end;">
+              <div class="field field-action">
                 <button class="btn btn-primary" id="subAssignBtn">Assign Subject</button>
               </div>
             </div>
@@ -1642,19 +1642,18 @@
             </div>
 
             <div class="field-row" style="align-items:flex-end;">
-              <div class="field" style="flex:1.2;">
+              <div class="field" style="flex:1.2; min-width:200px;">
                 <label>1. Select Class Section</label>
                 <select id="finderClassSel">
                   <option value="">-- Choose Class Section --</option>
                 </select>
               </div>
-              <div class="field" style="flex:1;">
+              <div class="field" style="flex:1; min-width:200px;">
                 <label>2. Enter Roll Number or Register/Adm No.</label>
                 <input type="text" id="finderRollInput" placeholder="e.g. 23 or 2026-001">
               </div>
-              <div class="field" style="flex:0;">
-                <button type="button" class="btn btn-primary" id="finderSearchBtn" style="white-space:nowrap;">🔍 Find
-                  Student</button>
+              <div class="field field-action">
+                <button type="button" class="btn btn-primary" id="finderSearchBtn">🔍 Find Student</button>
               </div>
             </div>
 
@@ -1939,13 +1938,13 @@
 
           <div class="card" style="margin-bottom:20px;">
             <div class="field-row" style="align-items:flex-end;">
-              <div class="field">
+              <div class="field" style="flex:1; min-width:220px;">
                 <label>Filter by Class Section</label>
                 <select id="attClassFilter">
                   <option value="">All Classes</option>
                 </select>
               </div>
-              <div class="field" style="flex:0;">
+              <div class="field field-action">
                 <button class="btn btn-primary" id="attReportBtn">Generate Audit Report</button>
               </div>
             </div>
@@ -1985,13 +1984,13 @@
 
           <div class="card" style="margin-bottom:20px;">
             <div class="field-row" style="align-items:flex-end;">
-              <div class="field">
+              <div class="field" style="flex:1; min-width:220px;">
                 <label>Filter by Class Section</label>
                 <select id="marksClassFilter">
                   <option value="">All Classes</option>
                 </select>
               </div>
-              <div class="field" style="flex:0;">
+              <div class="field field-action">
                 <button class="btn btn-primary" id="marksReportBtn">Generate Marks Sheet</button>
               </div>
             </div>
