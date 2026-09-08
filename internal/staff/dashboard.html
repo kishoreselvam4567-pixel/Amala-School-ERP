@@ -749,13 +749,15 @@ const sidebar = document.getElementById('sidebar');
 
 if (sidebarToggle) {
   sidebarToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
+    sidebar.classList.toggle('is-open');
+    sidebarToggle.classList.toggle('is-open');
     sidebarOverlay.classList.toggle('active');
   });
 }
 if (sidebarOverlay) {
   sidebarOverlay.addEventListener('click', () => {
-    sidebar.classList.remove('open');
+    sidebar.classList.remove('is-open');
+    if (sidebarToggle) sidebarToggle.classList.remove('is-open');
     sidebarOverlay.classList.remove('active');
   });
 }
@@ -889,6 +891,12 @@ document.querySelectorAll('.sidebar nav a').forEach(a => {
     if (a.dataset.tab === 'notes') loadNotesList();
     if (a.dataset.tab === 'homework') loadHwList();
     if (a.dataset.tab === 'students') loadStudentsForTeacher();
+
+    if (window.innerWidth <= 820 && sidebar) {
+      sidebar.classList.remove('is-open');
+      if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+    }
   });
 });
 

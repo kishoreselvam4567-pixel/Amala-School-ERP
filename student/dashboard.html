@@ -255,10 +255,6 @@
             <h2>Comprehensive Student Profile</h2>
             <p>Complete academic, personal, Aadhaar, parent, and residential identity records</p>
           </div>
-          <button class="btn btn-outline" id="printStudentProfileBtn">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Print Profile
-          </button>
         </div>
 
         <!-- Profile Hero Card -->
@@ -530,6 +526,7 @@ function switchTab(targetTab) {
   if (window.innerWidth <= 820 && sidebar) {
     sidebar.classList.remove('is-open');
     if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
   }
 }
 
@@ -945,14 +942,6 @@ function printSingleStudentProfile(s) {
   printWin.document.close();
 }
 
-// Wire up Student Profile Print button
-document.getElementById('printStudentProfileBtn')?.addEventListener('click', () => {
-  if (currentStudentProfile) {
-    printSingleStudentProfile(currentStudentProfile);
-  } else {
-    window.print();
-  }
-});
 </script>
 <script src="../js/site-brand.js"></script>
 </body>

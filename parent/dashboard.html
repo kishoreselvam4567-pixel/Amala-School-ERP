@@ -504,6 +504,7 @@ function switchTab(targetTab) {
   if (window.innerWidth <= 820 && sidebar) {
     sidebar.classList.remove('is-open');
     if (sidebarToggle) sidebarToggle.classList.remove('is-open');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
   }
 }
 
