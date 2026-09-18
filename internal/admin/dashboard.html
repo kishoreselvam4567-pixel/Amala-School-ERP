@@ -1166,9 +1166,10 @@
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
-          <input type="text" id="globalSearchInput"
-            placeholder="Search student name, admission no, roll no, father name, staff…">
-          <span class="shortcut-badge">⌘F</span>
+          <input type="text" id="globalSearchInput" placeholder="Search student name, admission no, roll no, father name, staff…">
+          <span class="shortcut-badge" title="Search" onclick="document.getElementById('globalSearchInput').focus()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
         </div>
 
         <div class="topbar-actions">
