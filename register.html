@@ -113,9 +113,9 @@
     <!-- Role toggle -->
     <div class="role-toggle">
       <input type="radio" name="role" id="roleStudent" value="student" checked>
-      <label for="roleStudent">🎓 Student</label>
+      <label for="roleStudent">Student</label>
       <input type="radio" name="role" id="roleParent" value="parent">
-      <label for="roleParent">👨‍👩‍👧 Parent</label>
+      <label for="roleParent">Parent</label>
     </div>
 
     <form id="regForm">
@@ -143,7 +143,7 @@
             <input type="text" id="stuAdmNo" placeholder="e.g. 2026-001">
           </div>
           <div class="field">
-            <label>⚡ Date of Birth (Speed Pick)</label>
+            <label>Date of Birth (Speed Pick)</label>
             <div style="display:flex; gap:6px;">
               <select id="stuDobDay" style="flex:1; padding:10px 4px; font-size:13px;"><option value="">Day</option></select>
               <select id="stuDobMonth" style="flex:1.4; padding:10px 4px; font-size:13px;">
@@ -268,7 +268,7 @@ document.getElementById('regForm').addEventListener('submit', async (e) => {
         parentUid: null, createdAt: serverTimestamp()
       });
 
-      showBox(okBox, '✅ Student account created! You can now login with your email and password.');
+      showBox(okBox, 'Student account created! You can now login with your email and password.');
       document.getElementById('regForm').reset();
 
     } else {
@@ -301,7 +301,7 @@ document.getElementById('regForm').addEventListener('submit', async (e) => {
       });
       await updateDoc(doc(db, 'students', childUid), { parentUid: uid });
 
-      showBox(okBox, '✅ Parent account created and linked to ' + childName + '! You can now login.');
+      showBox(okBox, 'Parent account created and linked to ' + childName + '! You can now login.');
       document.getElementById('regForm').reset();
     }
 

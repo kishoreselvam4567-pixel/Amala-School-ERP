@@ -211,7 +211,7 @@
   <div class="profile-modal-card has-header">
     <div class="profile-modal-header">
       <div class="pm-header-left">
-        <div class="pm-header-icon">🎓</div>
+        <div class="pm-header-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
         <div>
           <h3 class="pm-header-title">Student Profile Dossier</h3>
           <p class="pm-header-subtitle">Official Student Identity &amp; Academic Record</p>
@@ -318,15 +318,15 @@
       </div>
     </div>
     <nav id="navLinks">
-      <a href="#" data-tab="overview" class="active">📊 Overview</a>
-      <a href="#" data-tab="announcements">📢 Announcements</a>
-      <a href="#" data-tab="lookup">🔍 Student Finder</a>
-      <a href="#" data-tab="attendance">📋 Mark Attendance</a>
-      <a href="#" data-tab="marks">📝 Upload Marks</a>
-      <a href="#" data-tab="exams">📅 Exam Schedule</a>
-      <a href="#" data-tab="notes">📚 Syllabus Notes</a>
-      <a href="#" data-tab="homework">📓 Homework</a>
-      <a href="#" data-tab="students" id="navStudents" style="display:none;">👥 Manage Students</a>
+      <a href="#" data-tab="overview" class="active">Overview</a>
+      <a href="#" data-tab="announcements">Announcements</a>
+      <a href="#" data-tab="lookup">Student Finder</a>
+      <a href="#" data-tab="attendance">Mark Attendance</a>
+      <a href="#" data-tab="marks">Upload Marks</a>
+      <a href="#" data-tab="exams">Exam Schedule</a>
+      <a href="#" data-tab="notes">Syllabus Notes</a>
+      <a href="#" data-tab="homework">Homework</a>
+      <a href="#" data-tab="students" id="navStudents" style="display:none;">Manage Students</a>
     </nav>
     <div class="user-box">
       <div class="u-avatar" id="uAvatarInitial">F</div>
@@ -340,7 +340,7 @@
         </svg>
       </button>
     </div>
-    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    <button class="theme-toggle" id="themeToggle">Dark Mode</button>
   </div>
 
   <div class="main">
@@ -356,7 +356,7 @@
         <div class="card card-static anim-fadeInUp" style="margin-top:20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <h3 style="font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
-              <span>📢</span> Recent Faculty Notices &amp; School Circulars
+              Recent Faculty Notices &amp; School Circulars
             </h3>
             <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnBtn" style="font-size:12px; padding:4px 10px;">View All Notices</button>
           </div>
@@ -366,7 +366,7 @@
         </div>
       </section>
 
-      <!-- 📢 ANNOUNCEMENTS & FACULTY CIRCULARS -->
+      <!-- ANNOUNCEMENTS & FACULTY CIRCULARS -->
       <section id="panel-announcements" style="display:none;">
         <div class="main-header">
           <div>
@@ -383,7 +383,7 @@
         <div class="empty-state" id="staffAnnEmpty" style="display:none;">No announcements or staff notices posted yet.</div>
       </section>
 
-      <!-- 🔍 DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
+      <!-- DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
       <section id="panel-lookup" style="display:none;">
         <div class="main-header">
           <div>
@@ -407,7 +407,7 @@
               <input type="text" id="staffFinderRollInput" placeholder="e.g. 23 or 2026-001">
             </div>
             <div class="field field-action">
-              <button type="button" class="btn btn-primary" id="staffFinderSearchBtn">🔍 Find Student</button>
+              <button type="button" class="btn btn-primary" id="staffFinderSearchBtn">Find Student</button>
             </div>
           </div>
 
@@ -645,12 +645,12 @@ window.addEventListener('resize', () => {
 // Theme toggle
 const themeToggle = document.getElementById('themeToggle');
 const savedTheme = localStorage.getItem('erp-theme') || 'light';
-if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = '☀️ Light Mode'; }
+if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = 'Light Mode'; }
 themeToggle.addEventListener('click', () => {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
   localStorage.setItem('erp-theme', isDark ? 'light' : 'dark');
-  themeToggle.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+  themeToggle.textContent = isDark ? 'Dark Mode' : 'Light Mode';
 });
 
 // Toast helper
@@ -679,7 +679,7 @@ function setupDigitValidation(inputId, feedbackId, requiredDigits, isMandatory, 
         input.classList.add('input-invalid');
         input.classList.remove('input-valid');
         fb.className = 'field-feedback err';
-        fb.innerHTML = `<span>⚠️</span> ${fieldLabel} is mandatory (${requiredDigits} digits required).`;
+        fb.innerHTML = `${fieldLabel} is mandatory (${requiredDigits} digits required).`;
       } else {
         input.classList.remove('input-invalid', 'input-valid');
         fb.className = 'field-feedback';
@@ -692,7 +692,7 @@ function setupDigitValidation(inputId, feedbackId, requiredDigits, isMandatory, 
       input.classList.add('input-invalid');
       input.classList.remove('input-valid');
       fb.className = 'field-feedback warn';
-      fb.innerHTML = `<span>⚠️</span> <strong>${len}/${requiredDigits} digits</strong> — Please fill correctly (${requiredDigits} digits required)`;
+      fb.innerHTML = `<strong>${len}/${requiredDigits} digits</strong> — Please fill correctly (${requiredDigits} digits required)`;
     } else {
       input.classList.remove('input-invalid');
       input.classList.add('input-valid');
@@ -719,7 +719,7 @@ function enforceDigitLength(inputId, feedbackId, requiredDigits, isMandatory, fi
     if (isMandatory) {
       if (fb) {
         fb.className = 'field-feedback err';
-        fb.innerHTML = `<span>❌</span> <strong>${fieldLabel} is mandatory!</strong> Please enter all ${requiredDigits} digits.`;
+        fb.innerHTML = `<strong>${fieldLabel} is mandatory!</strong> Please enter all ${requiredDigits} digits.`;
       }
       input.classList.add('input-invalid', 'shake-anim');
       setTimeout(() => input.classList.remove('shake-anim'), 400);
@@ -734,7 +734,7 @@ function enforceDigitLength(inputId, feedbackId, requiredDigits, isMandatory, fi
   if (len < requiredDigits) {
     if (fb) {
       fb.className = 'field-feedback err';
-      fb.innerHTML = `<span>❌</span> <strong>${len}/${requiredDigits} digits entered!</strong> Please fill correctly (${requiredDigits} digits required).`;
+      fb.innerHTML = `<strong>${len}/${requiredDigits} digits entered!</strong> Please fill correctly (${requiredDigits} digits required).`;
     }
     input.classList.add('input-invalid', 'shake-anim');
     setTimeout(() => input.classList.remove('shake-anim'), 400);
@@ -884,13 +884,13 @@ function formatStaffAadhaarDisplay(val) {
     const formatted = clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
     return `<span style="font-family:var(--font-mono); font-weight:700; color:var(--ink);">${formatted}</span> <span class="badge badge-good" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">✓ Valid 12-Digit</span>`;
   }
-  return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">⚠️ Incomplete (${clean.length}/12 digits — 12 digits required)</span>`;
+  return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">Incomplete (${clean.length}/12 digits — 12 digits required)</span>`;
 }
 
 function formatStaffPhoneDisplay(val, isMandatory = false) {
   if (!val || val === '—') {
     return isMandatory
-      ? '<span style="color:#dc2626; font-weight:600;">⚠️ Missing (10 digits required)</span>'
+      ? '<span style="color:#dc2626; font-weight:600;">Missing (10 digits required)</span>'
       : '<span style="color:var(--ink-soft);">Not provided</span>';
   }
   const clean = String(val).replace(/\D/g, '');
@@ -898,7 +898,7 @@ function formatStaffPhoneDisplay(val, isMandatory = false) {
     const formatted = clean.replace(/(\d{5})(\d{5})/, '$1 $2');
     return `<span style="font-family:var(--font-mono); font-weight:700; color:var(--ink);">${formatted}</span> <span class="badge badge-good" style="font-size:10px; padding:1px 6px; margin-left:4px;">✓ 10-Digit</span>`;
   }
-  return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">⚠️ Incomplete (${clean.length}/10 digits — 10 digits required)</span>`;
+  return `<span style="font-family:var(--font-mono); font-weight:700; color:#dc2626;">${val}</span> <span class="badge badge-bad" style="font-size:10.5px; padding:2px 8px; margin-left:6px;">Incomplete (${clean.length}/10 digits — 10 digits required)</span>`;
 }
 
 function openStudentProfileModal(s) {
@@ -925,7 +925,7 @@ function openStudentProfileModal(s) {
     tagAadhaarEl.style.background = '';
     tagAadhaarEl.style.color = '';
   } else if (cleanAadhaar.length > 0) {
-    tagAadhaarEl.textContent = `⚠️ Aadhaar: Incomplete (${cleanAadhaar.length}/12)`;
+    tagAadhaarEl.textContent = `Aadhaar: Incomplete (${cleanAadhaar.length}/12)`;
     tagAadhaarEl.style.background = '#fef2f2';
     tagAadhaarEl.style.color = '#dc2626';
   } else {
@@ -956,7 +956,7 @@ function openStudentProfileModal(s) {
       alertEl.innerHTML = `
         <div style="background:#fffbeb; border:1.5px solid #fde68a; border-left:5px solid #f59e0b; border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:260px;">
-            <span style="font-size:20px; line-height:1;">⚠️</span>
+            
             <div>
               <div style="font-weight:700; font-size:13.5px; color:#92400e;">Incomplete Identification &amp; Contact Digits Detected</div>
               <div style="font-size:12px; color:#b45309; margin-top:3px; line-height:1.4;">
@@ -1060,8 +1060,8 @@ requirePortal(['staff'], async ({ user, profile }) => {
         <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
           <span class="badge badge-purple" style="font-family:var(--font-mono); font-size:11.5px;">@${stfUser}</span>
           <span class="badge badge-blue" style="font-weight:700;">Major: ${stfMajor}</span>
-          <span class="badge ${stfGender === 'Female' ? 'badge-amber' : 'badge-navy'}">${stfGender === 'Female' ? '👩 Female' : (stfGender === 'Male' ? '👨 Male' : stfGender)}</span>
-          <span class="badge" style="font-family:var(--font-mono);">📞 ${stfPhone}</span>
+          <span class="badge ${stfGender === 'Female' ? 'badge-amber' : 'badge-navy'}">${stfGender === 'Female' ? 'Female' : (stfGender === 'Male' ? 'Male' : stfGender)}</span>
+          <span class="badge" style="font-family:var(--font-mono);">${stfPhone}</span>
         </div>
       </div>
     </div>
@@ -1155,7 +1155,7 @@ document.getElementById('viewAllAnnBtn')?.addEventListener('click', () => {
   if (annNav) annNav.click();
 });
 
-// ======================== 📢 STAFF ANNOUNCEMENTS & CIRCULARS ========================
+// ======================== STAFF ANNOUNCEMENTS & CIRCULARS ========================
 async function loadStaffAnnouncements() {
   try {
     const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
@@ -1177,8 +1177,8 @@ async function loadStaffAnnouncements() {
       const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
       const isTeacherOnly = r.targetAudience === 'teachers';
       const badgeHtml = isTeacherOnly 
-        ? '<span class="badge badge-good" style="font-weight:700;">👨‍🏫 Faculty &amp; Staff Only</span>'
-        : '<span class="badge badge-purple">📢 School-Wide Broadcast</span>';
+        ? '<span class="badge badge-good" style="font-weight:700;">Faculty &amp; Staff Only</span>'
+        : '<span class="badge badge-purple">School-Wide Broadcast</span>';
 
       // Full panel item
       if (list) {
@@ -1227,7 +1227,7 @@ async function loadStaffAnnouncements() {
   }
 }
 
-// ======================== 🔍 INSTANT STUDENT LOOKUP ========================
+// ======================== INSTANT STUDENT LOOKUP ========================
 const staffFinderClassSel = document.getElementById('staffFinderClassSel');
 const staffFinderRollInput = document.getElementById('staffFinderRollInput');
 const staffFinderSearchBtn = document.getElementById('staffFinderSearchBtn');
@@ -1258,7 +1258,7 @@ function runStaffStudentFinder() {
   if (!matches.length) {
     staffFinderResultBox.innerHTML = `
       <div style="text-align:center; padding:12px; color:var(--ink-soft); font-size:13.5px;">
-        ⚠️ No student found with Roll/Adm No. "<strong>${rollTerm}</strong>" in the selected class.
+        No student found with Roll/Adm No. "<strong>${rollTerm}</strong>" in the selected class.
       </div>
     `;
     return;
@@ -1283,7 +1283,7 @@ function runStaffStudentFinder() {
         </div>
       </div>
       <button type="button" class="btn btn-primary btn-sm" id="staffFinderOpenProfileBtn" style="padding:8px 16px;">
-        🪪 View Complete ID Card &amp; Profile &rarr;
+        View Complete ID Card &amp; Profile &rarr;
       </button>
     </div>
   `;
@@ -1363,7 +1363,7 @@ document.getElementById('attSaveBtn').addEventListener('click', async () => {
     });
   }
   btn.disabled = false; btn.textContent = 'Save Attendance';
-  showToast('✅ Attendance saved successfully for ' + date);
+  showToast('Attendance saved successfully for ' + date);
 });
 
 // ---------------- MARKS ----------------
@@ -1421,7 +1421,7 @@ document.getElementById('marksSaveBtn').addEventListener('click', async () => {
     });
   }
   btn.disabled = false; btn.textContent = 'Save Marks';
-  showToast(`✅ Marks saved for ${a.subject} (${examName})`);
+  showToast(`Marks saved for ${a.subject} (${examName})`);
 });
 
 // ---------------- EXAMS CALENDAR ----------------
@@ -1463,7 +1463,7 @@ document.getElementById('notesUploadBtn').addEventListener('click', async () => 
   document.getElementById('notesTitle').value = '';
   document.getElementById('notesFile').value = '';
   btn.disabled = false; btn.textContent = 'Upload Note';
-  showToast('✅ Note uploaded.');
+  showToast('Note uploaded.');
   loadNotesList();
 });
 async function loadNotesList() {
@@ -1509,7 +1509,7 @@ document.getElementById('hwAddBtn').addEventListener('click', async () => {
   document.getElementById('hwDesc').value = '';
   document.getElementById('hwFile').value = '';
   btn.disabled = false; btn.textContent = 'Assign Homework';
-  showToast('✅ Homework assigned.');
+  showToast('Homework assigned.');
   loadHwList();
 });
 async function loadHwList() {
@@ -1545,7 +1545,7 @@ async function loadStudentsForTeacher() {
       <td><span class="badge badge-purple">${s.bloodGroup || 'O+'}</span></td>
       <td>${s.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
       <td style="text-align:right; white-space:nowrap;">
-        <button class="btn btn-primary btn-sm staffViewProfileBtn" style="font-size:12px; padding:4px 10px;">🪪 View ID Profile</button>
+        <button class="btn btn-primary btn-sm staffViewProfileBtn" style="font-size:12px; padding:4px 10px;">View ID Profile</button>
       </td>
     `;
     tr.querySelector('.staffViewProfileBtn').addEventListener('click', () => {

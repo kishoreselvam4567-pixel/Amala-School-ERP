@@ -453,7 +453,7 @@
   <div class="erp-ticker">
     <div class="ticker-label">Notice</div>
     <div class="ticker-content">
-      📢 Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam Schedule, Notes &amp; Circulars online 24/7.
+      Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam Schedule, Notes &amp; Circulars online 24/7.
     </div>
   </div>
 
@@ -497,7 +497,7 @@
         <div class="helpdesk-box">
           <div class="helpdesk-info">
             <h4>ERP IT Helpdesk</h4>
-            <p>📞 +91 44 2233 4455 | ✉️ erp-support@amalaschool.edu.in</p>
+            <p>Phone: +91 44 2233 4455 | Email: erp-support@amalaschool.edu.in</p>
           </div>
           <div>
             <a href="index.html" class="btn btn-outline btn-sm" style="font-size:12px; padding:6px 12px;">&larr; School Website</a>
@@ -528,7 +528,7 @@
               <input type="text" id="loginUserId" required autocomplete="username" placeholder="Parent Mobile No. / Student Adm No. / Email">
             </div>
             <div style="font-size:11.5px; color:#64748b; margin-top:5px; line-height:1.4;">
-              📱 <strong>Parents:</strong> Enter your registered mobile number &bull; 🎓 <strong>Students:</strong> Admission No &bull; 🧑‍🏫 <strong>Staff:</strong> Username / Email
+              <strong>Parents:</strong> Enter your registered mobile number &bull; <strong>Students:</strong> Admission No &bull; <strong>Staff:</strong> Username / Email
             </div>
           </div>
 
@@ -882,7 +882,7 @@ form.addEventListener('submit', async (e) => {
     if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
       msg = 'Invalid User ID or Password.';
     } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
-      msg = '⚠️ Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
+      msg = 'Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
     } else if (err.message) {
       msg = err.message.replace('Firebase: ', '');
     }

@@ -80,7 +80,7 @@
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
       </button>
     </div>
-    <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    <button class="theme-toggle" id="themeToggle">Dark Mode</button>
   </div>
 
   <!-- MAIN VIEW -->
@@ -490,12 +490,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => logout('../
 // Theme toggle
 const themeToggle = document.getElementById('themeToggle');
 const savedTheme = localStorage.getItem('erp-theme') || 'light';
-if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = '☀️ Light Mode'; }
+if (savedTheme === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); themeToggle.textContent = 'Light Mode'; }
 themeToggle.addEventListener('click', () => {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
   localStorage.setItem('erp-theme', isDark ? 'light' : 'dark');
-  themeToggle.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+  themeToggle.textContent = isDark ? 'Dark Mode' : 'Light Mode';
 });
 
 // Mobile sidebar drawer with background scroll lock
@@ -749,7 +749,7 @@ requirePortal(['parent'], async ({ user, profile }) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><strong>${r.examName}</strong>${r.maxMarks ? ` <span class="badge badge-navy" style="font-size:10.5px;">${r.maxMarks} M</span>` : ''}</td>
       <td><span class="badge badge-purple">${r.subject}</span></td>
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">⏰ ${r.time}</div>` : ''}</td>
+      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">${r.time}</div>` : ''}</td>
       <td>${r.syllabus || '—'}</td>`;
     examsBody.appendChild(tr);
   });
@@ -800,7 +800,7 @@ requirePortal(['parent'], async ({ user, profile }) => {
       div.style.marginBottom = '14px';
       const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
       div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="badge badge-purple">📢 Announcement</span>
+        <span class="badge badge-purple">Announcement</span>
         <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
       </div>
       <h3 style="font-size:17px;">${r.title || ''}</h3>
