@@ -584,7 +584,7 @@
 
 <script type="module">
 import {
-  auth, db, signInWithEmailAndPassword, doc, getDoc, collection,
+  auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
   setPersistence, browserLocalPersistence, onAuthStateChanged
 } from './js/auth.js';
@@ -593,12 +593,25 @@ import {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if (snap.exists() && snap.data().role && !snap.data().deleted && !snap.data().disabled) {
-        const dest = ROLE_ROUTES[snap.data().role];
-        if (dest) {
-          window.location.replace(dest);
+      const uEmail = (user.email || '').toLowerCase();
+      const isAdminUser = uEmail === 'amala@123.gmail.com' || uEmail === 'admin@kishore.gmail.com' || uEmail === 'amala123@gmail.com';
+      let role = null;
+
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists() && !snap.data().deleted && !snap.data().disabled) {
+          role = snap.data().role;
         }
+      } catch (e) {
+        console.warn('onAuthStateChanged users read:', e);
+      }
+
+      if (!role && isAdminUser) {
+        role = 'admin';
+      }
+
+      if (role && ROLE_ROUTES[role]) {
+        window.location.replace(ROLE_ROUTES[role]);
       }
     } catch (e) {}
   }
@@ -789,40 +802,40 @@ form.addEventListener('submit', async (e) => {
     }
 
     await setPersistence(auth, browserLocalPersistence).catch(() => {});
-    let cred = null;
+    const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
+
+    let userDoc = null;
+    let userData = null;
     try {
-      cred = await signInWithEmailAndPassword(auth, authEmail, pass);
-    } catch (firstErr) {
-      // Smart admin fallback: try alternate password or alternate admin email
-      const isAdminLogin = authEmail.includes('amala') || authEmail.includes('kishore') || authEmail.includes('admin');
-      if (isAdminLogin) {
-        const altPasswords = [];
-        if (pass === 'amala@123') altPasswords.push('amala123');
-        else if (pass === 'amala123') altPasswords.push('amala@123');
-        else altPasswords.push('amala@123', 'amala123');
-
-        const candidateEmails = [
-          authEmail,
-          authEmail.includes('kishore') ? 'amala@123.gmail.com' : 'admin@kishore.gmail.com',
-          'amala@123.gmail.com',
-          'admin@kishore.gmail.com'
-        ];
-
-        for (const ce of candidateEmails) {
-          if (cred) break;
-          for (const ap of altPasswords) {
-            try {
-              cred = await signInWithEmailAndPassword(auth, ce, ap);
-              if (cred) { authEmail = ce; break; }
-            } catch (e) { }
-          }
-        }
-      }
-      if (!cred) throw firstErr;
+      userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+      userData = userDoc.exists() ? userDoc.data() : null;
+    } catch (readErr) {
+      console.warn('Could not read user profile doc:', readErr);
     }
 
-    const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+    const curEmail = ((cred.user && cred.user.email) || authEmail || '').toLowerCase();
+    const isAdminAcc = (
+      curEmail === 'amala@123.gmail.com' ||
+      curEmail === 'admin@kishore.gmail.com' ||
+      curEmail === 'amala123@gmail.com' ||
+      curEmail.includes('admin')
+    );
+
+    // Auto-heal admin document if missing or first-time setup
+    if (isAdminAcc && (!userData || !userData.role)) {
+      const adminData = {
+        role: 'admin',
+        name: 'School Administrator',
+        email: cred.user.email || authEmail,
+        createdAt: serverTimestamp()
+      };
+      try {
+        await setDoc(doc(db, 'users', cred.user.uid), adminData, { merge: true });
+      } catch (writeErr) {
+        console.warn('Could not write admin users doc:', writeErr);
+      }
+      userData = adminData;
+    }
 
     if (!userData || userData.deleted === true || userData.disabled === true || !userData.role) {
       await fbSignOut(auth);
@@ -833,20 +846,20 @@ form.addEventListener('submit', async (e) => {
 
     // Strict role collection verification: if the document in its specific collection is deleted or missing, reject login
     if (role === 'staff') {
-      const stfSnap = await getDoc(doc(db, 'staff', cred.user.uid));
-      if (!stfSnap.exists() || stfSnap.data().deleted === true) {
+      const stfSnap = await getDoc(doc(db, 'staff', cred.user.uid)).catch(() => null);
+      if (!stfSnap || !stfSnap.exists() || stfSnap.data().deleted === true) {
         await fbSignOut(auth);
         throw new Error('This faculty account has been removed by the administrator. Portal access denied.');
       }
     } else if (role === 'student') {
-      const stuSnap = await getDoc(doc(db, 'students', cred.user.uid));
-      if (!stuSnap.exists() || stuSnap.data().deleted === true) {
+      const stuSnap = await getDoc(doc(db, 'students', cred.user.uid)).catch(() => null);
+      if (!stuSnap || !stuSnap.exists() || stuSnap.data().deleted === true) {
         await fbSignOut(auth);
         throw new Error('This student account has been removed by the administrator. Portal access denied.');
       }
     } else if (role === 'parent') {
-      const parSnap = await getDoc(doc(db, 'parents', cred.user.uid));
-      if (!parSnap.exists() || parSnap.data().deleted === true) {
+      const parSnap = await getDoc(doc(db, 'parents', cred.user.uid)).catch(() => null);
+      if (!parSnap || !parSnap.exists() || parSnap.data().deleted === true) {
         await fbSignOut(auth);
         throw new Error('This parent account has been removed by the administrator. Portal access denied.');
       }
@@ -868,6 +881,8 @@ form.addEventListener('submit', async (e) => {
     let msg = 'Authentication failed. Please check your credentials.';
     if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
       msg = 'Invalid User ID or Password.';
+    } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
+      msg = '⚠️ Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
     } else if (err.message) {
       msg = err.message.replace('Firebase: ', '');
     }

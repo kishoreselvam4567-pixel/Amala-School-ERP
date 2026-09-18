@@ -2603,6 +2603,41 @@
       document.getElementById('content').style.display = 'block';
     });
 
+    // Helper: Natural Academic School Sorting (Pre-KG, LKG, UKG, 1st, 2nd ... 10th, 11th, 12th)
+    function getClassSortKey(className = '') {
+      const raw = (className || '').trim();
+      const norm = raw.toUpperCase().replace(/\s+/g, ' ');
+
+      // Pre-primary / Kindergarten
+      if (/PRE[-\s.]?KG|NURSERY|PLAY|MONT/i.test(norm)) return { level: -3, sub: norm };
+      if (/L\.?K\.?G|LKG|JR\.?[-\s.]*KG/i.test(norm)) return { level: -2, sub: norm };
+      if (/U\.?K\.?G|UKG|SR\.?[-\s.]*KG/i.test(norm)) return { level: -1, sub: norm };
+
+      // Numbered grades: 1st, 2nd, 2st, 10th, 12-STD, Class 1, Grade 5, etc.
+      const match = norm.match(/^(\d{1,2})\s*(?:ST|ND|RD|TH)?\s*(?:[-–—\s]*(?:STD|GRADE|CLASS))?[-–—\s]*(.*)$/i)
+                 || norm.match(/(?:CLASS|GRADE|STD)[-–—\s]*(\d{1,2})\s*(.*)/i)
+                 || norm.match(/(\d{1,2})\s*(.*)/);
+
+      if (match) {
+        const level = parseInt(match[1], 10);
+        let sub = (match[2] || '').trim();
+        sub = sub.replace(/^[-–—:\s]+/, ''); // trim leading separator
+        return { level, sub };
+      }
+
+      return { level: 99, sub: norm };
+    }
+
+    function sortClassList(list) {
+      if (!Array.isArray(list)) return [];
+      return [...list].sort((a, b) => {
+        const kA = getClassSortKey(a.name || '');
+        const kB = getClassSortKey(b.name || '');
+        if (kA.level !== kB.level) return kA.level - kB.level;
+        return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
+      });
+    }
+
     // ======================== OVERVIEW ========================
     async function loadOverview() {
       const [cSnap, sSnap, stSnap, pSnap] = await Promise.all([
@@ -2617,7 +2652,7 @@
       document.getElementById('cntStudents').textContent = stSnap.size;
       document.getElementById('cntParents').textContent = pSnap.size;
 
-      // Render Class Distribution Widget
+      // Render Class Distribution Widget (strictly in natural academic grade order)
       const distList = document.getElementById('classDistributionList');
       distList.innerHTML = '';
       if (cSnap.empty) {
@@ -2625,50 +2660,26 @@
         return;
       }
 
-      const studentsList = stSnap.docs.map(d => d.data());
-      const maxCap = Math.max(1, ...cSnap.docs.map(cd => studentsList.filter(s => s.classId === cd.id).length));
+      const rawClasses = cSnap.docs.map(cd => ({ id: cd.id, ...cd.data() }));
+      const sortedClasses = sortClassList(rawClasses);
 
-      cSnap.docs.forEach(cd => {
-        const cls = cd.data();
-        const count = studentsList.filter(s => s.classId === cd.id).length;
+      const studentsList = stSnap.docs.map(d => d.data());
+      const maxCap = Math.max(1, ...sortedClasses.map(cls => studentsList.filter(s => s.classId === cls.id).length));
+
+      sortedClasses.forEach(cls => {
+        const count = studentsList.filter(s => s.classId === cls.id).length;
         const pct = Math.min(100, Math.round((count / Math.max(maxCap, 30)) * 100));
 
         const row = document.createElement('div');
         row.className = 'class-bar-row';
         row.innerHTML = `
-      <div class="class-bar-name" title="${cls.name}">${cls.name}</div>
-      <div class="class-bar-track">
-        <div class="class-bar-fill" style="width:${pct}%;"></div>
-      </div>
-      <div class="class-bar-val">${count} std</div>
-    `;
+          <div class="class-bar-name" title="${cls.name}">${cls.name}</div>
+          <div class="class-bar-track">
+            <div class="class-bar-fill" style="width:${pct}%;"></div>
+          </div>
+          <div class="class-bar-val">${count} std</div>
+        `;
         distList.appendChild(row);
-      });
-    }
-
-    // Helper: Natural Academic School Sorting (Pre-KG, LKG, UKG, 1st ... 10th-A, 10th-B ... 12th)
-    function getClassSortKey(className = '') {
-      const norm = (className || '').trim().toUpperCase();
-      if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
-      if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
-      if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
-      const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
-                 || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
-                 || norm.match(/(\d{1,2})[-\s]*(.*)/);
-      if (match) {
-        const level = parseInt(match[1], 10);
-        const sub = (match[2] || '').trim();
-        return { level, sub };
-      }
-      return { level: 99, sub: norm };
-    }
-
-    function sortClassList(list) {
-      return [...list].sort((a, b) => {
-        const kA = getClassSortKey(a.name || '');
-        const kB = getClassSortKey(b.name || '');
-        if (kA.level !== kB.level) return kA.level - kB.level;
-        return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
       });
     }
 
