@@ -3463,24 +3463,142 @@
     let currentModalStudent = null;
     let currentModalStaff = null;
 
+    // ======================== CURRICULUM & SUBJECT INTELLIGENCE ========================
+    const STANDARD_CORE_SUBJECTS = [
+      'Tamil',
+      'English',
+      'Mathematics',
+      'Science',
+      'Social Science'
+    ];
+
+    const HIGHER_SECONDARY_STREAMS = {
+      'bio_maths': {
+        name: 'Group 1: Bio-Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      },
+      'computer_science': {
+        name: 'Group 2: Computer Science & Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Computer Science']
+      },
+      'pure_science': {
+        name: 'Group 3: Pure Science (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Physics', 'Chemistry', 'Botany', 'Zoology']
+      },
+      'commerce_bm': {
+        name: 'Group 4: Commerce & Business Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Business Mathematics']
+      },
+      'commerce_ca': {
+        name: 'Group 5: Commerce & Computer Applications (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Computer Applications']
+      },
+      'arts': {
+        name: 'Group 6: Arts & Humanities (6 Subjects)',
+        subjects: ['Tamil', 'English', 'History', 'Geography', 'Economics', 'Political Science']
+      },
+      'custom': {
+        name: 'Custom / Electives',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry']
+      }
+    };
+
+    function isHigherSecondaryClass(className) {
+      if (!className) return false;
+      const s = String(className).toUpperCase().trim();
+      return /\b(11|12|XI|XII)\b/.test(s) || /11TH|12TH|CLASS\s*11|CLASS\s*12|GRADE\s*11|GRADE\s*12/.test(s);
+    }
+
+    function getStudentSubjects(student, classObj = null) {
+      if (student && Array.isArray(student.subjects) && student.subjects.length > 0) {
+        return student.subjects;
+      }
+      if (student && student.stream && HIGHER_SECONDARY_STREAMS[student.stream]) {
+        return HIGHER_SECONDARY_STREAMS[student.stream].subjects;
+      }
+      const clsName = student?.className || classObj?.name || '';
+      if (isHigherSecondaryClass(clsName)) {
+        return HIGHER_SECONDARY_STREAMS.bio_maths.subjects;
+      }
+      return [...STANDARD_CORE_SUBJECTS];
+    }
+
+    let currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+
+    function updateAdmissionSubjectsUI() {
+      const classSel = document.getElementById('stuClassSelAdd');
+      const streamWrap = document.getElementById('stuStreamSelectWrap');
+      const titleEl = document.getElementById('stuSubjectAllocTitle');
+      const descEl = document.getElementById('stuSubjectAllocDesc');
+      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
+      const streamSel = document.getElementById('stuStreamSelect');
+      if (!classSel || !badgesEl) return;
+
+      const className = classSel.options[classSel.selectedIndex]?.textContent || '';
+      const isHS = isHigherSecondaryClass(className);
+
+      if (isHS) {
+        if (streamWrap) streamWrap.style.display = 'block';
+        if (titleEl) titleEl.textContent = 'Higher Secondary Stream Curriculum (6 Subjects)';
+        if (descEl) descEl.textContent = 'Class 11 & 12 students specialize in streams with tailored 6-subject groups.';
+        const streamKey = streamSel?.value || 'bio_maths';
+        currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+      } else {
+        if (streamWrap) streamWrap.style.display = 'none';
+        if (titleEl) titleEl.textContent = 'Assigned Curriculum Subjects (Standard 5 Subjects)';
+        if (descEl) descEl.textContent = 'Students below 10th standard follow the standard 5 core subjects.';
+        currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+      }
+
+      renderAdmissionSubjectBadges();
+    }
+
+    function renderAdmissionSubjectBadges() {
+      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
+      if (!badgesEl) return;
+      badgesEl.innerHTML = currentAdmissionSubjects.map((sub, idx) => `
+        <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          ${idx + 1}. ${sub}
+        </span>
+      `).join('') + `
+        <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer;">
+          + Add Elective
+        </button>
+      `;
+
+      document.getElementById('addExtraSubjectBtn')?.addEventListener('click', () => {
+        const newSub = prompt('Enter additional subject name:');
+        if (newSub && newSub.trim() && !currentAdmissionSubjects.includes(newSub.trim())) {
+          currentAdmissionSubjects.push(newSub.trim());
+          renderAdmissionSubjectBadges();
+        }
+      });
+    }
+
     requirePortal(['admin'], async ({ user, profile }) => {
-      const adminName = profile.name || 'Administrator';
-      document.getElementById('uName').textContent = adminName;
-      document.getElementById('topAdminName').textContent = adminName;
-      const initial = adminName.charAt(0).toUpperCase();
-      document.getElementById('uAvatarInitial').textContent = initial;
-      document.getElementById('topAvatarInit').textContent = initial;
+      try {
+        const adminName = profile.name || 'Administrator';
+        document.getElementById('uName').textContent = adminName;
+        document.getElementById('topAdminName').textContent = adminName;
+        const initial = adminName.charAt(0).toUpperCase();
+        document.getElementById('uAvatarInitial').textContent = initial;
+        document.getElementById('topAvatarInit').textContent = initial;
 
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const dateEl = document.getElementById('todayDateStr');
-      if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const dateEl = document.getElementById('todayDateStr');
+        if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
-      await loadClasses();
-      await loadOverview();
-
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
+        await loadClasses();
+        await loadOverview();
+      } catch (err) {
+        console.error('Portal init error:', err);
+      } finally {
+        const loadEl = document.getElementById('loadingState');
+        const contentEl = document.getElementById('content');
+        if (loadEl) loadEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
+      }
     });
 
     // Helper: Natural Academic School Sorting (Pre-KG, LKG, UKG, 1st, 2nd ... 10th, 11th, 12th)
@@ -3657,121 +3775,6 @@
 
       updateAdmissionSubjectsUI();
     }
-
-    // ======================== CURRICULUM & SUBJECT INTELLIGENCE ========================
-    const STANDARD_CORE_SUBJECTS = [
-      'Tamil',
-      'English',
-      'Mathematics',
-      'Science',
-      'Social Science'
-    ];
-
-    const HIGHER_SECONDARY_STREAMS = {
-      'bio_maths': {
-        name: 'Group 1: Bio-Maths (6 Subjects)',
-        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-      },
-      'computer_science': {
-        name: 'Group 2: Computer Science & Maths (6 Subjects)',
-        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Computer Science']
-      },
-      'pure_science': {
-        name: 'Group 3: Pure Science (6 Subjects)',
-        subjects: ['Tamil', 'English', 'Physics', 'Chemistry', 'Botany', 'Zoology']
-      },
-      'commerce_bm': {
-        name: 'Group 4: Commerce & Business Maths (6 Subjects)',
-        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Business Mathematics']
-      },
-      'commerce_ca': {
-        name: 'Group 5: Commerce & Computer Applications (6 Subjects)',
-        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Computer Applications']
-      },
-      'arts': {
-        name: 'Group 6: Arts & Humanities (6 Subjects)',
-        subjects: ['Tamil', 'English', 'History', 'Geography', 'Economics', 'Political Science']
-      },
-      'custom': {
-        name: 'Custom / Electives',
-        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry']
-      }
-    };
-
-    function isHigherSecondaryClass(className) {
-      if (!className) return false;
-      const s = String(className).toUpperCase().trim();
-      return /\b(11|12|XI|XII)\b/.test(s) || /11TH|12TH|CLASS\s*11|CLASS\s*12|GRADE\s*11|GRADE\s*12/.test(s);
-    }
-
-    function getStudentSubjects(student, classObj = null) {
-      if (student && Array.isArray(student.subjects) && student.subjects.length > 0) {
-        return student.subjects;
-      }
-      if (student && student.stream && HIGHER_SECONDARY_STREAMS[student.stream]) {
-        return HIGHER_SECONDARY_STREAMS[student.stream].subjects;
-      }
-      const clsName = student?.className || classObj?.name || '';
-      if (isHigherSecondaryClass(clsName)) {
-        return HIGHER_SECONDARY_STREAMS.bio_maths.subjects;
-      }
-      return [...STANDARD_CORE_SUBJECTS];
-    }
-
-    let currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
-
-    function updateAdmissionSubjectsUI() {
-      const classSel = document.getElementById('stuClassSelAdd');
-      const streamWrap = document.getElementById('stuStreamSelectWrap');
-      const titleEl = document.getElementById('stuSubjectAllocTitle');
-      const descEl = document.getElementById('stuSubjectAllocDesc');
-      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
-      const streamSel = document.getElementById('stuStreamSelect');
-      if (!classSel || !badgesEl) return;
-
-      const className = classSel.options[classSel.selectedIndex]?.textContent || '';
-      const isHS = isHigherSecondaryClass(className);
-
-      if (isHS) {
-        if (streamWrap) streamWrap.style.display = 'block';
-        if (titleEl) titleEl.textContent = 'Higher Secondary Stream Curriculum (6 Subjects)';
-        if (descEl) descEl.textContent = 'Class 11 & 12 students specialize in streams with tailored 6-subject groups.';
-        const streamKey = streamSel?.value || 'bio_maths';
-        currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
-      } else {
-        if (streamWrap) streamWrap.style.display = 'none';
-        if (titleEl) titleEl.textContent = 'Assigned Curriculum Subjects (Standard 5 Subjects)';
-        if (descEl) descEl.textContent = 'Students below 10th standard follow the standard 5 core subjects.';
-        currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
-      }
-
-      renderAdmissionSubjectBadges();
-    }
-
-    function renderAdmissionSubjectBadges() {
-      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
-      if (!badgesEl) return;
-      badgesEl.innerHTML = currentAdmissionSubjects.map((sub, idx) => `
-        <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
-          ${idx + 1}. ${sub}
-        </span>
-      `).join('') + `
-        <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer;">
-          + Add Elective
-        </button>
-      `;
-
-      document.getElementById('addExtraSubjectBtn')?.addEventListener('click', () => {
-        const newSub = prompt('Enter additional subject name:');
-        if (newSub && newSub.trim() && !currentAdmissionSubjects.includes(newSub.trim())) {
-          currentAdmissionSubjects.push(newSub.trim());
-          renderAdmissionSubjectBadges();
-        }
-      });
-    }
-
-    document.getElementById('stuClassSelAdd')?.addEventListener('change', updateAdmissionSubjectsUI);
-    document.getElementById('stuStreamSelect')?.addEventListener('change', updateAdmissionSubjectsUI);
 
     // ======================== STAFF ========================
     document.getElementById('stfAddBtn').addEventListener('click', async () => {
