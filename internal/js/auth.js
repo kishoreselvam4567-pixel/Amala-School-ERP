@@ -11,7 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
-  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy
+  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
@@ -50,7 +50,7 @@ export {
   onAuthStateChanged, sendPasswordResetEmail,
   setPersistence, browserLocalPersistence, inMemoryPersistence, initializeAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
-  deleteDoc, serverTimestamp, orderBy,
+  deleteDoc, serverTimestamp, orderBy, onSnapshot,
   ref, uploadBytes, getDownloadURL, deleteObject
 };
 
