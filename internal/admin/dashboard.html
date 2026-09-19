@@ -870,6 +870,54 @@
         color: var(--navy);
         border-top: 2px solid var(--line);
       }
+
+      /* Dynamic Curriculum Subject Badges & Edit Controls */
+      .stu-sub-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f3e8ff;
+        border: 1px solid #d8b4fe;
+        color: #6b21a8;
+        padding: 5px 8px 5px 12px;
+        border-radius: 18px;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.18s ease;
+        user-select: none;
+      }
+      .stu-sub-pill:hover {
+        background: #ede9fe;
+        border-color: #c084fc;
+        box-shadow: 0 2px 5px rgba(107, 33, 168, 0.15);
+      }
+      .sub-pill-btn {
+        background: rgba(107, 33, 168, 0.12);
+        border: none;
+        color: #6b21a8;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        transition: all 0.15s ease;
+      }
+      .sub-pill-btn:hover {
+        background: rgba(107, 33, 168, 0.28);
+        transform: scale(1.1);
+      }
+      .sub-pill-btn.del {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+      }
+      .sub-pill-btn.del:hover {
+        background: rgba(239, 68, 68, 0.25);
+        color: #b91c1c;
+        transform: scale(1.1);
+      }
   </style>
 </head>
 
@@ -1463,6 +1511,42 @@
           <div class="field">
             <label>Pincode</label>
             <input type="text" id="editStuPincode" placeholder="e.g. 600001">
+          </div>
+        </div>
+
+        <!-- Section 4: Assigned Curriculum & Subjects -->
+        <div class="form-section-title"
+          style="margin:18px 0 10px 0; font-size:13.5px; font-weight:700; color:var(--brand-green); display:flex; align-items:center; gap:6px;">
+          Curriculum &amp; Assigned Subjects
+        </div>
+        <div class="field-row" style="margin-top:6px;">
+          <div class="field" id="editStuSubjectAllocationWrap"
+            style="flex:1; width:100%; background:var(--bg-card,#f8fafc); border:1px solid var(--line,#e2e8f0); border-radius:10px; padding:14px 16px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+              <div>
+                <strong style="font-size:13px; color:var(--ink);" id="editStuSubjectAllocTitle">Assigned Curriculum Subjects</strong>
+                <div style="font-size:11.5px; color:var(--ink-soft);" id="editStuSubjectAllocDesc">Subjects enrolled for this student (used across marksheets and report cards).</div>
+              </div>
+              <div id="editStuStreamSelectWrap" style="display:none; min-width:240px;">
+                <label style="font-size:11.5px; font-weight:700; color:var(--ink); margin-bottom:4px; display:block;">Select Stream / Subject Group</label>
+                <select id="editStuStreamSelect"
+                  style="padding:6px 10px; font-size:12px; font-weight:600; border-radius:6px; border:1px solid var(--line); width:100%;">
+                  <option value="bio_maths">Group 1: Bio-Maths (6 Subjects)</option>
+                  <option value="computer_science">Group 2: Computer Science &amp; Maths (6 Subjects)</option>
+                  <option value="pure_science">Group 3: Pure Science (6 Subjects)</option>
+                  <option value="commerce_bm">Group 4: Commerce &amp; Business Maths (6 Subjects)</option>
+                  <option value="commerce_ca">Group 5: Commerce &amp; Computer Applications (6 Subjects)</option>
+                  <option value="arts">Group 6: Arts &amp; Humanities (6 Subjects)</option>
+                  <option value="custom">Custom / Electives</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Badges of assigned subjects in Edit Modal -->
+            <div id="editStuAssignedSubjectsBadges"
+              style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:6px;">
+            </div>
           </div>
         </div>
 
@@ -3859,6 +3943,30 @@
         return /\b(11|12|XI|XII)\b/.test(s) || /11TH|12TH|CLASS\s*11|CLASS\s*12|GRADE\s*11|GRADE\s*12/.test(s);
       }
 
+      function isKindergartenClass(className) {
+        if (!className) return false;
+        const s = String(className).toUpperCase().trim();
+        return /PRE[-\s.]?KG|L\.?K\.?G|U\.?K\.?G|NURSERY|PLAY|MONT/i.test(s);
+      }
+
+      const KINDERGARTEN_DEFAULT_SUBJECTS = [
+        'English',
+        'Tamil',
+        'Mathematics',
+        'Rhymes & Stories',
+        'Drawing & Activity'
+      ];
+
+      function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
       function getStudentSubjects(student, classObj = null) {
         if (student && Array.isArray(student.subjects) && student.subjects.length > 0) {
           return student.subjects;
@@ -3870,12 +3978,16 @@
         if (isHigherSecondaryClass(clsName)) {
           return HIGHER_SECONDARY_STREAMS.bio_maths.subjects;
         }
+        if (isKindergartenClass(clsName)) {
+          return [...KINDERGARTEN_DEFAULT_SUBJECTS];
+        }
         return [...STANDARD_CORE_SUBJECTS];
       }
 
       let currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+      let lastAdmissionClassId = null;
 
-      function updateAdmissionSubjectsUI() {
+      function updateAdmissionSubjectsUI(forceReset = false) {
         const classSel = document.getElementById('stuClassSelAdd');
         const streamWrap = document.getElementById('stuStreamSelectWrap');
         const titleEl = document.getElementById('stuSubjectAllocTitle');
@@ -3885,19 +3997,32 @@
         if (!classSel || !badgesEl) return;
 
         const className = classSel.options[classSel.selectedIndex]?.textContent || '';
+        const classId = classSel.value;
         const isHS = isHigherSecondaryClass(className);
+        const isKG = isKindergartenClass(className);
+
+        const classChanged = (classId !== lastAdmissionClassId);
+        lastAdmissionClassId = classId;
 
         if (isHS) {
           if (streamWrap) streamWrap.style.display = 'block';
-          if (titleEl) titleEl.textContent = 'Higher Secondary Stream Curriculum (6 Subjects)';
           if (descEl) descEl.textContent = 'Class 11 & 12 students specialize in streams with tailored 6-subject groups.';
           const streamKey = streamSel?.value || 'bio_maths';
-          currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+          if (forceReset || classChanged || !currentAdmissionSubjects || !currentAdmissionSubjects.length) {
+            currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+          }
+        } else if (isKG) {
+          if (streamWrap) streamWrap.style.display = 'none';
+          if (descEl) descEl.textContent = 'Foundational early-childhood learning subjects (fully customizable).';
+          if (forceReset || classChanged || !currentAdmissionSubjects || !currentAdmissionSubjects.length) {
+            currentAdmissionSubjects = [...KINDERGARTEN_DEFAULT_SUBJECTS];
+          }
         } else {
           if (streamWrap) streamWrap.style.display = 'none';
-          if (titleEl) titleEl.textContent = 'Assigned Curriculum Subjects (Standard 5 Subjects)';
           if (descEl) descEl.textContent = 'Students below 10th standard follow the standard 5 core subjects.';
-          currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+          if (forceReset || classChanged || !currentAdmissionSubjects || !currentAdmissionSubjects.length) {
+            currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+          }
         }
 
         renderAdmissionSubjectBadges();
@@ -3906,22 +4031,276 @@
       function renderAdmissionSubjectBadges() {
         const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
         if (!badgesEl) return;
-        badgesEl.innerHTML = currentAdmissionSubjects.map((sub, idx) => `
-        <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
-          ${idx + 1}. ${sub}
-        </span>
-      `).join('') + `
-        <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer;">
-          + Add Elective
-        </button>
-      `;
 
-        document.getElementById('addExtraSubjectBtn')?.addEventListener('click', () => {
-          const newSub = prompt('Enter additional subject name:');
-          if (newSub && newSub.trim() && !currentAdmissionSubjects.includes(newSub.trim())) {
-            currentAdmissionSubjects.push(newSub.trim());
-            renderAdmissionSubjectBadges();
+        const classSel = document.getElementById('stuClassSelAdd');
+        const className = classSel?.options[classSel.selectedIndex]?.textContent || '';
+        const isHS = isHigherSecondaryClass(className);
+        const isKG = isKindergartenClass(className);
+
+        const titleEl = document.getElementById('stuSubjectAllocTitle');
+        if (titleEl) {
+          if (isHS) {
+            titleEl.textContent = `Higher Secondary Stream Curriculum (${currentAdmissionSubjects.length} Subjects)`;
+          } else if (isKG) {
+            titleEl.textContent = `Assigned Kindergarten Subjects (${currentAdmissionSubjects.length} Subjects)`;
+          } else {
+            titleEl.textContent = `Assigned Curriculum Subjects (${currentAdmissionSubjects.length} Subjects)`;
           }
+        }
+
+        const pills = currentAdmissionSubjects.map((sub, idx) => `
+          <div class="stu-sub-pill">
+            <span>${idx + 1}. ${escapeHtml(sub)}</span>
+            <button type="button" class="sub-pill-btn adm-sub-edit" data-idx="${idx}" title="Edit / Rename Subject">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" class="sub-pill-btn del adm-sub-del" data-idx="${idx}" title="Remove Subject">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `).join('');
+
+        const actions = `
+          <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Add Subject
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="editBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-color:#d8b4fe; color:#6b21a8; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" title="Edit subjects as a list">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            ✏️ Edit All
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="resetSubjectsDefaultBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Reset back to class defaults">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset
+          </button>
+        `;
+
+        badgesEl.innerHTML = pills + actions;
+
+        // Edit single subject
+        badgesEl.querySelectorAll('.adm-sub-edit').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const idx = parseInt(btn.dataset.idx, 10);
+            const current = currentAdmissionSubjects[idx] || '';
+            const updated = prompt('Edit Subject Name:', current);
+            if (updated && updated.trim() && updated.trim() !== current) {
+              currentAdmissionSubjects[idx] = updated.trim();
+              renderAdmissionSubjectBadges();
+            }
+          });
+        });
+
+        // Delete single subject
+        badgesEl.querySelectorAll('.adm-sub-del').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const idx = parseInt(btn.dataset.idx, 10);
+            if (currentAdmissionSubjects.length <= 1) {
+              alert('At least one subject must remain in the curriculum.');
+              return;
+            }
+            const removed = currentAdmissionSubjects[idx];
+            currentAdmissionSubjects.splice(idx, 1);
+            renderAdmissionSubjectBadges();
+            if (typeof showToast === 'function') showToast(`Removed "${removed}".`);
+          });
+        });
+
+        // Add subject
+        document.getElementById('addExtraSubjectBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          const newSub = prompt('Enter new subject name (e.g. Rhymes, Moral Science, Drawing, Computer Science):');
+          if (newSub && newSub.trim()) {
+            const trimmed = newSub.trim();
+            if (currentAdmissionSubjects.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+              alert(`Subject "${trimmed}" already exists.`);
+              return;
+            }
+            currentAdmissionSubjects.push(trimmed);
+            renderAdmissionSubjectBadges();
+            if (typeof showToast === 'function') showToast(`Added "${trimmed}".`);
+          }
+        });
+
+        // Edit All bulk
+        document.getElementById('editBulkSubjectsBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          const listStr = currentAdmissionSubjects.join(', ');
+          const updated = prompt('Edit curriculum subjects (separate with commas):', listStr);
+          if (updated !== null && updated.trim()) {
+            const arr = updated.split(',').map(s => s.trim()).filter(Boolean);
+            if (arr.length > 0) {
+              currentAdmissionSubjects = arr;
+              renderAdmissionSubjectBadges();
+              if (typeof showToast === 'function') showToast(`Updated to ${arr.length} subjects.`);
+            }
+          }
+        });
+
+        // Reset
+        document.getElementById('resetSubjectsDefaultBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          updateAdmissionSubjectsUI(true);
+          if (typeof showToast === 'function') showToast('Reset subjects to class defaults.');
+        });
+      }
+
+      // Edit Student Modal Subjects Management
+      let currentEditStudentSubjects = [];
+
+      function updateEditStudentSubjectsUI(forceReset = false) {
+        const classSel = document.getElementById('editStuClassSel');
+        const streamWrap = document.getElementById('editStuStreamSelectWrap');
+        const titleEl = document.getElementById('editStuSubjectAllocTitle');
+        const descEl = document.getElementById('editStuSubjectAllocDesc');
+        const badgesEl = document.getElementById('editStuAssignedSubjectsBadges');
+        const streamSel = document.getElementById('editStuStreamSelect');
+        if (!classSel || !badgesEl) return;
+
+        const className = classSel.options[classSel.selectedIndex]?.textContent || '';
+        const isHS = isHigherSecondaryClass(className);
+        const isKG = isKindergartenClass(className);
+
+        if (isHS) {
+          if (streamWrap) streamWrap.style.display = 'block';
+          if (descEl) descEl.textContent = 'Class 11 & 12 students specialize in streams with tailored 6-subject groups.';
+          if (forceReset) {
+            const streamKey = streamSel?.value || 'bio_maths';
+            currentEditStudentSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+          }
+        } else if (isKG) {
+          if (streamWrap) streamWrap.style.display = 'none';
+          if (descEl) descEl.textContent = 'Foundational early-childhood learning subjects (fully customizable).';
+          if (forceReset) {
+            currentEditStudentSubjects = [...KINDERGARTEN_DEFAULT_SUBJECTS];
+          }
+        } else {
+          if (streamWrap) streamWrap.style.display = 'none';
+          if (descEl) descEl.textContent = 'Students below 10th standard follow the standard 5 core subjects.';
+          if (forceReset) {
+            currentEditStudentSubjects = [...STANDARD_CORE_SUBJECTS];
+          }
+        }
+
+        renderEditStudentSubjectBadges();
+      }
+
+      function renderEditStudentSubjectBadges() {
+        const badgesEl = document.getElementById('editStuAssignedSubjectsBadges');
+        if (!badgesEl) return;
+
+        const classSel = document.getElementById('editStuClassSel');
+        const className = classSel?.options[classSel.selectedIndex]?.textContent || '';
+        const isHS = isHigherSecondaryClass(className);
+        const isKG = isKindergartenClass(className);
+
+        const titleEl = document.getElementById('editStuSubjectAllocTitle');
+        if (titleEl) {
+          if (isHS) {
+            titleEl.textContent = `Higher Secondary Stream Curriculum (${currentEditStudentSubjects.length} Subjects)`;
+          } else if (isKG) {
+            titleEl.textContent = `Assigned Kindergarten Subjects (${currentEditStudentSubjects.length} Subjects)`;
+          } else {
+            titleEl.textContent = `Assigned Curriculum Subjects (${currentEditStudentSubjects.length} Subjects)`;
+          }
+        }
+
+        const pills = currentEditStudentSubjects.map((sub, idx) => `
+          <div class="stu-sub-pill">
+            <span>${idx + 1}. ${escapeHtml(sub)}</span>
+            <button type="button" class="sub-pill-btn edit-stu-sub-edit" data-idx="${idx}" title="Edit / Rename Subject">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" class="sub-pill-btn del edit-stu-sub-del" data-idx="${idx}" title="Remove Subject">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `).join('');
+
+        const actions = `
+          <button type="button" class="btn btn-outline btn-sm" id="editStuAddSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Add Subject
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="editStuBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-color:#d8b4fe; color:#6b21a8; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" title="Edit subjects as a list">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            ✏️ Edit All
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="editStuResetSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Reset back to class defaults">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset
+          </button>
+        `;
+
+        badgesEl.innerHTML = pills + actions;
+
+        // Edit single subject
+        badgesEl.querySelectorAll('.edit-stu-sub-edit').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const idx = parseInt(btn.dataset.idx, 10);
+            const current = currentEditStudentSubjects[idx] || '';
+            const updated = prompt('Edit Subject Name:', current);
+            if (updated && updated.trim() && updated.trim() !== current) {
+              currentEditStudentSubjects[idx] = updated.trim();
+              renderEditStudentSubjectBadges();
+            }
+          });
+        });
+
+        // Delete single subject
+        badgesEl.querySelectorAll('.edit-stu-sub-del').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const idx = parseInt(btn.dataset.idx, 10);
+            if (currentEditStudentSubjects.length <= 1) {
+              alert('At least one subject must remain in the curriculum.');
+              return;
+            }
+            const removed = currentEditStudentSubjects[idx];
+            currentEditStudentSubjects.splice(idx, 1);
+            renderEditStudentSubjectBadges();
+            if (typeof showToast === 'function') showToast(`Removed "${removed}".`);
+          });
+        });
+
+        // Add subject
+        document.getElementById('editStuAddSubjectBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          const newSub = prompt('Enter new subject name (e.g. Rhymes, Moral Science, Drawing, Computer Science):');
+          if (newSub && newSub.trim()) {
+            const trimmed = newSub.trim();
+            if (currentEditStudentSubjects.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+              alert(`Subject "${trimmed}" already exists.`);
+              return;
+            }
+            currentEditStudentSubjects.push(trimmed);
+            renderEditStudentSubjectBadges();
+            if (typeof showToast === 'function') showToast(`Added "${trimmed}".`);
+          }
+        });
+
+        // Edit All bulk
+        document.getElementById('editStuBulkSubjectsBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          const listStr = currentEditStudentSubjects.join(', ');
+          const updated = prompt('Edit curriculum subjects (separate with commas):', listStr);
+          if (updated !== null && updated.trim()) {
+            const arr = updated.split(',').map(s => s.trim()).filter(Boolean);
+            if (arr.length > 0) {
+              currentEditStudentSubjects = arr;
+              renderEditStudentSubjectBadges();
+              if (typeof showToast === 'function') showToast(`Updated to ${arr.length} subjects.`);
+            }
+          }
+        });
+
+        // Reset
+        document.getElementById('editStuResetSubjectsBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          updateEditStudentSubjectsUI(true);
+          if (typeof showToast === 'function') showToast('Reset subjects to class defaults.');
         });
       }
 
@@ -4125,6 +4504,24 @@
 
         updateAdmissionSubjectsUI();
       }
+
+      // Attach subject & stream allocation change listeners
+      document.getElementById('stuClassSelAdd')?.addEventListener('change', () => {
+        updateAdmissionSubjectsUI(true);
+      });
+      document.getElementById('stuStreamSelect')?.addEventListener('change', () => {
+        const streamKey = document.getElementById('stuStreamSelect')?.value || 'bio_maths';
+        currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+        renderAdmissionSubjectBadges();
+      });
+      document.getElementById('editStuClassSel')?.addEventListener('change', () => {
+        updateEditStudentSubjectsUI(true);
+      });
+      document.getElementById('editStuStreamSelect')?.addEventListener('change', () => {
+        const streamKey = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
+        currentEditStudentSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+        renderEditStudentSubjectBadges();
+      });
 
       // ======================== STAFF ========================
       document.getElementById('stfAddBtn').addEventListener('click', async () => {
@@ -5384,6 +5781,19 @@
           document.getElementById(id)?.dispatchEvent(new Event('input'));
         });
 
+        // Initialize edit student subjects
+        currentEditStudentSubjects = [...getStudentSubjects(s)];
+        const editStreamWrap = document.getElementById('editStuStreamSelectWrap');
+        const editStreamSel = document.getElementById('editStuStreamSelect');
+        const clsName = s.className || '';
+        if (isHigherSecondaryClass(clsName)) {
+          if (editStreamWrap) editStreamWrap.style.display = 'block';
+          if (editStreamSel) editStreamSel.value = s.stream || 'bio_maths';
+        } else {
+          if (editStreamWrap) editStreamWrap.style.display = 'none';
+        }
+        renderEditStudentSubjectBadges();
+
         editStudentModal.classList.add('open');
         updateBodyModalState();
       }
@@ -5456,8 +5866,16 @@
             address,
             city,
             pincode,
+            subjects: (currentEditStudentSubjects && currentEditStudentSubjects.length)
+              ? currentEditStudentSubjects
+              : getStudentSubjects({ className }),
             updatedAt: serverTimestamp()
           };
+
+          if (isHigherSecondaryClass(className)) {
+            const streamVal = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
+            studentUpdate.stream = streamVal;
+          }
 
           // 1. Update student document
           await updateDoc(doc(db, 'students', uid), studentUpdate);
