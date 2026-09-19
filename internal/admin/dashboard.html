@@ -588,39 +588,64 @@
 
     .att-quick-btn-group {
       display: inline-flex;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: var(--white);
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
     }
 
     .att-quick-btn {
-      padding: 5px 10px;
-      font-size: 11.5px;
-      font-weight: 700;
-      border: none;
-      background: transparent;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+      border: 1.5px solid var(--line);
+      background: var(--white);
     }
 
-    .att-quick-btn:hover {
-      background: var(--paper-2);
+    .att-quick-btn.present {
+      color: #065f46;
+      border-color: #a7f3d0;
+      background: #ecfdf5;
     }
-
+    .att-quick-btn.present:hover,
     .att-quick-btn.present.active {
-      background: #10b981;
-      color: #fff;
+      background: #10b981 !important;
+      color: #ffffff !important;
+      border-color: #10b981 !important;
+      box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
     }
 
+    .att-quick-btn.absent {
+      color: #991b1b;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+    .att-quick-btn.absent:hover,
     .att-quick-btn.absent.active {
-      background: #ef4444;
-      color: #fff;
+      background: #ef4444 !important;
+      color: #ffffff !important;
+      border-color: #ef4444 !important;
+      box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
     }
 
+    .att-quick-btn.late {
+      color: #92400e;
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+    .att-quick-btn.late:hover,
     .att-quick-btn.late.active {
-      background: #f59e0b;
-      color: #fff;
+      background: #f59e0b !important;
+      color: #ffffff !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
     }
 
     /* Monthly Register Matrix Styles */
@@ -2432,7 +2457,7 @@
                     <th>Admission No</th>
                     <th>Class Section</th>
                     <th style="width:130px; text-align:center;">Live Status</th>
-                    <th style="width:180px; text-align:center;">Quick Mark / Override</th>
+                    <th style="width:230px; text-align:center;">Live Mark / Change</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -6298,9 +6323,9 @@
           </td>
           <td style="text-align:center;">
             <div class="att-quick-btn-group">
-              <button type="button" class="att-quick-btn present ${status === 'present' ? 'active' : ''}" data-status="present" title="Mark Present">P</button>
-              <button type="button" class="att-quick-btn absent ${status === 'absent' ? 'active' : ''}" data-status="absent" title="Mark Absent">A</button>
-              <button type="button" class="att-quick-btn late ${status === 'late' ? 'active' : ''}" data-status="late" title="Mark Late">L</button>
+              <button type="button" class="att-quick-btn present ${status === 'present' ? 'active' : ''}" data-status="present" title="Mark Present Live">Present</button>
+              <button type="button" class="att-quick-btn absent ${status === 'absent' ? 'active' : ''}" data-status="absent" title="Mark Absent Live">Absent</button>
+              <button type="button" class="att-quick-btn late ${status === 'late' ? 'active' : ''}" data-status="late" title="Mark Late Live">Late</button>
             </div>
           </td>
         `;
@@ -6321,6 +6346,19 @@
       const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
       const attId = `${studentUid}_${date}`;
 
+      // Instant optimistic UI update for zero latency
+      attDailyRecordsMap[studentUid] = {
+        id: attId,
+        studentUid,
+        studentName: studentName || '',
+        rollNo: rollNo || '',
+        classId: attSelectedClassId,
+        date,
+        status
+      };
+      updateDailyMetricsAndChips();
+      renderDailyAttendanceTable();
+
       try {
         await setDoc(doc(db, 'attendance', attId), {
           studentUid,
@@ -6333,7 +6371,7 @@
           markedAt: serverTimestamp()
         }, { merge: true });
 
-        showToast(`Attendance updated: ${studentName} is ${status.toUpperCase()}`);
+        showToast(`Attendance saved: ${studentName} is ${status.toUpperCase()}`);
       } catch (err) {
         alert('Failed to update attendance: ' + err.message);
       }
@@ -6360,10 +6398,25 @@
       const btn = document.getElementById('attMarkAllPresentBtn');
       if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
+      // Optimistically update all records immediately
+      unmarkedStudents.forEach(s => {
+        attDailyRecordsMap[s.uid] = {
+          id: `${s.uid}_${date}`,
+          studentUid: s.uid,
+          studentName: s.name || '',
+          rollNo: s.rollNo || s.admissionNo || '',
+          classId: attSelectedClassId,
+          date,
+          status: 'present'
+        };
+      });
+      updateDailyMetricsAndChips();
+      renderDailyAttendanceTable();
+
       try {
-        for (const s of unmarkedStudents) {
+        const writePromises = unmarkedStudents.map(s => {
           const attId = `${s.uid}_${date}`;
-          await setDoc(doc(db, 'attendance', attId), {
+          return setDoc(doc(db, 'attendance', attId), {
             studentUid: s.uid,
             studentName: s.name || '',
             rollNo: s.rollNo || s.admissionNo || '',
@@ -6373,7 +6426,9 @@
             markedBy: auth.currentUser?.uid || 'admin',
             markedAt: serverTimestamp()
           }, { merge: true });
-        }
+        });
+
+        await Promise.all(writePromises);
         showToast(`Successfully marked ${unmarkedStudents.length} students as Present!`);
       } catch (err) {
         alert('Error saving batch attendance: ' + err.message);
