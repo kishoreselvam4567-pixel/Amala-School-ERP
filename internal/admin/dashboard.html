@@ -2456,6 +2456,7 @@
                     <th>Student Details</th>
                     <th>Admission No</th>
                     <th>Class Section</th>
+                    <th style="width:115px; text-align:center;">Date</th>
                     <th style="width:130px; text-align:center;">Live Status</th>
                     <th style="width:230px; text-align:center;">Live Mark / Change</th>
                   </tr>
@@ -6288,6 +6289,15 @@
       }
       if (emptyEl) emptyEl.style.display = 'none';
 
+      const dateVal = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+      let displayDate = dateVal;
+      if (dateVal && dateVal.includes('-')) {
+        const parts = dateVal.split('-');
+        if (parts.length === 3) {
+          displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+
       filtered.forEach(s => {
         const rec = attDailyRecordsMap[s.uid];
         const status = rec && rec.status ? rec.status : 'unmarked';
@@ -6317,6 +6327,9 @@
           </td>
           <td>
             <span class="badge badge-purple" style="font-weight:600;">${attSelectedClassObj?.name || s.className || '—'}</span>
+          </td>
+          <td style="text-align:center;">
+            <span class="badge" style="background:var(--slate-100,#f1f5f9); color:var(--slate-700,#334155); border:1px solid var(--line,#e2e8f0); font-family:var(--font-mono); font-weight:700; font-size:11.5px; letter-spacing:0.2px;">${displayDate}</span>
           </td>
           <td style="text-align:center;">
             ${statusBadge}
@@ -6844,9 +6857,17 @@
         alert('Please select a class section with enrolled students first.');
         return;
       }
+      const dateVal = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+      let displayDate = dateVal;
+      if (dateVal && dateVal.includes('-')) {
+        const parts = dateVal.split('-');
+        if (parts.length === 3) {
+          displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
       const className = (attSelectedClassObj?.name || 'Class').replace(/[\s,]+/g, '_');
 
-      const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Status'];
+      const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Date', 'Status'];
       const rows = attCurrentStudents.map(s => {
         const rec = attDailyRecordsMap[s.uid];
         const status = rec && rec.status ? rec.status : 'unmarked';
@@ -6855,12 +6876,13 @@
           `"${(s.name || '').replace(/"/g, '""')}"`,
           `"${s.admissionNo || ''}"`,
           `"${attSelectedClassObj?.name || ''}"`,
+          `"${displayDate}"`,
           `"${status.toUpperCase()}"`
         ].join(',');
       });
 
       const csvContent = headers.join(',') + '\n' + rows.join('\n');
-      downloadCsv(`Attendance_${className}.csv`, csvContent);
+      downloadCsv(`Attendance_${className}_${displayDate}.csv`, csvContent);
     }
 
     function printMonthlyAttendanceRegister() {
