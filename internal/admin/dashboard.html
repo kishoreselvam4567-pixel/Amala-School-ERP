@@ -645,7 +645,46 @@
       background: #f59e0b !important;
       color: #ffffff !important;
       border-color: #f59e0b !important;
-      box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
+    /* Academic Marks & Full Subject Inspector Styles */
+    .mrk-tab-btn {
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .mrk-tab-btn.active {
+      background: var(--brand-green, #059669);
+      color: #ffffff;
+      border-color: var(--brand-green, #059669);
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+    }
+    .mrk-student-row {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .mrk-student-row:hover {
+      background: #f0fdf4 !important;
+    }
+    .mrk-input {
+      width: 84px;
+      padding: 6px 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 6px;
+      border: 1.5px solid var(--line);
+      font-family: var(--font-mono);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .mrk-input:focus {
+      outline: none;
+      border-color: var(--brand-green, #059669);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
     }
 
     /* Monthly Register Matrix Styles */
@@ -915,6 +954,9 @@
             </div>
             <div class="detail-item"><label>Student Login Email</label>
               <div class="detail-val" id="mp_email">—</div>
+            </div>
+            <div class="detail-item" style="grid-column:1/-1;"><label>Assigned Subjects &amp; Curriculum Stream</label>
+              <div class="detail-val" id="mp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—</div>
             </div>
           </div>
         </div>
@@ -1345,6 +1387,108 @@
           <button type="submit" class="btn btn-primary" id="saveEditStudentBtn" style="min-width:140px; font-weight:700;">Save Changes</button>
         </div>
       </form>
+    </div>
+  <!-- ================= STUDENT FULL SUBJECT MARKS & REPORT CARD MODAL ================= -->
+  <div class="profile-modal-overlay" id="studentFullMarksModal" style="display:none; z-index:1050;">
+    <div class="profile-modal-card has-header" style="max-width:920px; width:95%; max-height:92vh; overflow-y:auto;">
+      <div class="profile-modal-header" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <div class="pm-header-left">
+          <div class="pm-header-icon" style="background:rgba(255,255,255,0.15); color:#ffffff; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="pm-header-title" style="color:#ffffff;">Student Academic Progress Dossier</h3>
+            <p class="pm-header-subtitle" style="color:#94a3b8;">Full Subject List &amp; Official Marks Statement</p>
+          </div>
+        </div>
+        <div class="pm-header-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="printSingleReportCardBtn" style="font-size:12px; padding:7px 14px; font-weight:700; background:#ffffff; color:#0f172a; border:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Report Card
+          </button>
+          <button type="button" class="modal-close-btn" id="closeFullMarksModal" title="Close modal (Esc)">&times;</button>
+        </div>
+      </div>
+
+      <div class="profile-modal-body" style="padding:22px;">
+        <!-- Student Dossier Banner -->
+        <div style="background:var(--bg-card,#f8fafc); border:1px solid var(--line,#e2e8f0); border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <h2 id="sfmStudentName" style="margin:0; font-size:20px; color:var(--ink);">Student Name</h2>
+              <span class="badge badge-purple" id="sfmClassBadge" style="font-weight:700;">Class: —</span>
+              <span class="badge badge-navy" id="sfmStreamBadge" style="display:none; font-weight:700;">Stream: —</span>
+            </div>
+            <div style="font-size:12.5px; color:var(--ink-soft); margin-top:6px; font-family:var(--font-mono);">
+              Roll No: <strong id="sfmRollNo" style="color:var(--ink);">—</strong> &bull; Admission No: <strong id="sfmAdmNo" style="color:var(--ink);">—</strong> &bull; Exam: <strong id="sfmExamName" style="color:var(--brand-green);">—</strong>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-outline btn-sm" id="sfmPrevStudentBtn" style="font-weight:700;">&larr; Prev Student</button>
+            <button type="button" class="btn btn-outline btn-sm" id="sfmNextStudentBtn" style="font-weight:700;">Next Student &rarr;</button>
+          </div>
+        </div>
+
+        <!-- FULL SUBJECTS TABLE -->
+        <div style="margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4 style="margin:0; font-size:13.5px; font-weight:800; color:var(--ink); text-transform:uppercase; letter-spacing:0.5px;">
+              Prescribed Subject List &amp; Marks Entry
+            </h4>
+            <span style="font-size:12px; color:var(--ink-soft);" id="sfmSubjectCountText">5 Subjects Assigned</span>
+          </div>
+
+          <div class="table-wrap" style="border:1px solid var(--line); border-radius:10px; overflow:hidden;">
+            <table id="sfmSubjectTable" style="margin:0; width:100%;">
+              <thead>
+                <tr style="background:#f1f5f9;">
+                  <th style="width:45px; text-align:center;">#</th>
+                  <th>Subject Name</th>
+                  <th style="width:110px; text-align:center;">Max Marks</th>
+                  <th style="width:140px; text-align:center;">Marks Obtained</th>
+                  <th style="width:100px; text-align:center;">Percentage</th>
+                  <th style="width:90px; text-align:center;">Grade</th>
+                  <th style="width:100px; text-align:center;">Result</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- COMPREHENSIVE SCORECARD / SUMMARY -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:22px;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Total Marks</div>
+            <div style="font-size:20px; font-weight:800; color:var(--ink); margin-top:2px;" id="sfmTotalMarksVal">0 / 500</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Overall Percentage</div>
+            <div style="font-size:20px; font-weight:800; color:#2563eb; margin-top:2px;" id="sfmPercentageVal">0%</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Overall Grade</div>
+            <div style="font-size:20px; font-weight:800; color:#059669; margin-top:2px;" id="sfmGradeVal">—</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Academic Result</div>
+            <div style="font-size:20px; font-weight:800; margin-top:2px;" id="sfmResultVal">—</div>
+          </div>
+        </div>
+
+        <!-- MODAL FOOTER ACTIONS -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding-top:16px;">
+          <button type="button" class="btn btn-outline" id="sfmCloseBottomBtn">Close</button>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span id="sfmSaveMsg" style="font-size:13px; font-weight:700; color:var(--good); display:none;"></span>
+            <button type="button" class="btn btn-primary" id="sfmSaveMarksBtn" style="font-weight:700; padding:10px 24px;">
+              Save All Subject Marks Live
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2107,6 +2251,36 @@
                   </select>
                 </div>
               </div>
+
+              <!-- DYNAMIC SUBJECT / STREAM CURRICULUM ALLOCATION -->
+              <div class="field-row" style="margin-top:6px;">
+                <div class="field" id="stuSubjectAllocationWrap" style="flex:1; width:100%; background:var(--bg-card,#f8fafc); border:1px solid var(--line,#e2e8f0); border-radius:10px; padding:14px 16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+                    <div>
+                      <strong style="font-size:13px; color:var(--ink);" id="stuSubjectAllocTitle">Assigned Curriculum Subjects (Standard 5 Subjects)</strong>
+                      <div style="font-size:11.5px; color:var(--ink-soft);" id="stuSubjectAllocDesc">Students below 10th standard follow the standard 5-subject curriculum.</div>
+                    </div>
+                    <!-- Stream selector for 11th / 12th -->
+                    <div id="stuStreamSelectWrap" style="display:none; min-width:260px;">
+                      <label style="font-size:11.5px; font-weight:700; color:var(--ink); margin-bottom:4px; display:block;">Select Stream / Subject Group</label>
+                      <select id="stuStreamSelect" style="padding:6px 10px; font-size:12px; font-weight:600; border-radius:6px; border:1px solid var(--line); width:100%;">
+                        <option value="bio_maths">Group 1: Bio-Maths (6 Subjects)</option>
+                        <option value="computer_science">Group 2: Computer Science &amp; Maths (6 Subjects)</option>
+                        <option value="pure_science">Group 3: Pure Science (6 Subjects)</option>
+                        <option value="commerce_bm">Group 4: Commerce &amp; Business Maths (6 Subjects)</option>
+                        <option value="commerce_ca">Group 5: Commerce &amp; Computer Applications (6 Subjects)</option>
+                        <option value="arts">Group 6: Arts &amp; Humanities (6 Subjects)</option>
+                        <option value="custom">Custom / Electives</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Badges of assigned subjects -->
+                  <div id="stuAssignedSubjectsBadges" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:6px;">
+                    <!-- Auto-populated dynamically -->
+                  </div>
+                </div>
+              </div>
               <div class="field-row">
                 <div class="field">
                   <label>Blood Group</label>
@@ -2597,51 +2771,127 @@
           </div>
         </section>
 
-        <!-- ================= 7. MARKS REPORTS TAB ================= -->
+        <!-- ================= 7. MARKS REPORTS & ACADEMIC PERFORMANCE TAB ================= -->
         <section id="panel-marks" style="display:none;">
           <div class="main-header">
             <div>
-              <h2>Academic Performance &amp; Marks</h2>
-              <p>Review Subject Marks &amp; Examination Results by Class</p>
+              <h2>Academic Performance &amp; Marks Intelligence</h2>
+              <p>Multi-Subject Progress Reports, Examination Registers &amp; Student-Wise Marksheets</p>
             </div>
-            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-              Exit to Home
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="btn btn-outline btn-sm" id="printConsolidatedMarksBtn" style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Print Register
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" id="exportConsolidatedMarksCsvBtn" style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
+              </button>
+              <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Exit to Home
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Control Card -->
+          <div class="card" style="margin-bottom:20px; padding:18px 22px;">
+            <div class="field-row" style="align-items:flex-end; gap:16px;">
+              <div class="field" style="flex:1.2; min-width:200px;">
+                <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Class Section *</label>
+                <select id="marksClassFilter" style="font-weight:600; font-size:13.5px; padding:9px 12px;">
+                  <option value="">-- Choose Class Section --</option>
+                </select>
+              </div>
+
+              <div class="field" style="flex:1.2; min-width:200px;">
+                <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Examination *</label>
+                <div style="display:flex; gap:8px;">
+                  <select id="marksExamSelect" style="flex:1; font-weight:600; font-size:13.5px; padding:9px 12px;">
+                    <option value="Quarterly Examination">Quarterly Examination</option>
+                    <option value="Midterm 1">Midterm 1</option>
+                    <option value="Midterm 2">Midterm 2</option>
+                    <option value="Half Yearly Examination">Half Yearly Examination</option>
+                    <option value="Annual / Final Examination">Annual / Final Examination</option>
+                    <option value="Unit Test 1">Unit Test 1</option>
+                    <option value="Unit Test 2">Unit Test 2</option>
+                    <option value="__custom__">+ Custom Exam...</option>
+                  </select>
+                  <input type="text" id="marksCustomExamInput" placeholder="Exam Name" style="display:none; flex:1; padding:9px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
+                </div>
+              </div>
+
+              <div class="field" style="flex:0.8; min-width:140px;">
+                <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Max Marks per Subject</label>
+                <input type="number" id="marksMaxPerSubject" value="100" min="10" max="500" style="padding:9px 12px; font-size:13.5px; font-weight:700; border-radius:8px; border:1px solid var(--line);">
+              </div>
+
+              <div class="field field-action" style="display:flex; gap:8px;">
+                <button class="btn btn-primary" id="marksReportBtn" style="padding:10px 18px; font-weight:700;">
+                  Load Class Marks
+                </button>
+              </div>
+            </div>
+
+            <!-- Subject Curriculum Info Bar -->
+            <div id="marksCurriculumBar" style="display:none; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="badge badge-navy" id="marksCurriculumTag" style="font-weight:700; font-size:12px;">Curriculum: Standard 5 Subjects</span>
+                <span style="font-size:12.5px; color:var(--ink-soft);" id="marksCurriculumSubjectList">Tamil, English, Mathematics, Science, Social Science</span>
+              </div>
+              <div style="font-size:12px; color:var(--ink-soft);">
+                💡 <em>Click any student below to inspect their full subject list and enter/edit marks.</em>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Mode Tabs -->
+          <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <button type="button" class="btn btn-sm mrk-tab-btn active" id="marksTabBtnStudents">
+              Student-Wise Roll (Click Student to Inspect Full Subjects)
+            </button>
+            <button type="button" class="btn btn-sm mrk-tab-btn" id="marksTabBtnConsolidated">
+              Consolidated Class Register (All Subjects Matrix)
             </button>
           </div>
 
-          <div class="card" style="margin-bottom:20px;">
-            <div class="field-row" style="align-items:flex-end;">
-              <div class="field" style="flex:1; min-width:220px;">
-                <label>Filter by Class Section</label>
-                <select id="marksClassFilter">
-                  <option value="">All Classes</option>
-                </select>
-              </div>
-              <div class="field field-action">
-                <button class="btn btn-primary" id="marksReportBtn">Generate Marks Sheet</button>
+          <!-- VIEW 1: Students Roll Call (Click any student to see their full subject list) -->
+          <div id="marksViewStudents">
+            <div class="card table-wrap" style="margin:0;">
+              <table id="marksStudentsTable" style="margin:0;">
+                <thead>
+                  <tr>
+                    <th style="width:70px; text-align:center;">Roll No</th>
+                    <th>Student Details</th>
+                    <th style="width:120px; text-align:center;">Admission No</th>
+                    <th style="width:160px;">Curriculum / Stream</th>
+                    <th style="width:100px; text-align:center;">Subjects</th>
+                    <th style="width:130px; text-align:center;">Total Marks</th>
+                    <th style="width:100px; text-align:center;">Percentage</th>
+                    <th style="width:90px; text-align:center;">Grade</th>
+                    <th style="width:100px; text-align:center;">Result</th>
+                    <th style="width:150px; text-align:center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <div class="empty-state" id="marksStudentsEmpty" style="padding:48px 16px; text-align:center;">
+                Please select a class section above and click "Load Class Marks".
               </div>
             </div>
           </div>
 
-          <div class="card table-wrap">
-            <table id="marksReportTable">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Class</th>
-                  <th>Subject</th>
-                  <th>Exam Name</th>
-                  <th>Marks Obtained</th>
-                  <th>Max Marks</th>
-                  <th>Percentage</th>
-                  <th style="text-align:right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-            <div class="empty-state" id="marksReportEmpty" style="display:none;">Select a class and click "Generate
-              Marks Sheet".</div>
+          <!-- VIEW 2: Consolidated Class Register (All Subjects Matrix) -->
+          <div id="marksViewConsolidated" style="display:none;">
+            <div class="card table-wrap" style="margin:0; overflow-x:auto;">
+              <table id="marksConsolidatedTable" style="margin:0; min-width:800px;">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+              <div class="empty-state" id="marksConsolidatedEmpty" style="display:none; padding:48px 16px; text-align:center;">
+                No marks data loaded yet.
+              </div>
+            </div>
           </div>
         </section>
 
@@ -3401,10 +3651,127 @@
         attF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
         if (curVal) attF.value = curVal;
       }
-      if (mrkF) mrkF.innerHTML = classOpts;
+      if (mrkF) mrkF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
       if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
       if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+
+      updateAdmissionSubjectsUI();
     }
+
+    // ======================== CURRICULUM & SUBJECT INTELLIGENCE ========================
+    const STANDARD_CORE_SUBJECTS = [
+      'Tamil',
+      'English',
+      'Mathematics',
+      'Science',
+      'Social Science'
+    ];
+
+    const HIGHER_SECONDARY_STREAMS = {
+      'bio_maths': {
+        name: 'Group 1: Bio-Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      },
+      'computer_science': {
+        name: 'Group 2: Computer Science & Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Computer Science']
+      },
+      'pure_science': {
+        name: 'Group 3: Pure Science (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Physics', 'Chemistry', 'Botany', 'Zoology']
+      },
+      'commerce_bm': {
+        name: 'Group 4: Commerce & Business Maths (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Business Mathematics']
+      },
+      'commerce_ca': {
+        name: 'Group 5: Commerce & Computer Applications (6 Subjects)',
+        subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Computer Applications']
+      },
+      'arts': {
+        name: 'Group 6: Arts & Humanities (6 Subjects)',
+        subjects: ['Tamil', 'English', 'History', 'Geography', 'Economics', 'Political Science']
+      },
+      'custom': {
+        name: 'Custom / Electives',
+        subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry']
+      }
+    };
+
+    function isHigherSecondaryClass(className) {
+      if (!className) return false;
+      const s = String(className).toUpperCase().trim();
+      return /\b(11|12|XI|XII)\b/.test(s) || /11TH|12TH|CLASS\s*11|CLASS\s*12|GRADE\s*11|GRADE\s*12/.test(s);
+    }
+
+    function getStudentSubjects(student, classObj = null) {
+      if (student && Array.isArray(student.subjects) && student.subjects.length > 0) {
+        return student.subjects;
+      }
+      if (student && student.stream && HIGHER_SECONDARY_STREAMS[student.stream]) {
+        return HIGHER_SECONDARY_STREAMS[student.stream].subjects;
+      }
+      const clsName = student?.className || classObj?.name || '';
+      if (isHigherSecondaryClass(clsName)) {
+        return HIGHER_SECONDARY_STREAMS.bio_maths.subjects;
+      }
+      return [...STANDARD_CORE_SUBJECTS];
+    }
+
+    let currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+
+    function updateAdmissionSubjectsUI() {
+      const classSel = document.getElementById('stuClassSelAdd');
+      const streamWrap = document.getElementById('stuStreamSelectWrap');
+      const titleEl = document.getElementById('stuSubjectAllocTitle');
+      const descEl = document.getElementById('stuSubjectAllocDesc');
+      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
+      const streamSel = document.getElementById('stuStreamSelect');
+      if (!classSel || !badgesEl) return;
+
+      const className = classSel.options[classSel.selectedIndex]?.textContent || '';
+      const isHS = isHigherSecondaryClass(className);
+
+      if (isHS) {
+        if (streamWrap) streamWrap.style.display = 'block';
+        if (titleEl) titleEl.textContent = 'Higher Secondary Stream Curriculum (6 Subjects)';
+        if (descEl) descEl.textContent = 'Class 11 & 12 students specialize in streams with tailored 6-subject groups.';
+        const streamKey = streamSel?.value || 'bio_maths';
+        currentAdmissionSubjects = [...(HIGHER_SECONDARY_STREAMS[streamKey]?.subjects || HIGHER_SECONDARY_STREAMS.bio_maths.subjects)];
+      } else {
+        if (streamWrap) streamWrap.style.display = 'none';
+        if (titleEl) titleEl.textContent = 'Assigned Curriculum Subjects (Standard 5 Subjects)';
+        if (descEl) descEl.textContent = 'Students below 10th standard follow the standard 5 core subjects.';
+        currentAdmissionSubjects = [...STANDARD_CORE_SUBJECTS];
+      }
+
+      renderAdmissionSubjectBadges();
+    }
+
+    function renderAdmissionSubjectBadges() {
+      const badgesEl = document.getElementById('stuAssignedSubjectsBadges');
+      if (!badgesEl) return;
+      badgesEl.innerHTML = currentAdmissionSubjects.map((sub, idx) => `
+        <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          ${idx + 1}. ${sub}
+        </span>
+      `).join('') + `
+        <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer;">
+          + Add Elective
+        </button>
+      `;
+
+      document.getElementById('addExtraSubjectBtn')?.addEventListener('click', () => {
+        const newSub = prompt('Enter additional subject name:');
+        if (newSub && newSub.trim() && !currentAdmissionSubjects.includes(newSub.trim())) {
+          currentAdmissionSubjects.push(newSub.trim());
+          renderAdmissionSubjectBadges();
+        }
+      });
+    }
+
+    document.getElementById('stuClassSelAdd')?.addEventListener('change', updateAdmissionSubjectsUI);
+    document.getElementById('stuStreamSelect')?.addEventListener('change', updateAdmissionSubjectsUI);
 
     // ======================== STAFF ========================
     document.getElementById('stfAddBtn').addEventListener('click', async () => {
@@ -4053,11 +4420,21 @@
           role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
         }, { merge: true });
 
+        const assignedSubjects = currentAdmissionSubjects && currentAdmissionSubjects.length
+          ? currentAdmissionSubjects
+          : (isHigherSecondaryClass(className) ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects : STANDARD_CORE_SUBJECTS);
+        const assignedStream = isHigherSecondaryClass(className)
+          ? (document.getElementById('stuStreamSelect')?.value || 'bio_maths')
+          : null;
+
         await setDoc(doc(db, 'students', stuUid), {
           name, admissionNo: admNo, rollNo: rollNo || admNo, classId, className, dob, gender, bloodGroup: blood,
           aadhaarNo: aadhaar, email: stuEmail, fatherName, fatherPhone, motherName, motherPhone,
           parentEmail: parEmail, emergencyPhone: emergencyPhone || fatherPhone,
-          address, city, pincode, parentUid: parUid || null, createdAt: serverTimestamp()
+          address, city, pincode, parentUid: parUid || null,
+          subjects: assignedSubjects,
+          stream: assignedStream,
+          createdAt: serverTimestamp()
         }, { merge: true });
 
         // 4. Save Parent Record & Link
@@ -4548,6 +4925,13 @@
       document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
       document.getElementById('mp_aadhaar').innerHTML = formatAadhaarDisplay(s.aadhaarNo);
       document.getElementById('mp_email').textContent = s.email || '—';
+
+      // Assigned subjects & stream
+      const sSubs = getStudentSubjects(s);
+      const subsEl = document.getElementById('mp_subjects');
+      if (subsEl) {
+        subsEl.innerHTML = sSubs.map((sub, i) => `<span class="badge badge-purple" style="font-size:11px; padding:3px 8px; font-weight:700;">${i+1}. ${sub}</span>`).join(' ') + (s.stream ? ` <span class="badge badge-navy" style="font-size:11px; padding:3px 8px; font-weight:700;">Stream: ${s.stream}</span>` : '');
+      }
 
       // Family details
       document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
@@ -7197,130 +7581,728 @@
       );
     });
 
-    // ======================== MARKS REPORTS ========================
-    document.getElementById('marksReportBtn').addEventListener('click', async () => {
-      const classFilter = document.getElementById('marksClassFilter').value;
+    // ======================== ACADEMIC MARKS & FULL SUBJECT INSPECTOR ========================
+    let currentMarksClassId = null;
+    let currentMarksExamName = 'Quarterly Examination';
+    let currentMarksStudents = [];
+    let currentMarksRecordsMap = {}; // key: `${studentUid}_${subject}` -> record obj
+    let currentMarksActiveStudentIdx = 0;
+    let currentMarksViewMode = 'students'; // 'students' or 'consolidated'
+
+    // Tab buttons
+    document.getElementById('marksTabBtnStudents')?.addEventListener('click', () => {
+      currentMarksViewMode = 'students';
+      document.getElementById('marksTabBtnStudents')?.classList.add('active');
+      document.getElementById('marksTabBtnConsolidated')?.classList.remove('active');
+      document.getElementById('marksViewStudents').style.display = 'block';
+      document.getElementById('marksViewConsolidated').style.display = 'none';
+    });
+
+    document.getElementById('marksTabBtnConsolidated')?.addEventListener('click', () => {
+      currentMarksViewMode = 'consolidated';
+      document.getElementById('marksTabBtnConsolidated')?.classList.add('active');
+      document.getElementById('marksTabBtnStudents')?.classList.remove('active');
+      document.getElementById('marksViewStudents').style.display = 'none';
+      document.getElementById('marksViewConsolidated').style.display = 'block';
+      renderConsolidatedMarksTable();
+    });
+
+    // Custom Exam input toggle
+    document.getElementById('marksExamSelect')?.addEventListener('change', (e) => {
+      const customInp = document.getElementById('marksCustomExamInput');
+      if (e.target.value === '__custom__') {
+        if (customInp) { customInp.style.display = 'block'; customInp.focus(); }
+      } else {
+        if (customInp) { customInp.style.display = 'none'; }
+      }
+    });
+
+    function getSelectedExamName() {
+      const sel = document.getElementById('marksExamSelect');
+      if (!sel) return 'Quarterly Examination';
+      if (sel.value === '__custom__') {
+        return (document.getElementById('marksCustomExamInput')?.value.trim()) || 'Custom Examination';
+      }
+      return sel.value;
+    }
+
+    // Load Class Marks handler
+    document.getElementById('marksReportBtn')?.addEventListener('click', async () => {
+      await loadClassAcademicMarks();
+    });
+
+    async function loadClassAcademicMarks() {
+      const classId = document.getElementById('marksClassFilter')?.value;
+      if (!classId) {
+        alert('Please select a class section first.');
+        return;
+      }
+      currentMarksClassId = classId;
+      currentMarksExamName = getSelectedExamName();
+      const maxMarksVal = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
       const btn = document.getElementById('marksReportBtn');
-      btn.disabled = true; btn.textContent = 'Generating…';
+      if (btn) { btn.disabled = true; btn.textContent = 'Loading Marks…'; }
 
       try {
-        let marksQuery = classFilter
-          ? query(collection(db, 'marks'), where('classId', '==', classFilter))
-          : collection(db, 'marks');
+        const classObj = allClasses.find(c => c.id === classId) || { name: 'Class' };
+        const isHS = isHigherSecondaryClass(classObj.name);
 
-        const [marksSnap, allStudentsSnap, allUsersSnap, allClassesSnap] = await Promise.all([
-          getDocs(marksQuery),
-          getDocs(collection(db, 'students')),
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'classes'))
-        ]);
-
-        const body = document.querySelector('#marksReportTable tbody');
-        body.innerHTML = '';
-
-        if (marksSnap.empty) {
-          document.getElementById('marksReportEmpty').style.display = 'block';
-          document.getElementById('marksReportEmpty').textContent = 'No marks records found for this selection.';
-          btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
-          return;
+        // Update curriculum info bar
+        const currBar = document.getElementById('marksCurriculumBar');
+        const currTag = document.getElementById('marksCurriculumTag');
+        const currSubList = document.getElementById('marksCurriculumSubjectList');
+        if (currBar) currBar.style.display = 'flex';
+        if (currTag) {
+          currTag.textContent = isHS ? 'Higher Secondary Stream Curriculum (6 Subjects)' : 'Standard Curriculum (5 Core Subjects)';
         }
-        document.getElementById('marksReportEmpty').style.display = 'none';
+        if (currSubList) {
+          currSubList.textContent = isHS
+            ? 'Tamil, English, Mathematics, Physics, Chemistry, Biology / Stream Electives'
+            : STANDARD_CORE_SUBJECTS.join(', ');
+        }
 
-        // Index students & users by UID, admission number, email, and roll number
-        const studentsList = allStudentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const studentsMap = {};
-        studentsList.forEach(data => {
-          studentsMap[data.id] = data;
-          if (data.admissionNo) studentsMap[String(data.admissionNo).trim()] = data;
-          if (data.email) studentsMap[String(data.email).trim().toLowerCase()] = data;
+        // 1. Fetch Students
+        const qStudents = query(collection(db, 'students'), where('classId', '==', classId));
+        const stuSnap = await getDocs(qStudents);
+        const rawStudents = stuSnap.docs.map(d => ({ id: d.id, uid: d.id, ...d.data() }));
+
+        // Sort by Roll No
+        currentMarksStudents = rawStudents.sort((a, b) => {
+          const numA = parseInt(a.rollNo, 10);
+          const numB = parseInt(b.rollNo, 10);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return String(a.rollNo || a.name || '').localeCompare(String(b.rollNo || b.name || ''));
         });
 
-        const usersMap = {};
-        allUsersSnap.docs.forEach(d => {
-          usersMap[d.id] = { id: d.id, ...d.data() };
-        });
+        // 2. Fetch Marks for this class
+        const qMarks = query(collection(db, 'marks'), where('classId', '==', classId));
+        const marksSnap = await getDocs(qMarks);
 
-        // Index classes by ID
-        const classesMap = {};
-        allClassesSnap.forEach(d => {
-          classesMap[d.id] = d.data().name;
-        });
-
-        for (const md of marksSnap.docs) {
-          const r = md.data();
-          const sid = r.studentUid || r.studentId || r.uid || r.student;
-          let studentObj = sid ? (studentsMap[sid] || usersMap[sid]) : null;
-
-          if (!studentObj && r.admissionNo) {
-            studentObj = studentsMap[String(r.admissionNo).trim()];
-          }
-          if (!studentObj && r.rollNo) {
-            studentObj = studentsList.find(s => 
-              String(s.rollNo).trim() === String(r.rollNo).trim() && 
-              (!r.classId || s.classId === r.classId)
-            );
-          }
-          if (!studentObj && r.classId) {
-            const classStudents = studentsList.filter(s => s.classId === r.classId);
-            if (classStudents.length === 1) {
-              studentObj = classStudents[0];
+        currentMarksRecordsMap = {};
+        marksSnap.docs.forEach(d => {
+          const rec = { id: d.id, ...d.data() };
+          const sId = rec.studentUid || rec.studentId || rec.uid;
+          if (sId && rec.subject) {
+            const rExam = (rec.examName || '').trim().toLowerCase();
+            const curExam = currentMarksExamName.trim().toLowerCase();
+            if (rExam === curExam) {
+              const key = `${sId}_${rec.subject.trim().toLowerCase()}`;
+              currentMarksRecordsMap[key] = rec;
             }
           }
-          if (!studentObj && sid) {
-            try {
-              const sDoc = await getDoc(doc(db, 'students', sid));
-              if (sDoc.exists()) studentObj = { id: sDoc.id, ...sDoc.data() };
-              else {
-                const uDoc = await getDoc(doc(db, 'users', sid));
-                if (uDoc.exists()) studentObj = { id: uDoc.id, ...uDoc.data() };
-              }
-            } catch (e) {}
+        });
+
+        renderStudentsMarksTable();
+        renderConsolidatedMarksTable();
+
+      } catch (err) {
+        console.error('Error loading marks:', err);
+        alert('Failed to load marks: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Load Class Marks'; }
+      }
+    }
+
+    function calculateStudentMarksSummary(student, classObj) {
+      const subs = getStudentSubjects(student, classObj);
+      const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+      let totalObtained = 0;
+      let totalMax = 0;
+      let anyMarkEntered = false;
+      let allPassed = true;
+
+      subs.forEach(sub => {
+        const key = `${student.id}_${sub.trim().toLowerCase()}`;
+        const rec = currentMarksRecordsMap[key];
+        const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+        const marks = rec && rec.marks !== undefined && rec.marks !== null ? Number(rec.marks) : null;
+        totalMax += maxM;
+
+        if (marks !== null) {
+          totalObtained += marks;
+          anyMarkEntered = true;
+          if (marks < (maxM * 0.35)) {
+            allPassed = false;
           }
+        } else {
+          allPassed = false;
+        }
+      });
 
-          let stuName = r.studentName || (studentObj ? studentObj.name : '');
-          if (!stuName && r.name) stuName = r.name;
-          if (!stuName && studentObj?.email) stuName = studentObj.email.split('@')[0];
-          if (!stuName && r.rollNo) stuName = `Student (Roll: ${r.rollNo})`;
-          if (!stuName) stuName = 'Student';
+      const pct = totalMax && anyMarkEntered ? Math.round((totalObtained / totalMax) * 100) : null;
+      let grade = '—';
+      if (pct !== null) {
+        grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B+' : pct >= 60 ? 'B' : pct >= 50 ? 'C' : pct >= 35 ? 'D' : 'F';
+      }
+      const result = anyMarkEntered ? (allPassed && pct >= 35 ? 'PASSED' : 'FAIL') : 'UNMARKED';
 
-          const admNo = r.admissionNo || studentObj?.admissionNo || '';
-          const rollNo = r.rollNo || studentObj?.rollNo || '';
-          const clsName = r.className || (r.classId ? (classesMap[r.classId] || studentObj?.className || '—') : (studentObj?.className || '—'));
+      return {
+        subjects: subs,
+        totalObtained,
+        totalMax,
+        percentage: pct,
+        grade,
+        result,
+        anyMarkEntered
+      };
+    }
 
-          const pct = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-        <td>
-          <strong>${stuName}</strong>
-          ${(admNo || rollNo) ? `<br><small style="color:var(--ink-soft); font-family:var(--font-mono);">${admNo ? 'Adm: ' + admNo : ''}${admNo && rollNo ? ' • ' : ''}${rollNo ? 'Roll: ' + rollNo : ''}</small>` : ''}
-        </td>
-        <td><span class="badge badge-navy" style="font-weight:600;">${clsName}</span></td>
-        <td><span class="badge badge-purple">${r.subject || '—'}</span></td>
-        <td>${r.examName || '—'}</td>
-        <td><strong style="color:var(--brand-green); font-size:14px;">${r.marks}</strong></td>
-        <td>${r.maxMarks}</td>
-        <td><span class="badge ${pct >= 40 ? 'badge-good' : 'badge-bad'}">${pct}%</span></td>
-        <td style="text-align:right;">
-          <button class="btn btn-danger btn-sm markDelBtn" data-id="${md.id}" style="padding:4px 10px; font-size:12px;">Delete</button>
-        </td>
+    function renderStudentsMarksTable() {
+      const tbody = document.querySelector('#marksStudentsTable tbody');
+      const emptyEl = document.getElementById('marksStudentsEmpty');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!currentMarksStudents.length) {
+        if (emptyEl) {
+          emptyEl.style.display = 'block';
+          emptyEl.textContent = 'No students found enrolled in this class section.';
+        }
+        return;
+      }
+      if (emptyEl) emptyEl.style.display = 'none';
+
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+
+      currentMarksStudents.forEach((s, idx) => {
+        const summary = calculateStudentMarksSummary(s, classObj);
+        const tr = document.createElement('tr');
+        tr.className = 'mrk-student-row';
+
+        const resultBadge = summary.result === 'PASSED'
+          ? '<span class="badge badge-good" style="font-weight:700;">PASSED</span>'
+          : (summary.result === 'FAIL'
+            ? '<span class="badge badge-bad" style="font-weight:700;">FAIL</span>'
+            : '<span class="badge" style="background:#f1f5f9; color:#64748b; font-weight:700;">Unmarked</span>');
+
+        const gradeBadge = summary.grade !== '—'
+          ? `<span class="badge ${summary.grade === 'F' ? 'badge-bad' : 'badge-good'}" style="font-weight:700;">${summary.grade}</span>`
+          : '<span style="color:var(--ink-soft);">—</span>';
+
+        const pctDisplay = summary.percentage !== null
+          ? `<span style="font-family:var(--font-mono); font-weight:700; color:${summary.percentage >= 35 ? 'var(--brand-green)' : 'var(--bad)'};">${summary.percentage}%</span>`
+          : '<span style="color:var(--ink-soft);">—</span>';
+
+        const totalDisplay = summary.anyMarkEntered
+          ? `<span style="font-family:var(--font-mono); font-weight:700;">${summary.totalObtained}</span> <small style="color:var(--ink-soft);">/ ${summary.totalMax}</small>`
+          : '<span style="color:var(--ink-soft);">—</span>';
+
+        const streamDisplay = s.stream
+          ? `<span class="badge badge-navy" style="font-size:11px;">${HIGHER_SECONDARY_STREAMS[s.stream]?.name.split(':')[1]?.trim() || s.stream}</span>`
+          : (isHigherSecondaryClass(classObj?.name) ? '<span class="badge badge-navy" style="font-size:11px;">Higher Secondary</span>' : '<span class="badge badge-yellow" style="font-size:11px;">Standard 5 Sub</span>');
+
+        tr.innerHTML = `
+          <td style="text-align:center;">
+            <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
+          </td>
+          <td>
+            <strong style="color:var(--ink); font-size:13.5px;">${s.name}</strong>
+            <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
+          </td>
+          <td style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">
+            ${s.admissionNo || '—'}
+          </td>
+          <td>${streamDisplay}</td>
+          <td style="text-align:center;">
+            <span class="badge badge-purple" style="font-weight:700;">${summary.subjects.length} Subjects</span>
+          </td>
+          <td style="text-align:center;">${totalDisplay}</td>
+          <td style="text-align:center;">${pctDisplay}</td>
+          <td style="text-align:center;">${gradeBadge}</td>
+          <td style="text-align:center;">${resultBadge}</td>
+          <td style="text-align:center;">
+            <button type="button" class="btn btn-outline btn-sm inspectStudentMarksBtn" data-idx="${idx}" style="font-weight:700; font-size:12px; padding:5px 12px; background:var(--white); border-color:var(--brand-green); color:var(--brand-green); border-radius:6px; cursor:pointer;" title="Inspect full subjects and enter/edit marks">
+              Inspect Subjects &rarr;
+            </button>
+          </td>
+        `;
+
+        // Clicking anywhere on row or button opens full subjects modal
+        tr.addEventListener('click', () => {
+          openStudentFullMarksModal(idx);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openStudentFullMarksModal(studentIdx) {
+      if (studentIdx < 0 || studentIdx >= currentMarksStudents.length) return;
+      currentMarksActiveStudentIdx = studentIdx;
+      const s = currentMarksStudents[studentIdx];
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      const isHS = isHigherSecondaryClass(classObj?.name);
+      const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+      // Populate Dossier Header
+      document.getElementById('sfmStudentName').textContent = s.name || 'Student';
+      document.getElementById('sfmClassBadge').textContent = `Class: ${classObj?.name || s.className || '—'}`;
+      document.getElementById('sfmRollNo').textContent = s.rollNo || s.admissionNo || '—';
+      document.getElementById('sfmAdmNo').textContent = s.admissionNo || '—';
+      document.getElementById('sfmExamName').textContent = currentMarksExamName;
+
+      const streamBadge = document.getElementById('sfmStreamBadge');
+      if (s.stream || isHS) {
+        streamBadge.style.display = 'inline-block';
+        streamBadge.textContent = s.stream ? (HIGHER_SECONDARY_STREAMS[s.stream]?.name || s.stream) : 'Bio-Maths Group';
+      } else {
+        streamBadge.style.display = 'none';
+      }
+
+      // Prev / Next button states
+      const prevBtn = document.getElementById('sfmPrevStudentBtn');
+      const nextBtn = document.getElementById('sfmNextStudentBtn');
+      if (prevBtn) prevBtn.disabled = studentIdx === 0;
+      if (nextBtn) nextBtn.disabled = studentIdx === currentMarksStudents.length - 1;
+
+      // Populate Subjects Table
+      const subs = getStudentSubjects(s, classObj);
+      document.getElementById('sfmSubjectCountText').textContent = `${subs.length} Prescribed Subjects (${isHS ? 'Higher Secondary' : 'Standard 5 Core'})`;
+
+      const tbody = document.querySelector('#sfmSubjectTable tbody');
+      tbody.innerHTML = '';
+
+      subs.forEach((sub, i) => {
+        const key = `${s.id}_${sub.trim().toLowerCase()}`;
+        const rec = currentMarksRecordsMap[key];
+        const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+        const marksVal = (rec && rec.marks !== undefined && rec.marks !== null) ? rec.marks : '';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="text-align:center; font-weight:bold; color:var(--ink-soft);">${i + 1}</td>
+          <td>
+            <strong style="color:var(--ink); font-size:13.5px;">${sub}</strong>
+          </td>
+          <td style="text-align:center;">
+            <input type="number" class="sfm-max-input mrk-input" data-sub="${sub}" value="${maxM}" min="10" max="500" style="width:70px;">
+          </td>
+          <td style="text-align:center;">
+            <input type="number" class="sfm-marks-input mrk-input" data-sub="${sub}" value="${marksVal}" min="0" max="${maxM}" placeholder="0" style="width:80px; font-size:14px; color:var(--brand-green);">
+          </td>
+          <td style="text-align:center;" class="sfm-row-pct font-mono font-bold">—</td>
+          <td style="text-align:center;" class="sfm-row-grade">—</td>
+          <td style="text-align:center;" class="sfm-row-result">—</td>
+        `;
+
+        // Live calculation event listeners
+        const marksInput = tr.querySelector('.sfm-marks-input');
+        const maxInput = tr.querySelector('.sfm-max-input');
+
+        const updateRowLive = () => {
+          const mVal = marksInput.value.trim();
+          const maxVal = parseFloat(maxInput.value) || 100;
+          const marksNum = mVal !== '' ? parseFloat(mVal) : null;
+          const pctEl = tr.querySelector('.sfm-row-pct');
+          const gradeEl = tr.querySelector('.sfm-row-grade');
+          const resEl = tr.querySelector('.sfm-row-result');
+
+          if (marksNum !== null && !isNaN(marksNum)) {
+            const p = maxVal ? Math.round((marksNum / maxVal) * 100) : 0;
+            pctEl.textContent = `${p}%`;
+            pctEl.style.color = p >= 35 ? 'var(--brand-green)' : 'var(--bad)';
+            const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+            gradeEl.innerHTML = `<span class="badge ${g === 'F' ? 'badge-bad' : 'badge-good'}" style="font-weight:700;">${g}</span>`;
+            const isP = marksNum >= (maxVal * 0.35);
+            resEl.innerHTML = isP
+              ? '<span class="badge badge-good" style="font-size:11px; font-weight:700;">PASS</span>'
+              : '<span class="badge badge-bad" style="font-size:11px; font-weight:700;">FAIL</span>';
+          } else {
+            pctEl.textContent = '—';
+            gradeEl.textContent = '—';
+            resEl.innerHTML = '<span style="color:var(--ink-soft);">—</span>';
+          }
+          updateModalScorecardLive();
+        };
+
+        marksInput.addEventListener('input', updateRowLive);
+        maxInput.addEventListener('input', updateRowLive);
+
+        tbody.appendChild(tr);
+        updateRowLive(); // initial calculate
+      });
+
+      updateModalScorecardLive();
+
+      const modal = document.getElementById('studentFullMarksModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function updateModalScorecardLive() {
+      const rows = document.querySelectorAll('#sfmSubjectTable tbody tr');
+      let totalObtained = 0;
+      let totalMax = 0;
+      let marksEnteredCount = 0;
+      let allPassed = true;
+
+      rows.forEach(tr => {
+        const mInput = tr.querySelector('.sfm-marks-input');
+        const maxInput = tr.querySelector('.sfm-max-input');
+        const maxVal = parseFloat(maxInput?.value) || 100;
+        const mVal = mInput?.value.trim();
+        totalMax += maxVal;
+
+        if (mVal !== '' && !isNaN(parseFloat(mVal))) {
+          const num = parseFloat(mVal);
+          totalObtained += num;
+          marksEnteredCount++;
+          if (num < (maxVal * 0.35)) {
+            allPassed = false;
+          }
+        } else {
+          allPassed = false;
+        }
+      });
+
+      const totalEl = document.getElementById('sfmTotalMarksVal');
+      const pctEl = document.getElementById('sfmPercentageVal');
+      const gradeEl = document.getElementById('sfmGradeVal');
+      const resEl = document.getElementById('sfmResultVal');
+
+      if (marksEnteredCount > 0) {
+        totalEl.textContent = `${totalObtained} / ${totalMax}`;
+        const pct = totalMax ? Math.round((totalObtained / totalMax) * 100) : 0;
+        pctEl.textContent = `${pct}%`;
+        const g = pct >= 90 ? 'A+ (Distinction)' : pct >= 80 ? 'A (Very Good)' : pct >= 70 ? 'B+ (Good)' : pct >= 60 ? 'B (Average)' : pct >= 50 ? 'C (Pass)' : pct >= 35 ? 'D (Conditional)' : 'F (Needs Improvement)';
+        gradeEl.textContent = g;
+        gradeEl.style.color = pct >= 35 ? '#059669' : '#dc2626';
+
+        if (allPassed && marksEnteredCount === rows.length && pct >= 35) {
+          resEl.innerHTML = '<span style="color:#059669;">PASSED</span>';
+        } else if (allPassed && marksEnteredCount < rows.length) {
+          resEl.innerHTML = '<span style="color:#d97706;">IN PROGRESS</span>';
+        } else {
+          resEl.innerHTML = '<span style="color:#dc2626;">NEEDS IMPROVEMENT</span>';
+        }
+      } else {
+        totalEl.textContent = `0 / ${totalMax}`;
+        pctEl.textContent = '0%';
+        gradeEl.textContent = '—';
+        gradeEl.style.color = '';
+        resEl.textContent = '—';
+      }
+    }
+
+    // Prev / Next Student in Modal
+    document.getElementById('sfmPrevStudentBtn')?.addEventListener('click', () => {
+      if (currentMarksActiveStudentIdx > 0) {
+        openStudentFullMarksModal(currentMarksActiveStudentIdx - 1);
+      }
+    });
+
+    document.getElementById('sfmNextStudentBtn')?.addEventListener('click', () => {
+      if (currentMarksActiveStudentIdx < currentMarksStudents.length - 1) {
+        openStudentFullMarksModal(currentMarksActiveStudentIdx + 1);
+      }
+    });
+
+    // Close modal handlers
+    document.getElementById('closeFullMarksModal')?.addEventListener('click', () => {
+      document.getElementById('studentFullMarksModal').style.display = 'none';
+    });
+    document.getElementById('sfmCloseBottomBtn')?.addEventListener('click', () => {
+      document.getElementById('studentFullMarksModal').style.display = 'none';
+    });
+
+    // Save All Subject Marks Live
+    document.getElementById('sfmSaveMarksBtn')?.addEventListener('click', async () => {
+      const s = currentMarksStudents[currentMarksActiveStudentIdx];
+      if (!s) return;
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      const rows = document.querySelectorAll('#sfmSubjectTable tbody tr');
+      const saveBtn = document.getElementById('sfmSaveMarksBtn');
+      const msgEl = document.getElementById('sfmSaveMsg');
+
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving Marks…'; }
+
+      try {
+        const promises = [];
+
+        rows.forEach(tr => {
+          const marksInput = tr.querySelector('.sfm-marks-input');
+          const maxInput = tr.querySelector('.sfm-max-input');
+          const subject = marksInput?.dataset.sub;
+          const marksVal = marksInput?.value.trim();
+          const maxMarksVal = parseInt(maxInput?.value) || 100;
+
+          if (subject && marksVal !== '' && !isNaN(parseFloat(marksVal))) {
+            const numMarks = parseFloat(marksVal);
+            const cleanSub = subject.replace(/[\s/]+/g, '_');
+            const cleanExam = currentMarksExamName.replace(/[\s/]+/g, '_');
+            const docId = `${s.id}_${cleanExam}_${cleanSub}`;
+
+            const markData = {
+              studentUid: s.id,
+              studentName: s.name || '',
+              admissionNo: s.admissionNo || '',
+              rollNo: s.rollNo || '',
+              classId: currentMarksClassId,
+              className: classObj?.name || s.className || '',
+              subject: subject,
+              examName: currentMarksExamName,
+              marks: numMarks,
+              maxMarks: maxMarksVal,
+              updatedAt: serverTimestamp()
+            };
+
+            // Update in-memory map
+            const key = `${s.id}_${subject.trim().toLowerCase()}`;
+            currentMarksRecordsMap[key] = { id: docId, ...markData };
+
+            promises.push(setDoc(doc(db, 'marks', docId), markData, { merge: true }));
+          }
+        });
+
+        await Promise.all(promises);
+
+        if (msgEl) {
+          msgEl.style.display = 'inline';
+          msgEl.textContent = `All ${promises.length} subject marks saved live!`;
+          setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+        }
+        showToast(`Saved marks for ${s.name} across ${promises.length} subjects!`);
+
+        // Refresh views
+        renderStudentsMarksTable();
+        renderConsolidatedMarksTable();
+
+      } catch (err) {
+        console.error('Error saving subject marks:', err);
+        alert('Failed to save subject marks: ' + err.message);
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save All Subject Marks Live'; }
+      }
+    });
+
+    // Print Single Student Report Card
+    document.getElementById('printSingleReportCardBtn')?.addEventListener('click', () => {
+      const s = currentMarksStudents[currentMarksActiveStudentIdx];
+      if (!s) return;
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      const subs = getStudentSubjects(s, classObj);
+      const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+      let subRowsHtml = '';
+      let totalObtained = 0;
+      let totalMax = 0;
+
+      subs.forEach((sub, idx) => {
+        const key = `${s.id}_${sub.trim().toLowerCase()}`;
+        const rec = currentMarksRecordsMap[key];
+        const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+        const marks = rec && rec.marks !== undefined && rec.marks !== null ? Number(rec.marks) : 0;
+        totalMax += maxM;
+        totalObtained += marks;
+
+        const p = maxM ? Math.round((marks / maxM) * 100) : 0;
+        const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+        const isP = marks >= (maxM * 0.35);
+
+        subRowsHtml += `
+          <tr style="border-bottom:1px solid #e2e8f0;">
+            <td style="padding:8px; text-align:center; font-weight:bold;">${idx + 1}</td>
+            <td style="padding:8px; font-weight:bold;">${sub}</td>
+            <td style="padding:8px; text-align:center;">${maxM}</td>
+            <td style="padding:8px; text-align:center; font-weight:bold; color:#059669;">${marks}</td>
+            <td style="padding:8px; text-align:center;">${p}%</td>
+            <td style="padding:8px; text-align:center; font-weight:bold;">${g}</td>
+            <td style="padding:8px; text-align:center; font-weight:bold; color:${isP ? '#059669' : '#dc2626'};">${isP ? 'PASS' : 'FAIL'}</td>
+          </tr>
+        `;
+      });
+
+      const overallPct = totalMax ? Math.round((totalObtained / totalMax) * 100) : 0;
+      const overallGrade = overallPct >= 90 ? 'A+ (Distinction)' : overallPct >= 80 ? 'A (First Class)' : overallPct >= 70 ? 'B+ (Second Class)' : overallPct >= 60 ? 'B' : overallPct >= 50 ? 'C' : overallPct >= 35 ? 'D' : 'F';
+      const resultText = overallPct >= 35 ? 'PASSED & PROMOTED' : 'NEEDS IMPROVEMENT';
+
+      const tableHtml = `
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px; margin-top:14px;">
+          <thead>
+            <tr style="background:#f1f5f9; border-bottom:2px solid #cbd5e1;">
+              <th style="padding:8px; text-align:center; width:40px;">#</th>
+              <th style="padding:8px; text-align:left;">Subject Name</th>
+              <th style="padding:8px; text-align:center; width:90px;">Max Marks</th>
+              <th style="padding:8px; text-align:center; width:110px;">Marks Scored</th>
+              <th style="padding:8px; text-align:center; width:90px;">Percentage</th>
+              <th style="padding:8px; text-align:center; width:70px;">Grade</th>
+              <th style="padding:8px; text-align:center; width:80px;">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${subRowsHtml}
+            <tr style="background:#f8fafc; font-weight:bold; border-top:2px solid #cbd5e1;">
+              <td colspan="2" style="padding:10px; text-align:right;">GRAND TOTAL:</td>
+              <td style="padding:10px; text-align:center;">${totalMax}</td>
+              <td style="padding:10px; text-align:center; color:#059669; font-size:14px;">${totalObtained}</td>
+              <td style="padding:10px; text-align:center;">${overallPct}%</td>
+              <td style="padding:10px; text-align:center;">${overallGrade.split(' ')[0]}</td>
+              <td style="padding:10px; text-align:center; color:${overallPct >= 35 ? '#059669' : '#dc2626'};">${overallPct >= 35 ? 'PASS' : 'FAIL'}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Signatures block -->
+        <div style="margin-top:45px; display:flex; justify-content:space-between; padding:0 30px;">
+          <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+            Class Teacher
+          </div>
+          <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+            Parent / Guardian
+          </div>
+          <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+            Principal
+          </div>
+        </div>
       `;
 
-          tr.querySelector('.markDelBtn').addEventListener('click', async () => {
-            if (confirm(`Delete marks record for "${stuName}" (${r.subject} - ${r.examName || 'Exam'})?`)) {
-              await deleteDoc(doc(db, 'marks', md.id));
-              showToast('Marks record deleted.');
-              document.getElementById('marksReportBtn').click();
-            }
-          });
+      const statsHtml = `
+        <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:12px; margin-bottom:10px;">
+          <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Student: ${s.name} (Roll: ${s.rollNo || s.admissionNo})</span>
+          <span style="background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-weight:bold;">Admission No: ${s.admissionNo}</span>
+          <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:6px; font-weight:bold;">Total: ${totalObtained} / ${totalMax} (${overallPct}%)</span>
+          <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:6px; font-weight:bold;">Grade: ${overallGrade}</span>
+          <span style="background:${overallPct >= 35 ? '#d1fae5' : '#fee2e2'}; color:${overallPct >= 35 ? '#065f46' : '#991b1b'}; padding:4px 10px; border-radius:6px; font-weight:bold;">Result: ${resultText}</span>
+        </div>
+      `;
 
-          body.appendChild(tr);
-        }
-      } catch (err) {
-        console.error('Marks load error:', err);
-        alert('Error loading marks sheet: ' + err.message);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Generate Marks Sheet';
+      openPrintDocument(
+        `ACADEMIC PROGRESS REPORT CARD — ${s.name.toUpperCase()}`,
+        `Official Mark Statement for ${currentMarksExamName} • Class: ${classObj?.name || s.className || ''}`,
+        tableHtml,
+        statsHtml
+      );
+    });
+
+    // Consolidated Register Table
+    function renderConsolidatedMarksTable() {
+      const thead = document.querySelector('#marksConsolidatedTable thead');
+      const tbody = document.querySelector('#marksConsolidatedTable tbody');
+      const emptyEl = document.getElementById('marksConsolidatedEmpty');
+      if (!thead || !tbody) return;
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      if (!currentMarksStudents.length) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
       }
+      if (emptyEl) emptyEl.style.display = 'none';
+
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      const isHS = isHigherSecondaryClass(classObj?.name);
+      const subjectsList = isHS
+        ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects
+        : STANDARD_CORE_SUBJECTS;
+
+      // Render thead
+      let headHtml = `
+        <tr style="background:#f1f5f9;">
+          <th style="width:65px; text-align:center;">Roll</th>
+          <th style="min-width:160px;">Student Name</th>
+          <th style="width:100px; text-align:center;">Adm No</th>
+      `;
+      subjectsList.forEach(sub => {
+        headHtml += `<th style="text-align:center; min-width:90px;">${sub}</th>`;
+      });
+      headHtml += `
+          <th style="width:90px; text-align:center;">Total</th>
+          <th style="width:75px; text-align:center;">%</th>
+          <th style="width:70px; text-align:center;">Grade</th>
+          <th style="width:85px; text-align:center;">Result</th>
+        </tr>
+      `;
+      thead.innerHTML = headHtml;
+
+      // Render tbody rows
+      currentMarksStudents.forEach((s, idx) => {
+        const summary = calculateStudentMarksSummary(s, classObj);
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+
+        let rowHtml = `
+          <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${s.rollNo || '—'}</td>
+          <td><strong>${s.name}</strong></td>
+          <td style="text-align:center; font-family:var(--font-mono); font-size:12px;">${s.admissionNo || '—'}</td>
+        `;
+
+        subjectsList.forEach(sub => {
+          const key = `${s.id}_${sub.trim().toLowerCase()}`;
+          const rec = currentMarksRecordsMap[key];
+          const m = rec && rec.marks !== undefined && rec.marks !== null ? rec.marks : '—';
+          rowHtml += `<td style="text-align:center; font-family:var(--font-mono); font-weight:${m !== '—' ? 'bold' : 'normal'}; color:${m !== '—' ? 'var(--brand-green)' : 'var(--ink-soft)'};">${m}</td>`;
+        });
+
+        const resColor = summary.result === 'PASSED' ? '#059669' : (summary.result === 'FAIL' ? '#dc2626' : '#64748b');
+
+        rowHtml += `
+          <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${summary.anyMarkEntered ? summary.totalObtained : '—'}</td>
+          <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${summary.percentage !== null ? summary.percentage + '%' : '—'}</td>
+          <td style="text-align:center; font-weight:bold;">${summary.grade}</td>
+          <td style="text-align:center; font-weight:bold; color:${resColor};">${summary.result}</td>
+        `;
+
+        tr.innerHTML = rowHtml;
+        tr.addEventListener('click', () => openStudentFullMarksModal(idx));
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Print Consolidated Register
+    document.getElementById('printConsolidatedMarksBtn')?.addEventListener('click', () => {
+      const table = document.getElementById('marksConsolidatedTable');
+      if (!table || !currentMarksStudents.length) {
+        alert('Please load class marks first.');
+        return;
+      }
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      openPrintDocument(
+        `CONSOLIDATED MARKS REGISTER — ${classObj?.name || 'Class'}`,
+        `Official Examination Record for ${currentMarksExamName} • Total Students: ${currentMarksStudents.length}`,
+        table.outerHTML,
+        `<span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Class: ${classObj?.name || ''}</span>
+         <span style="background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-weight:bold;">Exam: ${currentMarksExamName}</span>`
+      );
+    });
+
+    // Export Consolidated Marks CSV
+    document.getElementById('exportConsolidatedMarksCsvBtn')?.addEventListener('click', () => {
+      if (!currentMarksStudents.length || !currentMarksClassId) {
+        alert('Please load class marks first.');
+        return;
+      }
+      const classObj = allClasses.find(c => c.id === currentMarksClassId);
+      const isHS = isHigherSecondaryClass(classObj?.name);
+      const subjectsList = isHS
+        ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects
+        : STANDARD_CORE_SUBJECTS;
+
+      const headers = ['Roll No', 'Student Name', 'Admission No', ...subjectsList, 'Total Marks', 'Max Marks', 'Percentage', 'Grade', 'Result'];
+      const rows = currentMarksStudents.map(s => {
+        const summary = calculateStudentMarksSummary(s, classObj);
+        const subMarks = subjectsList.map(sub => {
+          const key = `${s.id}_${sub.trim().toLowerCase()}`;
+          const rec = currentMarksRecordsMap[key];
+          return (rec && rec.marks !== undefined && rec.marks !== null) ? String(rec.marks) : '';
+        });
+
+        return [
+          `"${s.rollNo || ''}"`,
+          `"${(s.name || '').replace(/"/g, '""')}"`,
+          `"${s.admissionNo || ''}"`,
+          ...subMarks.map(m => `"${m}"`),
+          `"${summary.anyMarkEntered ? summary.totalObtained : ''}"`,
+          `"${summary.totalMax}"`,
+          `"${summary.percentage !== null ? summary.percentage + '%' : ''}"`,
+          `"${summary.grade}"`,
+          `"${summary.result}"`
+        ].join(',');
+      });
+
+      const csvContent = headers.join(',') + '\n' + rows.join('\n');
+      const classNameClean = (classObj?.name || 'Class').replace(/[\s,]+/g, '_');
+      const examNameClean = currentMarksExamName.replace(/[\s,]+/g, '_');
+      downloadCsv(`Marks_${classNameClean}_${examNameClean}.csv`, csvContent);
     });
 
     // ======================== EXAM CALENDAR ========================
