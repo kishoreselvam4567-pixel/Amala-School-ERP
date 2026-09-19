@@ -870,54 +870,6 @@
         color: var(--navy);
         border-top: 2px solid var(--line);
       }
-
-      /* Dynamic Curriculum Subject Badges & Edit Controls */
-      .stu-sub-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #f3e8ff;
-        border: 1px solid #d8b4fe;
-        color: #6b21a8;
-        padding: 5px 8px 5px 12px;
-        border-radius: 18px;
-        font-size: 12px;
-        font-weight: 700;
-        transition: all 0.18s ease;
-        user-select: none;
-      }
-      .stu-sub-pill:hover {
-        background: #ede9fe;
-        border-color: #c084fc;
-        box-shadow: 0 2px 5px rgba(107, 33, 168, 0.15);
-      }
-      .sub-pill-btn {
-        background: rgba(107, 33, 168, 0.12);
-        border: none;
-        color: #6b21a8;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0;
-        transition: all 0.15s ease;
-      }
-      .sub-pill-btn:hover {
-        background: rgba(107, 33, 168, 0.28);
-        transform: scale(1.1);
-      }
-      .sub-pill-btn.del {
-        background: rgba(239, 68, 68, 0.12);
-        color: #dc2626;
-      }
-      .sub-pill-btn.del:hover {
-        background: rgba(239, 68, 68, 0.25);
-        color: #b91c1c;
-        transform: scale(1.1);
-      }
   </style>
 </head>
 
@@ -4049,36 +4001,28 @@
         }
 
         const pills = currentAdmissionSubjects.map((sub, idx) => `
-          <div class="stu-sub-pill">
-            <span>${idx + 1}. ${escapeHtml(sub)}</span>
-            <button type="button" class="sub-pill-btn adm-sub-edit" data-idx="${idx}" title="Edit / Rename Subject">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button type="button" class="sub-pill-btn del adm-sub-del" data-idx="${idx}" title="Remove Subject">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
+          <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+            <span class="adm-sub-name" data-idx="${idx}" style="cursor:pointer;" title="Click to rename">${idx + 1}. ${escapeHtml(sub)}</span>
+            <span class="adm-sub-del" data-idx="${idx}" style="cursor:pointer; opacity:0.6; font-size:13px; font-weight:700; line-height:1; padding:0 2px;" title="Remove ${escapeHtml(sub)}" onmouseover="this.style.opacity='1'; this.style.color='#ef4444';" onmouseout="this.style.opacity='0.6'; this.style.color='inherit';">&times;</span>
+          </span>
         `).join('');
 
         const actions = `
-          <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button type="button" class="btn btn-outline btn-sm" id="addExtraSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; font-weight:600;">
             + Add Subject
           </button>
-          <button type="button" class="btn btn-outline btn-sm" id="editBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-color:#d8b4fe; color:#6b21a8; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" title="Edit subjects as a list">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            ✏️ Edit All
+          <button type="button" class="btn btn-outline btn-sm" id="editBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; cursor:pointer; font-weight:600;" title="Edit all subjects as text">
+            Edit All
           </button>
-          <button type="button" class="btn btn-outline btn-sm" id="resetSubjectsDefaultBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Reset back to class defaults">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <button type="button" class="btn btn-outline btn-sm" id="resetSubjectsDefaultBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; font-weight:500;" title="Reset back to class defaults">
             Reset
           </button>
         `;
 
         badgesEl.innerHTML = pills + actions;
 
-        // Edit single subject
-        badgesEl.querySelectorAll('.adm-sub-edit').forEach(btn => {
+        // Click subject name to edit
+        badgesEl.querySelectorAll('.adm-sub-name').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
             const idx = parseInt(btn.dataset.idx, 10);
@@ -4091,7 +4035,7 @@
           });
         });
 
-        // Delete single subject
+        // Click x to delete
         badgesEl.querySelectorAll('.adm-sub-del').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -4207,36 +4151,28 @@
         }
 
         const pills = currentEditStudentSubjects.map((sub, idx) => `
-          <div class="stu-sub-pill">
-            <span>${idx + 1}. ${escapeHtml(sub)}</span>
-            <button type="button" class="sub-pill-btn edit-stu-sub-edit" data-idx="${idx}" title="Edit / Rename Subject">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button type="button" class="sub-pill-btn del edit-stu-sub-del" data-idx="${idx}" title="Remove Subject">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
+          <span class="badge badge-purple" style="font-size:12px; padding:5px 12px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+            <span class="edit-stu-sub-name" data-idx="${idx}" style="cursor:pointer;" title="Click to rename">${idx + 1}. ${escapeHtml(sub)}</span>
+            <span class="edit-stu-sub-del" data-idx="${idx}" style="cursor:pointer; opacity:0.6; font-size:13px; font-weight:700; line-height:1; padding:0 2px;" title="Remove ${escapeHtml(sub)}" onmouseover="this.style.opacity='1'; this.style.color='#ef4444';" onmouseout="this.style.opacity='0.6'; this.style.color='inherit';">&times;</span>
+          </span>
         `).join('');
 
         const actions = `
-          <button type="button" class="btn btn-outline btn-sm" id="editStuAddSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button type="button" class="btn btn-outline btn-sm" id="editStuAddSubjectBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-style:dashed; cursor:pointer; font-weight:600;">
             + Add Subject
           </button>
-          <button type="button" class="btn btn-outline btn-sm" id="editStuBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; border-color:#d8b4fe; color:#6b21a8; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-weight:600;" title="Edit subjects as a list">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            ✏️ Edit All
+          <button type="button" class="btn btn-outline btn-sm" id="editStuBulkSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; cursor:pointer; font-weight:600;" title="Edit all subjects as text">
+            Edit All
           </button>
-          <button type="button" class="btn btn-outline btn-sm" id="editStuResetSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Reset back to class defaults">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <button type="button" class="btn btn-outline btn-sm" id="editStuResetSubjectsBtn" style="font-size:11.5px; padding:4px 10px; border-radius:14px; color:var(--ink-soft); cursor:pointer; font-weight:500;" title="Reset back to class defaults">
             Reset
           </button>
         `;
 
         badgesEl.innerHTML = pills + actions;
 
-        // Edit single subject
-        badgesEl.querySelectorAll('.edit-stu-sub-edit').forEach(btn => {
+        // Click subject name to edit
+        badgesEl.querySelectorAll('.edit-stu-sub-name').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
             const idx = parseInt(btn.dataset.idx, 10);
@@ -4249,7 +4185,7 @@
           });
         });
 
-        // Delete single subject
+        // Click x to delete
         badgesEl.querySelectorAll('.edit-stu-sub-del').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
