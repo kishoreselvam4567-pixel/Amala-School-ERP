@@ -6789,10 +6789,9 @@
         alert('Please select a class section with enrolled students first.');
         return;
       }
-      const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
       const className = (attSelectedClassObj?.name || 'Class').replace(/[\s,]+/g, '_');
 
-      const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Date', 'Status'];
+      const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Status'];
       const rows = attCurrentStudents.map(s => {
         const rec = attDailyRecordsMap[s.uid];
         const status = rec && rec.status ? rec.status : 'unmarked';
@@ -6801,13 +6800,12 @@
           `"${(s.name || '').replace(/"/g, '""')}"`,
           `"${s.admissionNo || ''}"`,
           `"${attSelectedClassObj?.name || ''}"`,
-          `"${date}"`,
-          `"${status}"`
+          `"${status.toUpperCase()}"`
         ].join(',');
       });
 
       const csvContent = headers.join(',') + '\n' + rows.join('\n');
-      downloadCsv(`Attendance_${className}_${date}.csv`, csvContent);
+      downloadCsv(`Attendance_${className}.csv`, csvContent);
     }
 
     function printMonthlyAttendanceRegister() {
