@@ -26,6 +26,7 @@ setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export { ref, uploadBytes, getDownloadURL, deleteObject };
 
 // A SECOND, completely isolated Firebase worker auth instance with pure in-memory persistence.
 // Runs purely in RAM with ZERO storage/IndexedDB/BroadcastChannel ties so creating student/parent/staff accounts
