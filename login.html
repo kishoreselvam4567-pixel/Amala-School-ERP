@@ -586,43 +586,23 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence, onAuthStateChanged
+  setPersistence, browserLocalPersistence
 } from './js/auth.js';
 
-// Auto-redirect if already signed in
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    try {
-      const uEmail = (user.email || '').toLowerCase();
-      const isAdminUser = uEmail === 'amala@123.gmail.com' || uEmail === 'admin@kishore.gmail.com' || uEmail === 'amala123@gmail.com';
-      let role = null;
-
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists() && !snap.data().deleted && !snap.data().disabled) {
-          role = snap.data().role;
-        }
-      } catch (e) {
-        console.warn('onAuthStateChanged users read:', e);
-      }
-
-      if (!role && isAdminUser) {
-        role = 'admin';
-      }
-
-      if (role && ROLE_ROUTES[role]) {
-        window.location.replace(ROLE_ROUTES[role]);
-      }
-    } catch (e) {}
-  }
-});
+// 1. ROLE DESTINATIONS
+const ROLE_ROUTES = {
+  student: 'student/dashboard.html',
+  parent: 'parent/dashboard.html',
+  staff: 'internal/staff/dashboard.html',
+  admin: 'internal/admin/dashboard.html'
+};
 
 const errBox = document.getElementById('errBox');
 const okBox = document.getElementById('okBox');
 const loginBtn = document.getElementById('loginBtn');
 const form = document.getElementById('erpLoginForm');
 
-// 1. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
+// 2. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
 let currentCaptcha = '';
 function generateCaptcha() {
   const numCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -633,7 +613,7 @@ function generateCaptcha() {
 generateCaptcha();
 document.getElementById('refreshCaptchaBtn').addEventListener('click', generateCaptcha);
 
-// 2. SHOW / HIDE PASSWORD
+// 3. SHOW / HIDE PASSWORD
 const togglePwdBtn = document.getElementById('togglePwdBtn');
 const pwdInput = document.getElementById('loginPassword');
 togglePwdBtn.addEventListener('click', () => {
@@ -641,7 +621,7 @@ togglePwdBtn.addEventListener('click', () => {
   pwdInput.type = isPwd ? 'text' : 'password';
 });
 
-// 3. RESET FORM
+// 4. RESET FORM
 document.getElementById('resetBtn').addEventListener('click', () => {
   form.reset();
   generateCaptcha();
@@ -649,7 +629,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   showBox(okBox, '');
 });
 
-// 4. LIVE SERVER CLOCK
+// 5. LIVE SERVER CLOCK
 function updateClock() {
   const now = new Date();
   const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
@@ -658,14 +638,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
-// 5. ROLE DESTINATIONS
-const ROLE_ROUTES = {
-  student: 'student/dashboard.html',
-  parent: 'parent/dashboard.html',
-  staff: 'internal/staff/dashboard.html',
-  admin: 'internal/admin/dashboard.html'
-};
 
 // 6. LOGIN HANDLER WITH ADMISSION NO / EMAIL RESOLUTION
 form.addEventListener('submit', async (e) => {

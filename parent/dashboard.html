@@ -598,6 +598,35 @@ if (initialHash !== 'overview') {
   setTimeout(() => switchTab(initialHash, false), 50);
 }
 
+// Parent Topbar Search Listener
+const topSearch = document.getElementById('topSearchInput');
+if (topSearch) {
+  topSearch.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    // Live filter on current panel
+    document.querySelectorAll('.main section:not([style*="none"]) tbody tr, .main section[style*="block"] tbody tr, .main section:not([style*="none"]) .card').forEach(el => {
+      if (el.closest('.topbar')) return;
+      const txt = el.textContent.toLowerCase();
+      el.style.display = (!term || txt.includes(term)) ? '' : 'none';
+    });
+    // Navigation keywords
+    if (term === 'homework' || term === 'hw' || term === 'assignment') switchTab('homework');
+    else if (term === 'notes' || term === 'study') switchTab('notes');
+    else if (term === 'exam' || term === 'exams') switchTab('exams');
+    else if (term === 'mark' || term === 'marks' || term === 'result') switchTab('marks');
+    else if (term === 'attendance') switchTab('attendance');
+    else if (term === 'fee' || term === 'fees') switchTab('fees');
+    else if (term === 'timetable') switchTab('timetable');
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
+      e.preventDefault();
+      topSearch.focus();
+    }
+  });
+}
+
 let currentChildProfile = null;
 
 requirePortal(['parent'], async ({ user, profile }) => {

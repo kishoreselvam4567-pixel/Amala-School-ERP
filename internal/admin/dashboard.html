@@ -182,15 +182,16 @@
       position: absolute;
       top: 68px;
       right: 36px;
-      width: 360px;
+      width: 380px;
       max-width: 90vw;
       background: var(--white);
       border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: var(--shadow-xl);
+      box-shadow: 0 14px 38px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
       z-index: 1000;
       display: none;
-      animation: fadeInScale 0.25s ease both;
+      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+      overflow: hidden;
     }
 
     .notif-dropdown.show {
@@ -198,33 +199,87 @@
     }
 
     .notif-head {
-      padding: 14px 18px;
+      padding: 13px 16px;
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: var(--white);
     }
 
     .notif-head h4 {
       margin: 0;
       font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
     }
 
     .notif-body {
-      max-height: 320px;
+      max-height: 340px;
       overflow-y: auto;
-      padding: 10px 14px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
     .notif-item {
-      padding: 10px 12px;
+      padding: 11px 13px;
       border-radius: 10px;
       background: var(--paper);
       font-size: 12.5px;
       line-height: 1.4;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .notif-item:hover {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .notif-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notif-item-title {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .notif-item-time {
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+
+    .notif-item-msg {
+      color: var(--ink-soft);
+      font-size: 11.5px;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .notif-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--paper);
     }
 
     /* Body scroll lock when modal is open */
@@ -870,7 +925,228 @@
         color: var(--navy);
         border-top: 2px solid var(--line);
       }
+
+      /* ================= GLOBAL SEARCH AUTOCOMPLETE / OMNISEARCH ================= */
+      .topbar-search {
+        position: relative;
+        width: 380px;
+        max-width: 100%;
+      }
+      .topbar-search input {
+        padding-right: 80px !important;
+      }
+      .search-clear-btn {
+        position: absolute;
+        right: 48px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #e2e8f0;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+        font-weight: 800;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink-soft);
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        transition: all 0.15s ease;
+        z-index: 5;
+      }
+      .search-clear-btn:hover {
+        background: #ef4444;
+        color: #ffffff;
+      }
+      .global-search-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        width: 480px;
+        max-width: 94vw;
+        max-height: 480px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1px solid var(--line, #e2e8f0);
+        border-radius: 14px;
+        box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 4px 14px rgba(15, 23, 42, 0.08);
+        z-index: 99999;
+        display: none;
+        flex-direction: column;
+        animation: gsFadeIn 0.16s ease-out;
+      }
+      @keyframes gsFadeIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .gs-header {
+        padding: 10px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-soft, #64748b);
+        background: #f8fafc;
+        border-bottom: 1px solid #edf2f7;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .gs-group {
+        padding: 4px 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .gs-group:last-child {
+        border-bottom: none;
+      }
+      .gs-group-title {
+        padding: 6px 14px 2px 14px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .gs-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 14px;
+        cursor: pointer;
+        transition: background 0.12s ease;
+        border-bottom: 1px solid #fafafa;
+        text-decoration: none;
+        color: inherit;
+      }
+      .gs-item:last-child {
+        border-bottom: none;
+      }
+      .gs-item:hover, .gs-item.selected {
+        background: #f0fdf4;
+      }
+      .gs-item-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+        background: #f1f5f9;
+        color: #334155;
+      }
+      .gs-item-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .gs-item-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--navy, #0f172a);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .gs-item-sub {
+        font-size: 11.5px;
+        color: var(--ink-soft, #64748b);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .gs-item-badge {
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .gs-item-arrow {
+        color: #cbd5e1;
+        display: flex;
+        align-items: center;
+      }
+      .gs-empty {
+        padding: 28px 18px;
+        text-align: center;
+        color: var(--ink-soft, #64748b);
+        font-size: 13px;
+      }
+      .gs-footer-hint {
+        padding: 8px 14px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        font-size: 11px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      [data-theme="dark"] .global-search-dropdown {
+        background: #1e293b;
+        border-color: #334155;
+        box-shadow: 0 16px 36px -4px rgba(0,0,0,0.5);
+      }
+      [data-theme="dark"] .gs-header,
+      [data-theme="dark"] .gs-footer-hint {
+        background: #0f172a;
+        border-color: #334155;
+        color: #94a3b8;
+      }
+      [data-theme="dark"] .gs-group {
+        border-color: #334155;
+      }
+      [data-theme="dark"] .gs-item {
+        border-color: #334155;
+      }
+      [data-theme="dark"] .gs-item:hover,
+      [data-theme="dark"] .gs-item.selected {
+        background: #334155;
+      }
+      [data-theme="dark"] .gs-item-title {
+        color: #f8fafc;
+      }
+      [data-theme="dark"] .gs-item-icon {
+        background: #334155;
+        color: #f1f5f9;
+      }
+      [data-theme="dark"] .search-clear-btn {
+        background: #334155;
+        color: #cbd5e1;
+      }
+
+      /* Homework Styles in Admin */
+      .hw-due-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 700;
+        font-size: 11.5px;
+        padding: 3px 9px;
+        border-radius: 12px;
+      }
+      .hw-due-urgent {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .hw-due-soon {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .hw-due-normal {
+        background: #e0f2fe;
+        color: #0369a1;
+      }
   </style>
+
 </head>
 
 <body>
@@ -882,27 +1158,23 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- NOTIFICATION DROPDOWN FLYOUT -->
-  <div class="notif-dropdown" id="notifDropdown">
+  <div class="notif-dropdown" id="notifDropdown" role="dialog" aria-label="Campus Notifications">
     <div class="notif-head">
-      <h4>Campus Notifications</h4>
-      <span class="badge badge-good" id="notifCountBadge">3 Active</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <h4>Campus Notifications</h4>
+        <span class="badge badge-outline" id="notifCountBadge" style="font-size:11px;">0 Active</span>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="closeNotifDropdownBtn" style="padding:2px 8px; font-size:17px; line-height:1; border-radius:6px; color:var(--ink-soft);" title="Close Notifications" aria-label="Close Notifications">&times;</button>
     </div>
     <div class="notif-body" id="notifList">
-      <div class="notif-item">
-        <strong>Cloud Sync Active</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Firestore Database &amp; Auth are operating
-          normally.</div>
-      </div>
-      <div class="notif-item">
-        <strong>Student Admissions</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Unified Student + Parent admission engine
-          ready.</div>
-      </div>
-      <div class="notif-item">
-        <strong>Academic Year 2025–2026</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Semester registers and examinations active.
-        </div>
-      </div>
+      <div style="text-align:center; padding:24px 12px; color:var(--ink-soft); font-size:12.5px;">Loading campus notifications…</div>
+    </div>
+    <div class="notif-footer">
+      <span style="font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--brand-green);"></span>
+        Live Cloud Sync
+      </span>
+      <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnouncementsBtn" style="font-size:11.5px; padding:4px 10px; font-weight:700;">View Announcements &rarr;</button>
     </div>
   </div>
 
@@ -1723,7 +1995,67 @@
       </div>
     </div>
 
+    <!-- ================= ASSIGN HOMEWORK MODAL ================= -->
+    <div class="profile-modal-overlay" id="adminAssignHwModal">
+      <div class="profile-modal-card" style="max-width:580px;">
+        <button type="button" class="modal-close" id="closeAdminAssignHwModal">&times;</button>
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+          <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+              <path d="M6 6h10" />
+              <path d="M6 10h10" />
+              <path d="M6 14h6" />
+            </svg>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:18px; color:var(--ink);">Assign New Homework</h3>
+            <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Publish Homework or Assignment Task to Class</p>
+          </div>
+        </div>
+
+        <form id="adminAssignHwForm" onsubmit="return false;">
+          <div class="field-row">
+            <div class="field" style="flex:1.2;">
+              <label>Target Class <span style="color:var(--bad);">*</span></label>
+              <select id="adminHwNewClassSel" required class="form-select"></select>
+            </div>
+            <div class="field">
+              <label>Due Date <span style="color:var(--bad);">*</span></label>
+              <input type="date" id="adminHwNewDue" required>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>Subject <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="adminHwNewSubject" required placeholder="e.g. Mathematics, Science, English…">
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>Homework Title <span style="color:var(--bad);">*</span></label>
+            <input type="text" id="adminHwNewTitle" required placeholder="e.g. Chapter 4 Exercise 4.2 Problems 1-10">
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>Instructions &amp; Description</label>
+            <textarea id="adminHwNewDesc" rows="3" placeholder="Provide assignment details, instructions, or notes for students and parents…"></textarea>
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>Attachment (optional PDF or Document)</label>
+            <input type="file" id="adminHwNewFile" accept="application/pdf,image/*">
+          </div>
+
+          <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn btn-outline" id="cancelAdminAssignHwBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="submitAdminAssignHwBtn" style="min-width:140px; font-weight:700;">Publish Homework</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div class="app-shell">
+
 
       <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
@@ -1794,6 +2126,15 @@
             </svg>
             Attendance Reports
           </a>
+          <a href="#" data-tab="homework">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+              <path d="M6 6h10" />
+              <path d="M6 10h10" />
+              <path d="M6 14h6" />
+            </svg>
+            Homework &amp; Assignments
+          </a>
           <a href="#" data-tab="marks">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 3v18h18" />
@@ -1843,20 +2184,19 @@
 
         <!-- TOP NAVIGATION BAR -->
         <div class="topbar">
-          <div class="topbar-search">
+          <div class="topbar-search" id="topbarSearchContainer">
             <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
               stroke-width="2">
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
             </svg>
             <input type="text" id="globalSearchInput"
-              placeholder="Search student name, admission no, roll no, father name, staff…">
-            <span class="shortcut-badge" title="Search" onclick="document.getElementById('globalSearchInput').focus()">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
+              placeholder="Search homework, classes, students, staff, parents…" autocomplete="off">
+            <button type="button" id="globalSearchClearBtn" class="search-clear-btn" title="Clear search">✕</button>
+            <span class="shortcut-badge" title="Search" id="globalSearchBadge" onclick="document.getElementById('globalSearchInput').focus()">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </span>
+            <div id="globalSearchResults" class="global-search-dropdown" style="display:none;"></div>
           </div>
 
           <div class="topbar-actions">
@@ -3115,6 +3455,77 @@
             </div>
           </section>
 
+          <!-- ================= 6B. HOMEWORK & ASSIGNMENTS TAB ================= -->
+          <section id="panel-homework" style="display:none;">
+            <div class="main-header">
+              <div>
+                <h2>Homework &amp; Assignments</h2>
+                <p>Monitor, track, and assign homework tasks and study materials across classes</p>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button type="button" class="btn btn-primary btn-sm" id="adminAssignHwBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Assign Homework
+                </button>
+                <button type="button" class="btn-exit-tab" data-go-tab="overview"
+                  title="Exit this tab and return to Home Overview">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  Exit to Home
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="card card-static" style="margin-bottom:20px; padding:16px 20px;">
+              <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                <div style="min-width:200px; flex:1;">
+                  <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">Filter by Class</label>
+                  <select id="adminHwClassFilter" class="form-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); font-size:13.5px;">
+                    <option value="">All Classes</option>
+                  </select>
+                </div>
+                <div style="min-width:220px; flex:1.5;">
+                  <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">Filter by Subject</label>
+                  <input type="text" id="adminHwSubjectFilter" placeholder="Filter subject or title…" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); font-size:13.5px;">
+                </div>
+                <div style="align-self:flex-end;">
+                  <button type="button" class="btn btn-outline btn-sm" id="adminHwRefreshBtn" style="padding:9px 16px; font-weight:600;">
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table of Homework -->
+            <div class="card table-wrap">
+              <table id="adminHwTable">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Title &amp; Description</th>
+                    <th>Due Date</th>
+                    <th>Assigned Date</th>
+                    <th>Attachment</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--ink-soft);">Loading homework assignments…</td></tr>
+                </tbody>
+              </table>
+              <div class="empty-state" id="adminHwEmpty" style="display:none; padding:40px 16px; text-align:center;">
+                No homework assignments found.
+              </div>
+            </div>
+          </section>
+
           <!-- ================= 7. MARKS REPORTS & ACADEMIC PERFORMANCE TAB ================= -->
           <section id="panel-marks" style="display:none;">
             <div class="main-header">
@@ -3496,7 +3907,7 @@
 
     <script type="module">
       import {
-        auth, db, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
+        auth, db, storage, ref, uploadBytes, getDownloadURL, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
         collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot,
         getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
       } from '../../js/auth.js';
@@ -3539,20 +3950,162 @@
         if (window.innerWidth > 820) closeSidebar();
       });
 
-      // Notification Dropdown Toggle
+      // ======================== LIVE CAMPUS NOTIFICATIONS ========================
       const notifBellBtn = document.getElementById('notifBellBtn');
       const notifDropdown = document.getElementById('notifDropdown');
+      const notifList = document.getElementById('notifList');
+      const notifCountBadge = document.getElementById('notifCountBadge');
+      const closeNotifDropdownBtn = document.getElementById('closeNotifDropdownBtn');
+      const viewAllAnnouncementsBtn = document.getElementById('viewAllAnnouncementsBtn');
+      const notifBellDot = notifBellBtn ? notifBellBtn.querySelector('.dot') : null;
+
+      function closeNotificationDropdown() {
+        if (notifDropdown) notifDropdown.classList.remove('show');
+      }
+
+      function openNotificationDropdown() {
+        if (!notifDropdown) return;
+        notifDropdown.classList.add('show');
+        // Once opened/viewed, hide the unread pulse dot
+        if (notifBellDot) notifBellDot.style.display = 'none';
+      }
+
       if (notifBellBtn && notifDropdown) {
         notifBellBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          notifDropdown.classList.toggle('show');
+          if (notifDropdown.classList.contains('show')) {
+            closeNotificationDropdown();
+          } else {
+            openNotificationDropdown();
+          }
         });
+
+        // Close on clicking outside
         document.addEventListener('click', (e) => {
-          if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn) {
-            notifDropdown.classList.remove('show');
+          if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn && !notifBellBtn.contains(e.target)) {
+            closeNotificationDropdown();
+          }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && notifDropdown.classList.contains('show')) {
+            closeNotificationDropdown();
           }
         });
       }
+
+      if (closeNotifDropdownBtn) {
+        closeNotifDropdownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeNotificationDropdown();
+        });
+      }
+
+      if (viewAllAnnouncementsBtn) {
+        viewAllAnnouncementsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeNotificationDropdown();
+          switchTab('announcements');
+        });
+      }
+
+      function renderLiveCampusNotifications(items) {
+        if (!notifList || !notifCountBadge) return;
+
+        const count = items.length;
+        if (count === 0) {
+          notifCountBadge.textContent = '0 Active';
+          notifCountBadge.className = 'badge badge-outline';
+          if (notifBellDot) notifBellDot.style.display = 'none';
+
+          notifList.innerHTML = `
+            <div style="text-align:center; padding:28px 14px; color:var(--ink-soft); font-size:12.5px;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px auto; opacity:0.4; display:block;">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <strong style="display:block; color:var(--ink); margin-bottom:2px;">No Notifications Uploaded</strong>
+              <span>Only announcements and circulars uploaded to the system appear here.</span>
+            </div>
+          `;
+          return;
+        }
+
+        notifCountBadge.textContent = `${count} Active`;
+        notifCountBadge.className = 'badge badge-good';
+        if (notifBellDot && !notifDropdown.classList.contains('show')) {
+          notifBellDot.style.display = 'block';
+        }
+
+        notifList.innerHTML = items.slice(0, 10).map(ann => {
+          let dateStr = 'Recent';
+          if (ann.createdAt?.toDate) {
+            const d = ann.createdAt.toDate();
+            dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+          }
+
+          let badgeHtml = '<span class="badge badge-purple" style="font-size:10px; padding:1px 6px;">All Portals</span>';
+          if (ann.targetAudience === 'teachers') {
+            badgeHtml = '<span class="badge badge-good" style="font-size:10px; padding:1px 6px;">Staff Only</span>';
+          } else if (ann.targetAudience === 'students_parents') {
+            badgeHtml = '<span class="badge badge-navy" style="font-size:10px; padding:1px 6px;">Students &amp; Parents</span>';
+          }
+
+          const safeTitle = (ann.title || 'Campus Announcement').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+          const safeMsg = (ann.message || '').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+
+          return `
+            <div class="notif-item" data-id="${ann.id}" title="Click to view in Announcements">
+              <div class="notif-item-header">
+                <span class="notif-item-title">${safeTitle}</span>
+                <span class="notif-item-time">${dateStr}</span>
+              </div>
+              <div class="notif-item-msg">${safeMsg}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                ${badgeHtml}
+                <span style="font-size:11px; color:var(--brand-green); font-weight:700;">Open &rarr;</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Once user clicks any notification, immediately close dropdown and switch to announcements
+        notifList.querySelectorAll('.notif-item').forEach(itemEl => {
+          itemEl.addEventListener('click', () => {
+            closeNotificationDropdown();
+            if (notifBellDot) notifBellDot.style.display = 'none';
+            switchTab('announcements');
+          });
+        });
+      }
+
+      // Realtime listener for Firestore announcements collection
+      function setupRealtimeNotifications() {
+        try {
+          const annCol = collection(db, 'announcements');
+          const q = query(annCol, orderBy('createdAt', 'desc'));
+          onSnapshot(q, (snap) => {
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderLiveCampusNotifications(items);
+          }, (err) => {
+            console.warn('Ordered announcements onSnapshot notice, falling back to unordered listener:', err);
+            onSnapshot(annCol, (fallbackSnap) => {
+              const fallbackItems = fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+              fallbackItems.sort((a, b) => {
+                const ta = a.createdAt?.seconds || 0;
+                const tb = b.createdAt?.seconds || 0;
+                return tb - ta;
+              });
+              renderLiveCampusNotifications(fallbackItems);
+            }, (fallbackErr) => {
+              console.error('Announcements onSnapshot fallback failed:', fallbackErr);
+            });
+          });
+        } catch (e) {
+          console.error('Error setting up realtime announcements listener:', e);
+        }
+      }
+      setupRealtimeNotifications();
 
       // Dark Mode Toggle
       const themeToggle = document.getElementById('themeToggle');
@@ -3699,10 +4252,16 @@
         if (tabName === 'staff') { loadStaff(); loadClasses(); }
         if (tabName === 'students') { loadStudents(); loadClasses(); }
         if (tabName === 'parents') { loadStudents().then(() => loadParents()); }
+        if (tabName === 'homework') { loadClasses().then(() => loadAdminHomework()); }
         if (tabName === 'attendance') { initAttendancePanel(); }
         else { cleanupAttendanceListeners(); }
         if (tabName === 'exams') loadExamCalendar();
         if (tabName === 'announcements') loadAnnouncements();
+
+        const activeSearchTerm = document.getElementById('globalSearchInput')?.value?.toLowerCase()?.trim();
+        if (activeSearchTerm) {
+          setTimeout(() => { if (typeof filterCurrentActiveTab === 'function') filterCurrentActiveTab(activeSearchTerm); }, 120);
+        }
 
         if (window.innerWidth <= 820) {
           closeSidebar();
@@ -3768,32 +4327,6 @@
       }
       initSpeedDobPicker();
 
-      // Live Global Search Filter (⌘F or Typing)
-      const globalSearchInput = document.getElementById('globalSearchInput');
-      if (globalSearchInput) {
-        globalSearchInput.addEventListener('input', (e) => {
-          const term = e.target.value.toLowerCase().trim();
-          document.querySelectorAll('#stuTable tbody tr').forEach(row => {
-            const txt = row.textContent.toLowerCase();
-            row.style.display = txt.includes(term) ? '' : 'none';
-          });
-          document.querySelectorAll('#stfTable tbody tr').forEach(row => {
-            const txt = row.textContent.toLowerCase();
-            row.style.display = txt.includes(term) ? '' : 'none';
-          });
-          document.querySelectorAll('#clsTable tbody tr').forEach(row => {
-            const txt = row.textContent.toLowerCase();
-            row.style.display = txt.includes(term) ? '' : 'none';
-          });
-        });
-
-        window.addEventListener('keydown', (e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-            e.preventDefault();
-            globalSearchInput.focus();
-          }
-        });
-      }
 
       // Modal Scroll-Lock Helper
       function updateBodyModalState() {
@@ -3845,6 +4378,47 @@
         });
       });
 
+      // Assign Homework Modal Handlers
+      const adminAssignHwModal = document.getElementById('adminAssignHwModal');
+      document.getElementById('adminAssignHwBtn')?.addEventListener('click', () => {
+        if (adminAssignHwModal) {
+          // Populate class select
+          const sel = document.getElementById('adminHwNewClassSel');
+          if (sel) {
+            sel.innerHTML = '<option value="">— Select Target Class —</option>';
+            allClasses.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.id;
+              opt.textContent = c.name || `${c.grade || ''} ${c.section || ''}`.trim();
+              sel.appendChild(opt);
+            });
+          }
+          // Default due date to tomorrow
+          const dueInput = document.getElementById('adminHwNewDue');
+          if (dueInput && !dueInput.value) {
+            const tom = new Date();
+            tom.setDate(tom.getDate() + 1);
+            dueInput.value = tom.toISOString().split('T')[0];
+          }
+          adminAssignHwModal.classList.add('open');
+          updateBodyModalState();
+        }
+      });
+      document.getElementById('closeAdminAssignHwModal')?.addEventListener('click', () => {
+        adminAssignHwModal?.classList.remove('open');
+        updateBodyModalState();
+      });
+      document.getElementById('cancelAdminAssignHwBtn')?.addEventListener('click', () => {
+        adminAssignHwModal?.classList.remove('open');
+        updateBodyModalState();
+      });
+      adminAssignHwModal?.addEventListener('click', (e) => {
+        if (e.target === adminAssignHwModal) {
+          adminAssignHwModal.classList.remove('open');
+          updateBodyModalState();
+        }
+      });
+
       // Close Modals on ESC Key
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -3855,14 +4429,740 @@
         }
       });
 
-      // Cache
+      // Data Caches
       let allClasses = [];
       let allStudentsCache = [];
       let allStaffCache = [];
       let allParentsCache = [];
       let allExamsCache = [];
+      let allHomeworkCache = [];
       let currentModalStudent = null;
       let currentModalStaff = null;
+
+      // ======================== GLOBAL OMNISEARCH & LIVE FILTER ENGINE ========================
+      let selectedDropdownIndex = -1;
+
+      function filterCurrentActiveTab(term) {
+        // 1. Parents tab (as in user screenshot)
+        if (currentActiveTab === 'parents') {
+          document.querySelectorAll('#parTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 2. Students tab
+        else if (currentActiveTab === 'students') {
+          document.querySelectorAll('#stuTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 3. Staff tab
+        else if (currentActiveTab === 'staff') {
+          document.querySelectorAll('#stfTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 4. Classes tab
+        else if (currentActiveTab === 'classes') {
+          document.querySelectorAll('#clsTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 5. Homework tab
+        else if (currentActiveTab === 'homework') {
+          if (typeof renderAdminHwTable === 'function') renderAdminHwTable();
+        }
+        // 6. Exams tab
+        else if (currentActiveTab === 'exams') {
+          document.querySelectorAll('#examCalTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 7. Attendance tab
+        else if (currentActiveTab === 'attendance') {
+          document.querySelectorAll('#attDayTable tbody tr, #attAuditTable tbody tr').forEach(row => {
+            const txt = row.textContent.toLowerCase();
+            row.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+        // 8. Announcements tab
+        else if (currentActiveTab === 'announcements') {
+          document.querySelectorAll('.announcement-card').forEach(card => {
+            const txt = card.textContent.toLowerCase();
+            card.style.display = (!term || txt.includes(term)) ? '' : 'none';
+          });
+        }
+      }
+
+      function performGlobalSearch(rawTerm) {
+        const term = (rawTerm || '').trim().toLowerCase();
+        const resultsEl = document.getElementById('globalSearchResults');
+        const clearBtn = document.getElementById('globalSearchClearBtn');
+
+        if (clearBtn) {
+          clearBtn.style.display = term.length > 0 ? 'inline-flex' : 'none';
+        }
+
+        // Live contextual filter on whatever panel user is currently viewing
+        filterCurrentActiveTab(term);
+
+        if (!term) {
+          if (resultsEl) resultsEl.style.display = 'none';
+          selectedDropdownIndex = -1;
+          return;
+        }
+
+        const results = {
+          nav: [],
+          homework: [],
+          classes: [],
+          students: [],
+          staff: [],
+          parents: [],
+          exams: []
+        };
+
+        // Navigation shortcuts
+        const NAV_PAGES = [
+          { key: 'homework', title: 'Homework & Assignments', sub: 'Monitor, assign and track school homework & PDFs', tab: 'homework', icon: '📝' },
+          { key: 'classes', title: 'Classes & Sections', sub: 'Manage grades, section distribution and subjects', tab: 'classes', icon: '🏫' },
+          { key: 'students', title: 'Student Directory', sub: 'Inspect student records, roll numbers, admissions', tab: 'students', icon: '🎓' },
+          { key: 'parents', title: 'Parent Linkage Portal', sub: 'Registered parent logins, ward links & contacts', tab: 'parents', icon: '👨‍👩‍👧' },
+          { key: 'staff', title: 'Teachers & Staff', sub: 'Faculty roster, teacher credentials, subjects & duties', tab: 'staff', icon: '👨‍🏫' },
+          { key: 'attendance', title: 'Attendance Reports', sub: 'Daily roll call, monthly attendance matrix & audits', tab: 'attendance', icon: '📋' },
+          { key: 'marks', title: 'Marks & Academic Results', sub: 'Marks intelligence, scorecards, exam registers', tab: 'marks', icon: '📊' },
+          { key: 'exams', title: 'Exam Calendar', sub: 'Examination timetables, dates and schedules', tab: 'exams', icon: '📅' },
+          { key: 'announcements', title: 'Announcements & Circulars', sub: 'School notices, news and administrative circulars', tab: 'announcements', icon: '📢' },
+          { key: 'admission', title: 'New Student Admission', sub: 'Unified Student + Parent fast onboarding modal', action: 'admission', icon: '✨' }
+        ];
+
+        NAV_PAGES.forEach(p => {
+          const matchTarget = `${p.key} ${p.title} ${p.sub}`.toLowerCase();
+          if (matchTarget.includes(term) || (term.includes('class') && p.key === 'classes') || (term.includes('home') && p.key === 'homework') || (term.includes('parent') && p.key === 'parents') || (term.includes('teach') && p.key === 'staff')) {
+            results.nav.push(p);
+          }
+        });
+
+        // Homework matches
+        allHomeworkCache.forEach(hw => {
+          const target = `${hw.title || ''} ${hw.subject || ''} ${hw.className || ''} ${hw.description || ''} ${hw.dueDate || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.homework.push(hw);
+          }
+        });
+
+        // Classes matches
+        allClasses.forEach(cls => {
+          const cName = cls.name || `${cls.grade || ''} ${cls.section || ''}`.trim();
+          const target = `${cName} ${cls.grade || ''} ${cls.section || ''} ${cls.stream || ''} ${cls.classTeacher || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.classes.push(cls);
+          }
+        });
+
+        // Students matches
+        allStudentsCache.forEach(s => {
+          const target = `${s.name || ''} ${s.admissionNo || ''} ${s.rollNo || ''} ${s.className || ''} ${s.fatherName || ''} ${s.phone || ''} ${s.mobile || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.students.push(s);
+          }
+        });
+
+        // Staff matches
+        allStaffCache.forEach(stf => {
+          const target = `${stf.name || ''} ${stf.username || ''} ${stf.majorSubject || ''} ${stf.designation || ''} ${stf.phone || ''} ${stf.email || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.staff.push(stf);
+          }
+        });
+
+        // Parents matches
+        allParentsCache.forEach(p => {
+          const target = `${p.name || ''} ${p.childName || ''} ${p.studentName || ''} ${p.phone || ''} ${p.email || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.parents.push(p);
+          }
+        });
+
+        // Exams matches
+        allExamsCache.forEach(ex => {
+          const target = `${ex.title || ex.name || ''} ${ex.subject || ''} ${ex.className || ''} ${ex.examDate || ''}`.toLowerCase();
+          if (target.includes(term)) {
+            results.exams.push(ex);
+          }
+        });
+
+        renderOmnisearchDropdown(results, term);
+      }
+
+      function renderOmnisearchDropdown(results, term) {
+        const drop = document.getElementById('globalSearchResults');
+        if (!drop) return;
+
+        let totalCount = results.nav.length + results.homework.length + results.classes.length +
+                         results.students.length + results.staff.length + results.parents.length + results.exams.length;
+
+        if (totalCount === 0) {
+          drop.innerHTML = `
+            <div class="gs-header">
+              <span>Search Results</span>
+              <span>0 Found</span>
+            </div>
+            <div class="gs-empty">
+              <div style="font-size:22px; margin-bottom:6px;">🔍</div>
+              <div>No results matching "<strong>${escapeHtml(term)}</strong>"</div>
+              <div style="font-size:11px; color:#94a3b8; margin-top:4px;">Try searching for "homework", "classes", student name, staff ID, or parent mobile.</div>
+            </div>
+          `;
+          drop.style.display = 'flex';
+          selectedDropdownIndex = -1;
+          return;
+        }
+
+        let html = `
+          <div class="gs-header">
+            <span>Omnisearch Results</span>
+            <span style="font-weight:700; color:var(--brand-green);">${totalCount} match${totalCount > 1 ? 'es' : ''}</span>
+          </div>
+        `;
+
+        // 1. Pages & Actions
+        if (results.nav.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>🚀</span> Navigation &amp; Actions</div>`;
+          results.nav.slice(0, 3).forEach(n => {
+            html += `
+              <div class="gs-item" data-type="nav" data-tab="${n.tab || ''}" data-action="${n.action || ''}">
+                <div class="gs-item-icon" style="background:#f0fdf4; color:#15803d;">${n.icon}</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(n.title)}</div>
+                  <div class="gs-item-sub">${escapeHtml(n.sub)}</div>
+                </div>
+                <span class="gs-item-badge badge-good">Go</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 2. Homework
+        if (results.homework.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>📝</span> Homework &amp; Assignments</div>`;
+          results.homework.slice(0, 4).forEach(hw => {
+            html += `
+              <div class="gs-item" data-type="homework" data-id="${hw.id}">
+                <div class="gs-item-icon" style="background:#e0f2fe; color:#0369a1;">📝</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(hw.title || 'Homework')} <span style="font-size:11.5px; font-weight:normal; color:#64748b;">(${escapeHtml(hw.className || 'Class')})</span></div>
+                  <div class="gs-item-sub">Subject: <strong>${escapeHtml(hw.subject || 'General')}</strong> • Due: ${hw.dueDate || '—'}</div>
+                </div>
+                <span class="gs-item-badge badge-yellow">Homework</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 3. Classes
+        if (results.classes.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>🏫</span> Classes &amp; Sections</div>`;
+          results.classes.slice(0, 4).forEach(cls => {
+            const cName = cls.name || `${cls.grade || ''} ${cls.section || ''}`.trim();
+            html += `
+              <div class="gs-item" data-type="class" data-id="${cls.id}" data-name="${escapeHtml(cName)}">
+                <div class="gs-item-icon" style="background:#fef3c7; color:#b45309;">🏫</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(cName)}</div>
+                  <div class="gs-item-sub">Grade: ${escapeHtml(cls.grade || '—')} • Section: ${escapeHtml(cls.section || '—')}</div>
+                </div>
+                <span class="gs-item-badge badge-blue">Class</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 4. Students
+        if (results.students.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>🎓</span> Students</div>`;
+          results.students.slice(0, 5).forEach(s => {
+            const init = (s.name || 'S').charAt(0).toUpperCase();
+            html += `
+              <div class="gs-item" data-type="student" data-uid="${s.uid}">
+                <div class="gs-item-icon" style="background:#e0e7ff; color:#4338ca;">${init}</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(s.name || 'Student')} <span style="font-size:11.5px; font-weight:normal; color:#64748b;">(Class ${escapeHtml(s.className || '—')})</span></div>
+                  <div class="gs-item-sub">Adm: ${escapeHtml(s.admissionNo || '—')} • Roll: ${escapeHtml(s.rollNo || '—')} ${s.fatherName ? '• Father: ' + escapeHtml(s.fatherName) : ''}</div>
+                </div>
+                <span class="gs-item-badge badge-good">Profile</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 5. Staff
+        if (results.staff.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>👨‍🏫</span> Teachers &amp; Staff</div>`;
+          results.staff.slice(0, 4).forEach(stf => {
+            const init = (stf.name || 'T').charAt(0).toUpperCase();
+            html += `
+              <div class="gs-item" data-type="staff" data-id="${stf.id}">
+                <div class="gs-item-icon" style="background:#fce7f3; color:#be185d;">${init}</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(stf.name || 'Staff')}</div>
+                  <div class="gs-item-sub">${escapeHtml(stf.designation || 'Teacher')} • Subject: ${escapeHtml(stf.majorSubject || '—')}</div>
+                </div>
+                <span class="gs-item-badge badge-indigo">Faculty</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 6. Parents
+        if (results.parents.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>👨‍👩‍👧</span> Parent Linkages</div>`;
+          results.parents.slice(0, 4).forEach(p => {
+            html += `
+              <div class="gs-item" data-type="parent" data-id="${p.id}">
+                <div class="gs-item-icon" style="background:#ecfdf5; color:#047857;">👨‍👩‍👧</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(p.name || 'Parent')}</div>
+                  <div class="gs-item-sub">Phone: ${escapeHtml(p.phone || '—')} • Email: ${escapeHtml(p.email || '—')}</div>
+                </div>
+                <span class="gs-item-badge badge-yellow">Parent</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        // 7. Exams
+        if (results.exams.length > 0) {
+          html += `<div class="gs-group"><div class="gs-group-title"><span>📅</span> Examinations</div>`;
+          results.exams.slice(0, 3).forEach(ex => {
+            html += `
+              <div class="gs-item" data-type="exam" data-id="${ex.id}">
+                <div class="gs-item-icon" style="background:#fef2f2; color:#b91c1c;">📅</div>
+                <div class="gs-item-info">
+                  <div class="gs-item-title">${escapeHtml(ex.title || ex.name || 'Exam')}</div>
+                  <div class="gs-item-sub">Date: ${escapeHtml(ex.examDate || '—')} • Class: ${escapeHtml(ex.className || 'All')}</div>
+                </div>
+                <span class="gs-item-badge badge-navy">Exam</span>
+                <span class="gs-item-arrow">›</span>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        html += `
+          <div class="gs-footer-hint">
+            <span>Use <kbd>↑</kbd> <kbd>↓</kbd> to navigate, <kbd>Enter</kbd> to select</span>
+            <span><kbd>Esc</kbd> to dismiss</span>
+          </div>
+        `;
+
+        drop.innerHTML = html;
+        drop.style.display = 'flex';
+        selectedDropdownIndex = -1;
+
+        drop.querySelectorAll('.gs-item').forEach(item => {
+          item.addEventListener('click', () => {
+            executeSearchResultItem(item);
+          });
+        });
+      }
+
+      function executeSearchResultItem(item) {
+        const drop = document.getElementById('globalSearchResults');
+        if (drop) drop.style.display = 'none';
+
+        const type = item.dataset.type;
+
+        if (type === 'nav') {
+          const action = item.dataset.action;
+          const tab = item.dataset.tab;
+          if (action === 'admission') {
+            document.getElementById('sideQuickAddBtn')?.click();
+          } else if (tab) {
+            switchTab(tab);
+          }
+        } else if (type === 'student') {
+          const uid = item.dataset.uid;
+          const st = allStudentsCache.find(x => x.uid === uid);
+          if (st) {
+            openStudentProfileModal(st);
+          } else {
+            switchTab('students');
+          }
+        } else if (type === 'staff') {
+          const id = item.dataset.id;
+          const stf = allStaffCache.find(x => x.id === id);
+          if (stf) {
+            openStaffDetailModal(stf);
+          } else {
+            switchTab('staff');
+          }
+        } else if (type === 'class') {
+          switchTab('classes');
+          const cName = item.dataset.name;
+          if (cName) {
+            setTimeout(() => {
+              const input = document.getElementById('globalSearchInput');
+              if (input) input.value = cName;
+              filterCurrentActiveTab(cName.toLowerCase());
+            }, 100);
+          }
+        } else if (type === 'homework') {
+          switchTab('homework');
+        } else if (type === 'parent') {
+          switchTab('parents');
+          const pid = item.dataset.id;
+          const p = allParentsCache.find(x => x.id === pid);
+          if (p && p.name) {
+            setTimeout(() => {
+              const input = document.getElementById('globalSearchInput');
+              if (input) input.value = p.name;
+              filterCurrentActiveTab(p.name.toLowerCase());
+            }, 100);
+          }
+        } else if (type === 'exam') {
+          switchTab('exams');
+        }
+      }
+
+      // Omnisearch listeners & keyboard navigation
+      const globalSearchInput = document.getElementById('globalSearchInput');
+      const globalSearchResults = document.getElementById('globalSearchResults');
+      const globalSearchClearBtn = document.getElementById('globalSearchClearBtn');
+
+      if (globalSearchInput) {
+        globalSearchInput.addEventListener('input', (e) => {
+          performGlobalSearch(e.target.value);
+        });
+
+        globalSearchInput.addEventListener('focus', () => {
+          if (globalSearchInput.value.trim().length > 0) {
+            performGlobalSearch(globalSearchInput.value);
+          }
+        });
+
+        globalSearchInput.addEventListener('keydown', (e) => {
+          const items = globalSearchResults ? Array.from(globalSearchResults.querySelectorAll('.gs-item')) : [];
+          if (!globalSearchResults || globalSearchResults.style.display === 'none' || items.length === 0) {
+            if (e.key === 'Escape') {
+              globalSearchInput.blur();
+            }
+            return;
+          }
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedDropdownIndex = (selectedDropdownIndex + 1) % items.length;
+            items.forEach((it, idx) => it.classList.toggle('selected', idx === selectedDropdownIndex));
+            items[selectedDropdownIndex]?.scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedDropdownIndex = (selectedDropdownIndex - 1 + items.length) % items.length;
+            items.forEach((it, idx) => it.classList.toggle('selected', idx === selectedDropdownIndex));
+            items[selectedDropdownIndex]?.scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedDropdownIndex >= 0 && items[selectedDropdownIndex]) {
+              items[selectedDropdownIndex].click();
+            } else if (items.length > 0) {
+              items[0].click();
+            }
+          } else if (e.key === 'Escape') {
+            globalSearchResults.style.display = 'none';
+          }
+        });
+
+        // Global hotkey Ctrl+K / Cmd+K / / to focus search
+        window.addEventListener('keydown', (e) => {
+          if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
+            e.preventDefault();
+            globalSearchInput.focus();
+            globalSearchInput.select();
+          } else if (e.key === '/' && document.activeElement !== globalSearchInput && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            globalSearchInput.focus();
+          }
+        });
+      }
+
+      if (globalSearchClearBtn) {
+        globalSearchClearBtn.addEventListener('click', () => {
+          if (globalSearchInput) {
+            globalSearchInput.value = '';
+            globalSearchInput.focus();
+          }
+          performGlobalSearch('');
+        });
+      }
+
+      // Close Omnisearch dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const container = document.getElementById('topbarSearchContainer');
+        if (container && !container.contains(e.target)) {
+          if (globalSearchResults) globalSearchResults.style.display = 'none';
+        }
+      });
+
+      // ======================== ADMIN HOMEWORK MANAGEMENT LOGIC ========================
+      let currentAdminHwList = [];
+
+      async function loadAdminHomework() {
+        const tbody = document.querySelector('#adminHwTable tbody');
+        const emptyEl = document.getElementById('adminHwEmpty');
+        const classFilterSel = document.getElementById('adminHwClassFilter');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--ink-soft); font-weight:600;">Loading homework assignments…</td></tr>';
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        try {
+          // Populate class filter selector if needed
+          if (classFilterSel && classFilterSel.options.length <= 1) {
+            classFilterSel.innerHTML = '<option value="">All Classes</option>';
+            allClasses.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.id;
+              opt.textContent = c.name || `${c.grade || ''} ${c.section || ''}`.trim();
+              classFilterSel.appendChild(opt);
+            });
+          }
+
+          const snap = await getDocs(collection(db, 'homework'));
+          currentAdminHwList = [];
+          snap.docs.forEach(d => {
+            currentAdminHwList.push({ id: d.id, ...d.data() });
+          });
+          allHomeworkCache = [...currentAdminHwList];
+
+          renderAdminHwTable();
+        } catch (err) {
+          console.error("Error loading homework:", err);
+          if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--bad);">Failed to load homework: ${err.message}</td></tr>`;
+        }
+      }
+
+      function renderAdminHwTable() {
+        const tbody = document.querySelector('#adminHwTable tbody');
+        const emptyEl = document.getElementById('adminHwEmpty');
+        if (!tbody) return;
+
+        const selectedClassId = document.getElementById('adminHwClassFilter')?.value || '';
+        const subjectTerm = (document.getElementById('adminHwSubjectFilter')?.value || '').toLowerCase().trim();
+        const globalTerm = (document.getElementById('globalSearchInput')?.value || '').toLowerCase().trim();
+
+        tbody.innerHTML = '';
+
+        let filtered = currentAdminHwList.filter(item => {
+          if (selectedClassId && item.classId !== selectedClassId) return false;
+          if (subjectTerm) {
+            const subj = (item.subject || '').toLowerCase();
+            const titl = (item.title || '').toLowerCase();
+            if (!subj.includes(subjectTerm) && !titl.includes(subjectTerm)) return false;
+          }
+          if (globalTerm) {
+            const allTxt = `${item.className || ''} ${item.subject || ''} ${item.title || ''} ${item.description || ''} ${item.dueDate || ''}`.toLowerCase();
+            if (!allTxt.includes(globalTerm)) return false;
+          }
+          return true;
+        });
+
+        filtered.sort((a, b) => {
+          const dateA = a.dueDate || '9999';
+          const dateB = b.dueDate || '9999';
+          return dateB.localeCompare(dateA);
+        });
+
+        if (filtered.length === 0) {
+          if (emptyEl) {
+            emptyEl.style.display = 'block';
+            emptyEl.textContent = currentAdminHwList.length === 0 ? 'No homework assignments created yet.' : 'No homework matching current filters.';
+          }
+          return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        filtered.forEach(hw => {
+          const tr = document.createElement('tr');
+          let dueBadge = `<span class="badge badge-yellow">${escapeHtml(hw.dueDate || '—')}</span>`;
+          if (hw.dueDate) {
+            if (hw.dueDate < todayStr) {
+              dueBadge = `<span class="hw-due-badge hw-due-urgent" title="Past Due Date">Past Due (${escapeHtml(hw.dueDate)})</span>`;
+            } else if (hw.dueDate === todayStr) {
+              dueBadge = `<span class="hw-due-badge hw-due-soon" title="Due Today">Due Today (${escapeHtml(hw.dueDate)})</span>`;
+            } else {
+              dueBadge = `<span class="hw-due-badge hw-due-normal">Due: ${escapeHtml(hw.dueDate)}</span>`;
+            }
+          }
+
+          let uploadDateStr = '—';
+          if (hw.uploadedAt && hw.uploadedAt.toDate) {
+            uploadDateStr = hw.uploadedAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+          }
+
+          const fileLink = hw.fileUrl ?
+            `<a href="${hw.fileUrl}" target="_blank" class="btn btn-outline btn-sm" style="font-size:11.5px; padding:4px 9px; display:inline-flex; align-items:center; gap:5px; color:var(--brand-green); font-weight:700;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              View PDF
+            </a>` :
+            `<span style="color:#94a3b8; font-size:12px;">None</span>`;
+
+          tr.innerHTML = `
+            <td style="font-weight:700; color:var(--navy);">${escapeHtml(hw.className || 'Class')}</td>
+            <td><span class="badge badge-indigo" style="font-weight:700;">${escapeHtml(hw.subject || 'General')}</span></td>
+            <td>
+              <div style="font-weight:700; color:var(--ink); font-size:13.5px;">${escapeHtml(hw.title || 'Homework')}</div>
+              ${hw.description ? `<div style="font-size:12px; color:var(--ink-soft); margin-top:2px; max-width:380px;">${escapeHtml(hw.description)}</div>` : ''}
+            </td>
+            <td>${dueBadge}</td>
+            <td style="font-size:12px; color:var(--ink-soft);">${uploadDateStr}</td>
+            <td>${fileLink}</td>
+            <td style="text-align:right;">
+              <button type="button" class="btn btn-danger btn-sm admin-hw-del-btn" data-id="${hw.id}" title="Delete Homework" style="padding:4px 10px; font-size:12px; font-weight:700;">
+                Delete
+              </button>
+            </td>
+          `;
+
+          tr.querySelector('.admin-hw-del-btn')?.addEventListener('click', async () => {
+            if (confirm(`Are you sure you want to delete homework "${hw.title}" for ${hw.className}?`)) {
+              try {
+                await deleteDoc(doc(db, 'homework', hw.id));
+                currentAdminHwList = currentAdminHwList.filter(x => x.id !== hw.id);
+                allHomeworkCache = allHomeworkCache.filter(x => x.id !== hw.id);
+                renderAdminHwTable();
+              } catch (err) {
+                alert('Failed to delete homework: ' + err.message);
+              }
+            }
+          });
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Homework filters
+      document.getElementById('adminHwClassFilter')?.addEventListener('change', renderAdminHwTable);
+      document.getElementById('adminHwSubjectFilter')?.addEventListener('input', renderAdminHwTable);
+      document.getElementById('adminHwRefreshBtn')?.addEventListener('click', loadAdminHomework);
+
+      // Submit new homework form
+      document.getElementById('adminAssignHwForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const classSel = document.getElementById('adminHwNewClassSel');
+        const classId = classSel.value;
+        const className = classSel.options[classSel.selectedIndex]?.text || 'Class';
+        const subject = document.getElementById('adminHwNewSubject').value.trim();
+        const title = document.getElementById('adminHwNewTitle').value.trim();
+        const description = document.getElementById('adminHwNewDesc').value.trim();
+        const dueDate = document.getElementById('adminHwNewDue').value;
+        const fileInput = document.getElementById('adminHwNewFile');
+        const file = fileInput?.files?.[0];
+
+        if (!classId || !title || !subject) {
+          alert('Please select a target class and provide both a subject and homework title.');
+          return;
+        }
+
+        const submitBtn = document.getElementById('submitAdminAssignHwBtn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Publishing…';
+        }
+
+        try {
+          let fileUrl = null;
+          if (file) {
+            const storageRef = ref(storage, `homework/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`);
+            const snap = await uploadBytes(storageRef, file);
+            fileUrl = await getDownloadURL(snap.ref);
+          }
+
+          await addDoc(collection(db, 'homework'), {
+            classId,
+            className,
+            subject,
+            title,
+            description,
+            dueDate,
+            fileUrl,
+            uploadedBy: auth.currentUser?.uid || 'admin',
+            uploadedAt: serverTimestamp()
+          });
+
+          // Reset form & close modal
+          document.getElementById('adminAssignHwForm').reset();
+          adminAssignHwModal?.classList.remove('open');
+          updateBodyModalState();
+
+          await loadAdminHomework();
+          alert('Homework successfully published to ' + className + '!');
+        } catch (err) {
+          console.error("Assign homework error:", err);
+          alert('Failed to publish homework: ' + err.message);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publish Homework';
+          }
+        }
+      });
+
+      // Background Search Preloader
+      async function preloadAllDataForSearch() {
+        try {
+          const promises = [];
+          if (allClasses.length === 0) {
+            promises.push(getDocs(collection(db, 'classes')).then(snap => {
+              allClasses = sortClassList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            }));
+          }
+          if (allStudentsCache.length === 0) {
+            promises.push(getDocs(collection(db, 'students')).then(snap => {
+              allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+            }));
+          }
+          if (allStaffCache.length === 0) {
+            promises.push(getDocs(collection(db, 'staff')).then(snap => {
+              allStaffCache = snap.docs.filter(d => !d.data().deleted).map(d => ({ id: d.id, ...d.data() }));
+            }));
+          }
+          if (allParentsCache.length === 0) {
+            promises.push(getDocs(collection(db, 'parents')).then(snap => {
+              allParentsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }));
+          }
+          if (allExamsCache.length === 0) {
+            promises.push(getDocs(collection(db, 'exams')).then(snap => {
+              allExamsCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }));
+          }
+          if (allHomeworkCache.length === 0) {
+            promises.push(getDocs(collection(db, 'homework')).then(snap => {
+              allHomeworkCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            }));
+          }
+          await Promise.all(promises);
+        } catch (err) {
+          console.warn("Background search preload:", err);
+        }
+      }
 
       // ======================== CURRICULUM & SUBJECT INTELLIGENCE ========================
       const STANDARD_CORE_SUBJECTS = [
@@ -4271,6 +5571,7 @@
 
           await loadClasses();
           await loadOverview();
+          preloadAllDataForSearch();
         } catch (err) {
           console.error('Portal init error:', err);
         } finally {
@@ -4291,7 +5592,7 @@
         if (/L\.?K\.?G|LKG|JR\.?[-\s.]*KG/i.test(norm)) return { level: -2, sub: norm };
         if (/U\.?K\.?G|UKG|SR\.?[-\s.]*KG/i.test(norm)) return { level: -1, sub: norm };
 
-        // Numbered grades: 1st, 2nd, 2st, 10th, 12-STD, Class 1, Grade 5, etc.
+        // Numbered grades: 1st, 2nd, 10th, 12-STD, Class 1, Grade 5, etc.
         const match = norm.match(/^(\d{1,2})\s*(?:ST|ND|RD|TH)?\s*(?:[-–—\s]*(?:STD|GRADE|CLASS))?[-–—\s]*(.*)$/i)
           || norm.match(/(?:CLASS|GRADE|STD)[-–—\s]*(\d{1,2})\s*(.*)/i)
           || norm.match(/(\d{1,2})\s*(.*)/);
@@ -4299,7 +5600,7 @@
         if (match) {
           const level = parseInt(match[1], 10);
           let sub = (match[2] || '').trim();
-          sub = sub.replace(/^[-–—:\s]+/, ''); // trim leading separator
+          sub = sub.replace(/^[-–—:\s]+/, '');
           return { level, sub };
         }
 
@@ -4330,6 +5631,14 @@
         document.getElementById('cntStudents').textContent = stSnap.size;
         document.getElementById('cntParents').textContent = pSnap.size;
 
+        const rawClasses = cSnap.docs.map(cd => ({ id: cd.id, ...cd.data() }));
+        const sortedClasses = sortClassList(rawClasses);
+
+        allClasses = sortedClasses;
+        allStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        allStaffCache = sSnap.docs.filter(d => !d.data().deleted).map(d => ({ id: d.id, ...d.data() }));
+        allParentsCache = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
         // Render Class Distribution Widget (strictly in natural academic grade order)
         const distList = document.getElementById('classDistributionList');
         distList.innerHTML = '';
@@ -4337,9 +5646,6 @@
           distList.innerHTML = '<div class="empty-state" style="padding:18px 0;">No classes created yet.</div>';
           return;
         }
-
-        const rawClasses = cSnap.docs.map(cd => ({ id: cd.id, ...cd.data() }));
-        const sortedClasses = sortClassList(rawClasses);
 
         const studentsList = stSnap.docs.map(d => d.data());
         const maxCap = Math.max(1, ...sortedClasses.map(cls => studentsList.filter(s => s.classId === cls.id).length));
