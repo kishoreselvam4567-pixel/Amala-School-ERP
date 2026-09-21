@@ -569,7 +569,7 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence, onAuthStateChanged
+  setPersistence, browserLocalPersistence
 } from './js/auth.js';
 
 // 1. ROLE DESTINATIONS
@@ -579,34 +579,6 @@ const ROLE_ROUTES = {
   staff: 'internal/staff/dashboard.html',
   admin: 'internal/admin/dashboard.html'
 };
-
-// Auto-redirect if already signed in
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    try {
-      const uEmail = (user.email || '').toLowerCase();
-      const isAdminUser = uEmail === 'amala@123.gmail.com' || uEmail === 'admin@kishore.gmail.com' || uEmail === 'amala123@gmail.com';
-      let role = null;
-
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists() && !snap.data().deleted && !snap.data().disabled) {
-          role = snap.data().role;
-        }
-      } catch (e) {
-        console.warn('onAuthStateChanged users read:', e);
-      }
-
-      if (!role && isAdminUser) {
-        role = 'admin';
-      }
-
-      if (role && ROLE_ROUTES[role]) {
-        window.location.replace(ROLE_ROUTES[role]);
-      }
-    } catch (e) {}
-  }
-});
 
 const errBox = document.getElementById('errBox');
 const okBox = document.getElementById('okBox');
