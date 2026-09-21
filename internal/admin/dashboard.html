@@ -7315,20 +7315,20 @@
           { bg: '#f1f5f9', border: '#cbd5e1', text: '#334155', badge: '#e2e8f0' },
         ];
 
-        // Render summary bar pills
+        // Render summary bar as filter pills
         if (summaryBar) {
-          let pillsHtml = `<span style="font-size:12px; font-weight:700; color:var(--ink); padding:5px 0; display:flex; align-items:center; gap:6px;">
+          let pillsHtml = `<span class="par-filter-pill par-filter-active" data-filter="all" onclick="filterParentsByClass('all')" style="font-size:12px; font-weight:700; color:#fff; padding:5px 12px; border-radius:8px; background:var(--brand-green); border:1.5px solid var(--brand-green); cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            ${allParentsCache.length} Total
+            All Classes (${allParentsCache.length})
           </span>`;
           orderedClassIds.forEach((classId, idx) => {
             const cName = classNameMap.get(classId) || classId;
             const count = classGroups.get(classId).length;
             const color = classColors[idx % classColors.length];
-            pillsHtml += `<span style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:${color.badge}; color:${color.text}; border:1px solid ${color.border}; cursor:pointer;" onclick="document.getElementById('parGroup_${classId}')?.scrollIntoView({behavior:'smooth', block:'start'})" title="Jump to ${cName}">${cName} (${count})</span>`;
+            pillsHtml += `<span class="par-filter-pill" data-filter="${classId}" onclick="filterParentsByClass('${classId}')" style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:${color.badge}; color:${color.text}; border:1.5px solid ${color.border}; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:4px;" title="Show only ${cName} parents">${cName} (${count})</span>`;
           });
           if (orphanEntries.length > 0) {
-            pillsHtml += `<span style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; cursor:pointer;" onclick="document.getElementById('parGroup_orphan')?.scrollIntoView({behavior:'smooth', block:'start'})" title="Jump to Unlinked">Unlinked (${orphanEntries.length})</span>`;
+            pillsHtml += `<span class="par-filter-pill" data-filter="orphan" onclick="filterParentsByClass('orphan')" style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:#fef2f2; color:#dc2626; border:1.5px solid #fca5a5; cursor:pointer; transition:all 0.15s ease; display:inline-flex; align-items:center; gap:4px;" title="Show only Unlinked parents">Unlinked (${orphanEntries.length})</span>`;
           }
           summaryBar.innerHTML = pillsHtml;
         }
@@ -7548,6 +7548,70 @@
 
         tbody.appendChild(tr);
       }
+
+      // Filter parent class groups by clicking pills
+      window.filterParentsByClass = function(filterId) {
+        const container = document.getElementById('parClassGroupContainer');
+        if (!container) return;
+
+        const allSections = container.querySelectorAll('[id^="parGroup_"]');
+        const allPills = document.querySelectorAll('.par-filter-pill');
+
+        if (filterId === 'all') {
+          // Show all sections
+          allSections.forEach(sec => {
+            sec.style.display = '';
+          });
+        } else {
+          // Show only the selected section, hide others
+          allSections.forEach(sec => {
+            if (sec.id === `parGroup_${filterId}`) {
+              sec.style.display = '';
+              // Auto-expand if collapsed
+              const wrap = sec.querySelector('div[style*="max-height"]');
+              if (wrap && wrap.style.maxHeight === '0px') {
+                wrap.style.maxHeight = '5000px';
+                const chevron = sec.querySelector('.par-group-chevron');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+              }
+            } else {
+              sec.style.display = 'none';
+            }
+          });
+        }
+
+        // Update active pill styling
+        allPills.forEach(pill => {
+          const isActive = pill.dataset.filter === filterId;
+          if (isActive) {
+            pill.classList.add('par-filter-active');
+            if (filterId === 'all') {
+              pill.style.background = 'var(--brand-green)';
+              pill.style.color = '#fff';
+              pill.style.borderColor = 'var(--brand-green)';
+            } else {
+              pill.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+              pill.style.transform = 'scale(1.05)';
+              pill.style.fontWeight = '800';
+            }
+          } else {
+            pill.classList.remove('par-filter-active');
+            if (pill.dataset.filter === 'all') {
+              pill.style.background = filterId === 'all' ? 'var(--brand-green)' : '#f1f5f9';
+              pill.style.color = filterId === 'all' ? '#fff' : 'var(--ink-soft)';
+              pill.style.borderColor = filterId === 'all' ? 'var(--brand-green)' : '#cbd5e1';
+            }
+            pill.style.boxShadow = 'none';
+            pill.style.transform = 'scale(1)';
+            pill.style.fontWeight = '700';
+            pill.style.opacity = filterId === 'all' ? '1' : '0.6';
+          }
+        });
+
+        // Reset opacity for active pill
+        const activePill = document.querySelector(`.par-filter-pill[data-filter="${filterId}"]`);
+        if (activePill) activePill.style.opacity = '1';
+      };
 
       // Bulk Clear Orphaned Parents
       document.getElementById('cleanupOrphanedParentsBtn')?.addEventListener('click', async () => {
