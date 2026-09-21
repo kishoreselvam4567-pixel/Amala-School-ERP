@@ -589,6 +589,14 @@ import {
   setPersistence, browserLocalPersistence, onAuthStateChanged
 } from './js/auth.js';
 
+// 1. ROLE DESTINATIONS
+const ROLE_ROUTES = {
+  student: 'student/dashboard.html',
+  parent: 'parent/dashboard.html',
+  staff: 'internal/staff/dashboard.html',
+  admin: 'internal/admin/dashboard.html'
+};
+
 // Auto-redirect if already signed in
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -622,7 +630,7 @@ const okBox = document.getElementById('okBox');
 const loginBtn = document.getElementById('loginBtn');
 const form = document.getElementById('erpLoginForm');
 
-// 1. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
+// 2. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
 let currentCaptcha = '';
 function generateCaptcha() {
   const numCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -633,7 +641,7 @@ function generateCaptcha() {
 generateCaptcha();
 document.getElementById('refreshCaptchaBtn').addEventListener('click', generateCaptcha);
 
-// 2. SHOW / HIDE PASSWORD
+// 3. SHOW / HIDE PASSWORD
 const togglePwdBtn = document.getElementById('togglePwdBtn');
 const pwdInput = document.getElementById('loginPassword');
 togglePwdBtn.addEventListener('click', () => {
@@ -641,7 +649,7 @@ togglePwdBtn.addEventListener('click', () => {
   pwdInput.type = isPwd ? 'text' : 'password';
 });
 
-// 3. RESET FORM
+// 4. RESET FORM
 document.getElementById('resetBtn').addEventListener('click', () => {
   form.reset();
   generateCaptcha();
@@ -649,7 +657,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   showBox(okBox, '');
 });
 
-// 4. LIVE SERVER CLOCK
+// 5. LIVE SERVER CLOCK
 function updateClock() {
   const now = new Date();
   const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
@@ -658,14 +666,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
-// 5. ROLE DESTINATIONS
-const ROLE_ROUTES = {
-  student: 'student/dashboard.html',
-  parent: 'parent/dashboard.html',
-  staff: 'internal/staff/dashboard.html',
-  admin: 'internal/admin/dashboard.html'
-};
 
 // 6. LOGIN HANDLER WITH ADMISSION NO / EMAIL RESOLUTION
 form.addEventListener('submit', async (e) => {
