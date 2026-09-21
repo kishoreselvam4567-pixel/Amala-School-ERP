@@ -3015,7 +3015,14 @@
                   <h3>Registered Parent Directory</h3>
                   <p>Official Registry of Connected Parent Accounts &amp; Ward Linkages</p>
                 </div>
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <label
+                    style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin:0;">Filter
+                    Class:</label>
+                  <select id="parTableClassFilter"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink);">
+                    <option value="">All Classes (Show All)</option>
+                  </select>
                   <button type="button" class="btn btn-outline btn-sm" id="cleanupOrphanedParentsBtn"
                     style="display:none; align-items:center; gap:6px; font-weight:700; color:#dc2626; border-color:#fca5a5; background:#fff5f5;">
                     Clear Orphaned Parents
@@ -5739,6 +5746,12 @@
         if (mrkF) mrkF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
         if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
         if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+        const parTblF = document.getElementById('parTableClassFilter');
+        if (parTblF) {
+          const curVal = parTblF.value;
+          parTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+          if (curVal) parTblF.value = curVal;
+        }
 
         updateAdmissionSubjectsUI();
       }
@@ -7333,6 +7346,25 @@
           summaryBar.innerHTML = pillsHtml;
         }
 
+        // Also populate the Filter Class dropdown with dynamic counts
+        const parTblF = document.getElementById('parTableClassFilter');
+        if (parTblF) {
+          const currentFilter = parTblF.value;
+          let filterOpts = `<option value="">All Classes (Show All)</option>`;
+          orderedClassIds.forEach(classId => {
+            const cName = classNameMap.get(classId) || classId;
+            const count = classGroups.get(classId)?.length || 0;
+            filterOpts += `<option value="${classId}">${cName} (${count})</option>`;
+          });
+          if (orphanEntries.length > 0) {
+            filterOpts += `<option value="orphan">Unlinked / Orphaned (${orphanEntries.length})</option>`;
+          }
+          parTblF.innerHTML = filterOpts;
+          if (currentFilter) {
+            parTblF.value = currentFilter;
+          }
+        }
+
         // Render each class group
         orderedClassIds.forEach((classId, idx) => {
           const entries = classGroups.get(classId);
@@ -7549,13 +7581,20 @@
         tbody.appendChild(tr);
       }
 
-      // Filter parent class groups by clicking pills
+      // Filter parent class groups by clicking pills or select dropdown
       window.filterParentsByClass = function(filterId) {
+        if (!filterId || filterId === 'all') filterId = 'all';
         const container = document.getElementById('parClassGroupContainer');
         if (!container) return;
 
         const allSections = container.querySelectorAll('[id^="parGroup_"]');
         const allPills = document.querySelectorAll('.par-filter-pill');
+        const parTblF = document.getElementById('parTableClassFilter');
+
+        // Sync dropdown value with current filter
+        if (parTblF && parTblF.value !== (filterId === 'all' ? '' : filterId)) {
+          parTblF.value = (filterId === 'all' ? '' : filterId);
+        }
 
         if (filterId === 'all') {
           // Show all sections
@@ -7612,6 +7651,11 @@
         const activePill = document.querySelector(`.par-filter-pill[data-filter="${filterId}"]`);
         if (activePill) activePill.style.opacity = '1';
       };
+
+      // Table Class Filter Trigger for Parents Dropdown
+      document.getElementById('parTableClassFilter')?.addEventListener('change', (e) => {
+        filterParentsByClass(e.target.value || 'all');
+      });
 
       // Bulk Clear Orphaned Parents
       document.getElementById('cleanupOrphanedParentsBtn')?.addEventListener('click', async () => {
@@ -8610,10 +8654,34 @@
         openPrintDocument('TEACHING FACULTY & STAFF ROSTER', 'Official Directory of Teaching Staff, Specializations & Teaching Assignments', tableHtml, statsHtml);
       });
 
-      // 4. Print Parent Directory
+      // 4. Print Parent Directory (respects class filter)
       document.getElementById('printParentsBtn')?.addEventListener('click', () => {
         if (!allParentsCache.length) {
           alert('No parent records found to print.');
+          return;
+        }
+
+        const classFilterEl = document.getElementById('parTableClassFilter');
+        const selectedClassId = classFilterEl ? classFilterEl.value : '';
+        let list = allParentsCache;
+        let title = 'REGISTERED PARENT & GUARDIAN DIRECTORY';
+        let sub = 'Official Registry of Connected Parent Portals & Student Linkages';
+
+        if (selectedClassId && selectedClassId !== 'all') {
+          if (selectedClassId === 'orphan') {
+            list = allParentsCache.filter(p => p.isOrphan);
+            title = 'UNLINKED / ORPHANED PARENT ACCOUNTS';
+            sub = 'Parent accounts without active student linkages';
+          } else {
+            list = allParentsCache.filter(p => p.childClassId === selectedClassId);
+            const className = classFilterEl.options[classFilterEl.selectedIndex]?.textContent || 'Selected Class';
+            title = `PARENT DIRECTORY — ${className.toUpperCase()}`;
+            sub = `Official Parent & Guardian Directory for ${className}`;
+          }
+        }
+
+        if (!list.length) {
+          alert('No parent records found for the selected filter to print.');
           return;
         }
 
@@ -8625,27 +8693,29 @@
               <th>Parent / Guardian Name</th>
               <th>Login Email Address</th>
               <th>Linked Child (Student)</th>
+              <th>Class Section</th>
               <th style="width:130px;">Contact Phone</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-        allParentsCache.forEach((p, idx) => {
+        list.forEach((p, idx) => {
           tableHtml += `
           <tr>
             <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
             <td><strong>${p.name}</strong></td>
             <td style="font-family:monospace; color:#475569;">${p.email}</td>
             <td><span class="badge" style="${p.isOrphan ? 'background:#fef2f2; color:#dc2626; border-color:#fca5a5;' : 'background:#f3e8ff; color:#6b21a8; border-color:#e9d5ff;'} font-weight:700;">${p.isOrphan ? 'Student Deleted' : p.childName}</span></td>
+            <td><strong>${p.childClassName || '—'}</strong></td>
             <td><strong>${p.phone}</strong></td>
           </tr>
         `;
         });
         tableHtml += '</tbody></table>';
 
-        const statsHtml = `<span class="badge" style="background:#d1fae5; color:#065f46; border-color:#a7f3d0; font-size:12px; padding:5px 12px; font-weight:700;">Total Parent Accounts: ${allParentsCache.length}</span>`;
-        openPrintDocument('REGISTERED PARENT & GUARDIAN DIRECTORY', 'Official Registry of Connected Parent Portals & Student Linkages', tableHtml, statsHtml);
+        const statsHtml = `<span class="badge" style="background:#d1fae5; color:#065f46; border-color:#a7f3d0; font-size:12px; padding:5px 12px; font-weight:700;">Total Records: ${list.length}</span>`;
+        openPrintDocument(title, sub, tableHtml, statsHtml);
       });
 
       // ==========================================================
