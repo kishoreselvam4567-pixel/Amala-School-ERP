@@ -969,7 +969,7 @@
         }
 
         if (!resolved) {
-          throw new Error(`No account found for "${rawUser}". Students: enter Admission No or Email. Parents: enter registered Mobile No.`);
+          throw new Error(`No account found for "${rawUser}". Please check your User ID and try again.`);
         }
       }
 
@@ -1054,7 +1054,7 @@
       let msg = 'Authentication failed. Please check your credentials and try again.';
       const code = err.code || '';
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
-        msg = '❌ Invalid User ID or Password. Students: Admission No / Email + DOB (DDMMYYYY) or assigned password.';
+        msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
       } else if (code === 'auth/too-many-requests') {
         msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
       } else if (code === 'auth/network-request-failed') {
