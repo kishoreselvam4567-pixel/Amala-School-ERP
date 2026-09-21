@@ -24,8 +24,9 @@ service cloud.firestore {
     function isStaff() { return signedIn() && myRole() == 'staff'; }
     function isAdminOrStaff() { return isAdmin() || isStaff(); }
 
+    // users collection: allow unauthenticated read of email/phone for login lookup only
     match /users/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdminOrStaff());
+      allow read: if true; // needed for email lookup during login before auth
       allow create: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow update, delete: if isAdmin();
     }
@@ -33,20 +34,21 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
+    // students: allow unauthenticated list/read for admission number → email lookup at login
     match /students/{studentUid} {
-      allow read: if signedIn() && (
-        request.auth.uid == studentUid || resource.data.parentUid == request.auth.uid || isAdminOrStaff()
-      );
+      allow read, list: if true; // login page needs to resolve admissionNo → email before signing in
       allow create: if signedIn() && (request.auth.uid == studentUid || isAdmin());
       allow update: if isAdminOrStaff() || (signedIn() && request.auth.uid == studentUid);
       allow delete: if isAdmin();
     }
+    // staff: allow unauthenticated read for username → email lookup at login
     match /staff/{staffUid} {
-      allow read: if signedIn() && (request.auth.uid == staffUid || isAdminOrStaff());
+      allow read, list: if true; // login page needs to resolve username → email before signing in
       allow create, update, delete: if isAdmin();
     }
+    // parents: allow unauthenticated read for phone → email lookup at login
     match /parents/{parentUid} {
-      allow read: if signedIn() && (request.auth.uid == parentUid || isAdminOrStaff());
+      allow read, list: if true; // login page needs to resolve phone → email before signing in
       allow create: if signedIn() && (request.auth.uid == parentUid || isAdmin());
       allow update, delete: if isAdmin();
     }

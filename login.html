@@ -316,38 +316,87 @@
     gap: 8px;
   }
   .captcha-canvas-wrap {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1px solid #334155;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 1.5px solid #334155;
     border-radius: 8px;
-    padding: 8px 14px;
-    letter-spacing: 6px;
-    font-family: 'Outfit', 'Courier New', monospace;
-    font-weight: 800;
-    font-size: 20px;
-    color: #f59e0b;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     user-select: none;
-    text-align: center;
+    cursor: pointer;
     flex: 1;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    transform: skewX(-6deg);
+    height: 44px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.15s ease;
+  }
+  .captcha-canvas-wrap:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2), inset 0 2px 4px rgba(0,0,0,0.3);
   }
   .btn-refresh-captcha {
     background: #f1f5f9;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     border-radius: 8px;
-    width: 38px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: #475569;
-    transition: all 0.15s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
   }
   .btn-refresh-captcha:hover {
     background: #e2e8f0;
-    color: #0f172a;
-    transform: rotate(30deg);
+    color: #1e3a8a;
+    border-color: #94a3b8;
+    transform: rotate(180deg);
+  }
+  .btn-refresh-captcha.spinning {
+    transform: rotate(360deg);
+  }
+
+  /* Alert Boxes */
+  .error-box {
+    background: #fef2f2;
+    border: 1.5px solid #f87171;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.45;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.08);
+    animation: alertShake 0.4s ease-out;
+  }
+  .success-box {
+    background: #f0fdf4;
+    border: 1.5px solid #4ade80;
+    color: #166534;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.45;
+    box-shadow: 0 2px 6px rgba(34,197,94,0.08);
+    animation: alertSlide 0.3s ease-out;
+  }
+  @keyframes alertShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes alertSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* Action Buttons */
@@ -521,43 +570,42 @@
         <div class="success-box" id="okBox"></div>
 
         <form id="erpLoginForm">
-          <!-- User ID (Admission No / Mobile / Email) -->
+          <!-- User ID -->
           <div class="erp-field">
-            <label for="loginUserId">User ID (Parent Mobile No, Student Adm No, or Email)</label>
+            <label for="loginUserId">USER ID</label>
             <div class="erp-input-wrap">
-              <input type="text" id="loginUserId" required autocomplete="username" placeholder="Parent Mobile No. / Student Adm No. / Email">
-            </div>
-            <div style="font-size:11.5px; color:#64748b; margin-top:5px; line-height:1.4;">
-              <strong>Parents:</strong> Enter your registered mobile number &bull; <strong>Students:</strong> Admission No &bull; <strong>Staff:</strong> Username / Email
+              <input type="text" id="loginUserId" required autocomplete="username" placeholder="Enter User ID">
             </div>
           </div>
 
           <!-- Password -->
           <div class="erp-field">
-            <label for="loginPassword">Password / Date of Birth</label>
+            <label for="loginPassword">PASSWORD / DATE OF BIRTH</label>
             <div class="erp-input-wrap">
               <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
               <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Show/Hide Password" aria-label="Toggle password visibility">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
           </div>
 
-          <!-- Captcha Row (VELS ERP Signature Component) -->
+          <!-- Captcha Row (Instant Interactive Component) -->
           <div class="captcha-row">
             <div>
-              <label style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Security Captcha</label>
+              <label style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">SECURITY CAPTCHA</label>
               <div class="captcha-display-box">
-                <div class="captcha-canvas-wrap" id="captchaDisplay">A8K9</div>
-                <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn" title="Generate New Captcha">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <div class="captcha-canvas-wrap" id="captchaDisplayBox" title="Click to regenerate new security code">
+                  <canvas id="captchaCanvas" width="128" height="40" style="display:block; border-radius:6px;"></canvas>
+                </div>
+                <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn" title="Change Captcha Code" aria-label="Change Captcha Code">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                 </button>
               </div>
             </div>
             <div class="erp-field" style="margin-bottom:0;">
-              <label for="captchaInput">Enter Captcha</label>
+              <label for="captchaInput">ENTER CAPTCHA</label>
               <div class="erp-input-wrap">
-                <input type="text" id="captchaInput" required placeholder="Type Code" maxlength="6" style="text-transform:uppercase; font-weight:700;">
+                <input type="text" id="captchaInput" required placeholder="TYPE CODE" maxlength="6" style="text-transform:uppercase; font-weight:700; letter-spacing:1.5px;">
               </div>
             </div>
           </div>
@@ -577,321 +625,453 @@
   <footer class="erp-footer">
     <div class="erp-footer-inner">
       <div>&copy; 2025–2026 Amala Higher Secondary School. All rights reserved.</div>
-      <div id="serverClock" style="font-family:monospace; color:#cbd5e1;">Server Time: Loading…</div>
+      <div id="serverClock" style="font-family:monospace; color:#cbd5e1;">System Time: Loading…</div>
       <div>Amala HSS ERP Portal</div>
     </div>
   </footer>
 
-<script type="module">
-import {
-  auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
-  query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence, onAuthStateChanged
-} from './js/auth.js';
+<!-- Immediate Synchronous Captcha Script (Runs instantly without waiting for network/modules) -->
+<script>
+  window.currentCaptcha = '';
 
-// Auto-redirect if already signed in
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    try {
-      const uEmail = (user.email || '').toLowerCase();
-      const isAdminUser = uEmail === 'amala@123.gmail.com' || uEmail === 'admin@kishore.gmail.com' || uEmail === 'amala123@gmail.com';
-      let role = null;
+  function generateCaptchaCode() {
+    // Generate a 4-character alphanumeric code avoiding ambiguous 0/O, 1/I
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    window.currentCaptcha = code;
 
-      try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
-        if (snap.exists() && !snap.data().deleted && !snap.data().disabled) {
-          role = snap.data().role;
-        }
-      } catch (e) {
-        console.warn('onAuthStateChanged users read:', e);
+    const canvas = document.getElementById('captchaCanvas');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Dark background gradient matching the card theme
+      const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Noise dots
+      for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = (i % 2 === 0) ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.25)';
+        ctx.beginPath();
+        ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 1.5, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      if (!role && isAdminUser) {
-        role = 'admin';
+      // Security lines
+      for (let i = 0; i < 2; i++) {
+        ctx.strokeStyle = i === 0 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(56, 189, 248, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * 20, Math.random() * h);
+        ctx.bezierCurveTo(w * 0.3, Math.random() * h, w * 0.7, Math.random() * h, w - Math.random() * 10, Math.random() * h);
+        ctx.stroke();
       }
 
-      if (role && ROLE_ROUTES[role]) {
-        window.location.replace(ROLE_ROUTES[role]);
+      // Draw each character with bold font and letter spacing
+      const charW = w / (code.length + 1);
+
+      for (let i = 0; i < code.length; i++) {
+        ctx.save();
+        const char = code[i];
+        const angle = (Math.random() - 0.5) * 0.25;
+        const x = (i + 1) * charW - 4;
+        const y = h * 0.72;
+
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.font = '800 21px "Outfit", "Inter", sans-serif';
+        ctx.fillStyle = '#f59e0b'; // Signature Amber/Gold
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
       }
-    } catch (e) {}
-  }
-});
-
-const errBox = document.getElementById('errBox');
-const okBox = document.getElementById('okBox');
-const loginBtn = document.getElementById('loginBtn');
-const form = document.getElementById('erpLoginForm');
-
-// 1. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
-let currentCaptcha = '';
-function generateCaptcha() {
-  const numCode = Math.floor(1000 + Math.random() * 9000).toString();
-  currentCaptcha = numCode;
-  document.getElementById('captchaDisplay').textContent = numCode;
-  document.getElementById('captchaInput').value = '';
-}
-generateCaptcha();
-document.getElementById('refreshCaptchaBtn').addEventListener('click', generateCaptcha);
-
-// 2. SHOW / HIDE PASSWORD
-const togglePwdBtn = document.getElementById('togglePwdBtn');
-const pwdInput = document.getElementById('loginPassword');
-togglePwdBtn.addEventListener('click', () => {
-  const isPwd = pwdInput.type === 'password';
-  pwdInput.type = isPwd ? 'text' : 'password';
-});
-
-// 3. RESET FORM
-document.getElementById('resetBtn').addEventListener('click', () => {
-  form.reset();
-  generateCaptcha();
-  showBox(errBox, '');
-  showBox(okBox, '');
-});
-
-// 4. LIVE SERVER CLOCK
-function updateClock() {
-  const now = new Date();
-  const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
-  const clockEl = document.getElementById('serverClock');
-  if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// 5. ROLE DESTINATIONS
-const ROLE_ROUTES = {
-  student: 'student/dashboard.html',
-  parent: 'parent/dashboard.html',
-  staff: 'internal/staff/dashboard.html',
-  admin: 'internal/admin/dashboard.html'
-};
-
-// 6. LOGIN HANDLER WITH ADMISSION NO / EMAIL RESOLUTION
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showBox(errBox, '');
-  showBox(okBox, '');
-
-  // Verify Captcha
-  const userCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase();
-  if (userCaptcha !== currentCaptcha) {
-    showBox(errBox, 'Security Captcha does not match. Please try again.');
-    generateCaptcha();
-    return;
-  }
-
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'Authenticating…';
-
-  const rawUser = document.getElementById('loginUserId').value.trim();
-  const pass = pwdInput.value;
-
-  try {
-    let authEmail = rawUser;
-
-    const normUser = rawUser.trim().toLowerCase();
-    if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
-      authEmail = 'admin@kishore.gmail.com';
-    } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
-      authEmail = 'amala@123.gmail.com';
     }
 
-    // If user entered Admission Number, Mobile Number, or Username (e.g. not an email)
-    if (!rawUser.includes('@')) {
-      const rawTrimmed = rawUser.trim();
-      const cleanInput = rawTrimmed.replace(/^@/, '').toLowerCase();
-      const digitsOnly = rawTrimmed.replace(/\D/g, '');
-      let resolved = false;
+    const inp = document.getElementById('captchaInput');
+    if (inp) inp.value = '';
+  }
 
-      // 1. Check students by admissionNo
-      const qStd = query(collection(db, 'students'), where('admissionNo', '==', rawTrimmed));
-      const snapStd = await getDocs(qStd).catch(() => null);
-      if (snapStd && !snapStd.empty) {
-        authEmail = snapStd.docs[0].data().email;
-        resolved = true;
-      }
+  // Bind immediate event listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    generateCaptchaCode();
 
-      // 2. Check parents by phone number (Mobile Number Login)
-      if (!resolved && digitsOnly.length >= 7) {
-        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-        const phoneVariants = [
-          rawTrimmed,
-          digitsOnly,
-          last10,
-          '+91 ' + last10,
-          '+91' + last10,
-          '+91-' + last10,
-          '0' + last10
-        ];
-        const uniqueVariants = [...new Set(phoneVariants)].slice(0, 10);
+    const refreshBtn = document.getElementById('refreshCaptchaBtn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        refreshBtn.classList.add('spinning');
+        setTimeout(() => refreshBtn.classList.remove('spinning'), 300);
+        generateCaptchaCode();
+        const inp = document.getElementById('captchaInput');
+        if (inp) inp.focus();
+      });
+    }
 
-        // A. Check parents collection by phone
-        let snapPar = await getDocs(query(collection(db, 'parents'), where('phone', 'in', uniqueVariants))).catch(() => null);
-        if (snapPar && !snapPar.empty) {
-          authEmail = snapPar.docs[0].data().email;
-          resolved = true;
+    const canvasBox = document.getElementById('captchaDisplayBox');
+    if (canvasBox) {
+      canvasBox.addEventListener('click', () => {
+        generateCaptchaCode();
+        const inp = document.getElementById('captchaInput');
+        if (inp) inp.focus();
+      });
+    }
+
+    // Toggle Password
+    const toggleBtn = document.getElementById('togglePwdBtn');
+    const pwdInput = document.getElementById('loginPassword');
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener('click', () => {
+        const isPwd = pwdInput.type === 'password';
+        pwdInput.type = isPwd ? 'text' : 'password';
+        const eye = document.getElementById('eyeIcon');
+        if (eye) {
+          eye.innerHTML = isPwd
+            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
         }
+      });
+    }
 
-        // B. Check parents collection by motherPhone
-        if (!resolved) {
-          const snapMother = await getDocs(query(collection(db, 'parents'), where('motherPhone', 'in', uniqueVariants))).catch(() => null);
-          if (snapMother && !snapMother.empty) {
-            authEmail = snapMother.docs[0].data().email;
-            resolved = true;
+    // Live Server / System Clock
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
+      const clockEl = document.getElementById('serverClock');
+      if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  });
+
+  // Initial draw fallback
+  window.addEventListener('load', () => {
+    if (!window.currentCaptcha) generateCaptchaCode();
+  });
+</script>
+
+<!-- Firebase SDK (loaded as regular scripts — no module import issues) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ============================================================
+// LOGIN PAGE — Self-contained Firebase auth logic
+// Uses Firebase compat SDK (no ES module imports needed)
+// ============================================================
+
+(function() {
+  'use strict';
+
+  // Firebase config — same project as auth.js
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-TUNX2PLfWcGkOHaeZMvS7YYWDl2db3o",
+    authDomain: "school-erp-59865.firebaseapp.com",
+    projectId: "school-erp-59865",
+    storageBucket: "school-erp-59865.firebasestorage.app",
+    messagingSenderId: "814200800763",
+    appId: "1:814200800763:web:66ee8f726fae707d87775e"
+  };
+
+  // Initialize Firebase (guard against double-init)
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const auth = firebase.auth();
+  const db   = firebase.firestore();
+
+  // Set local persistence so session survives refresh
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
+  // Role → page mapping
+  const ROLE_ROUTES = {
+    student : 'student/dashboard.html',
+    parent  : 'parent/dashboard.html',
+    staff   : 'internal/staff/dashboard.html',
+    admin   : 'internal/admin/dashboard.html'
+  };
+
+  // Admin email shortcuts
+  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com'];
+
+  // ── UI helpers ──────────────────────────────────────────────
+  const errBox  = document.getElementById('errBox');
+  const okBox   = document.getElementById('okBox');
+  const loginBtn = document.getElementById('loginBtn');
+  const form     = document.getElementById('erpLoginForm');
+  const pwdInput = document.getElementById('loginPassword');
+
+  function showErrBox(msg) {
+    okBox.style.display = 'none';
+    if (!msg) { errBox.style.display = 'none'; errBox.textContent = ''; return; }
+    errBox.style.display = 'none';
+    errBox.textContent = msg;
+    void errBox.offsetWidth; // force reflow → replay CSS animation
+    errBox.style.display = 'block';
+  }
+  function showOkBox(msg) {
+    errBox.style.display = 'none';
+    if (!msg) { okBox.style.display = 'none'; okBox.textContent = ''; return; }
+    okBox.style.display = 'none';
+    okBox.textContent = msg;
+    void okBox.offsetWidth;
+    okBox.style.display = 'block';
+  }
+
+  // ── Clear button ─────────────────────────────────────────────
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    form.reset();
+    generateCaptchaCode();
+    showErrBox('');
+    document.getElementById('loginUserId').focus();
+  });
+
+  // ── Auto-redirect if already signed in ───────────────────────
+  const urlParams    = new URLSearchParams(window.location.search);
+  const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
+
+  if (!allowRelogin) {
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      try {
+        const uEmail = (user.email || '').toLowerCase();
+        let role = null;
+        try {
+          const snap = await db.collection('users').doc(user.uid).get();
+          if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
+            role = snap.data().role;
           }
-        }
+        } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
 
-        // C. Check users collection by phone
-        if (!resolved) {
-          const snapUsrPhone = await getDocs(query(collection(db, 'users'), where('phone', 'in', uniqueVariants))).catch(() => null);
-          if (snapUsrPhone && !snapUsrPhone.empty) {
-            authEmail = snapUsrPhone.docs[0].data().email;
-            resolved = true;
-          }
-        }
+        if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
+        if (role && ROLE_ROUTES[role]) window.location.replace(ROLE_ROUTES[role]);
+      } catch(e) {}
+    });
+  }
 
-        // D. Flexible fallback: scan parents collection by normalized digit comparison
-        if (!resolved) {
-          const allParSnap = await getDocs(collection(db, 'parents')).catch(() => null);
-          if (allParSnap && !allParSnap.empty) {
-            const match = allParSnap.docs.find(doc => {
-              const d = doc.data();
-              const p1 = (d.phone || '').replace(/\D/g, '');
-              const p2 = (d.motherPhone || '').replace(/\D/g, '');
-              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-            });
-            if (match) {
-              authEmail = match.data().email;
-              resolved = true;
-            }
-          }
-        }
-      }
+  // ── Login submit handler ─────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showErrBox('');
 
-      // 3. Check staff by username
-      if (!resolved) {
-        const qStf = query(collection(db, 'staff'), where('username', '==', cleanInput));
-        const snapStf = await getDocs(qStf).catch(() => null);
-        if (snapStf && !snapStf.empty) {
-          authEmail = snapStf.docs[0].data().email;
-          resolved = true;
-        }
-      }
+    // 1. Captcha check
+    const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+    const currentCode = (window.currentCaptcha || '').trim().toUpperCase();
 
-      // 4. Fallback: check users collection by username
-      if (!resolved) {
-        const qUsr = query(collection(db, 'users'), where('username', '==', cleanInput));
-        const snapUsr = await getDocs(qUsr).catch(() => null);
-        if (snapUsr && !snapUsr.empty) {
-          authEmail = snapUsr.docs[0].data().email;
-          resolved = true;
-        }
-      }
+    if (!userCaptcha || !currentCode || userCaptcha !== currentCode) {
+      showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');
+      generateCaptchaCode();
+      const inp = document.getElementById('captchaInput');
+      if (inp) { inp.value = ''; inp.focus(); }
+      return;
+    }
 
-      // 5. Admin alias (amala, amala123, admin, kishore)
-      if (!resolved && (cleanInput === 'admin' || cleanInput === 'amala' || cleanInput === 'amala123' || cleanInput === 'kishore')) {
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Authenticating…';
+
+    const rawUser = document.getElementById('loginUserId').value.trim();
+    const pass    = pwdInput.value;
+
+    try {
+      // ── Resolve authEmail from User ID ────────────────────
+      let authEmail = rawUser;
+      const normUser = rawUser.toLowerCase();
+
+      if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
+        authEmail = 'admin@kishore.gmail.com';
+      } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
         authEmail = 'amala@123.gmail.com';
-        resolved = true;
+      } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
+        authEmail = 'amala@123.gmail.com';
+      } else if (!rawUser.includes('@')) {
+        // Not an email → look up in Firestore
+        const cleanInput = normUser.replace(/^@/, '');
+        const digitsOnly = rawUser.replace(/\D/g, '');
+        let resolved = false;
+
+        // 1. Students — exact admissionNo
+        try {
+          const stuSnap = await db.collection('students').where('admissionNo', '==', rawUser).limit(1).get();
+          if (!stuSnap.empty) { authEmail = stuSnap.docs[0].data().email; resolved = true; }
+        } catch(e) { console.warn('Student exact lookup:', e.message); }
+
+        // 2. Students — case-insensitive scan (admissionNo / rollNo)
+        if (!resolved) {
+          try {
+            const allStu = await db.collection('students').get();
+            const match = allStu.docs.find(d => {
+              const adm  = String(d.data().admissionNo || '').trim().toLowerCase();
+              const roll = String(d.data().rollNo      || '').trim().toLowerCase();
+              return adm === cleanInput || roll === cleanInput;
+            });
+            if (match) { authEmail = match.data().email; resolved = true; }
+          } catch(e) { console.warn('Student scan:', e.message); }
+        }
+
+        // 3. Parents — by phone number
+        if (!resolved && digitsOnly.length >= 7) {
+          const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+          const variants = [...new Set([rawUser, digitsOnly, last10,
+            '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10);
+
+          // Indexed query first
+          try {
+            const pSnap = await db.collection('parents').where('phone','in',variants).limit(1).get();
+            if (!pSnap.empty) { authEmail = pSnap.docs[0].data().email; resolved = true; }
+          } catch(e) { console.warn('Parent phone query:', e.message); }
+
+          if (!resolved) {
+            try {
+              const mSnap = await db.collection('parents').where('motherPhone','in',variants).limit(1).get();
+              if (!mSnap.empty) { authEmail = mSnap.docs[0].data().email; resolved = true; }
+            } catch(e) {}
+          }
+
+          // Full scan fallback
+          if (!resolved) {
+            try {
+              const allPar = await db.collection('parents').get();
+              const match = allPar.docs.find(d => {
+                const p1 = (d.data().phone       || '').replace(/\D/g,'');
+                const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
+                return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
+                       (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
+              });
+              if (match) { authEmail = match.data().email; resolved = true; }
+            } catch(e) { console.warn('Parent scan:', e.message); }
+          }
+        }
+
+        // 4. Staff — by username
+        if (!resolved) {
+          try {
+            const stfSnap = await db.collection('staff').where('username','==',cleanInput).limit(1).get();
+            if (!stfSnap.empty) { authEmail = stfSnap.docs[0].data().email; resolved = true; }
+          } catch(e) { console.warn('Staff lookup:', e.message); }
+        }
+
+        // 5. Users collection — by username
+        if (!resolved) {
+          try {
+            const usrSnap = await db.collection('users').where('username','==',cleanInput).limit(1).get();
+            if (!usrSnap.empty) { authEmail = usrSnap.docs[0].data().email; resolved = true; }
+          } catch(e) { console.warn('Users username lookup:', e.message); }
+        }
+
+        if (!resolved) {
+          throw new Error(`No account found for "${rawUser}". Students: enter Admission No or Email. Parents: enter registered Mobile No.`);
+        }
       }
 
-      if (!resolved) {
-        throw new Error(`No account found matching "${rawUser}". Parents can log in with their registered Mobile Number or Email.`);
+      // ── Build password candidate list (DOB variants + defaults) ──
+      const candidatePasswords = [pass];
+      const cleanDigits = pass.replace(/\D/g, '');
+      if (cleanDigits.length === 8) {
+        const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
+        candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
-    }
+      candidatePasswords.push('Student@123', 'Parent@123');
+      const uniquePasswords = [...new Set(candidatePasswords)];
 
-    await setPersistence(auth, browserLocalPersistence).catch(() => {});
-    const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
+      // ── Attempt Firebase Auth sign-in ──────────────────────────
+      let cred = null, authError = null;
+      for (const tryPass of uniquePasswords) {
+        try {
+          cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
+          if (cred && cred.user) break;
+        } catch(err) { authError = err; }
+      }
 
-    let userDoc = null;
-    let userData = null;
-    try {
-      userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-      userData = userDoc.exists() ? userDoc.data() : null;
-    } catch (readErr) {
-      console.warn('Could not read user profile doc:', readErr);
-    }
+      if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
 
-    const curEmail = ((cred.user && cred.user.email) || authEmail || '').toLowerCase();
-    const isAdminAcc = (
-      curEmail === 'amala@123.gmail.com' ||
-      curEmail === 'admin@kishore.gmail.com' ||
-      curEmail === 'amala123@gmail.com' ||
-      curEmail.includes('admin')
-    );
-
-    // Auto-heal admin document if missing or first-time setup
-    if (isAdminAcc && (!userData || !userData.role)) {
-      const adminData = {
-        role: 'admin',
-        name: 'School Administrator',
-        email: cred.user.email || authEmail,
-        createdAt: serverTimestamp()
-      };
+      // ── Read user profile ──────────────────────────────────────
+      let userData = null;
       try {
-        await setDoc(doc(db, 'users', cred.user.uid), adminData, { merge: true });
-      } catch (writeErr) {
-        console.warn('Could not write admin users doc:', writeErr);
+        const uSnap = await db.collection('users').doc(cred.user.uid).get();
+        userData = uSnap.exists ? uSnap.data() : null;
+      } catch(e) { console.warn('Profile read:', e.message); }
+
+      // ── Auto-heal admin doc ────────────────────────────────────
+      const curEmail   = (cred.user.email || authEmail).toLowerCase();
+      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+      if (isAdminAcc && (!userData || !userData.role)) {
+        const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
+        try { await db.collection('users').doc(cred.user.uid).set(adminData, {merge:true}); } catch(e) {}
+        userData = adminData;
       }
-      userData = adminData;
-    }
 
-    if (!userData || userData.deleted === true || userData.disabled === true || !userData.role) {
-      await fbSignOut(auth);
-      throw new Error('This account has been deleted or deactivated by the school administrator. Access revoked.');
-    }
-
-    const role = userData.role;
-
-    // Strict role collection verification: if the document in its specific collection is deleted or missing, reject login
-    if (role === 'staff') {
-      const stfSnap = await getDoc(doc(db, 'staff', cred.user.uid)).catch(() => null);
-      if (!stfSnap || !stfSnap.exists() || stfSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This faculty account has been removed by the administrator. Portal access denied.');
+      if (!userData || userData.deleted || userData.disabled || !userData.role) {
+        await auth.signOut();
+        throw new Error('This account has been deleted or deactivated. Contact school admin.');
       }
-    } else if (role === 'student') {
-      const stuSnap = await getDoc(doc(db, 'students', cred.user.uid)).catch(() => null);
-      if (!stuSnap || !stuSnap.exists() || stuSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This student account has been removed by the administrator. Portal access denied.');
+
+      const role = userData.role;
+
+      // ── Role-specific record check ─────────────────────────────
+      if (role === 'staff') {
+        const s = await db.collection('staff').doc(cred.user.uid).get().catch(() => null);
+        if (!s || !s.exists || s.data().deleted) {
+          await auth.signOut();
+          throw new Error('Faculty account removed by administrator. Portal access denied.');
+        }
+      } else if (role === 'student') {
+        const s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
+        if (!s || !s.exists || s.data().deleted) {
+          await auth.signOut();
+          throw new Error('Student account removed by administrator. Portal access denied.');
+        }
+      } else if (role === 'parent') {
+        const s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
+        if (!s || !s.exists || s.data().deleted) {
+          await auth.signOut();
+          throw new Error('Parent account removed by administrator. Portal access denied.');
+        }
       }
-    } else if (role === 'parent') {
-      const parSnap = await getDoc(doc(db, 'parents', cred.user.uid)).catch(() => null);
-      if (!parSnap || !parSnap.exists() || parSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This parent account has been removed by the administrator. Portal access denied.');
+
+      const dest = ROLE_ROUTES[role];
+      if (!dest) {
+        await auth.signOut();
+        throw new Error('Unrecognized user role. Contact school IT support.');
       }
-    }
 
-    const dest = ROLE_ROUTES[role];
-    if (!dest) {
-      await fbSignOut(auth);
-      throw new Error('User role is unassigned or unrecognized. Contact school IT support.');
-    }
+      showOkBox('✅ Login successful! Redirecting to your dashboard…');
+      setTimeout(() => { window.location.replace(dest); }, 500);
 
-    showBox(okBox, 'Login successful! Redirecting to your dashboard…');
-    setTimeout(() => {
-      window.location.replace(dest);
-    }, 400);
+    } catch (err) {
+      generateCaptchaCode();
+      document.getElementById('captchaInput').value = '';
 
-  } catch (err) {
-    generateCaptcha();
-    let msg = 'Authentication failed. Please check your credentials.';
-    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-      msg = 'Invalid User ID or Password.';
-    } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
-      msg = 'Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
-    } else if (err.message) {
-      msg = err.message.replace('Firebase: ', '');
+      let msg = 'Authentication failed. Please check your credentials and try again.';
+      const code = err.code || '';
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+        msg = '❌ Invalid User ID or Password. Students: Admission No / Email + DOB (DDMMYYYY) or assigned password.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
+      } else if (code === 'auth/network-request-failed') {
+        msg = '🌐 No internet connection. Please check your network and try again.';
+      } else if (err.message && !code) {
+        msg = err.message;
+      } else if (err.message) {
+        msg = err.message.replace('Firebase: ','').replace(/\s*\(auth\/[^)]+\)/,'');
+      }
+      showErrBox(msg);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login to ERP';
     }
-    showBox(errBox, msg);
-  } finally {
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Login to ERP';
-  }
-});
+  });
+
+})();
 </script>
 </body>
 </html>
