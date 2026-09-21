@@ -3026,20 +3026,6 @@
                 </div>
               </div>
 
-              <!-- Class-Wise Filter -->
-              <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; padding:10px 16px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px;">
-                <label for="parClassFilter" style="font-weight:700; color:var(--ink); font-size:12.5px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-                  </svg>
-                  Filter by Class
-                </label>
-                <select id="parClassFilter" style="font-weight:600; font-size:13.5px; border-radius:8px; border:1.5px solid var(--brand-green); padding:6px 12px; min-width:200px; background:#fff; cursor:pointer;">
-                  <option value="">All Classes (Show All Parents)</option>
-                </select>
-                <span id="parClassFilterCount" style="font-size:12px; font-weight:700; color:#065f46; background:#d1fae5; border:1px solid #a7f3d0; padding:3px 10px; border-radius:6px; display:none;"></span>
-              </div>
-
               <table id="parTable">
                 <thead>
                   <tr>
@@ -7232,21 +7218,6 @@
         const stuMap = new Map();
         allStudentsCache.forEach(s => stuMap.set(s.uid, s));
 
-        // Load classes for the filter dropdown
-        const classesSnap = await getDocs(collection(db, 'classes'));
-        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
-        const parentClassOptions = sortClassList(rawClasses);
-
-        // Populate class filter dropdown
-        const parClassFilter = document.getElementById('parClassFilter');
-        if (parClassFilter) {
-          const prevVal = parClassFilter.value;
-          parClassFilter.innerHTML = '<option value="">All Classes (Show All Parents)</option>';
-          parentClassOptions.forEach(c => {
-            parClassFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-          });
-          parClassFilter.value = prevVal || '';
-        }
 
         const snap = await getDocs(collection(db, 'parents'));
         const body = document.querySelector('#parTable tbody');
@@ -7395,51 +7366,6 @@
         });
 
         updateOrphanCleanupBtn(orphanCount);
-
-        // Apply current class filter if one is selected
-        applyParentClassFilter();
-      }
-
-      // Class-wise filter logic for parents
-      function applyParentClassFilter() {
-        const parClassFilter = document.getElementById('parClassFilter');
-        const filterCountBadge = document.getElementById('parClassFilterCount');
-        if (!parClassFilter) return;
-
-        const selectedClassId = parClassFilter.value;
-        const rows = document.querySelectorAll('#parTable tbody tr');
-        let visibleCount = 0;
-        const totalCount = allParentsCache.length;
-
-        allParentsCache.forEach((p, idx) => {
-          if (rows[idx]) {
-            if (!selectedClassId || p.childClassId === selectedClassId) {
-              rows[idx].style.display = '';
-              visibleCount++;
-            } else {
-              rows[idx].style.display = 'none';
-            }
-          }
-        });
-
-        // Show/update filter count badge
-        if (filterCountBadge) {
-          if (selectedClassId) {
-            const className = parClassFilter.options[parClassFilter.selectedIndex]?.text || '';
-            filterCountBadge.textContent = `Showing ${visibleCount} of ${totalCount} parents — ${className}`;
-            filterCountBadge.style.display = 'inline-block';
-          } else {
-            filterCountBadge.style.display = 'none';
-          }
-        }
-      }
-
-      // Event listener for parent class filter
-      const parClassFilterEl = document.getElementById('parClassFilter');
-      if (parClassFilterEl) {
-        parClassFilterEl.addEventListener('change', () => {
-          applyParentClassFilter();
-        });
       }
 
       // Bulk Clear Orphaned Parents
