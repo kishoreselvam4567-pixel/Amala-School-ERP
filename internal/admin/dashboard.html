@@ -269,6 +269,7 @@
       line-height: 1.45;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -3026,19 +3027,13 @@
                 </div>
               </div>
 
-              <table id="parTable">
-                <thead>
-                  <tr>
-                    <th>Parent Name</th>
-                    <th>Login Email Address</th>
-                    <th>Linked Child (Student)</th>
-                    <th>Contact Phone (Login Mobile)</th>
-                    <th>Login Password</th>
-                    <th style="text-align:right;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <!-- Summary Stats -->
+              <div id="parClassSummaryBar" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;"></div>
+
+              <!-- Class-Wise Grouped Parent Sections -->
+              <div id="parClassGroupContainer">
+                <div style="text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13px;">Loading parent directory…</div>
+              </div>
             </div>
           </section>
 
@@ -7218,25 +7213,34 @@
         const stuMap = new Map();
         allStudentsCache.forEach(s => stuMap.set(s.uid, s));
 
+        // Load classes for sorting
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+        const sortedClasses = sortClassList(rawClasses);
+        const classNameMap = new Map();
+        sortedClasses.forEach(c => classNameMap.set(c.id, c.name));
 
-        const snap = await getDocs(collection(db, 'parents'));
-        const body = document.querySelector('#parTable tbody');
-        body.innerHTML = '';
+        const container = document.getElementById('parClassGroupContainer');
+        const summaryBar = document.getElementById('parClassSummaryBar');
+        container.innerHTML = '';
+        if (summaryBar) summaryBar.innerHTML = '';
         allParentsCache = [];
 
+        const snap = await getDocs(collection(db, 'parents'));
         let orphanCount = 0;
 
         if (snap.empty) {
-          body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--ink-soft);">No parent accounts registered yet.</td></tr>';
+          container.innerHTML = '<div style="text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13px;">No parent accounts registered yet.</div>';
           updateOrphanCleanupBtn(0);
           return;
         }
 
+        // Build parent entries with linked student info
+        const parentEntries = [];
         snap.docs.forEach(d => {
           const r = d.data();
           const parentPass = r.tempPassword || 'Parent@123';
 
-          // Check if linked student exists in database
           let linkedStudent = null;
           if (r.childUid && stuMap.has(r.childUid)) {
             linkedStudent = stuMap.get(r.childUid);
@@ -7249,123 +7253,300 @@
           }
 
           const isOrphan = !linkedStudent;
-          if (isOrphan) {
-            orphanCount++;
-          }
+          if (isOrphan) orphanCount++;
 
-          const childBadgeHtml = linkedStudent
-            ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name} (${linkedStudent.className || 'Class'})</span>`
-            : `<span class="badge badge-bad" style="font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;">Student Deleted / Unlinked</span>`;
+          const entry = {
+            docId: d.id,
+            raw: r,
+            linkedStudent,
+            isOrphan,
+            parentPass,
+            childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
+            childClassName: linkedStudent ? (linkedStudent.className || '') : '',
+          };
 
           allParentsCache.push({
             id: d.id,
             name: r.name || 'Parent',
             email: r.email || '—',
             childName: linkedStudent ? linkedStudent.name : 'Deleted Student',
-            childClassName: linkedStudent ? (linkedStudent.className || '') : '',
-            childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
+            childClassName: entry.childClassName,
+            childClassId: entry.childClassId,
             phone: r.phone || '—',
             tempPassword: parentPass,
             isOrphan
           });
 
-          const tr = document.createElement('tr');
-          if (isOrphan) {
-            tr.style.background = '#fff8f8';
-          }
-
-          tr.innerHTML = `
-      <td>
-        <strong>${r.name || 'Parent'}</strong>
-        ${isOrphan ? '<div style="font-size:11px; color:#dc2626; font-weight:700; margin-top:2px;">Orphaned Parent Account</div>' : ''}
-      </td>
-      <td style="font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
-      <td>${childBadgeHtml}</td>
-      <td>
-        <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">${r.phone || '—'}</span>
-        <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
-      </td>
-      <td>
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
-          <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </td>
-      <td style="text-align:right; white-space:nowrap;">
-        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-          <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
-          <button type="button" class="btn btn-sm parEditBtn" data-uid="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
-          <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px;">Delete</button>
-        </div>
-      </td>
-    `;
-
-          // Handle show / hide password toggle
-          tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const span = btn.previousElementSibling;
-              const pass = btn.dataset.pass || 'Parent@123';
-              if (span.textContent === '••••••••') {
-                span.textContent = pass;
-                span.style.color = 'var(--brand-green)';
-                span.style.fontWeight = '700';
-                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-                btn.title = 'Hide Password';
-              } else {
-                span.textContent = '••••••••';
-                span.style.color = '';
-                span.style.fontWeight = '';
-                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-                btn.title = 'Show Password';
-              }
-            });
-          });
-
-          // Print parent button
-          tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
-            const item = allParentsCache.find(x => x.id === d.id);
-            if (item) printSingleParentProfile(item);
-          });
-
-          // Edit parent button
-          tr.querySelector('.parEditBtn').addEventListener('click', () => {
-            openEditParentModal({ id: d.id, ...r });
-          });
-
-          // Individual parent delete button
-          tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-            if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
-              try {
-                if (r.childUid) {
-                  await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
-                }
-
-                // Mark disabled/deleted and delete from users collection
-                await setDoc(doc(db, 'users', d.id), {
-                  role: null,
-                  disabled: true,
-                  deleted: true,
-                  revokedAt: serverTimestamp()
-                }, { merge: true }).catch(() => { });
-                await deleteDoc(doc(db, 'users', d.id)).catch(() => { });
-
-                // Delete from parents collection
-                await deleteDoc(doc(db, 'parents', d.id));
-
-                showToast(`Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
-                await loadParents();
-                await loadStudents();
-                await loadOverview();
-              } catch (err) {
-                alert('Error removing parent: ' + err.message);
-              }
-            }
-          });
-          body.appendChild(tr);
+          parentEntries.push(entry);
         });
 
+        // Group parents by classId
+        const classGroups = new Map();
+        const orphanEntries = [];
+
+        parentEntries.forEach(entry => {
+          if (entry.isOrphan) {
+            orphanEntries.push(entry);
+          } else {
+            const classId = entry.childClassId || 'unknown';
+            if (!classGroups.has(classId)) {
+              classGroups.set(classId, []);
+            }
+            classGroups.get(classId).push(entry);
+          }
+        });
+
+        // Sort class groups by natural academic order
+        const orderedClassIds = sortedClasses.map(c => c.id).filter(id => classGroups.has(id));
+        // Add any classIds that exist in data but not in classes collection
+        classGroups.forEach((_, classId) => {
+          if (!orderedClassIds.includes(classId)) orderedClassIds.push(classId);
+        });
+
+        // Color palette for class headers
+        const classColors = [
+          { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534', badge: '#dcfce7' },
+          { bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af', badge: '#dbeafe' },
+          { bg: '#fdf4ff', border: '#e9d5ff', text: '#7c3aed', badge: '#f3e8ff' },
+          { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', badge: '#ffedd5' },
+          { bg: '#fdf2f8', border: '#fbcfe8', text: '#be185d', badge: '#fce7f3' },
+          { bg: '#f0fdfa', border: '#99f6e4', text: '#0f766e', badge: '#ccfbf1' },
+          { bg: '#fefce8', border: '#fde68a', text: '#a16207', badge: '#fef9c3' },
+          { bg: '#f1f5f9', border: '#cbd5e1', text: '#334155', badge: '#e2e8f0' },
+        ];
+
+        // Render summary bar pills
+        if (summaryBar) {
+          let pillsHtml = `<span style="font-size:12px; font-weight:700; color:var(--ink); padding:5px 0; display:flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            ${allParentsCache.length} Total
+          </span>`;
+          orderedClassIds.forEach((classId, idx) => {
+            const cName = classNameMap.get(classId) || classId;
+            const count = classGroups.get(classId).length;
+            const color = classColors[idx % classColors.length];
+            pillsHtml += `<span style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:${color.badge}; color:${color.text}; border:1px solid ${color.border}; cursor:pointer;" onclick="document.getElementById('parGroup_${classId}')?.scrollIntoView({behavior:'smooth', block:'start'})" title="Jump to ${cName}">${cName} (${count})</span>`;
+          });
+          if (orphanEntries.length > 0) {
+            pillsHtml += `<span style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; cursor:pointer;" onclick="document.getElementById('parGroup_orphan')?.scrollIntoView({behavior:'smooth', block:'start'})" title="Jump to Unlinked">Unlinked (${orphanEntries.length})</span>`;
+          }
+          summaryBar.innerHTML = pillsHtml;
+        }
+
+        // Render each class group
+        orderedClassIds.forEach((classId, idx) => {
+          const entries = classGroups.get(classId);
+          const cName = classNameMap.get(classId) || classId;
+          const color = classColors[idx % classColors.length];
+
+          const section = document.createElement('div');
+          section.id = `parGroup_${classId}`;
+          section.style.cssText = `margin-bottom:20px; border:1.5px solid ${color.border}; border-radius:12px; overflow:hidden; background:var(--white);`;
+
+          // Class header
+          const header = document.createElement('div');
+          header.style.cssText = `display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:${color.bg}; border-bottom:1px solid ${color.border}; cursor:pointer; user-select:none; transition: background 0.15s ease;`;
+          header.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${color.text}" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <span style="font-size:15px; font-weight:800; color:${color.text};">${cName}</span>
+              <span style="font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; background:${color.badge}; color:${color.text}; border:1px solid ${color.border};">${entries.length} Parent${entries.length !== 1 ? 's' : ''}</span>
+            </div>
+            <svg class="par-group-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${color.text}" stroke-width="2.5" style="transition:transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+          `;
+
+          const tableWrap = document.createElement('div');
+          tableWrap.style.cssText = 'overflow:hidden; transition: max-height 0.3s ease; max-height:5000px;';
+
+          // Toggle collapse
+          header.addEventListener('click', () => {
+            const chevron = header.querySelector('.par-group-chevron');
+            if (tableWrap.style.maxHeight === '0px') {
+              tableWrap.style.maxHeight = '5000px';
+              chevron.style.transform = 'rotate(0deg)';
+            } else {
+              tableWrap.style.maxHeight = '0px';
+              chevron.style.transform = 'rotate(-90deg)';
+            }
+          });
+
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%; border-collapse:collapse;';
+          table.innerHTML = `<thead><tr>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Parent Name</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Login Email</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Linked Child</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Contact Phone</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line); text-align:right;">Actions</th>
+          </tr></thead>`;
+          const tbody = document.createElement('tbody');
+
+          entries.forEach(entry => {
+            renderParentRow(tbody, entry);
+          });
+
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          section.appendChild(header);
+          section.appendChild(tableWrap);
+          container.appendChild(section);
+        });
+
+        // Render orphaned parents group
+        if (orphanEntries.length > 0) {
+          const section = document.createElement('div');
+          section.id = 'parGroup_orphan';
+          section.style.cssText = 'margin-bottom:20px; border:1.5px solid #fca5a5; border-radius:12px; overflow:hidden; background:var(--white);';
+
+          const header = document.createElement('div');
+          header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:#fef2f2; border-bottom:1px solid #fca5a5; cursor:pointer; user-select:none;';
+          header.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#dc2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span style="font-size:15px; font-weight:800; color:#dc2626;">Unlinked / Orphaned Parents</span>
+              <span style="font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5;">${orphanEntries.length} Parent${orphanEntries.length !== 1 ? 's' : ''}</span>
+            </div>
+            <svg class="par-group-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#dc2626" stroke-width="2.5" style="transition:transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+          `;
+
+          const tableWrap = document.createElement('div');
+          tableWrap.style.cssText = 'overflow:hidden; transition: max-height 0.3s ease; max-height:5000px;';
+
+          header.addEventListener('click', () => {
+            const chevron = header.querySelector('.par-group-chevron');
+            if (tableWrap.style.maxHeight === '0px') {
+              tableWrap.style.maxHeight = '5000px';
+              chevron.style.transform = 'rotate(0deg)';
+            } else {
+              tableWrap.style.maxHeight = '0px';
+              chevron.style.transform = 'rotate(-90deg)';
+            }
+          });
+
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%; border-collapse:collapse;';
+          table.innerHTML = `<thead><tr>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Parent Name</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Login Email</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Status</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Contact Phone</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5; text-align:right;">Actions</th>
+          </tr></thead>`;
+          const tbody = document.createElement('tbody');
+
+          orphanEntries.forEach(entry => {
+            renderParentRow(tbody, entry);
+          });
+
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          section.appendChild(header);
+          section.appendChild(tableWrap);
+          container.appendChild(section);
+        }
+
         updateOrphanCleanupBtn(orphanCount);
+      }
+
+      // Render a single parent row inside a tbody
+      function renderParentRow(tbody, entry) {
+        const { docId, raw: r, linkedStudent, isOrphan, parentPass } = entry;
+
+        const childBadgeHtml = linkedStudent
+          ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name}</span>`
+          : `<span class="badge badge-bad" style="font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Student Deleted / Unlinked</span>`;
+
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f1f5f9';
+        if (isOrphan) tr.style.background = '#fff8f8';
+
+        tr.innerHTML = `
+          <td style="padding:10px 14px;">
+            <strong>${r.name || 'Parent'}</strong>
+            ${isOrphan ? '<div style="font-size:11px; color:#dc2626; font-weight:700; margin-top:2px;">Orphaned Account</div>' : ''}
+          </td>
+          <td style="padding:10px 14px; font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
+          <td style="padding:10px 14px;">${childBadgeHtml}</td>
+          <td style="padding:10px 14px;">
+            <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">${r.phone || '—'}</span>
+            <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
+          </td>
+          <td style="padding:10px 14px;">
+            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+              <span class="pass-val">••••••••</span>
+              <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </span>
+          </td>
+          <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
+            <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+              <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
+              <button type="button" class="btn btn-sm parEditBtn" data-uid="${docId}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
+              <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px;">Delete</button>
+            </div>
+          </td>
+        `;
+
+        // Password toggle
+        tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const span = btn.previousElementSibling;
+            const pass = btn.dataset.pass || 'Parent@123';
+            if (span.textContent === '••••••••') {
+              span.textContent = pass;
+              span.style.color = 'var(--brand-green)';
+              span.style.fontWeight = '700';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+              btn.title = 'Hide Password';
+            } else {
+              span.textContent = '••••••••';
+              span.style.color = '';
+              span.style.fontWeight = '';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+              btn.title = 'Show Password';
+            }
+          });
+        });
+
+        // Print
+        tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
+          const item = allParentsCache.find(x => x.id === docId);
+          if (item) printSingleParentProfile(item);
+        });
+
+        // Edit
+        tr.querySelector('.parEditBtn').addEventListener('click', () => {
+          openEditParentModal({ id: docId, ...r });
+        });
+
+        // Delete
+        tr.querySelector('.parDelBtn').addEventListener('click', async () => {
+          if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
+            try {
+              if (r.childUid) {
+                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
+              }
+              await setDoc(doc(db, 'users', docId), {
+                role: null,
+                disabled: true,
+                deleted: true,
+                revokedAt: serverTimestamp()
+              }, { merge: true }).catch(() => { });
+              await deleteDoc(doc(db, 'users', docId)).catch(() => { });
+              await deleteDoc(doc(db, 'parents', docId));
+              showToast(`Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
+              await loadParents();
+              await loadStudents();
+              await loadOverview();
+            } catch (err) {
+              alert('Error removing parent: ' + err.message);
+            }
+          }
+        });
+
+        tbody.appendChild(tr);
       }
 
       // Bulk Clear Orphaned Parents
