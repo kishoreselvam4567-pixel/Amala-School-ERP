@@ -1291,6 +1291,13 @@
             <div class="detail-item"><label>Student Login Email</label>
               <div class="detail-val" id="mp_email">—</div>
             </div>
+            <div class="detail-item"><label>Student Login Password</label>
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+                <span id="mp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
+                <button type="button" class="btn btn-outline btn-sm" id="mp_togglePassBtn"
+                  style="font-size:11px; padding:2px 8px; font-weight:700; height:24px; display:inline-flex; align-items:center;">Reveal</button>
+              </div>
+            </div>
             <div class="detail-item" style="grid-column:1/-1;"><label>Assigned Subjects &amp; Curriculum Stream</label>
               <div class="detail-val" id="mp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—
               </div>
@@ -1692,6 +1699,10 @@
           <div class="field" style="flex:1.4;">
             <label>Student Login Email <span style="color:var(--bad);">*</span></label>
             <input type="email" id="editStuEmail" required placeholder="student@amalaschool.edu.in">
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Student Password</label>
+            <input type="text" id="editStuPass" placeholder="e.g. Student@123">
           </div>
         </div>
 
@@ -3006,6 +3017,7 @@
                     <th>Admission No.</th>
                     <th>Roll No.</th>
                     <th>Class Section</th>
+                    <th>Student Password</th>
                     <th>Father / Contact</th>
                     <th>Blood</th>
                     <th>Parent Account</th>
@@ -6439,7 +6451,7 @@
 
           // 3. Save Student Record in Firestore
           await setDoc(doc(db, 'users', stuUid), {
-            role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
+            role: 'student', name, email: stuEmail, tempPassword: stuPass, createdAt: serverTimestamp()
           }, { merge: true });
 
           const assignedSubjects = currentAdmissionSubjects && currentAdmissionSubjects.length
@@ -6456,6 +6468,7 @@
             address, city, pincode, parentUid: parUid || null,
             subjects: assignedSubjects,
             stream: assignedStream,
+            tempPassword: stuPass,
             createdAt: serverTimestamp()
           }, { merge: true });
 
@@ -6592,13 +6605,14 @@
         body.innerHTML = '';
 
         if (!studentsList.length) {
-          body.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--ink-soft);">No students found matching this criteria.</td></tr>';
+          body.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--ink-soft);">No students found matching this criteria.</td></tr>';
           return;
         }
 
         studentsList.forEach(r => {
           const tr = document.createElement('tr');
           const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
+          const studentPass = r.tempPassword || 'Student@123';
 
           tr.innerHTML = `
       <td>
@@ -6616,6 +6630,12 @@
       <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.rollNo || r.admissionNo || '—'}</span></td>
       <td><span class="badge badge-purple" style="font-weight:700; font-size:12px; padding:4px 10px;">${r.className || '—'}</span></td>
       <td>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+          <span class="pass-val">••••••••</span>
+          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </span>
+      </td>
+      <td>
         <strong>${r.fatherName || 'Parent'}</strong><br>
         <small style="color:var(--ink-soft); font-family:var(--font-mono);">${r.fatherPhone || r.phone || '—'}</small>
       </td>
@@ -6630,6 +6650,28 @@
         </div>
       </td>
     `;
+
+          // Handle show / hide student password toggle
+          tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const span = btn.previousElementSibling;
+              const pass = btn.dataset.pass || 'Student@123';
+              if (span.textContent === '••••••••') {
+                span.textContent = pass;
+                span.style.color = 'var(--brand-green)';
+                span.style.fontWeight = '700';
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+                btn.title = 'Hide Password';
+              } else {
+                span.textContent = '••••••••';
+                span.style.color = '';
+                span.style.fontWeight = '';
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+                btn.title = 'Show Password';
+              }
+            });
+          });
 
           // View Full Profile Modal Trigger
           tr.querySelector('.stuViewBtn').addEventListener('click', () => {
@@ -6947,6 +6989,18 @@
         document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
         document.getElementById('mp_aadhaar').innerHTML = formatAadhaarDisplay(s.aadhaarNo);
         document.getElementById('mp_email').textContent = s.email || '—';
+        const stuPassSpan = document.getElementById('mp_pass');
+        const stuToggleBtn = document.getElementById('mp_togglePassBtn');
+        const realStuPass = s.tempPassword || 'Student@123';
+        if (stuPassSpan) {
+          stuPassSpan.textContent = '••••••••';
+          stuPassSpan.dataset.realPass = realStuPass;
+          stuPassSpan.dataset.revealed = 'false';
+          stuPassSpan.style.color = '';
+        }
+        if (stuToggleBtn) {
+          stuToggleBtn.textContent = 'Reveal';
+        }
 
         // Assigned subjects & stream
         const sSubs = getStudentSubjects(s);
@@ -6973,6 +7027,24 @@
         const sBody = studentDetailModal.querySelector('.profile-modal-body');
         if (sBody) sBody.scrollTop = 0;
       }
+
+      // Student Profile Modal Password Reveal Listener
+      document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
+        const passSpan = document.getElementById('mp_pass');
+        const btn = document.getElementById('mp_togglePassBtn');
+        if (!passSpan || !btn) return;
+        if (passSpan.dataset.revealed === 'true') {
+          passSpan.textContent = '••••••••';
+          passSpan.dataset.revealed = 'false';
+          passSpan.style.color = '';
+          btn.textContent = 'Reveal';
+        } else {
+          passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
+          passSpan.dataset.revealed = 'true';
+          passSpan.style.color = 'var(--brand-green)';
+          btn.textContent = 'Hide';
+        }
+      });
 
       // ======================== EDIT STUDENT ========================
       const editStudentModal = document.getElementById('editStudentModal');
@@ -7037,6 +7109,7 @@
         document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
         document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
         document.getElementById('editStuEmail').value = s.email || '';
+        document.getElementById('editStuPass').value = s.tempPassword || 'Student@123';
 
         document.getElementById('editStuFatherName').value = s.fatherName || '';
         document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
@@ -7144,6 +7217,11 @@
             updatedAt: serverTimestamp()
           };
 
+          const passVal = document.getElementById('editStuPass')?.value.trim();
+          if (passVal) {
+            studentUpdate.tempPassword = passVal;
+          }
+
           if (isHigherSecondaryClass(className)) {
             const streamVal = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
             studentUpdate.stream = streamVal;
@@ -7153,12 +7231,14 @@
           await updateDoc(doc(db, 'students', uid), studentUpdate);
 
           // 2. Update user doc for student
-          await setDoc(doc(db, 'users', uid), {
+          const userDocUpdate = {
             role: 'student',
             name,
             email,
             updatedAt: serverTimestamp()
-          }, { merge: true });
+          };
+          if (passVal) userDocUpdate.tempPassword = passVal;
+          await setDoc(doc(db, 'users', uid), userDocUpdate, { merge: true });
 
           // 3. Update or create linked parent account
           const currentStudent = allStudentsCache.find(x => x.uid === uid);
@@ -8099,7 +8179,8 @@
     <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${s.gender || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
-    <div class="field-item" style="grid-column:1 / -1;"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Student Password:</span><span class="field-val" style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</span></div>
   </div>
 
   <div class="section-title">2. Parent &amp; Family Information</div>
@@ -8530,6 +8611,7 @@
               <th>Student Full Name</th>
               <th style="width:90px;">Adm No.</th>
               <th style="width:90px;">Class</th>
+              <th style="width:95px;">Password</th>
               <th style="width:70px;">Gender</th>
               <th style="width:60px;">Blood</th>
               <th>Father / Guardian</th>
@@ -8547,6 +8629,7 @@
             <td><strong>${s.name || '—'}</strong></td>
             <td><span class="badge">${s.admissionNo || '—'}</span></td>
             <td><strong>${s.className || '—'}</strong></td>
+            <td><code style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</code></td>
             <td>${s.gender || '—'}</td>
             <td>${s.bloodGroup || '—'}</td>
             <td>${s.fatherName || '—'}</td>

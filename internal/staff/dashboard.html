@@ -258,6 +258,13 @@
           <div class="detail-item"><label>Blood Group</label><div class="detail-val" id="mp_blood">—</div></div>
           <div class="detail-item"><label>Aadhaar Number</label><div class="detail-val" id="mp_aadhaar">—</div></div>
           <div class="detail-item"><label>Student Login Email</label><div class="detail-val" id="mp_email">—</div></div>
+          <div class="detail-item"><label>Student Login Password</label>
+            <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+              <span id="mp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
+              <button type="button" class="btn btn-outline btn-sm" id="mp_togglePassBtn"
+                style="font-size:11px; padding:2px 8px; font-weight:700; height:24px; display:inline-flex; align-items:center;">Reveal</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -982,6 +989,18 @@ function openStudentProfileModal(s) {
   document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
   document.getElementById('mp_aadhaar').innerHTML = formatStaffAadhaarDisplay(s.aadhaarNo);
   document.getElementById('mp_email').textContent = s.email || '—';
+  const stuPassSpan = document.getElementById('mp_pass');
+  const stuToggleBtn = document.getElementById('mp_togglePassBtn');
+  const realStuPass = s.tempPassword || 'Student@123';
+  if (stuPassSpan) {
+    stuPassSpan.textContent = '••••••••';
+    stuPassSpan.dataset.realPass = realStuPass;
+    stuPassSpan.dataset.revealed = 'false';
+    stuPassSpan.style.color = '';
+  }
+  if (stuToggleBtn) {
+    stuToggleBtn.textContent = 'Reveal';
+  }
 
   // Family details
   document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
@@ -1001,6 +1020,24 @@ function openStudentProfileModal(s) {
   const sBody = studentDetailModal.querySelector('.profile-modal-body');
   if (sBody) sBody.scrollTop = 0;
 }
+
+// Student Profile Modal Password Reveal Listener
+document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
+  const passSpan = document.getElementById('mp_pass');
+  const btn = document.getElementById('mp_togglePassBtn');
+  if (!passSpan || !btn) return;
+  if (passSpan.dataset.revealed === 'true') {
+    passSpan.textContent = '••••••••';
+    passSpan.dataset.revealed = 'false';
+    passSpan.style.color = '';
+    btn.textContent = 'Reveal';
+  } else {
+    passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
+    passSpan.dataset.revealed = 'true';
+    passSpan.style.color = 'var(--brand-green)';
+    btn.textContent = 'Hide';
+  }
+});
 
 
 
