@@ -1146,6 +1146,23 @@
         background: #e0f2fe;
         color: #0369a1;
       }
+
+      /* Teaching Assignment Matrix Responsive Grid Alignment */
+      .assignment-matrix-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1.2fr auto;
+        gap: 16px;
+        align-items: flex-end;
+      }
+      @media (max-width: 992px) {
+        .assignment-matrix-row {
+          grid-template-columns: 1fr !important;
+          gap: 12px !important;
+        }
+        .assignment-matrix-row .field.field-action button {
+          width: 100% !important;
+        }
+      }
   </style>
 
 </head>
@@ -2533,7 +2550,7 @@
               </button>
             </div>
 
-            <div class="card">
+            <div class="card" style="margin-bottom:24px;">
               <div class="form-section-title">Register New Faculty Account</div>
               <div class="field-row">
                 <div class="field" style="flex:1.2;">
@@ -2610,6 +2627,40 @@
               </div>
             </div>
 
+            <!-- CARD 2: Teaching Assignment Matrix (Aligned & Ordered under Register Faculty) -->
+            <div class="card" style="margin-bottom:24px;">
+              <div class="form-section-title">Teaching Assignment Matrix</div>
+
+              <h4 style="font-size:14px; margin:16px 0 8px 0; display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-dark,#0f1e36); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">1</span>
+                Assign Class Teacher (Attendance &amp; Mentorship)
+              </h4>
+              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
+                <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
+                <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
+                <div class="field"><label>Assignment Role</label><input type="text" value="Class In-Charge (Attendance &amp; Mentorship)" readonly style="background:#f8fafc; color:#64748b; font-weight:600; cursor:default;"></div>
+                <div class="field field-action" style="margin:0;">
+                  <button class="btn btn-dark" id="ctAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Class Teacher</button>
+                </div>
+              </div>
+
+              <h4 style="font-size:14px; margin:22px 0 8px 0; display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-green,#16a34a); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">2</span>
+                Assign Subject Teaching (Marks, Notes &amp; Exams)
+              </h4>
+              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
+                <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
+                <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
+                <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
+                    placeholder="e.g. Mathematics / Physics"></div>
+                <div class="field field-action" style="margin:0;">
+                  <button class="btn btn-primary" id="subAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Subject</button>
+                </div>
+              </div>
+              <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px; display:block; margin-top:10px;"></span>
+            </div>
+
+            <!-- CARD 3: Faculty & Staff Directory -->
             <div class="card table-wrap" style="margin-bottom:24px;">
               <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
                 <div>
@@ -2635,33 +2686,6 @@
                 </thead>
                 <tbody></tbody>
               </table>
-            </div>
-
-            <div class="card">
-              <div class="form-section-title">Teaching Assignment Matrix</div>
-
-              <h4 style="font-size:14px; margin:16px 0 8px 0;">1. Assign Class Teacher (Attendance &amp; Mentorship)
-              </h4>
-              <div class="field-row" style="align-items:flex-end;">
-                <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
-                <div class="field field-action">
-                  <button class="btn btn-dark" id="ctAssignBtn">Assign Class Teacher</button>
-                </div>
-              </div>
-
-              <h4 style="font-size:14px; margin:22px 0 8px 0;">2. Assign Subject Teaching (Marks, Notes &amp; Exams)
-              </h4>
-              <div class="field-row" style="align-items:flex-end;">
-                <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
-                <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
-                    placeholder="e.g. Mathematics / Physics"></div>
-                <div class="field field-action">
-                  <button class="btn btn-primary" id="subAssignBtn">Assign Subject</button>
-                </div>
-              </div>
-              <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
             </div>
           </section>
 
