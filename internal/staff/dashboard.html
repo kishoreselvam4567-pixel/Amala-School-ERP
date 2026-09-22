@@ -688,14 +688,195 @@
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Amala Higher Secondary School • Staff Portal Student Records
       </span>
-      <button type="button" class="btn btn-outline btn-sm closeProfileModalFooter" style="font-size:12px; padding:6px 18px; font-weight:600;">
-        Close
+      <button type="button" class="btn btn-outline btn-sm closeProfileModalFooter" style="font-size:12px; padding:6px 18px; font-weight:600;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAFF BULK STUDENT IMPORT MODAL ================= -->
+<div class="profile-modal-overlay" id="staffStudentImportModal">
+  <div class="profile-modal-card" style="max-width:820px; width:95%;">
+    <button type="button" class="modal-close" id="closeStaffStudentImportModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Register Students (Class Roster)</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Import your section's student roster and automatically link parent credentials via CSV.</p>
+      </div>
+    </div>
+
+    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:14px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <strong style="color:#166534; font-size:13px; display:block;">Download sample roster CSV format:</strong>
+        <span style="color:#15803d; font-size:12px;">Formatted for quick batch admission with Roll No, Admission No, Full Name, DOB, Gender, and Parent phone.</span>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="staffDownloadStudentTemplateBtn" style="background:#fff; font-weight:700; color:#166534; border-color:#86efac; display:inline-flex; align-items:center; gap:6px;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Download CSV Template
+      </button>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label>Select CSV Roster File <span style="color:var(--bad);">*</span></label>
+      <input type="file" id="staffStuCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+    </div>
+
+    <!-- Preview Box -->
+    <div id="staffStuPreviewBox" style="display:none; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:13px; color:var(--ink);">Data Preview (<span id="staffStuRowCount">0</span> rows detected)</strong>
+        <span id="staffStuValidationMsg" style="font-size:12px; font-weight:600; color:var(--good);">Ready to register into your class</span>
+      </div>
+      <div style="max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;" id="staffStuPreviewTable">
+          <thead>
+            <tr style="background:#f8fafc; border-bottom:1px solid var(--line); text-align:left;">
+              <th style="padding:6px 10px;">#</th>
+              <th style="padding:6px 10px;">Student Name</th>
+              <th style="padding:6px 10px;">Adm No.</th>
+              <th style="padding:6px 10px;">Roll</th>
+              <th style="padding:6px 10px;">DOB</th>
+              <th style="padding:6px 10px;">Father / Contact</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="staffStuProgressWrap" style="display:none; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:var(--ink); margin-bottom:4px;">
+        <span id="staffStuProgressText">Importing students...</span>
+        <span id="staffStuProgressPct">0%</span>
+      </div>
+      <div style="width:100%; height:8px; background:var(--line); border-radius:999px; overflow:hidden;">
+        <div id="staffStuProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, #10b981, #059669); transition:width 0.2s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn btn-outline" id="cancelStaffStuImportBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="startStaffStuImportBtn" disabled style="min-width:160px; font-weight:700;">
+        Start Bulk Register
       </button>
     </div>
   </div>
 </div>
 
+<!-- ================= STAFF BULK ATTENDANCE IMPORT MODAL ================= -->
+<div class="profile-modal-overlay" id="staffAttendanceImportModal">
+  <div class="profile-modal-card" style="max-width:740px; width:95%;">
+    <button type="button" class="modal-close" id="closeStaffAttImportModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(59,130,246,0.12); color:#2563eb; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Import Class Attendance CSV</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Bulk fill daily class attendance status from a spreadsheet.</p>
+      </div>
+    </div>
 
+    <div class="field" style="margin-bottom:16px;">
+      <label>Select Attendance CSV <span style="color:var(--bad);">*</span></label>
+      <input type="file" id="staffAttCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+    </div>
+
+    <div id="staffAttPreviewBox" style="display:none; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:13px; color:var(--ink);">Parsed Attendance (<span id="staffAttRowCount">0</span> matched)</strong>
+        <span style="font-size:12px; font-weight:600; color:var(--good);">Ready to populate</span>
+      </div>
+      <div style="max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;" id="staffAttPreviewTable">
+          <thead>
+            <tr style="background:#f8fafc; border-bottom:1px solid var(--line); text-align:left;">
+              <th style="padding:6px 10px;">Roll</th>
+              <th style="padding:6px 10px;">Student Name</th>
+              <th style="padding:6px 10px;">Adm No.</th>
+              <th style="padding:6px 10px;">Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn btn-outline" id="cancelStaffAttImportBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="startStaffAttImportBtn" disabled style="min-width:160px; font-weight:700;">
+        Populate Attendance
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAFF BULK MARKS IMPORT MODAL ================= -->
+<div class="profile-modal-overlay" id="staffMarksImportModal">
+  <div class="profile-modal-card" style="max-width:740px; width:95%;">
+    <button type="button" class="modal-close" id="closeStaffMarksImportModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Import Exam Marks CSV</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Bulk fill student marks obtained from a spreadsheet.</p>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:16px;">
+      <label>Select Marks CSV <span style="color:var(--bad);">*</span></label>
+      <input type="file" id="staffMarksCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+    </div>
+
+    <div id="staffMarksPreviewBox" style="display:none; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:13px; color:var(--ink);">Parsed Marks (<span id="staffMarksRowCount">0</span> matched)</strong>
+        <span style="font-size:12px; font-weight:600; color:var(--good);">Ready to populate</span>
+      </div>
+      <div style="max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;" id="staffMarksPreviewTable">
+          <thead>
+            <tr style="background:#f8fafc; border-bottom:1px solid var(--line); text-align:left;">
+              <th style="padding:6px 10px;">Roll</th>
+              <th style="padding:6px 10px;">Student Name</th>
+              <th style="padding:6px 10px;">Adm No.</th>
+              <th style="padding:6px 10px;">Marks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn btn-outline" id="cancelStaffMarksImportBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="startStaffMarksImportBtn" disabled style="min-width:160px; font-weight:700;">
+        Populate Marks
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="app-shell">
   <div class="sidebar" id="sidebar">
@@ -964,6 +1145,7 @@
               <path d="M6 6h10M6 10h10" />
             </svg>
           </div>
+<<<<<<< HEAD
           <h3 style="margin:0 0 6px 0; font-size:17px; font-weight:700;">Please Select a Class Section Above</h3>
           <p style="margin:0; font-size:13px; color:var(--ink-soft); max-width:460px; margin:0 auto;">Choose any
             class section from the dropdown (e.g. 10-A, 10-B) to view live day-wise roll call attendance or
@@ -1264,6 +1446,19 @@
             <div class="empty-state" id="attAuditEmpty" style="display:none; padding:36px 16px; text-align:center;">
               No attendance records found for this class section.
             </div>
+=======
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-brass" id="attSaveBtn">Save Attendance</button>
+            <button class="btn btn-outline" id="staffAttExportCsvBtn" type="button" style="border:1px solid var(--border);background:#fff;color:var(--ink-main);font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button class="btn btn-outline" id="staffAttImportCsvBtn" type="button" style="border:1px solid #0284c7;background:#f0f9ff;color:#0284c7;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import CSV
+            </button>
+            <span id="attMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+>>>>>>> a3f9d9639dc794c212c41c45bd01580caade3472
           </div>
         </div>
       </section>
@@ -1293,8 +1488,16 @@
           <div class="card card-static table-wrap">
             <table id="marksEntryTable"><thead><tr><th>Roll No.</th><th>Student Name</th><th>Admission No.</th><th>Marks Obtained</th></tr></thead><tbody></tbody></table>
           </div>
-          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <button class="btn btn-brass" id="marksSaveBtn">Save Marks</button>
+            <button class="btn btn-outline" id="staffMarksExportCsvBtn" type="button" style="border:1px solid var(--border);background:#fff;color:var(--ink-main);font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button class="btn btn-outline" id="staffMarksImportCsvBtn" type="button" style="border:1px solid #d97706;background:#fffbeb;color:#b45309;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import CSV
+            </button>
             <span id="marksMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
           </div>
         </div>
@@ -1394,8 +1597,21 @@
             Exit to Home
           </button>
         </div>
-        
-
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <span id="staffStuCountBadge" class="badge" style="background:#e0e7ff; color:#3730a3; font-weight:700; padding:6px 12px; border-radius:20px;">0 Enrolled</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" id="staffStuExportCsvBtn" type="button" style="border:1px solid var(--border);background:#fff;color:var(--ink-main);font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button class="btn btn-outline" id="staffStuImportCsvBtn" type="button" style="border:1px solid #059669;background:#ecfdf5;color:#059669;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import CSV
+            </button>
+          </div>
+        </div>
 
         <div class="card card-static table-wrap">
           <table id="stuTable">
@@ -3933,11 +4149,21 @@ async function loadHwList() {
 
 
 
+let cachedTeacherStudents = [];
+
 async function loadStudentsForTeacher() {
   if (!classTeacherClass) return;
   const students = await getClassStudents(classTeacherClass.id);
+  cachedTeacherStudents = students;
+  const countBadge = document.getElementById('staffStuCountBadge');
+  if (countBadge) countBadge.textContent = `${students.length} Enrolled`;
+
   const body = document.querySelector('#stuTable tbody');
   body.innerHTML = '';
+  if (!students.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:20px;">No students enrolled yet. Use "Import CSV" to bulk register your class roster.</td></tr>';
+    return;
+  }
   students.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -3958,6 +4184,671 @@ async function loadStudentsForTeacher() {
   const parSel = document.getElementById('parStudentSel');
   if (parSel) parSel.innerHTML = '';
 }
+
+// ---------------- CSV UTILITIES ----------------
+function downloadCsv(filename, csvContent) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function parseCsv(text) {
+  const lines = [];
+  let row = [];
+  let inQuotes = false;
+  let current = '';
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(current.trim());
+      current = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++;
+      row.push(current.trim());
+      if (row.some(cell => cell.length > 0)) {
+        lines.push(row);
+      }
+      row = [];
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current.length > 0 || row.length > 0) {
+    row.push(current.trim());
+    if (row.some(cell => cell.length > 0)) {
+      lines.push(row);
+    }
+  }
+  return lines;
+}
+
+// ======================== TEACHER STUDENT ROSTER IMPORT & EXPORT ========================
+function exportTeacherStudentsCsv() {
+  if (!cachedTeacherStudents || !cachedTeacherStudents.length) {
+    alert('No students found to export.');
+    return;
+  }
+  const classNameClean = (classTeacherClass?.name || 'Class').replace(/[\s,]+/g, '_');
+  const headers = ['Roll No', 'Student Name', 'Admission No', 'Gender', 'Date of Birth', 'Blood Group', 'Father Name', 'Father Phone', 'Mother Name', 'Mother Phone', 'Parent Login Email', 'Residential Address', 'City', 'Pincode'];
+  const rows = cachedTeacherStudents.map(s => {
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      `"${s.gender || 'Male'}"`,
+      `"${s.dob || ''}"`,
+      `"${s.bloodGroup || 'O+'}"`,
+      `"${(s.fatherName || '').replace(/"/g, '""')}"`,
+      `"${s.fatherPhone || ''}"`,
+      `"${(s.motherName || '').replace(/"/g, '""')}"`,
+      `"${s.motherPhone || ''}"`,
+      `"${s.parentEmail || ''}"`,
+      `"${(s.address || '').replace(/"/g, '""')}"`,
+      `"${(s.city || '').replace(/"/g, '""')}"`,
+      `"${s.pincode || ''}"`
+    ].join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  downloadCsv(`Students_${classNameClean}_Roster.csv`, csvContent);
+}
+
+document.getElementById('staffStuExportCsvBtn')?.addEventListener('click', exportTeacherStudentsCsv);
+
+function downloadStaffStudentTemplate() {
+  const className = classTeacherClass?.name || 'L.K.G';
+  const headers = ['Roll No', 'Student Name', 'Admission No', 'Gender', 'Date of Birth', 'Blood Group', 'Father Name', 'Father Phone', 'Mother Name', 'Mother Phone', 'Parent Email', 'Residential Address', 'City', 'Pincode'];
+  const samples = [
+    ['1', 'Aarav Kumar', '2026-01', 'Male', '2020-05-15', 'O+', 'Rajesh Kumar', '9876543210', 'Priya Kumar', '9876543211', 'rajesh.kumar@example.com', '12 Gandhi Street', 'Chennai', '600001'],
+    ['2', 'Ananya Sharma', '2026-02', 'Female', '2020-08-22', 'B+', 'Suresh Sharma', '9123456780', 'Anita Sharma', '9123456781', 'suresh.sharma@example.com', '45 Temple Road', 'Chennai', '600028']
+  ];
+  const csvContent = headers.join(',') + '\n' + samples.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  downloadCsv(`Student_Roster_Template_${className.replace(/[\s,]+/g, '_')}.csv`, csvContent);
+}
+
+document.getElementById('staffDownloadStudentTemplateBtn')?.addEventListener('click', downloadStaffStudentTemplate);
+
+let parsedStaffStudents = [];
+
+function openStaffStuImportModal() {
+  if (!classTeacherClass) {
+    alert('You are not currently assigned as a Class Teacher. Contact administration to assign a class.');
+    return;
+  }
+  const modal = document.getElementById('staffStudentImportModal');
+  if (!modal) return;
+  const fileInput = document.getElementById('staffStuCsvFileInput');
+  if (fileInput) fileInput.value = '';
+  parsedStaffStudents = [];
+  document.getElementById('staffStuPreviewBox').style.display = 'none';
+  document.getElementById('staffStuProgressWrap').style.display = 'none';
+  document.getElementById('startStaffStuImportBtn').disabled = true;
+  modal.classList.add('open');
+  updateBodyModalState();
+}
+
+function closeStaffStuImportModal() {
+  const modal = document.getElementById('staffStudentImportModal');
+  if (modal) modal.classList.remove('open');
+  updateBodyModalState();
+}
+
+document.getElementById('staffStuImportCsvBtn')?.addEventListener('click', openStaffStuImportModal);
+document.getElementById('closeStaffStudentImportModal')?.addEventListener('click', closeStaffStuImportModal);
+document.getElementById('cancelStaffStuImportBtn')?.addEventListener('click', closeStaffStuImportModal);
+
+document.getElementById('staffStuCsvFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const text = evt.target.result;
+      const rows = parseCsv(text);
+      if (rows.length < 2) {
+        alert('CSV file is empty or missing header row.');
+        return;
+      }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission') || h.includes('register'));
+      const idxRoll = headers.findIndex(h => h.includes('roll'));
+      const idxName = headers.findIndex(h => h.includes('student name') || h.includes('name') || h.includes('full name'));
+      const idxGender = headers.findIndex(h => h.includes('gender') || h.includes('sex'));
+      const idxDob = headers.findIndex(h => h.includes('dob') || h.includes('birth') || h.includes('date of birth'));
+      const idxBlood = headers.findIndex(h => h.includes('blood'));
+      const idxFather = headers.findIndex(h => h.includes('father'));
+      const idxFatherPhone = headers.findIndex(h => h.includes('father phone') || h.includes('parent phone') || h.includes('mobile'));
+      const idxMother = headers.findIndex(h => h.includes('mother'));
+      const idxMotherPhone = headers.findIndex(h => h.includes('mother phone'));
+      const idxParEmail = headers.findIndex(h => h.includes('email') || h.includes('parent email'));
+      const idxAddr = headers.findIndex(h => h.includes('address'));
+      const idxCity = headers.findIndex(h => h.includes('city') || h.includes('town'));
+      const idxPin = headers.findIndex(h => h.includes('pin') || h.includes('postal'));
+
+      parsedStaffStudents = [];
+      const tbody = document.querySelector('#staffStuPreviewTable tbody');
+      tbody.innerHTML = '';
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || !r.length) continue;
+        const name = (idxName !== -1 ? r[idxName] : '').trim();
+        if (!name) continue;
+
+        const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
+        const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
+        const gender = (idxGender !== -1 && r[idxGender]) ? r[idxGender].trim() : 'Male';
+        const dob = (idxDob !== -1 && r[idxDob]) ? r[idxDob].trim() : '';
+        const blood = (idxBlood !== -1 && r[idxBlood]) ? r[idxBlood].trim() : 'O+';
+        const fatherName = (idxFather !== -1 && r[idxFather]) ? r[idxFather].trim() : '';
+        const fatherPhone = (idxFatherPhone !== -1 && r[idxFatherPhone]) ? r[idxFatherPhone].replace(/\D/g, '') : '';
+        const motherName = (idxMother !== -1 && r[idxMother]) ? r[idxMother].trim() : '';
+        const motherPhone = (idxMotherPhone !== -1 && r[idxMotherPhone]) ? r[idxMotherPhone].replace(/\D/g, '') : '';
+        const address = (idxAddr !== -1 && r[idxAddr]) ? r[idxAddr].trim() : '';
+        const city = (idxCity !== -1 && r[idxCity]) ? r[idxCity].trim() : '';
+        const pincode = (idxPin !== -1 && r[idxPin]) ? r[idxPin].trim() : '';
+
+        const safeAdm = (admNo || `s${Date.now()}_${i}`).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const stuEmail = `${safeAdm}@amalahss.edu`;
+        const stuPass = (dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : 'Student@123';
+
+        const parEmail = (idxParEmail !== -1 && r[idxParEmail] && r[idxParEmail].includes('@'))
+          ? r[idxParEmail].trim().toLowerCase()
+          : (fatherPhone ? `p_${fatherPhone}@amalahss.edu` : `parent_${safeAdm}@amalahss.edu`);
+        const parPass = fatherPhone && fatherPhone.length >= 6 ? fatherPhone : 'Parent@123';
+
+        parsedStaffStudents.push({
+          name, admNo: admNo || `ADM-${Date.now().toString().slice(-4)}-${i}`,
+          rollNo: rollNo || String(i),
+          gender, dob, bloodGroup: blood,
+          fatherName, fatherPhone, motherName, motherPhone,
+          parEmail, parPass, stuEmail, stuPass,
+          address, city, pincode
+        });
+
+        if (parsedStaffStudents.length <= 10) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="padding:6px 10px; font-weight:700;">${parsedStaffStudents.length}</td>
+            <td style="padding:6px 10px;"><strong>${name}</strong></td>
+            <td style="padding:6px 10px; font-family:var(--font-mono);">${admNo || '—'}</td>
+            <td style="padding:6px 10px;">${rollNo || '—'}</td>
+            <td style="padding:6px 10px;">${dob || '—'}</td>
+            <td style="padding:6px 10px;">${fatherName || 'Parent'} ${fatherPhone ? `(${fatherPhone})` : ''}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      }
+
+      document.getElementById('staffStuRowCount').textContent = parsedStaffStudents.length;
+      document.getElementById('staffStuPreviewBox').style.display = 'block';
+      document.getElementById('startStaffStuImportBtn').disabled = parsedStaffStudents.length === 0;
+    } catch (err) {
+      console.error('Error reading CSV:', err);
+      alert('Failed to parse CSV file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('startStaffStuImportBtn')?.addEventListener('click', async () => {
+  if (!parsedStaffStudents.length || !classTeacherClass) return;
+  const btn = document.getElementById('startStaffStuImportBtn');
+  const cancelBtn = document.getElementById('cancelStaffStuImportBtn');
+  btn.disabled = true;
+  cancelBtn.disabled = true;
+
+  const progressWrap = document.getElementById('staffStuProgressWrap');
+  const progressBar = document.getElementById('staffStuProgressBar');
+  const progressText = document.getElementById('staffStuProgressText');
+  const progressPct = document.getElementById('staffStuProgressPct');
+  progressWrap.style.display = 'block';
+
+  let successCount = 0;
+  const secAuth = getSecondaryAuth();
+
+  try {
+    for (let i = 0; i < parsedStaffStudents.length; i++) {
+      const s = parsedStaffStudents[i];
+      const pct = Math.round(((i + 1) / parsedStaffStudents.length) * 100);
+      progressBar.style.width = pct + '%';
+      progressPct.textContent = pct + '%';
+      progressText.textContent = `Registering ${s.name} (${i + 1}/${parsedStaffStudents.length})...`;
+
+      // 1. Create or resolve Student Auth user
+      let stuUid = null;
+      try {
+        const stuCred = await createUserWithEmailAndPassword(secAuth, s.stuEmail, s.stuPass);
+        stuUid = stuCred.user.uid;
+      } catch (sErr) {
+        if (sErr.code === 'auth/email-already-in-use') {
+          const uQ = query(collection(db, 'users'), where('email', '==', s.stuEmail));
+          const uSnap = await getDocs(uQ);
+          if (!uSnap.empty) stuUid = uSnap.docs[0].id;
+        }
+      }
+      if (!stuUid) stuUid = doc(collection(db, 'students')).id;
+
+      // 2. Create or resolve Parent Auth user
+      let parUid = null;
+      if (s.parEmail) {
+        try {
+          const parCred = await createUserWithEmailAndPassword(secAuth, s.parEmail, s.parPass);
+          parUid = parCred.user.uid;
+        } catch (pErr) {
+          if (pErr.code === 'auth/email-already-in-use') {
+            const uQ = query(collection(db, 'users'), where('email', '==', s.parEmail));
+            const uSnap = await getDocs(uQ);
+            if (!uSnap.empty) parUid = uSnap.docs[0].id;
+          }
+        }
+      }
+      if (!parUid && (s.fatherName || s.parEmail || s.fatherPhone)) {
+        parUid = doc(collection(db, 'parents')).id;
+      }
+
+      // 3. Save Student Record in Firestore
+      await setDoc(doc(db, 'students', stuUid), {
+        name: s.name,
+        admissionNo: s.admNo,
+        rollNo: s.rollNo,
+        classId: classTeacherClass.id,
+        className: classTeacherClass.name,
+        gender: s.gender,
+        dob: s.dob,
+        bloodGroup: s.bloodGroup,
+        fatherName: s.fatherName,
+        fatherPhone: s.fatherPhone,
+        motherName: s.motherName,
+        motherPhone: s.motherPhone,
+        parentUid: parUid || null,
+        parentEmail: s.parEmail,
+        address: s.address,
+        city: s.city,
+        pincode: s.pincode,
+        email: s.stuEmail,
+        createdAt: serverTimestamp(),
+        registeredByStaffUid: staffUid
+      }, { merge: true });
+
+      // Student user doc
+      await setDoc(doc(db, 'users', stuUid), {
+        name: s.name,
+        email: s.stuEmail,
+        role: 'student',
+        classId: classTeacherClass.id,
+        className: classTeacherClass.name,
+        admissionNo: s.admNo,
+        rollNo: s.rollNo,
+        createdAt: serverTimestamp()
+      }, { merge: true });
+
+      // 4. Save Parent Record if available
+      if (parUid) {
+        await setDoc(doc(db, 'parents', parUid), {
+          name: s.fatherName || `Parent of ${s.name}`,
+          email: s.parEmail,
+          phone: s.fatherPhone || '',
+          children: [stuUid],
+          createdAt: serverTimestamp()
+        }, { merge: true });
+
+        await setDoc(doc(db, 'users', parUid), {
+          name: s.fatherName || `Parent of ${s.name}`,
+          email: s.parEmail,
+          role: 'parent',
+          createdAt: serverTimestamp()
+        }, { merge: true });
+      }
+
+      successCount++;
+    }
+
+    showToast(`Successfully registered ${successCount} students into ${classTeacherClass.name}!`);
+    closeStaffStuImportModal();
+    loadStudentsForTeacher();
+  } catch (err) {
+    console.error('Error importing students:', err);
+    alert('Import encountered an error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    cancelBtn.disabled = false;
+  }
+});
+
+// ======================== TEACHER ATTENDANCE IMPORT & EXPORT ========================
+function exportStaffAttendanceCsv() {
+  if (!classTeacherClass) {
+    alert('No class assigned.');
+    return;
+  }
+  const date = document.getElementById('attDate')?.value || new Date().toISOString().split('T')[0];
+  const list = currentAttStudents && currentAttStudents.length ? currentAttStudents : cachedTeacherStudents;
+  if (!list.length) {
+    alert('Please load class students first.');
+    return;
+  }
+  const classNameClean = (classTeacherClass.name || 'Class').replace(/[\s,]+/g, '_');
+  const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Date', 'Status'];
+  const rows = list.map(s => {
+    const sel = document.querySelector(`input[name="att_${s.uid}"]:checked`);
+    const status = sel ? sel.value : 'present';
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      `"${classTeacherClass.name || ''}"`,
+      `"${date}"`,
+      `"${status.toUpperCase()}"`
+    ].join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  downloadCsv(`Attendance_${classNameClean}_${date}.csv`, csvContent);
+}
+
+document.getElementById('staffAttExportCsvBtn')?.addEventListener('click', exportStaffAttendanceCsv);
+
+let parsedStaffAtt = [];
+
+function openStaffAttImportModal() {
+  if (!classTeacherClass) {
+    alert('You are not currently assigned as a Class Teacher.');
+    return;
+  }
+  const modal = document.getElementById('staffAttendanceImportModal');
+  if (!modal) return;
+  const fileInput = document.getElementById('staffAttCsvFileInput');
+  if (fileInput) fileInput.value = '';
+  parsedStaffAtt = [];
+  document.getElementById('staffAttPreviewBox').style.display = 'none';
+  document.getElementById('startStaffAttImportBtn').disabled = true;
+  modal.classList.add('open');
+  updateBodyModalState();
+}
+
+function closeStaffAttImportModal() {
+  const modal = document.getElementById('staffAttendanceImportModal');
+  if (modal) modal.classList.remove('open');
+  updateBodyModalState();
+}
+
+document.getElementById('staffAttImportCsvBtn')?.addEventListener('click', openStaffAttImportModal);
+document.getElementById('closeStaffAttImportModal')?.addEventListener('click', closeStaffAttImportModal);
+document.getElementById('cancelStaffAttImportBtn')?.addEventListener('click', closeStaffAttImportModal);
+
+document.getElementById('staffAttCsvFileInput')?.addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    try {
+      const text = evt.target.result;
+      const rows = parseCsv(text);
+      if (rows.length < 2) {
+        alert('CSV is empty or missing headers.');
+        return;
+      }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission'));
+      const idxRoll = headers.findIndex(h => h.includes('roll'));
+      const idxName = headers.findIndex(h => h.includes('name'));
+      const idxStatus = headers.findIndex(h => h.includes('status'));
+
+      const classStudents = currentAttStudents.length ? currentAttStudents : await getClassStudents(classTeacherClass.id);
+
+      parsedStaffAtt = [];
+      const tbody = document.querySelector('#staffAttPreviewTable tbody');
+      tbody.innerHTML = '';
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || !r.length) continue;
+        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
+        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
+        const nameVal = idxName !== -1 ? r[idxName] : '';
+        const statusRaw = (idxStatus !== -1 && r[idxStatus]) ? r[idxStatus].toLowerCase().trim() : 'present';
+
+        let status = 'present';
+        if (statusRaw.startsWith('a') || statusRaw === 'absent') status = 'absent';
+        else if (statusRaw.startsWith('l') || statusRaw === 'late') status = 'late';
+
+        const matchedStudent = classStudents.find(s => {
+          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
+          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
+          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
+          return false;
+        });
+
+        if (matchedStudent) {
+          parsedStaffAtt.push({
+            studentUid: matchedStudent.uid,
+            studentName: matchedStudent.name,
+            admissionNo: matchedStudent.admissionNo,
+            rollNo: matchedStudent.rollNo,
+            status
+          });
+
+          if (parsedStaffAtt.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px; font-weight:700;">${matchedStudent.rollNo || '—'}</td>
+              <td style="padding:6px 10px;"><strong>${matchedStudent.name}</strong></td>
+              <td style="padding:6px 10px; font-family:var(--font-mono);">${matchedStudent.admissionNo || '—'}</td>
+              <td style="padding:6px 10px;"><span class="badge ${status === 'present' ? 'badge-good' : (status === 'absent' ? 'badge-bad' : 'badge-yellow')}">${status.toUpperCase()}</span></td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+      }
+
+      document.getElementById('staffAttRowCount').textContent = parsedStaffAtt.length;
+      document.getElementById('staffAttPreviewBox').style.display = 'block';
+      document.getElementById('startStaffAttImportBtn').disabled = parsedStaffAtt.length === 0;
+    } catch (err) {
+      alert('Failed to parse attendance CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('startStaffAttImportBtn')?.addEventListener('click', async () => {
+  if (!parsedStaffAtt.length || !classTeacherClass) return;
+  const date = document.getElementById('attDate')?.value || new Date().toISOString().split('T')[0];
+  const btn = document.getElementById('startStaffAttImportBtn');
+  btn.disabled = true;
+  btn.textContent = 'Applying...';
+
+  try {
+    for (const item of parsedStaffAtt) {
+      // Update radio button if present on page
+      const radio = document.querySelector(`input[name="att_${item.studentUid}"][value="${item.status}"]`);
+      if (radio) radio.checked = true;
+
+      // Save directly to Firestore attendance
+      const attId = `${item.studentUid}_${date}`;
+      await setDoc(doc(db, 'attendance', attId), {
+        studentUid: item.studentUid,
+        studentName: item.studentName || '',
+        rollNo: item.rollNo || item.admissionNo || '',
+        classId: classTeacherClass.id,
+        date,
+        status: item.status,
+        markedBy: staffUid,
+        markedAt: serverTimestamp()
+      }, { merge: true });
+    }
+    closeStaffAttImportModal();
+    showToast(`Successfully populated attendance for ${parsedStaffAtt.length} students!`);
+  } catch (err) {
+    alert('Error saving attendance: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Populate Attendance';
+  }
+});
+
+// ======================== TEACHER MARKS IMPORT & EXPORT ========================
+function exportStaffMarksCsv() {
+  const selIdx = document.getElementById('marksAssignSel')?.value;
+  const a = subjectAssignments && subjectAssignments[selIdx];
+  const examName = document.getElementById('marksExamName')?.value.trim() || 'Exam';
+  const maxMarks = parseInt(document.getElementById('marksMax')?.value) || 100;
+  if (!a || !currentMarksStudents.length) {
+    alert('Please select assignment, exam name, and load students first.');
+    return;
+  }
+  const headers = ['Roll No', 'Student Name', 'Admission No', 'Marks Obtained', 'Max Marks'];
+  const rows = currentMarksStudents.map(s => {
+    const inp = document.querySelector(`.marks-input[data-uid="${s.uid}"]`);
+    const marks = inp ? inp.value : '';
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      `"${marks}"`,
+      `"${maxMarks}"`
+    ].join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  const classNameClean = (a.className || 'Class').replace(/[\s,]+/g, '_');
+  const examClean = examName.replace(/[\s,]+/g, '_');
+  const subClean = (a.subject || 'Subject').replace(/[\s,]+/g, '_');
+  downloadCsv(`Marks_${classNameClean}_${subClean}_${examClean}.csv`, csvContent);
+}
+
+document.getElementById('staffMarksExportCsvBtn')?.addEventListener('click', exportStaffMarksCsv);
+
+let parsedStaffMarks = [];
+
+function openStaffMarksImportModal() {
+  const selIdx = document.getElementById('marksAssignSel')?.value;
+  const a = subjectAssignments && subjectAssignments[selIdx];
+  if (!a || !currentMarksStudents.length) {
+    alert('Please select class / subject assignment and click "Load" first.');
+    return;
+  }
+  const modal = document.getElementById('staffMarksImportModal');
+  if (!modal) return;
+  const fileInput = document.getElementById('staffMarksCsvFileInput');
+  if (fileInput) fileInput.value = '';
+  parsedStaffMarks = [];
+  document.getElementById('staffMarksPreviewBox').style.display = 'none';
+  document.getElementById('startStaffMarksImportBtn').disabled = true;
+  modal.classList.add('open');
+  updateBodyModalState();
+}
+
+function closeStaffMarksImportModal() {
+  const modal = document.getElementById('staffMarksImportModal');
+  if (modal) modal.classList.remove('open');
+  updateBodyModalState();
+}
+
+document.getElementById('staffMarksImportCsvBtn')?.addEventListener('click', openStaffMarksImportModal);
+document.getElementById('closeStaffMarksImportModal')?.addEventListener('click', closeStaffMarksImportModal);
+document.getElementById('cancelStaffMarksImportBtn')?.addEventListener('click', closeStaffMarksImportModal);
+
+document.getElementById('staffMarksCsvFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const text = evt.target.result;
+      const rows = parseCsv(text);
+      if (rows.length < 2) {
+        alert('CSV is empty or missing headers.');
+        return;
+      }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission'));
+      const idxRoll = headers.findIndex(h => h.includes('roll'));
+      const idxName = headers.findIndex(h => h.includes('name'));
+      const idxMarks = headers.findIndex(h => h.includes('mark') || h.includes('score') || h.includes('obtained'));
+
+      parsedStaffMarks = [];
+      const tbody = document.querySelector('#staffMarksPreviewTable tbody');
+      tbody.innerHTML = '';
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || !r.length) continue;
+        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
+        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
+        const nameVal = idxName !== -1 ? r[idxName] : '';
+        const marksVal = idxMarks !== -1 ? parseFloat(r[idxMarks]) : NaN;
+
+        const matchedStudent = currentMarksStudents.find(s => {
+          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
+          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
+          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
+          return false;
+        });
+
+        if (matchedStudent) {
+          const validMark = !isNaN(marksVal) ? marksVal : 0;
+          parsedStaffMarks.push({
+            studentUid: matchedStudent.uid,
+            studentName: matchedStudent.name,
+            admissionNo: matchedStudent.admissionNo,
+            rollNo: matchedStudent.rollNo,
+            marks: validMark
+          });
+
+          if (parsedStaffMarks.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px; font-weight:700;">${matchedStudent.rollNo || '—'}</td>
+              <td style="padding:6px 10px;"><strong>${matchedStudent.name}</strong></td>
+              <td style="padding:6px 10px; font-family:var(--font-mono);">${matchedStudent.admissionNo || '—'}</td>
+              <td style="padding:6px 10px; font-weight:700; color:var(--brand-green);">${validMark}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+      }
+
+      document.getElementById('staffMarksRowCount').textContent = parsedStaffMarks.length;
+      document.getElementById('staffMarksPreviewBox').style.display = 'block';
+      document.getElementById('startStaffMarksImportBtn').disabled = parsedStaffMarks.length === 0;
+    } catch (err) {
+      alert('Failed to parse marks CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('startStaffMarksImportBtn')?.addEventListener('click', () => {
+  if (!parsedStaffMarks.length) return;
+  for (const item of parsedStaffMarks) {
+    const inp = document.querySelector(`.marks-input[data-uid="${item.studentUid}"]`);
+    if (inp) {
+      inp.value = item.marks;
+      inp.style.borderColor = 'var(--brand-green)';
+      inp.style.background = '#f0fdf4';
+    }
+  }
+  closeStaffMarksImportModal();
+  showToast(`Successfully populated marks for ${parsedStaffMarks.length} students! Click "Save Marks" to commit.`);
+});
 </script>
 <script src="../../js/site-brand.js"></script>
 </body>
