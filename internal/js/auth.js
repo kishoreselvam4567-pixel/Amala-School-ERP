@@ -163,8 +163,50 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 // ---------- First-Time Login Instructions Helper ----------
 export function showFirstTimeLoginGuide(role, user, profile) {
   if (!user || !user.uid) return;
-  const storageKey = 'amala_first_time_login_shown_' + user.uid;
-  if (localStorage.getItem(storageKey)) return;
+
+  // 1. Database check: If Firestore profile confirms guide was already shown, exit
+  if (profile && (profile.hasSeenFirstLoginGuide === true || profile.firstLoginDone === true)) {
+    return;
+  }
+
+  const userEmail = (user.email || profile?.email || '').toLowerCase().trim();
+  const keysToCheck = [
+    'amala_first_time_login_shown_' + user.uid,
+    userEmail ? 'amala_first_time_login_shown_' + userEmail : null,
+    role ? 'amala_first_time_login_shown_' + role : null,
+    'amala_first_time_login_shown_admin_' + user.uid,
+    role === 'admin' ? 'amala_first_time_login_shown_admin' : null,
+    'amala_erp_seen_info',
+    'amala_erp_returning_user'
+  ].filter(Boolean);
+
+  // 2. LocalStorage check across all associated identifier keys
+  for (const k of keysToCheck) {
+    try {
+      if (localStorage.getItem(k) === 'true') {
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // 3. Mark as seen both in localStorage and permanently in Firestore
+  const markAsSeen = () => {
+    keysToCheck.forEach(k => {
+      try { localStorage.setItem(k, 'true'); } catch (e) {}
+    });
+    if (user && user.uid) {
+      try {
+        setDoc(doc(db, 'users', user.uid), {
+          hasSeenFirstLoginGuide: true,
+          firstLoginDone: true,
+          firstLoginGuideShownAt: new Date().toISOString()
+        }, { merge: true }).catch(() => {});
+      } catch (e) {}
+    }
+  };
+
+  // Mark immediately upon displaying so repeated logins or refreshes NEVER show it again
+  markAsSeen();
 
   const roleConfigs = {
     student: {
@@ -273,8 +315,9 @@ export function showFirstTimeLoginGuide(role, user, profile) {
 
   const modalHtml = `
     <div id="${modalId}" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); padding:16px; font-family:'Inter', sans-serif;">
-      <div style="background:#ffffff; max-width:560px; width:100%; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid #e2e8f0; overflow:hidden;">
+      <div style="background:#ffffff; max-width:560px; width:100%; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid #e2e8f0; overflow:hidden; position:relative;">
         <div style="background:linear-gradient(135deg, #0f1e36, #1e3a8a); padding:24px 28px; color:#ffffff; position:relative;">
+          <button id="closeFirstLoginXBtn" type="button" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; font-weight:700; transition:all 0.15s ease;" title="Close guide">✕</button>
           <div style="display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:3px 10px; border-radius:20px; background:${cfg.badgeColor}; color:#ffffff; margin-bottom:8px;">
             ${cfg.badge}
           </div>
@@ -316,18 +359,36 @@ export function showFirstTimeLoginGuide(role, user, profile) {
 
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 
+  const closeModal = () => {
+    markAsSeen();
+    const el = document.getElementById(modalId);
+    if (el) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => el.remove(), 200);
+    }
+  };
+
   const dismissBtn = document.getElementById('dismissFirstLoginBtn');
-  if (dismissBtn) {
-    dismissBtn.addEventListener('click', () => {
-      localStorage.setItem(storageKey, 'true');
-      const el = document.getElementById(modalId);
-      if (el) {
-        el.style.opacity = '0';
-        el.style.transition = 'opacity 0.2s ease';
-        setTimeout(() => el.remove(), 200);
-      }
+  if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
+
+  const closeXBtn = document.getElementById('closeFirstLoginXBtn');
+  if (closeXBtn) closeXBtn.addEventListener('click', closeModal);
+
+  const modalEl = document.getElementById(modalId);
+  if (modalEl) {
+    modalEl.addEventListener('click', (e) => {
+      if (e.target === modalEl) closeModal();
     });
   }
+
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      window.removeEventListener('keydown', handleEsc);
+    }
+  };
+  window.addEventListener('keydown', handleEsc);
 }
 
 // Central redirect used right after login on login.html

@@ -265,6 +265,13 @@ input,select,textarea{font-family:var(--font-body);}
   transition:all .18s ease;
   box-shadow:var(--shadow-sm);
 }
+.topbar-search input[type="search"]::-webkit-search-decoration,
+.topbar-search input[type="search"]::-webkit-search-cancel-button,
+.topbar-search input[type="search"]::-webkit-search-results-button,
+.topbar-search input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
+}
 .topbar-search input:focus{
   outline:none;
   border-color:var(--brand-green);
@@ -653,8 +660,7 @@ input,select,textarea{font-family:var(--font-body);}
   border-color:var(--brand-green);
   box-shadow:0 0 0 3px rgba(61,138,104,0.12);
 }
-.field-row{display:flex;gap:14px;}
-.field-row .field{flex:1;}
+.field-row{display:flex;flex-wrap:wrap;gap:14px;box-sizing:border-box;}
 .field-feedback{
   font-size:11.5px;
   margin-top:5px;
@@ -866,8 +872,12 @@ tr:hover td{background:#fafafa;}
 }
 .profile-fields-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap:16px 20px;
+}
+.detail-item{
+  min-width:0;
+  box-sizing:border-box;
 }
 .detail-item label{
   display:block;
@@ -877,11 +887,14 @@ tr:hover td{background:#fafafa;}
   letter-spacing:0.06em;
   color:var(--ink-muted);
   margin-bottom:4px;
+  line-height:1.3;
 }
 .detail-item .detail-val{
   font-size:14.5px;
   font-weight:600;
   color:var(--ink);
+  word-break:break-word;
+  overflow-wrap:break-word;
 }
 
 /* ---------------- MODAL / DETAIL DRAWER ---------------- */
@@ -1179,8 +1192,28 @@ tr:hover td{background:#fafafa;}
   box-sizing: border-box;
 }
 .field-row .field {
-  flex: 1 1 200px;
-  min-width: 0;
+  flex: 1 1 0px;
+  min-width: 140px;
+  box-sizing: border-box;
+}
+.field-row > .field[style*="flex:"] {
+  min-width: 140px;
+}
+.field-row .field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.field-row .field input,
+.field-row .field select,
+.field-row .field textarea {
+  width: 100%;
   box-sizing: border-box;
 }
 /* Action Button Containers inside .field-row (Never overflow, stay aligned) */

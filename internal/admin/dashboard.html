@@ -936,6 +936,13 @@
       .topbar-search input {
         padding-right: 80px !important;
       }
+      .topbar-search input[type="search"]::-webkit-search-decoration,
+      .topbar-search input[type="search"]::-webkit-search-cancel-button,
+      .topbar-search input[type="search"]::-webkit-search-results-button,
+      .topbar-search input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
+        display: none;
+      }
       .search-clear-btn {
         position: absolute;
         right: 48px;
@@ -1560,7 +1567,7 @@
 
   <!-- EDIT FACULTY MODAL -->
   <div class="profile-modal-overlay" id="editStaffModal">
-    <div class="profile-modal-card" style="max-width:640px;">
+    <div class="profile-modal-card" style="max-width:720px; width:95%;">
       <button type="button" class="modal-close" id="closeEditStaffModal">&times;</button>
       <div
         style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
@@ -1581,11 +1588,11 @@
       <form id="editStaffForm" onsubmit="return false;">
         <input type="hidden" id="editStfId">
         <div class="field-row">
-          <div class="field" style="flex:1.5;">
+          <div class="field" style="flex:1.4;">
             <label>Full Name <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStfName" required placeholder="e.g. Ravi Kumar">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Staff ID / Username <span style="color:var(--bad);">*</span></label>
             <div style="position:relative; display:flex; align-items:center;">
               <span
@@ -1597,7 +1604,7 @@
         </div>
 
         <div class="field-row" style="margin-top:12px;">
-          <div class="field">
+          <div class="field" style="flex:0.8;">
             <label>Gender <span style="color:var(--bad);">*</span></label>
             <select id="editStfGender">
               <option value="Male">Male</option>
@@ -1605,25 +1612,25 @@
               <option value="Other">Other</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" style="flex:1.1;">
             <label>Contact Mobile Number <span style="color:var(--bad);">*</span></label>
             <input type="tel" id="editStfPhone" required placeholder="e.g. 9876543210">
           </div>
-          <div class="field" style="flex:1.2;">
+          <div class="field" style="flex:1.3;">
             <label>Major Subject <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStfMajorSubject" list="subList" required placeholder="e.g. Mathematics">
           </div>
         </div>
 
         <div class="field-row" style="margin-top:12px;">
-          <div class="field" style="flex:1.4;">
+          <div class="field" style="flex:1.3;">
             <label>Portal Login Email <span style="color:var(--bad);">*</span></label>
             <input type="email" id="editStfEmail" required placeholder="staff@amalaschool.edu.in">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Portal Password</label>
             <div style="position:relative; display:flex; align-items:center;">
-              <input type="password" id="editStfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;">
+              <input type="password" id="editStfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;" autocomplete="new-password">
               <button type="button" class="pass-toggle-btn" data-target="editStfPass"
                 style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
                 title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -1646,7 +1653,7 @@
 
   <!-- EDIT STUDENT MODAL -->
   <div class="profile-modal-overlay" id="editStudentModal">
-    <div class="profile-modal-card" style="max-width:760px;">
+    <div class="profile-modal-card" style="max-width:820px; width:95%;">
       <button type="button" class="modal-close" id="closeEditStudentModal">&times;</button>
       <div
         style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
@@ -1673,30 +1680,30 @@
           Academic &amp; Personal Details
         </div>
         <div class="field-row">
-          <div class="field" style="flex:1.5;">
+          <div class="field" style="flex:1.4;">
             <label>Student Full Name <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStuName" required placeholder="Full Name">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Admission No. <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStuAdm" required placeholder="e.g. 2026-001">
           </div>
-          <div class="field">
+          <div class="field" style="flex:0.8;">
             <label>Roll Number</label>
             <input type="text" id="editStuRollNo" placeholder="e.g. 101">
           </div>
         </div>
 
         <div class="field-row" style="margin-top:10px;">
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Class Section <span style="color:var(--bad);">*</span></label>
             <select id="editStuClassSel" required></select>
           </div>
-          <div class="field">
+          <div class="field" style="flex:1.2;">
             <label>Date of Birth <span style="color:var(--bad);">*</span></label>
             <input type="date" id="editStuDob" required>
           </div>
-          <div class="field">
+          <div class="field" style="flex:0.8;">
             <label>Gender <span style="color:var(--bad);">*</span></label>
             <select id="editStuGender">
               <option value="Male">Male</option>
@@ -1707,7 +1714,7 @@
         </div>
 
         <div class="field-row" style="margin-top:10px;">
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Blood Group</label>
             <select id="editStuBlood">
               <option value="A+">A+</option>
@@ -1720,19 +1727,31 @@
               <option value="AB-">AB-</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" style="flex:2;">
             <label>Aadhaar Number <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStuAadhaar" required maxlength="12" placeholder="12-digit Aadhaar Number"
               inputmode="numeric">
             <div id="editStuAadhaarFeedback" class="field-feedback"></div>
           </div>
+        </div>
+
+        <div class="field-row" style="margin-top:10px;">
           <div class="field" style="flex:1.4;">
             <label>Student Login Email <span style="color:var(--bad);">*</span></label>
             <input type="email" id="editStuEmail" required placeholder="student@amalaschool.edu.in">
           </div>
           <div class="field" style="flex:1;">
             <label>Student Password</label>
-            <input type="text" id="editStuPass" placeholder="e.g. Student@123">
+            <div style="position:relative; display:flex; align-items:center;">
+              <input type="password" id="editStuPass" placeholder="e.g. Student@123" style="padding-right:40px;" autocomplete="new-password">
+              <button type="button" class="pass-toggle-btn" data-target="editStuPass"
+                style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
+                title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                  stroke="currentColor" stroke-width="2" style="vertical-align:middle;">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg></button>
+            </div>
           </div>
         </div>
 
@@ -1742,34 +1761,34 @@
           Parent &amp; Family Information
         </div>
         <div class="field-row">
-          <div class="field">
+          <div class="field" style="flex:1.3;">
             <label>Father / Guardian Name <span style="color:var(--bad);">*</span></label>
             <input type="text" id="editStuFatherName" required placeholder="Father's Name">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Father's Contact Number <span style="color:var(--bad);">*</span></label>
             <input type="tel" id="editStuFatherPhone" required maxlength="10" placeholder="10-digit mobile"
               inputmode="numeric">
             <div id="editStuFatherPhoneFeedback" class="field-feedback"></div>
           </div>
-          <div class="field">
+          <div class="field" style="flex:1.3;">
             <label>Parent Portal Email <span style="color:var(--bad);">*</span></label>
             <input type="email" id="editStuParentEmail" required placeholder="parent@gmail.com">
           </div>
         </div>
 
         <div class="field-row" style="margin-top:10px;">
-          <div class="field">
+          <div class="field" style="flex:1.2;">
             <label>Mother's Name</label>
             <input type="text" id="editStuMotherName" placeholder="Mother's Name">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Mother's Contact Number</label>
             <input type="tel" id="editStuMotherPhone" maxlength="10" placeholder="10-digit mobile (optional)"
               inputmode="numeric">
             <div id="editStuMotherPhoneFeedback" class="field-feedback"></div>
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>Emergency Contact</label>
             <input type="tel" id="editStuEmergencyPhone" maxlength="10"
               placeholder="10-digit emergency phone (optional)" inputmode="numeric">
@@ -1787,11 +1806,11 @@
             <label>Permanent Address</label>
             <input type="text" id="editStuAddress" placeholder="Door No, Street Name, Area">
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;">
             <label>City / Town</label>
             <input type="text" id="editStuCity" placeholder="e.g. Chennai">
           </div>
-          <div class="field">
+          <div class="field" style="flex:0.8;">
             <label>Pincode</label>
             <input type="text" id="editStuPincode" placeholder="e.g. 600001">
           </div>
@@ -1977,7 +1996,7 @@
 
     <!-- EDIT PARENT MODAL -->
     <div class="profile-modal-overlay" id="editParentModal">
-      <div class="profile-modal-card" style="max-width:600px;">
+      <div class="profile-modal-card" style="max-width:700px; width:95%;">
         <button type="button" class="modal-close" id="closeEditParentModal">&times;</button>
         <div
           style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
@@ -1998,11 +2017,11 @@
         <form id="editParentForm" onsubmit="return false;">
           <input type="hidden" id="editParUid">
           <div class="field-row">
-            <div class="field" style="flex:1.5;">
+            <div class="field" style="flex:1.4;">
               <label>Parent / Guardian Name <span style="color:var(--bad);">*</span></label>
               <input type="text" id="editParName" required placeholder="e.g. Rajesh Sharma">
             </div>
-            <div class="field">
+            <div class="field" style="flex:1;">
               <label>Login Mobile Number <span style="color:var(--bad);">*</span></label>
               <input type="tel" id="editParPhone" required maxlength="10" placeholder="10-digit mobile"
                 inputmode="numeric">
@@ -2011,7 +2030,7 @@
           </div>
 
           <div class="field-row" style="margin-top:12px;">
-            <div class="field">
+            <div class="field" style="flex:1;">
               <label>Mother's Phone / Alternate</label>
               <input type="tel" id="editParMotherPhone" maxlength="10" placeholder="10-digit mobile (optional)"
                 inputmode="numeric">
@@ -2024,10 +2043,10 @@
           </div>
 
           <div class="field-row" style="margin-top:12px;">
-            <div class="field">
+            <div class="field" style="flex:1;">
               <label>Portal Password</label>
               <div style="position:relative; display:flex; align-items:center;">
-                <input type="password" id="editParPass" placeholder="e.g. Parent@123" style="padding-right:40px;">
+                <input type="password" id="editParPass" placeholder="e.g. Parent@123" style="padding-right:40px;" autocomplete="new-password">
                 <button type="button" class="pass-toggle-btn" data-target="editParPass"
                   style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
                   title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -2243,6 +2262,12 @@
 
         <!-- TOP NAVIGATION BAR -->
         <div class="topbar">
+          <!-- Hidden anti-autofill dummy trap to capture browser password manager autofill -->
+          <div style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; pointer-events:none;" aria-hidden="true">
+            <input type="text" name="fake_admin_username_trap" tabindex="-1" autocomplete="off">
+            <input type="password" name="fake_admin_password_trap" tabindex="-1" autocomplete="new-password">
+          </div>
+
           <div class="topbar-search" id="topbarSearchContainer">
             <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
               stroke-width="2">
@@ -2252,12 +2277,12 @@
             <!-- Honeypot fields: absorb Chrome/Edge password-manager autofill so it never reaches the search box -->
             <input type="text"     name="fake_user_prevent_autofill" aria-hidden="true" tabindex="-1" style="opacity:0;position:absolute;width:0;height:0;pointer-events:none;" autocomplete="username">
             <input type="password" name="fake_pass_prevent_autofill" aria-hidden="true" tabindex="-1" style="opacity:0;position:absolute;width:0;height:0;pointer-events:none;" autocomplete="current-password">
-            <input type="text" id="globalSearchInput"
-              placeholder="Search homework, classes, students, staff, parents…"
-              autocomplete="off" data-lpignore="true" data-form-type="other"
-              onfocus="this.removeAttribute('readonly')" readonly>
+            <input type="search" id="globalSearchInput" name="school_dashboard_omni_search"
+              placeholder="Search homework, classes, students, staff, parents…" autocomplete="off"
+              autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-form-type="other"
+              readonly onfocus="this.removeAttribute('readonly');" onpointerdown="this.removeAttribute('readonly');">
             <button type="button" id="globalSearchClearBtn" class="search-clear-btn" title="Clear search">✕</button>
-            <span class="shortcut-badge" title="Search" id="globalSearchBadge" onclick="document.getElementById('globalSearchInput').focus()">
+            <span class="shortcut-badge" title="Search" id="globalSearchBadge" onclick="const gsi=document.getElementById('globalSearchInput'); if(gsi){ gsi.removeAttribute('readonly'); gsi.focus(); }">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </span>
             <div id="globalSearchResults" class="global-search-dropdown" style="display:none;"></div>
@@ -2655,7 +2680,7 @@
                 <div class="field">
                   <label>Temp Password <span style="color:var(--bad);">*</span></label>
                   <div style="position:relative; display:flex; align-items:center;">
-                    <input type="password" id="stfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;">
+                    <input type="password" id="stfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;" autocomplete="new-password">
                     <button type="button" class="pass-toggle-btn" data-target="stfPass"
                       style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
                       title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -2824,27 +2849,27 @@
                   Student Personal &amp; Academic Identity
                 </div>
                 <div class="field-row">
-                  <div class="field">
+                  <div class="field" style="flex:1.4;">
                     <label>Student Full Name *</label>
                     <input type="text" id="stuName" required placeholder="Full legal name of student">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Admission Number *</label>
                     <input type="text" id="stuAdm" required placeholder="e.g. 2026-001 (Unique ID)">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:0.8;">
                     <label>Roll Number</label>
                     <input type="text" id="stuRollNo" placeholder="e.g. 23">
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field">
+                  <div class="field" style="flex:1.2;">
                     <label>Assign Class Section *</label>
                     <select id="stuClassSelAdd"></select>
                   </div>
 
                   <!-- SPEED-BOOSTED DATE OF BIRTH PICKER (Day + Month + Year Quick Dropdown) -->
-                  <div class="field">
+                  <div class="field" style="flex:1.5;">
                     <label>Date of Birth * (Day / Month / Year)</label>
                     <div style="display:flex; gap:6px;">
                       <select id="stuDobDay" style="flex:1; padding:10px 6px;">
@@ -2871,7 +2896,7 @@
                     </div>
                   </div>
 
-                  <div class="field">
+                  <div class="field" style="flex:0.9;">
                     <label>Gender</label>
                     <select id="stuGender">
                       <option value="Male">Male</option>
@@ -2920,7 +2945,7 @@
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Blood Group</label>
                     <select id="stuBlood">
                       <option value="A+">A+</option>
@@ -2933,20 +2958,22 @@
                       <option value="AB-">AB-</option>
                     </select>
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:2;">
                     <label>Aadhaar / National ID Number <span style="color:var(--bad);">*</span></label>
                     <input type="text" id="stuAadhaar" required maxlength="12" placeholder="12-digit Aadhaar Number"
                       inputmode="numeric" autocomplete="off">
                     <div id="stuAadhaarFeedback" class="field-feedback"></div>
                   </div>
-                  <div class="field">
+                </div>
+                <div class="field-row">
+                  <div class="field" style="flex:1.4;">
                     <label>Student Login Email *</label>
                     <input type="email" id="stuEmail" required placeholder="student@school.edu.in">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Student Password *</label>
                     <div style="position:relative; display:flex; align-items:center;">
-                      <input type="password" id="stuPass" placeholder="e.g. Student@123" style="padding-right:40px;">
+                      <input type="password" id="stuPass" placeholder="e.g. Student@123" style="padding-right:40px;" autocomplete="new-password">
                       <button type="button" class="pass-toggle-btn" data-target="stuPass"
                         style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
                         title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -2966,21 +2993,23 @@
                   Parent &amp; Family Information (Auto-creates Parent Portal Account)
                 </div>
                 <div class="field-row">
-                  <div class="field">
+                  <div class="field" style="flex:1.2;">
                     <label>Father's Name *</label>
                     <input type="text" id="parFatherName" required placeholder="Father / Primary Guardian Name">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Father's Mobile Number <span style="color:var(--bad);">*</span></label>
                     <input type="tel" id="parFatherPhone" required maxlength="10" placeholder="10-digit mobile number"
                       inputmode="numeric" autocomplete="tel">
                     <div id="parFatherPhoneFeedback" class="field-feedback"></div>
                   </div>
-                  <div class="field">
+                </div>
+                <div class="field-row">
+                  <div class="field" style="flex:1.2;">
                     <label>Mother's Name</label>
                     <input type="text" id="parMotherName" placeholder="Mother's Name">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Mother's Mobile Number</label>
                     <input type="tel" id="parMotherPhone" maxlength="10" placeholder="10-digit mobile number (optional)"
                       inputmode="numeric" autocomplete="tel">
@@ -2988,15 +3017,15 @@
                   </div>
                 </div>
                 <div class="field-row">
-                  <div class="field">
+                  <div class="field" style="flex:1.4;">
                     <label>Parent Portal Login Email *</label>
                     <input type="email" id="parLoginEmail" required placeholder="parent@example.com">
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Parent Portal Password *</label>
                     <div style="position:relative; display:flex; align-items:center;">
                       <input type="password" id="parLoginPass" placeholder="e.g. Parent@123"
-                        style="padding-right:40px;">
+                        style="padding-right:40px;" autocomplete="new-password">
                       <button type="button" class="pass-toggle-btn" data-target="parLoginPass"
                         style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
                         title="Show/Hide Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -3006,7 +3035,7 @@
                         </svg></button>
                     </div>
                   </div>
-                  <div class="field">
+                  <div class="field" style="flex:1;">
                     <label>Emergency Contact Phone</label>
                     <input type="tel" id="stuEmergencyPhone" maxlength="10"
                       placeholder="10-digit emergency phone (optional)" inputmode="numeric" autocomplete="tel">
@@ -4929,22 +4958,61 @@
       const globalSearchResults = document.getElementById('globalSearchResults');
       const globalSearchClearBtn = document.getElementById('globalSearchClearBtn');
 
+      let userTypedInSearch = false;
+
+      // Defensive purging against browser password manager credential autofill
+      function purgeSearchAutofill() {
+        const input = document.getElementById('globalSearchInput');
+        if (!input) return;
+        // If the user hasn't physically typed in the search bar and it's not currently focused
+        if (!userTypedInSearch && document.activeElement !== input) {
+          if (input.value) {
+            input.value = '';
+            const clearBtn = document.getElementById('globalSearchClearBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            const drop = document.getElementById('globalSearchResults');
+            if (drop) drop.style.display = 'none';
+            if (typeof filterCurrentActiveTab === 'function') {
+              filterCurrentActiveTab('');
+            }
+          }
+        }
+      }
+
+      // Run multiple times on load to catch delayed browser autofill injections
+      purgeSearchAutofill();
+      window.addEventListener('DOMContentLoaded', purgeSearchAutofill);
+      window.addEventListener('load', purgeSearchAutofill);
+      [50, 150, 300, 600, 1200, 2000].forEach(delay => setTimeout(purgeSearchAutofill, delay));
+
       if (globalSearchInput) {
-        // Remove readonly on interaction to prevent Chrome password manager autofill
-        globalSearchInput.addEventListener('mousedown', () => globalSearchInput.removeAttribute('readonly'));
-        globalSearchInput.addEventListener('focus', () => globalSearchInput.removeAttribute('readonly'));
+        // Unlock input immediately when user interacts
+        globalSearchInput.addEventListener('mousedown', () => {
+          globalSearchInput.removeAttribute('readonly');
+        });
+        globalSearchInput.addEventListener('pointerdown', () => {
+          globalSearchInput.removeAttribute('readonly');
+        });
+        globalSearchInput.addEventListener('touchstart', () => {
+          globalSearchInput.removeAttribute('readonly');
+        }, { passive: true });
 
         globalSearchInput.addEventListener('input', (e) => {
+          userTypedInSearch = true;
+          globalSearchInput.removeAttribute('readonly');
           performGlobalSearch(e.target.value);
         });
 
         globalSearchInput.addEventListener('focus', () => {
-          if (globalSearchInput.value.trim().length > 0) {
+          globalSearchInput.removeAttribute('readonly');
+          if (userTypedInSearch && globalSearchInput.value.trim().length > 0) {
             performGlobalSearch(globalSearchInput.value);
           }
         });
 
         globalSearchInput.addEventListener('keydown', (e) => {
+          userTypedInSearch = true;
+          globalSearchInput.removeAttribute('readonly');
           const items = globalSearchResults ? Array.from(globalSearchResults.querySelectorAll('.gs-item')) : [];
           if (!globalSearchResults || globalSearchResults.style.display === 'none' || items.length === 0) {
             if (e.key === 'Escape') {
@@ -4979,10 +5047,12 @@
         window.addEventListener('keydown', (e) => {
           if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
             e.preventDefault();
+            globalSearchInput.removeAttribute('readonly');
             globalSearchInput.focus();
             globalSearchInput.select();
           } else if (e.key === '/' && document.activeElement !== globalSearchInput && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
             e.preventDefault();
+            globalSearchInput.removeAttribute('readonly');
             globalSearchInput.focus();
           }
         });
@@ -4991,6 +5061,7 @@
       if (globalSearchClearBtn) {
         globalSearchClearBtn.addEventListener('click', () => {
           if (globalSearchInput) {
+            userTypedInSearch = false;
             globalSearchInput.value = '';
             globalSearchInput.focus();
           }
@@ -5665,6 +5736,7 @@
           const contentEl = document.getElementById('content');
           if (loadEl) loadEl.style.display = 'none';
           if (contentEl) contentEl.style.display = 'block';
+          purgeSearchAutofill();
         }
       });
 
