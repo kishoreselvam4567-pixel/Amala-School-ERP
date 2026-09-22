@@ -196,6 +196,390 @@
       align-items: flex-start;
     }
   }
+
+  /* ==========================================================
+     CAMPUS ATTENDANCE INTELLIGENCE SYSTEM STYLES
+     ========================================================== */
+  .att-header-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .att-live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .att-live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: attLivePulse 1.8s infinite;
+  }
+
+  @keyframes attLivePulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+
+  .att-mode-nav {
+    display: inline-flex;
+    background: var(--paper-2);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .att-mode-tab-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s ease;
+  }
+
+  .att-mode-tab-btn:hover {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .att-mode-tab-btn.active {
+    background: var(--white);
+    color: var(--brand-green);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+
+  .att-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .att-kpi-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .att-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .att-kpi-card .label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .att-kpi-card .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+    font-family: var(--font-heading);
+    line-height: 1.1;
+  }
+
+  .att-kpi-card .sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .att-kpi-card.emerald { border-left: 4px solid #10b981; }
+  .att-kpi-card.rose { border-left: 4px solid #ef4444; }
+  .att-kpi-card.amber { border-left: 4px solid #f59e0b; }
+  .att-kpi-card.blue { border-left: 4px solid #3b82f6; }
+  .att-kpi-card.purple { border-left: 4px solid #8b5cf6; }
+
+  .att-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .att-chip-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+  }
+
+  .att-chip-btn:hover {
+    border-color: #94a3b8;
+    color: var(--ink);
+  }
+
+  .att-chip-btn.active {
+    background: var(--navy);
+    color: var(--white);
+    border-color: var(--navy);
+  }
+
+  .att-quick-btn-group {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
+
+  .att-quick-btn {
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+    border: 1.5px solid var(--line);
+    background: var(--white);
+  }
+
+  .att-quick-btn.present {
+    color: #065f46;
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+  }
+
+  .att-quick-btn.present:hover,
+  .att-quick-btn.present.active {
+    background: #10b981 !important;
+    color: #ffffff !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+  }
+
+  .att-quick-btn.absent {
+    color: #991b1b;
+    border-color: #fecaca;
+    background: #fef2f2;
+  }
+
+  .att-quick-btn.absent:hover,
+  .att-quick-btn.absent.active {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  }
+
+  .att-quick-btn.late {
+    color: #92400e;
+    border-color: #fde68a;
+    background: #fffbeb;
+  }
+
+  .att-quick-btn.late:hover,
+  .att-quick-btn.late.active {
+    background: #f59e0b !important;
+    color: #ffffff !important;
+    border-color: #f59e0b !important;
+    box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
+  }
+
+  /* Monthly Register Matrix Styles */
+  .att-matrix-container {
+    overflow-x: auto;
+    max-width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .att-matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+  }
+
+  .att-matrix-table th,
+  .att-matrix-table td {
+    padding: 8px 6px;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .att-matrix-table th {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #334155;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .att-matrix-table th.col-sticky,
+  .att-matrix-table td.col-sticky {
+    position: sticky;
+    left: 0;
+    background: var(--white);
+    z-index: 12;
+    text-align: left;
+    padding-left: 14px;
+    min-width: 150px;
+    max-width: 220px;
+    border-right: 2px solid var(--line);
+  }
+
+  .att-matrix-table th.col-sticky-roll,
+  .att-matrix-table td.col-sticky-roll {
+    position: sticky;
+    left: 0;
+    background: #fafafa;
+    z-index: 13;
+    text-align: center;
+    min-width: 50px;
+    max-width: 60px;
+    border-right: 1px solid var(--line);
+  }
+
+  .att-matrix-table th.col-sticky-name,
+  .att-matrix-table td.col-sticky-name {
+    position: sticky;
+    left: 50px;
+    background: var(--white);
+    z-index: 12;
+    text-align: left;
+    padding-left: 10px;
+    min-width: 150px;
+    max-width: 220px;
+    border-right: 2px solid var(--line);
+  }
+
+  .att-matrix-table th.weekend-col,
+  .att-matrix-table td.weekend-col {
+    background: #fafaf9;
+    color: #a8a29e;
+  }
+
+  .att-day-header-day {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .att-day-header-dow {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .att-chip-p {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #ecfdf5;
+    color: #065f46;
+    font-weight: 800;
+    font-size: 11px;
+  }
+
+  .att-chip-a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 800;
+    font-size: 11px;
+  }
+
+  .att-chip-l {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 800;
+    font-size: 11px;
+  }
+
+  .att-chip-dash {
+    color: #cbd5e1;
+    font-weight: 600;
+  }
+
+  .att-table-footer-row th,
+  .att-table-footer-row td {
+    background: #f1f5f9 !important;
+    font-weight: 800;
+    color: var(--navy);
+    border-top: 2px solid var(--line);
+  }
 </style>
 </head>
 <body>
@@ -485,32 +869,401 @@
         </div>
       </section>
 
-      <!-- ATTENDANCE (class teacher only) -->
+      <!-- ================= 4. ATTENDANCE TAB (CAMPUS ATTENDANCE INTELLIGENCE) ================= -->
       <section id="panel-attendance" style="display:none;">
+        <!-- Header Bar with Live Badge -->
         <div class="main-header">
           <div>
-            <h2>Mark Attendance</h2>
-            <p style="color:var(--ink-soft);">Available to the class teacher of a section (ordered by Roll Number).</p>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <h2>Campus Attendance Intelligence</h2>
+              <span class="att-live-indicator" id="attLiveSyncBadge"
+                title="Live real-time sync active with Firestore">
+                <span class="att-live-dot"></span>
+                <span id="attLiveSyncText">Live Sync Active</span>
+              </span>
+            </div>
+            <p>Live Class-Wise &amp; Section-Wise Roll Call, Day-by-Day Tracking &amp; Monthly Registers</p>
           </div>
-          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Exit to Home
-          </button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn-exit-tab" data-go-tab="overview"
+              title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Exit to Home
+            </button>
+          </div>
         </div>
-        <div id="attNoAccess" class="empty-state" style="display:none;">You are not set as a class teacher. Ask admin to assign you a class.</div>
-        <div id="attAccess" style="display:none;">
-          <div class="card card-static" style="margin-bottom:20px;">
-            <div class="field-row" style="align-items:flex-end;">
-              <div class="field" style="flex:1; min-width:200px;"><label>Date</label><input type="date" id="attDate"></div>
-              <div class="field field-action"><button class="btn btn-primary" id="attLoadBtn">Load Class List</button></div>
+
+        <!-- Master Control & Mode Navigation Card -->
+        <div class="card"
+          style="margin-bottom:20px; border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+            <!-- Class Section Selection -->
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; flex:1; min-width:280px;">
+              <div class="field" style="margin:0; flex:1; min-width:240px; max-width:420px;">
+                <label
+                  style="font-weight:700; color:var(--ink); font-size:12.5px; display:flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                    <path d="M6 6h10M6 10h10" />
+                  </svg>
+                  Select Class Section
+                </label>
+                <select id="attClassFilter"
+                  style="font-weight:600; font-size:14px; border-radius:10px; border-color:var(--brand-green);">
+                  <option value="">-- Choose Class Section --</option>
+                </select>
+              </div>
+              <div id="attClassTeacherInfo"
+                style="font-size:12.5px; color:var(--ink-soft); padding-top:18px; display:none;">
+                Faculty In-Charge: <strong id="attTeacherNameTxt" style="color:var(--ink);">—</strong>
+              </div>
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="att-mode-nav">
+              <button type="button" class="att-mode-tab-btn active" data-att-mode="day" id="attModeDayBtn">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                Day-Wise Roll Call
+              </button>
+              <button type="button" class="att-mode-tab-btn" data-att-mode="month" id="attModeMonthBtn">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+                </svg>
+                Month-Wise Register
+              </button>
+              <button type="button" class="att-mode-tab-btn" data-att-mode="audit" id="attModeAuditBtn">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" />
+                  <path d="m9 14 2 2 4-4" />
+                </svg>
+                Cumulative Audit
+              </button>
             </div>
           </div>
-          <div class="card card-static table-wrap">
-            <table id="attMarkTable"><thead><tr><th>Roll No.</th><th>Student Name</th><th>Admission No.</th><th>Status</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <!-- Empty Class State -->
+        <div class="card empty-state" id="attNoClassSelected" style="padding:48px 20px; text-align:center;">
+          <div
+            style="width:54px; height:54px; margin:0 auto 16px; border-radius:50%; background:#e6f4ed; color:var(--brand-green); display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+              <path d="M6 6h10M6 10h10" />
+            </svg>
           </div>
-          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
-            <button class="btn btn-brass" id="attSaveBtn">Save Attendance</button>
-            <span id="attMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+          <h3 style="margin:0 0 6px 0; font-size:17px; font-weight:700;">Please Select a Class Section Above</h3>
+          <p style="margin:0; font-size:13px; color:var(--ink-soft); max-width:460px; margin:0 auto;">Choose any
+            class section from the dropdown (e.g. 10-A, 10-B) to view live day-wise roll call attendance or
+            month-wise register sheets.</p>
+        </div>
+
+        <!-- ================= SUB-PANEL 1: DAY-WISE (LIVE) ================= -->
+        <div id="attSubPanelDay" style="display:none;">
+          <!-- Day Control Bar -->
+          <div class="card" style="margin-bottom:18px; padding:16px 20px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <!-- Date Selector & Quick Buttons -->
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="attDayPrevBtn" title="Previous Day"
+                  style="padding:6px 10px;">◀</button>
+                <div style="display:inline-flex; align-items:center; gap:8px;">
+                  <input type="date" id="attDayDate"
+                    style="padding:7px 12px; font-size:13.5px; font-weight:700; border:1px solid var(--line); border-radius:8px; background:var(--white); cursor:pointer;">
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="attDayNextBtn" title="Next Day"
+                  style="padding:6px 10px;">▶</button>
+                <button type="button" class="btn btn-outline btn-sm" id="attDayTodayBtn"
+                  style="font-weight:700;">Today</button>
+                <button type="button" class="btn btn-outline btn-sm" id="attDayYesterdayBtn"
+                  style="font-weight:700;">Yesterday</button>
+              </div>
+
+              <!-- Day Action Buttons -->
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-brass btn-sm" id="attMarkAllPresentBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Mark Unmarked Present
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="attPrintDayBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                  Print Daily Slip
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="attExportDayCsvBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day KPI Cards (5 Metrics) -->
+          <div class="att-kpi-row">
+            <div class="att-kpi-card blue">
+              <div class="label">Total Strength</div>
+              <div class="value" id="attStatDayTotal">0</div>
+              <div class="sub">Enrolled in section</div>
+            </div>
+            <div class="att-kpi-card emerald">
+              <div class="label">Present</div>
+              <div class="value" style="color:#059669;"><span id="attStatDayPresent">0</span> <small
+                  style="font-size:14px; font-weight:600;" id="attStatDayPresentPct">(0%)</small></div>
+              <div class="sub">Attending class today</div>
+            </div>
+            <div class="att-kpi-card rose">
+              <div class="label">Absent</div>
+              <div class="value" style="color:#dc2626;"><span id="attStatDayAbsent">0</span> <small
+                  style="font-size:14px; font-weight:600;" id="attStatDayAbsentPct">(0%)</small></div>
+              <div class="sub">Recorded absences</div>
+            </div>
+            <div class="att-kpi-card amber">
+              <div class="label">Late Arrival</div>
+              <div class="value" style="color:#d97706;" id="attStatDayLate">0</div>
+              <div class="sub">Late marked students</div>
+            </div>
+            <div class="att-kpi-card purple">
+              <div class="label">Not Marked</div>
+              <div class="value" style="color:#7c3aed;" id="attStatDayUnmarked">0</div>
+              <div class="sub">Pending roll call</div>
+            </div>
+          </div>
+
+          <!-- Daily Table Card -->
+          <div class="card table-wrap" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
+            <div
+              style="padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; background:#fafafa;">
+              <!-- Filter Pills -->
+              <div class="att-filter-chips" id="attDayFilterChips">
+                <button type="button" class="att-chip-btn active" data-filter="all">All (<span
+                    id="attChipCntAll">0</span>)</button>
+                <button type="button" class="att-chip-btn" data-filter="present" style="color:#065f46;">Present
+                  (<span id="attChipCntPresent">0</span>)</button>
+                <button type="button" class="att-chip-btn" data-filter="absent" style="color:#991b1b;">Absent (<span
+                    id="attChipCntAbsent">0</span>)</button>
+                <button type="button" class="att-chip-btn" data-filter="late" style="color:#92400e;">Late (<span
+                    id="attChipCntLate">0</span>)</button>
+                <button type="button" class="att-chip-btn" data-filter="unmarked" style="color:#64748b;">Unmarked
+                  (<span id="attChipCntUnmarked">0</span>)</button>
+              </div>
+              <!-- Student Search Input -->
+              <div style="position:relative; width:260px; max-width:100%;">
+                <input type="text" id="attDaySearchInput" placeholder="Search student or roll no…"
+                  style="padding:6px 12px 6px 30px; font-size:12.5px; border-radius:8px; border:1px solid var(--line); width:100%;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                  style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--ink-soft);">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <table id="attDayTable" style="margin:0;">
+              <thead>
+                <tr>
+                  <th style="width:80px; text-align:center;">Roll No</th>
+                  <th>Student Details</th>
+                  <th>Admission No</th>
+                  <th>Class Section</th>
+                  <th style="width:115px; text-align:center;">Date</th>
+                  <th style="width:130px; text-align:center;">Live Status</th>
+                  <th style="width:230px; text-align:center;">Live Mark / Change</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+
+            <div class="empty-state" id="attDayEmpty" style="display:none; padding:36px 16px; text-align:center;">
+              No students match your filter criteria.
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SUB-PANEL 2: MONTH-WISE REGISTER ================= -->
+        <div id="attSubPanelMonth" style="display:none;">
+          <!-- Month Control Bar -->
+          <div class="card" style="margin-bottom:18px; padding:16px 20px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <!-- Month Picker & Navigation -->
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="attMonthPrevBtn" title="Previous Month"
+                  style="padding:6px 10px;">◀</button>
+                <input type="month" id="attMonthPicker"
+                  style="padding:7px 12px; font-size:13.5px; font-weight:700; border:1px solid var(--line); border-radius:8px; background:var(--white); cursor:pointer;">
+                <button type="button" class="btn btn-outline btn-sm" id="attMonthNextBtn" title="Next Month"
+                  style="padding:6px 10px;">▶</button>
+                <button type="button" class="btn btn-outline btn-sm" id="attMonthThisBtn"
+                  style="font-weight:700;">Current Month</button>
+              </div>
+
+              <!-- Month Actions -->
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="attPrintMonthBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                  Print Monthly Register
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="attExportMonthCsvBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export Monthly CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Month KPI Row -->
+          <div class="att-kpi-row">
+            <div class="att-kpi-card blue">
+              <div class="label">Recorded Days</div>
+              <div class="value" id="attStatMonthDays">0</div>
+              <div class="sub">Class working sessions</div>
+            </div>
+            <div class="att-kpi-card emerald">
+              <div class="label">Class Attendance Rate</div>
+              <div class="value" style="color:#059669;" id="attStatMonthAvgPct">0%</div>
+              <div class="sub">Monthly section aggregate</div>
+            </div>
+            <div class="att-kpi-card amber">
+              <div class="label">Regular Attendance (≥75%)</div>
+              <div class="value" style="color:#d97706;" id="attStatMonthRegular">0</div>
+              <div class="sub">Eligible students</div>
+            </div>
+            <div class="att-kpi-card rose">
+              <div class="label">Attendance Shortage (&lt;75%)</div>
+              <div class="value" style="color:#dc2626;" id="attStatMonthShortage">0</div>
+              <div class="sub">Action required</div>
+            </div>
+          </div>
+
+          <!-- Legend & Filter Bar -->
+          <div class="card"
+            style="padding:10px 18px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:#f8fafc;">
+            <div style="display:flex; align-items:center; gap:16px; font-size:12px; font-weight:600;">
+              <span style="color:var(--ink-soft);">Legend:</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span class="att-chip-p">P</span>
+                Present</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span class="att-chip-a">A</span>
+                Absent</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span class="att-chip-l">L</span>
+                Late</span>
+              <span style="display:inline-flex; align-items:center; gap:5px;"><span
+                  style="color:#cbd5e1; font-weight:800;">—</span> Holiday / Unrecorded</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <label
+                style="font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="attMonthShortageOnly">
+                Show Shortage Only (&lt;75%)
+              </label>
+              <div style="position:relative; width:200px;">
+                <input type="text" id="attMonthSearchInput" placeholder="Filter student…"
+                  style="padding:5px 10px 5px 28px; font-size:12px; border-radius:6px; border:1px solid var(--line); width:100%;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  style="position:absolute; left:8px; top:50%; transform:translateY(-50%); color:var(--ink-soft);">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Month Matrix Table Card -->
+          <div class="att-matrix-container" id="attMonthMatrixContainer">
+            <table class="att-matrix-table" id="attMonthMatrixTable">
+              <thead>
+                <tr id="attMonthHeaderRow"></tr>
+              </thead>
+              <tbody id="attMonthBody"></tbody>
+              <tfoot>
+                <tr class="att-table-footer-row" id="attMonthFooterRow"></tr>
+              </tfoot>
+            </table>
+            <div class="empty-state" id="attMonthEmpty" style="display:none; padding:36px 16px; text-align:center;">
+              No attendance records found for this class section in the selected month.
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SUB-PANEL 3: CUMULATIVE AUDIT ================= -->
+        <div id="attSubPanelAudit" style="display:none;">
+          <div class="card" style="margin-bottom:18px; padding:16px 20px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <div>
+                <h4 style="margin:0 0 4px 0; font-size:15px; font-weight:700;">Academic Cumulative Attendance Audit
+                </h4>
+                <p style="margin:0; font-size:12.5px; color:var(--ink-soft);">All-time attendance percentage
+                  breakdown and regularity tracking across recorded sessions</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="attPrintAuditBtn"
+                style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print Audit Sheet
+              </button>
+            </div>
+          </div>
+
+          <div class="card table-wrap" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
+            <table id="attAuditTable" style="margin:0;">
+              <thead>
+                <tr>
+                  <th style="width:70px; text-align:center;">Roll No</th>
+                  <th>Student Name</th>
+                  <th>Admission No</th>
+                  <th>Class Section</th>
+                  <th style="text-align:center;">Days Present</th>
+                  <th style="text-align:center;">Total Recorded Days</th>
+                  <th style="width:180px;">Attendance Rate</th>
+                  <th style="text-align:right;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="attAuditBody"></tbody>
+            </table>
+            <div class="empty-state" id="attAuditEmpty" style="display:none; padding:36px 16px; text-align:center;">
+              No attendance records found for this class section.
+            </div>
           </div>
         </div>
       </section>
@@ -668,7 +1421,7 @@
 <script type="module">
 import {
   auth, db, storage, requirePortal, logout, doc, getDoc, setDoc, collection,
-  query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp, orderBy,
+  query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp, orderBy, onSnapshot,
   ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
 } from '../../js/auth.js';
 
@@ -843,6 +1596,7 @@ function switchTab(tabName, pushState = true) {
   }
 
   if (tabName === 'announcements') loadStaffAnnouncements();
+  if (tabName === 'attendance') initStaffAttendancePanel();
   if (tabName === 'exams') loadExams();
   if (tabName === 'notes') loadNotesList();
   if (tabName === 'homework') loadHwList();
@@ -1104,6 +1858,7 @@ document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
 
 let staffUid, staffProfile, classTeacherClass = null, subjectAssignments = [];
 let allSchoolStudentsCache = [];
+let allClassesCache = [];
 
 requirePortal(['staff'], async ({ user, profile }) => {
   staffUid = user.uid;
@@ -1215,13 +1970,17 @@ requirePortal(['staff'], async ({ user, profile }) => {
       sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   }
 
-  // Configure Attendance Access
+  // Cache sorted classes for Attendance Intelligence
+  allClassesCache = sortedClasses;
+
+  // Configure Students Access for Class Teacher
   if (classTeacherClass) {
-    document.getElementById('attAccess').style.display = 'block';
     document.getElementById('navStudents').style.display = 'block';
-    document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
-  } else {
-    document.getElementById('attNoAccess').style.display = 'block';
+  }
+
+  // If page was loaded directly on the Attendance tab, initialize panel
+  if (window.location.hash === '#attendance') {
+    initStaffAttendancePanel();
   }
 
   // Configure Marks Access
@@ -1597,60 +2356,1416 @@ async function getClassStudents(classId) {
   return list;
 }
 
-// ---------------- ATTENDANCE ----------------
-let currentAttStudents = [];
-document.getElementById('attLoadBtn').addEventListener('click', async () => {
-  if (!classTeacherClass) return;
-  const date = document.getElementById('attDate').value;
-  if (!date) { alert('Select a date.'); return; }
-  currentAttStudents = await getClassStudents(classTeacherClass.id);
-  const body = document.querySelector('#attMarkTable tbody');
-  body.innerHTML = '';
-  if (!currentAttStudents.length) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);">No students found in this class.</td></tr>';
+// ======================== CAMPUS ATTENDANCE INTELLIGENCE SYSTEM ========================
+let attSelectedClassId = '';
+let attSelectedClassObj = null;
+let attActiveMode = 'day'; // 'day' | 'month' | 'audit'
+let attCurrentStudents = [];
+let attDailyRecordsMap = {}; // studentUid -> attendanceRecord
+let attMonthlyRecords = [];
+let attDayUnsubscribe = null;
+let attMonthUnsubscribe = null;
+
+let attDailyFilterStatus = 'all';
+let attDailySearchTerm = '';
+let attMonthSearchTerm = '';
+let attMonthShortageOnly = false;
+
+function formatYmd(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatYm(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function cleanupAttendanceListeners() {
+  if (attDayUnsubscribe) {
+    try { attDayUnsubscribe(); } catch (e) { }
+    attDayUnsubscribe = null;
+  }
+  if (attMonthUnsubscribe) {
+    try { attMonthUnsubscribe(); } catch (e) { }
+    attMonthUnsubscribe = null;
+  }
+}
+
+async function initStaffAttendancePanel() {
+  // Ensure default dates
+  const todayStr = formatYmd(new Date());
+  const dayInput = document.getElementById('attDayDate');
+  if (dayInput && !dayInput.value) {
+    dayInput.value = todayStr;
+  }
+
+  const curMonthStr = formatYm(new Date());
+  const monthInput = document.getElementById('attMonthPicker');
+  if (monthInput && !monthInput.value) {
+    monthInput.value = curMonthStr;
+  }
+
+  // Populate Class Selector with teacher's assigned classes prioritized
+  const attF = document.getElementById('attClassFilter');
+  if (attF) {
+    let optionsHtml = '<option value="">-- Choose Class Section --</option>';
+
+    // 1. My Class (Class Teacher)
+    if (classTeacherClass) {
+      optionsHtml += `<optgroup label="My Class (Class Teacher)">
+        <option value="${classTeacherClass.id}">${classTeacherClass.name} (My Class)</option>
+      </optgroup>`;
+    }
+
+    // 2. My Subject Classes
+    const subjClasses = [];
+    const seenSubjClassIds = new Set();
+    (subjectAssignments || []).forEach(sa => {
+      if (sa.classId && (!classTeacherClass || sa.classId !== classTeacherClass.id) && !seenSubjClassIds.has(sa.classId)) {
+        seenSubjClassIds.add(sa.classId);
+        subjClasses.push(sa);
+      }
+    });
+
+    if (subjClasses.length) {
+      optionsHtml += '<optgroup label="My Subject Classes">';
+      subjClasses.forEach(sc => {
+        optionsHtml += `<option value="${sc.classId}">${sc.className || 'Class'} (${sc.subject || 'Subject'})</option>`;
+      });
+      optionsHtml += '</optgroup>';
+    }
+
+    // 3. All School Classes
+    const otherClasses = (allClassesCache || []).filter(c => {
+      if (classTeacherClass && c.id === classTeacherClass.id) return false;
+      if (seenSubjClassIds.has(c.id)) return false;
+      return true;
+    });
+
+    if (otherClasses.length) {
+      optionsHtml += '<optgroup label="All School Classes">';
+      otherClasses.forEach(c => {
+        optionsHtml += `<option value="${c.id}">${c.name}</option>`;
+      });
+      optionsHtml += '</optgroup>';
+    }
+
+    const cur = attF.value;
+    attF.innerHTML = optionsHtml;
+
+    // Auto-select priority: keep existing value if still valid, else prioritize Class Teacher class, then subject class, then first class
+    if (cur && attF.querySelector(`option[value="${cur}"]`)) {
+      attF.value = cur;
+    } else if (classTeacherClass) {
+      attF.value = classTeacherClass.id;
+    } else if (subjClasses.length > 0) {
+      attF.value = subjClasses[0].classId;
+    } else if (allClassesCache && allClassesCache.length > 0) {
+      attF.value = allClassesCache[0].id;
+    }
+  }
+
+  // Trigger initial load for selected class
+  await onAttendanceClassChange();
+}
+
+function setAttendanceMode(mode) {
+  attActiveMode = mode;
+  document.getElementById('attModeDayBtn')?.classList.toggle('active', mode === 'day');
+  document.getElementById('attModeMonthBtn')?.classList.toggle('active', mode === 'month');
+  document.getElementById('attModeAuditBtn')?.classList.toggle('active', mode === 'audit');
+
+  const dayPanel = document.getElementById('attSubPanelDay');
+  const monthPanel = document.getElementById('attSubPanelMonth');
+  const auditPanel = document.getElementById('attSubPanelAudit');
+
+  if (!attSelectedClassId) {
+    if (dayPanel) dayPanel.style.display = 'none';
+    if (monthPanel) monthPanel.style.display = 'none';
+    if (auditPanel) auditPanel.style.display = 'none';
     return;
   }
 
-  // Pre-fetch existing attendance
-  const existingMap = {};
-  const attQ = query(collection(db, 'attendance'), where('classId', '==', classTeacherClass.id), where('date', '==', date));
-  const attSnap = await getDocs(attQ);
-  attSnap.docs.forEach(d => { existingMap[d.data().studentUid] = d.data().status; });
+  if (dayPanel) dayPanel.style.display = mode === 'day' ? 'block' : 'none';
+  if (monthPanel) monthPanel.style.display = mode === 'month' ? 'block' : 'none';
+  if (auditPanel) auditPanel.style.display = mode === 'audit' ? 'block' : 'none';
 
-  currentAttStudents.forEach(s => {
-    const currentStatus = existingMap[s.uid] || 'present';
+  if (mode === 'day') {
+    setupLiveDailyAttendance();
+  } else if (mode === 'month') {
+    setupLiveMonthlyAttendance();
+  } else if (mode === 'audit') {
+    loadCumulativeAudit();
+  }
+}
+
+async function onAttendanceClassChange() {
+  const attF = document.getElementById('attClassFilter');
+  const classId = attF ? attF.value : '';
+  attSelectedClassId = classId;
+
+  cleanupAttendanceListeners();
+
+  const noClassEl = document.getElementById('attNoClassSelected');
+  const teacherInfoEl = document.getElementById('attClassTeacherInfo');
+  const teacherNameTxt = document.getElementById('attTeacherNameTxt');
+  const dayPanel = document.getElementById('attSubPanelDay');
+  const monthPanel = document.getElementById('attSubPanelMonth');
+  const auditPanel = document.getElementById('attSubPanelAudit');
+
+  if (!classId) {
+    if (noClassEl) noClassEl.style.display = 'block';
+    if (teacherInfoEl) teacherInfoEl.style.display = 'none';
+    if (dayPanel) dayPanel.style.display = 'none';
+    if (monthPanel) monthPanel.style.display = 'none';
+    if (auditPanel) auditPanel.style.display = 'none';
+    attCurrentStudents = [];
+    return;
+  }
+
+  if (noClassEl) noClassEl.style.display = 'none';
+
+  attSelectedClassObj = (allClassesCache || []).find(c => c.id === classId) || null;
+
+  // Show Faculty In-Charge
+  if (teacherInfoEl && teacherNameTxt) {
+    teacherInfoEl.style.display = 'block';
+    let tName = 'Not Assigned';
+    if (classTeacherClass && classTeacherClass.id === classId) {
+      tName = `${staffProfile?.name || 'You'} (Class Teacher)`;
+    } else if (attSelectedClassObj && attSelectedClassObj.classTeacherUid) {
+      try {
+        const stfSnap = await getDoc(doc(db, 'staff', attSelectedClassObj.classTeacherUid));
+        if (stfSnap.exists()) tName = stfSnap.data().name || tName;
+      } catch (e) { }
+    }
+    teacherNameTxt.textContent = tName;
+  }
+
+  // Fetch Students for this specific class section sorted strictly by numeric roll number
+  try {
+    attCurrentStudents = await getClassStudents(classId);
+  } catch (err) {
+    console.error('Error fetching class students:', err);
+    attCurrentStudents = [];
+  }
+
+  setAttendanceMode(attActiveMode);
+}
+
+// ---------------- DAY-WISE LIVE ATTENDANCE ----------------
+function setupLiveDailyAttendance() {
+  if (attDayUnsubscribe) {
+    try { attDayUnsubscribe(); } catch (e) { }
+    attDayUnsubscribe = null;
+  }
+
+  if (!attSelectedClassId) return;
+
+  const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+  const liveText = document.getElementById('attLiveSyncText');
+
+  const attQ = query(
+    collection(db, 'attendance'),
+    where('classId', '==', attSelectedClassId),
+    where('date', '==', date)
+  );
+
+  if (liveText) liveText.textContent = 'Connecting…';
+
+  attDayUnsubscribe = onSnapshot(attQ, (snapshot) => {
+    attDailyRecordsMap = {};
+    snapshot.docs.forEach(d => {
+      const data = d.data();
+      if (data.studentUid) {
+        attDailyRecordsMap[data.studentUid] = { id: d.id, ...data };
+      }
+    });
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (liveText) liveText.textContent = `Live Synced (${timeStr})`;
+
+    updateDailyMetricsAndChips();
+    renderDailyAttendanceTable();
+  }, (err) => {
+    console.error('Live attendance sync error:', err);
+    if (liveText) liveText.textContent = 'Sync Offline';
+  });
+}
+
+function updateDailyMetricsAndChips() {
+  const total = attCurrentStudents.length;
+  let present = 0;
+  let absent = 0;
+  let late = 0;
+  let unmarked = 0;
+
+  attCurrentStudents.forEach(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    if (!rec || !rec.status) {
+      unmarked++;
+    } else if (rec.status === 'present') {
+      present++;
+    } else if (rec.status === 'absent') {
+      absent++;
+    } else if (rec.status === 'late') {
+      late++;
+    } else {
+      unmarked++;
+    }
+  });
+
+  const presentPct = total ? Math.round((present / total) * 100) : 0;
+  const absentPct = total ? Math.round((absent / total) * 100) : 0;
+
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+  setTxt('attStatDayTotal', total);
+  setTxt('attStatDayPresent', present);
+  setTxt('attStatDayPresentPct', `(${presentPct}%)`);
+  setTxt('attStatDayAbsent', absent);
+  setTxt('attStatDayAbsentPct', `(${absentPct}%)`);
+  setTxt('attStatDayLate', late);
+  setTxt('attStatDayUnmarked', unmarked);
+
+  setTxt('attChipCntAll', total);
+  setTxt('attChipCntPresent', present);
+  setTxt('attChipCntAbsent', absent);
+  setTxt('attChipCntLate', late);
+  setTxt('attChipCntUnmarked', unmarked);
+}
+
+function renderDailyAttendanceTable() {
+  const tbody = document.querySelector('#attDayTable tbody');
+  const emptyEl = document.getElementById('attDayEmpty');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  const term = (attDailySearchTerm || '').toLowerCase().trim();
+
+  const filtered = attCurrentStudents.filter(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    const status = rec && rec.status ? rec.status : 'unmarked';
+
+    if (attDailyFilterStatus !== 'all' && status !== attDailyFilterStatus) {
+      return false;
+    }
+
+    if (term) {
+      const matchName = (s.name || '').toLowerCase().includes(term);
+      const matchRoll = String(s.rollNo || '').toLowerCase().includes(term);
+      const matchAdm = String(s.admissionNo || '').toLowerCase().includes(term);
+      if (!matchName && !matchRoll && !matchAdm) return false;
+    }
+
+    return true;
+  });
+
+  if (!filtered.length) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const dateVal = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+  let displayDate = dateVal;
+  if (dateVal && dateVal.includes('-')) {
+    const parts = dateVal.split('-');
+    if (parts.length === 3) {
+      displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  filtered.forEach(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    const status = rec && rec.status ? rec.status : 'unmarked';
     const tr = document.createElement('tr');
+
+    let statusBadge = '';
+    if (status === 'present') {
+      statusBadge = '<span class="badge badge-good" style="font-weight:700;">Present</span>';
+    } else if (status === 'absent') {
+      statusBadge = '<span class="badge badge-bad" style="font-weight:700;">Absent</span>';
+    } else if (status === 'late') {
+      statusBadge = '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;">Late</span>';
+    } else {
+      statusBadge = '<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-weight:700;">Unmarked</span>';
+    }
+
     tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
-      <td><strong>${s.name}</strong></td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
+      <td style="text-align:center;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
+      </td>
       <td>
-        <label style="margin-right:12px;font-weight:600;"><input type="radio" name="att_${s.uid}" value="present" ${currentStatus === 'present' ? 'checked' : ''}> Present</label>
-        <label style="margin-right:12px;font-weight:600;color:var(--bad);"><input type="radio" name="att_${s.uid}" value="absent" ${currentStatus === 'absent' ? 'checked' : ''}> Absent</label>
-        <label style="font-weight:600;color:var(--gold-deep);"><input type="radio" name="att_${s.uid}" value="late" ${currentStatus === 'late' ? 'checked' : ''}> Late</label>
+        <strong>${s.name}</strong>
+        <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
+      </td>
+      <td>
+        <span style="font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">${s.admissionNo || '—'}</span>
+      </td>
+      <td>
+        <span class="badge badge-purple" style="font-weight:600;">${attSelectedClassObj?.name || s.className || '—'}</span>
+      </td>
+      <td style="text-align:center;">
+        <span class="badge" style="background:var(--slate-100,#f1f5f9); color:var(--slate-700,#334155); border:1px solid var(--line,#e2e8f0); font-family:var(--font-mono); font-weight:700; font-size:11.5px; letter-spacing:0.2px;">${displayDate}</span>
+      </td>
+      <td style="text-align:center;">
+        ${statusBadge}
+      </td>
+      <td style="text-align:center;">
+        <div class="att-quick-btn-group">
+          <button type="button" class="att-quick-btn present ${status === 'present' ? 'active' : ''}" data-status="present" title="Mark Present Live">Present</button>
+          <button type="button" class="att-quick-btn absent ${status === 'absent' ? 'active' : ''}" data-status="absent" title="Mark Absent Live">Absent</button>
+          <button type="button" class="att-quick-btn late ${status === 'late' ? 'active' : ''}" data-status="late" title="Mark Late Live">Late</button>
+        </div>
       </td>
     `;
+
+    tr.querySelectorAll('.att-quick-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const newStatus = btn.dataset.status;
+        await saveQuickAttendance(s.uid, s.name, s.rollNo || s.admissionNo, newStatus);
+      });
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+async function saveQuickAttendance(studentUid, studentName, rollNo, status) {
+  if (!attSelectedClassId) return;
+  const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+  const attId = `${studentUid}_${date}`;
+
+  // Instant optimistic UI update for zero latency
+  attDailyRecordsMap[studentUid] = {
+    id: attId,
+    studentUid,
+    studentName: studentName || '',
+    rollNo: rollNo || '',
+    classId: attSelectedClassId,
+    date,
+    status
+  };
+  updateDailyMetricsAndChips();
+  renderDailyAttendanceTable();
+
+  try {
+    await setDoc(doc(db, 'attendance', attId), {
+      studentUid,
+      studentName: studentName || '',
+      rollNo: rollNo || '',
+      classId: attSelectedClassId,
+      date,
+      status,
+      markedBy: staffUid || auth.currentUser?.uid || 'staff',
+      markedAt: serverTimestamp()
+    }, { merge: true });
+
+    showToast(`Attendance saved: ${studentName} is ${status.toUpperCase()}`);
+  } catch (err) {
+    alert('Failed to update attendance: ' + err.message);
+  }
+}
+
+async function markAllUnmarkedPresent() {
+  if (!attSelectedClassId || !attCurrentStudents.length) return;
+  const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+
+  const unmarkedStudents = attCurrentStudents.filter(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    return !rec || !rec.status;
+  });
+
+  if (!unmarkedStudents.length) {
+    alert('All enrolled students in this class section already have attendance marked for ' + date);
+    return;
+  }
+
+  if (!confirm(`Mark all ${unmarkedStudents.length} unmarked students as Present for ${date}?`)) {
+    return;
+  }
+
+  const btn = document.getElementById('attMarkAllPresentBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  // Optimistically update all records immediately
+  unmarkedStudents.forEach(s => {
+    attDailyRecordsMap[s.uid] = {
+      id: `${s.uid}_${date}`,
+      studentUid: s.uid,
+      studentName: s.name || '',
+      rollNo: s.rollNo || s.admissionNo || '',
+      classId: attSelectedClassId,
+      date,
+      status: 'present'
+    };
+  });
+  updateDailyMetricsAndChips();
+  renderDailyAttendanceTable();
+
+  try {
+    const writePromises = unmarkedStudents.map(s => {
+      const attId = `${s.uid}_${date}`;
+      return setDoc(doc(db, 'attendance', attId), {
+        studentUid: s.uid,
+        studentName: s.name || '',
+        rollNo: s.rollNo || s.admissionNo || '',
+        classId: attSelectedClassId,
+        date,
+        status: 'present',
+        markedBy: staffUid || auth.currentUser?.uid || 'staff',
+        markedAt: serverTimestamp()
+      }, { merge: true });
+    });
+
+    await Promise.all(writePromises);
+    showToast(`Successfully marked ${unmarkedStudents.length} students as Present!`);
+  } catch (err) {
+    alert('Error saving batch attendance: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Mark Unmarked Present';
+    }
+  }
+}
+
+// ---------------- MONTH-WISE LIVE REGISTER ----------------
+function setupLiveMonthlyAttendance() {
+  if (attMonthUnsubscribe) {
+    try { attMonthUnsubscribe(); } catch (e) { }
+    attMonthUnsubscribe = null;
+  }
+
+  if (!attSelectedClassId) return;
+
+  const ym = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [yearStr, monthStr] = ym.split('-');
+  const year = parseInt(yearStr);
+  const monthIdx = parseInt(monthStr) - 1;
+  const totalDays = new Date(year, monthIdx + 1, 0).getDate();
+
+  const startDate = `${ym}-01`;
+  const endDate = `${ym}-${String(totalDays).padStart(2, '0')}`;
+
+  const q = query(
+    collection(db, 'attendance'),
+    where('classId', '==', attSelectedClassId),
+    where('date', '>=', startDate),
+    where('date', '<=', endDate)
+  );
+
+  attMonthUnsubscribe = onSnapshot(q, (snapshot) => {
+    attMonthlyRecords = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderMonthlyAttendanceMatrix(year, monthIdx, totalDays);
+  }, (err) => {
+    console.error('Error listening to monthly attendance:', err);
+  });
+}
+
+function renderMonthlyAttendanceMatrix(year, monthIdx, totalDays) {
+  const headerRow = document.getElementById('attMonthHeaderRow');
+  const body = document.getElementById('attMonthBody');
+  const footerRow = document.getElementById('attMonthFooterRow');
+  const emptyEl = document.getElementById('attMonthEmpty');
+
+  if (!headerRow || !body) return;
+
+  body.innerHTML = '';
+  headerRow.innerHTML = '';
+  if (footerRow) footerRow.innerHTML = '';
+
+  // Build data index: studentUid -> { [dayNum]: status }
+  const studentDayMap = {};
+  const recordedDaysSet = new Set();
+  const dailyClassPresentCount = {};
+
+  for (let d = 1; d <= totalDays; d++) {
+    dailyClassPresentCount[d] = 0;
+  }
+
+  attMonthlyRecords.forEach(r => {
+    if (!r.studentUid || !r.date) return;
+    const dayNum = parseInt(r.date.split('-')[2], 10);
+    if (!studentDayMap[r.studentUid]) studentDayMap[r.studentUid] = {};
+    studentDayMap[r.studentUid][dayNum] = r.status;
+    recordedDaysSet.add(dayNum);
+    if (r.status === 'present') {
+      dailyClassPresentCount[dayNum] = (dailyClassPresentCount[dayNum] || 0) + 1;
+    }
+  });
+
+  const totalRecordedDays = recordedDaysSet.size;
+
+  // 1. Build Table Headers
+  const daysOfWeek = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'];
+
+  let ths = `
+    <th class="col-sticky-roll" style="width:45px;">Roll</th>
+    <th class="col-sticky-name" style="width:170px;">Student Name</th>
+  `;
+
+  for (let d = 1; d <= totalDays; d++) {
+    const dateObj = new Date(year, monthIdx, d);
+    const dow = dateObj.getDay();
+    const isWeekend = dow === 0 || dow === 6;
+    ths += `
+      <th class="${isWeekend ? 'weekend-col' : ''}" style="width:30px;" title="${d} ${dateObj.toLocaleDateString('en-US', { weekday: 'long' })}">
+        <span class="att-day-header-day">${d}</span>
+        <span class="att-day-header-dow">${daysOfWeek[dow]}</span>
+      </th>
+    `;
+  }
+
+  ths += `
+    <th style="width:55px; text-align:center;">Pres</th>
+    <th style="width:55px; text-align:center;">Tot</th>
+    <th style="width:60px; text-align:center;">%</th>
+    <th style="width:85px; text-align:center;">Status</th>
+  `;
+  headerRow.innerHTML = ths;
+
+  // 2. Filter and Build Rows
+  const term = (attMonthSearchTerm || '').toLowerCase().trim();
+  let regularCount = 0;
+  let shortageCount = 0;
+  let sumPct = 0;
+  let ratedStudentCount = 0;
+
+  const filteredStudents = attCurrentStudents.filter(s => {
+    if (term) {
+      const matchName = (s.name || '').toLowerCase().includes(term);
+      const matchRoll = String(s.rollNo || '').toLowerCase().includes(term);
+      if (!matchName && !matchRoll) return false;
+    }
+
+    // Calculate student stats
+    const daysMap = studentDayMap[s.uid] || {};
+    let presentCount = 0;
+    let recordedCount = 0;
+
+    recordedDaysSet.forEach(d => {
+      recordedCount++;
+      if (daysMap[d] === 'present') presentCount++;
+    });
+
+    const pct = recordedCount ? Math.round((presentCount / recordedCount) * 100) : 0;
+    s._monthPresent = presentCount;
+    s._monthTotal = recordedCount;
+    s._monthPct = pct;
+
+    if (attMonthShortageOnly && pct >= 75) return false;
+
+    return true;
+  });
+
+  // Compute overall stats across all class students
+  attCurrentStudents.forEach(s => {
+    const daysMap = studentDayMap[s.uid] || {};
+    let p = 0;
+    let tot = 0;
+    recordedDaysSet.forEach(d => {
+      tot++;
+      if (daysMap[d] === 'present') p++;
+    });
+    const pct = tot ? Math.round((p / tot) * 100) : 0;
+    if (tot > 0) {
+      sumPct += pct;
+      ratedStudentCount++;
+      if (pct >= 75) regularCount++; else shortageCount++;
+    }
+  });
+
+  const avgClassPct = ratedStudentCount ? Math.round(sumPct / ratedStudentCount) : 0;
+
+  // Update Month KPI cards
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('attStatMonthDays', totalRecordedDays);
+  setTxt('attStatMonthAvgPct', `${avgClassPct}%`);
+  setTxt('attStatMonthRegular', regularCount);
+  setTxt('attStatMonthShortage', shortageCount);
+
+  if (!filteredStudents.length) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  filteredStudents.forEach(s => {
+    const daysMap = studentDayMap[s.uid] || {};
+    const tr = document.createElement('tr');
+
+    let rowHtml = `
+      <td class="col-sticky-roll"><strong>${s.rollNo || '—'}</strong></td>
+      <td class="col-sticky-name" title="${s.name}">
+        <strong>${s.name}</strong>
+        <small style="display:block; font-size:10.5px; color:var(--ink-soft);">${s.admissionNo || ''}</small>
+      </td>
+    `;
+
+    for (let d = 1; d <= totalDays; d++) {
+      const dateObj = new Date(year, monthIdx, d);
+      const dow = dateObj.getDay();
+      const isWeekend = dow === 0 || dow === 6;
+      const status = daysMap[d];
+
+      let cellContent = '<span class="att-chip-dash">—</span>';
+      if (status === 'present') {
+        cellContent = '<span class="att-chip-p" title="Present">P</span>';
+      } else if (status === 'absent') {
+        cellContent = '<span class="att-chip-a" title="Absent">A</span>';
+      } else if (status === 'late') {
+        cellContent = '<span class="att-chip-l" title="Late">L</span>';
+      }
+
+      rowHtml += `<td class="${isWeekend ? 'weekend-col' : ''}">${cellContent}</td>`;
+    }
+
+    const pct = s._monthPct || 0;
+    const statusBadge = pct >= 75
+      ? '<span class="badge badge-good" style="font-size:11px; padding:3px 8px;">Regular</span>'
+      : '<span class="badge badge-bad" style="font-size:11px; padding:3px 8px;">Shortage</span>';
+
+    rowHtml += `
+      <td style="text-align:center;"><span class="badge badge-good" style="font-family:var(--font-mono); font-size:11.5px;">${s._monthPresent || 0}</span></td>
+      <td style="text-align:center; font-family:var(--font-mono); font-size:11.5px;">${s._monthTotal || 0}</td>
+      <td style="text-align:center;"><strong>${pct}%</strong></td>
+      <td style="text-align:center;">${statusBadge}</td>
+    `;
+
+    tr.innerHTML = rowHtml;
     body.appendChild(tr);
+  });
+
+  // 3. Table Footer Row (Class Attendance Headcount per Day)
+  if (footerRow) {
+    let fHtml = `
+      <th class="col-sticky-roll" style="text-align:center;">—</th>
+      <th class="col-sticky-name">Class Total Present</th>
+    `;
+
+    for (let d = 1; d <= totalDays; d++) {
+      const dateObj = new Date(year, monthIdx, d);
+      const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+      const cnt = dailyClassPresentCount[d] || 0;
+      fHtml += `
+        <td class="${isWeekend ? 'weekend-col' : ''}" style="text-align:center; font-weight:800; font-size:11.5px;">
+          ${recordedDaysSet.has(d) ? cnt : '—'}
+        </td>
+      `;
+    }
+
+    fHtml += `
+      <th style="text-align:center;">—</th>
+      <th style="text-align:center;">—</th>
+      <th style="text-align:center;"><strong>${avgClassPct}%</strong></th>
+      <th style="text-align:center;">Summary</th>
+    `;
+    footerRow.innerHTML = fHtml;
+  }
+}
+
+// ---------------- CUMULATIVE AUDIT ----------------
+async function loadCumulativeAudit() {
+  if (!attSelectedClassId) return;
+
+  const tbody = document.getElementById('attAuditBody');
+  const emptyEl = document.getElementById('attAuditEmpty');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--ink-soft);">Calculating full academic attendance audit across all sessions…</td></tr>';
+
+  try {
+    const q = query(collection(db, 'attendance'), where('classId', '==', attSelectedClassId));
+    const snap = await getDocs(q);
+
+    tbody.innerHTML = '';
+
+    if (snap.empty || !attCurrentStudents.length) {
+      if (emptyEl) emptyEl.style.display = 'block';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    // Index records by studentUid
+    const statsMap = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (!data.studentUid) return;
+      if (!statsMap[data.studentUid]) statsMap[data.studentUid] = { present: 0, total: 0 };
+      statsMap[data.studentUid].total++;
+      if (data.status === 'present') statsMap[data.studentUid].present++;
+    });
+
+    attCurrentStudents.forEach(s => {
+      const st = statsMap[s.uid] || { present: 0, total: 0 };
+      const pct = st.total ? Math.round((st.present / st.total) * 100) : 0;
+      const tr = document.createElement('tr');
+
+      const barColor = pct >= 75 ? 'var(--good)' : (pct >= 60 ? 'var(--warning)' : 'var(--bad)');
+      const statusBadge = pct >= 75
+        ? '<span class="badge badge-good">Regular</span>'
+        : (pct >= 60
+          ? '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">Warning</span>'
+          : '<span class="badge badge-bad">Shortage</span>');
+
+      tr.innerHTML = `
+        <td style="text-align:center;"><span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+        <td><strong>${s.name}</strong></td>
+        <td><span style="font-family:var(--font-mono);">${s.admissionNo || '—'}</span></td>
+        <td>${attSelectedClassObj?.name || '—'}</td>
+        <td style="text-align:center;"><span class="badge badge-good">${st.present}</span></td>
+        <td style="text-align:center;">${st.total}</td>
+        <td>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="flex:1; background:var(--line); border-radius:999px; height:8px; overflow:hidden;">
+              <div style="background:${barColor}; width:${pct}%; height:100%; border-radius:999px;"></div>
+            </div>
+            <strong style="min-width:40px; font-size:12.5px;">${pct}%</strong>
+          </div>
+        </td>
+        <td style="text-align:right;">${statusBadge}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('Error loading cumulative audit:', err);
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--bad); padding:20px;">Error loading audit data: ${err.message}</td></tr>`;
+  }
+}
+
+// ---------------- PRINT & EXPORT UTILITIES ----------------
+function downloadCsv(filename, csvContent) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function openPrintDocument(title, subtitle, tableHtml, extraStatsHtml = '') {
+  const printWin = window.open('', '_blank', 'width=950,height=750');
+  if (!printWin) {
+    alert('Please allow popups to open the print preview.');
+    return;
+  }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const logoUrl = (typeof getSchoolLogoUrl === 'function' ? getSchoolLogoUrl() : (window.SCHOOL_LOGO_DATA_URL || document.querySelector('[data-school-logo]')?.src || '/image/school logo.jpg'));
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title} — Amala HSS</title>
+  <style>
+    @page { size: auto; margin: 12mm 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      margin: 0;
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.4;
+      background: #fff;
+    }
+    .print-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #0f1b33;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .print-header-logo {
+      height: 56px;
+      width: 56px;
+      object-fit: contain;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f1b33;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .brand-sub {
+      font-size: 11.5px;
+      color: #475569;
+      margin-top: 3px;
+    }
+    .meta-tag {
+      font-size: 11px;
+      color: #64748b;
+      text-align: right;
+      line-height: 1.5;
+    }
+    .report-title-box {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .report-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .report-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid #cbd5e1;
+      padding: 9px 10px;
+      text-align: left;
+    }
+    td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+      background: #f1f5f9;
+    }
+    .footer-sign-grid {
+      margin-top: 45px;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 20px;
+      page-break-inside: avoid;
+    }
+    .sign-box {
+      text-align: center;
+      width: 170px;
+      border-top: 1.5px dashed #94a3b8;
+      padding-top: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-header">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <img src="${logoUrl}" alt="Amala Higher Secondary School Logo" class="print-header-logo">
+      <div>
+        <div class="brand-title">Amala Higher Secondary School</div>
+        <div class="brand-sub">Campus Management System • Official Academic &amp; Attendance Records</div>
+      </div>
+    </div>
+    <div class="meta-tag">
+      <div>Generated: <strong>${dateStr}</strong></div>
+      <div>Faculty: <strong>${staffProfile?.name || 'Staff Member'}</strong></div>
+      <div>Portal: <strong>Staff &amp; Faculty Console</strong></div>
+    </div>
+  </div>
+
+  <div class="report-title-box">
+    <div>
+      <div class="report-title">${title}</div>
+      ${subtitle ? `<div class="report-sub">${subtitle}</div>` : ''}
+    </div>
+    ${extraStatsHtml ? `<div>${extraStatsHtml}</div>` : ''}
+  </div>
+
+  ${tableHtml}
+
+  <div class="footer-sign-grid">
+    <div class="sign-box">Class Teacher / In-Charge</div>
+    <div class="sign-box">Academic Coordinator</div>
+    <div class="sign-box">Principal / Headmaster</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  <\/script>
+</body>
+</html>`;
+
+  printWin.document.open();
+  printWin.document.write(html);
+  printWin.document.close();
+}
+
+function printDailyAttendanceSlip() {
+  if (!attSelectedClassId || !attCurrentStudents.length) {
+    alert('Please select a class section with enrolled students first.');
+    return;
+  }
+  const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+  const className = attSelectedClassObj?.name || 'Class Section';
+
+  let presentCount = 0;
+  let absentCount = 0;
+  let lateCount = 0;
+  let unmarkedCount = 0;
+  const absentNames = [];
+
+  let tableHtml = `
+    <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;">
+      <thead>
+        <tr style="background:#f1f5f9; border-bottom:2px solid #cbd5e1;">
+          <th style="padding:8px; text-align:center; width:50px;">Roll</th>
+          <th style="padding:8px; text-align:left;">Student Name</th>
+          <th style="padding:8px; text-align:center; width:120px;">Admission No</th>
+          <th style="padding:8px; text-align:center; width:100px;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  attCurrentStudents.forEach(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    const status = rec && rec.status ? rec.status : 'unmarked';
+
+    if (status === 'present') presentCount++;
+    else if (status === 'absent') { absentCount++; absentNames.push(s.name); }
+    else if (status === 'late') lateCount++;
+    else unmarkedCount++;
+
+    const statusColor = status === 'present' ? '#065f46' : (status === 'absent' ? '#991b1b' : (status === 'late' ? '#92400e' : '#64748b'));
+    const statusBg = status === 'present' ? '#d1fae5' : (status === 'absent' ? '#fee2e2' : (status === 'late' ? '#fef3c7' : '#f1f5f9'));
+
+    tableHtml += `
+      <tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:7px; text-align:center; font-weight:bold;">${s.rollNo || '—'}</td>
+        <td style="padding:7px; font-weight:bold;">${s.name}</td>
+        <td style="padding:7px; text-align:center;">${s.admissionNo || '—'}</td>
+        <td style="padding:7px; text-align:center;">
+          <span style="background:${statusBg}; color:${statusColor}; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:bold; text-transform:uppercase;">${status}</span>
+        </td>
+      </tr>
+    `;
+  });
+
+  tableHtml += '</tbody></table>';
+
+  // Signature block
+  tableHtml += `
+    <div style="margin-top:40px; display:flex; justify-content:space-between; padding:0 30px;">
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:180px; padding-top:6px; font-size:12px; font-weight:bold; color:#475569;">
+        Class Teacher Signature
+      </div>
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:180px; padding-top:6px; font-size:12px; font-weight:bold; color:#475569;">
+        Principal / Vice-Principal
+      </div>
+    </div>
+  `;
+
+  const statsHtml = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:12px; margin-bottom:10px;">
+      <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Total Strength: ${attCurrentStudents.length}</span>
+      <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:6px; font-weight:bold;">Present: ${presentCount}</span>
+      <span style="background:#fee2e2; color:#991b1b; padding:4px 10px; border-radius:6px; font-weight:bold;">Absent: ${absentCount}</span>
+      <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:6px; font-weight:bold;">Late: ${lateCount}</span>
+      ${absentNames.length ? `<div style="width:100%; margin-top:4px; font-size:11.5px; color:#b91c1c;"><strong>Absentees:</strong> ${absentNames.join(', ')}</div>` : ''}
+    </div>
+  `;
+
+  openPrintDocument(
+    `DAILY ATTENDANCE SLIP — ${className}`,
+    `Official Attendance Record for Date: ${date}`,
+    tableHtml,
+    statsHtml
+  );
+}
+
+function exportDailyAttendanceCsv() {
+  if (!attSelectedClassId || !attCurrentStudents.length) {
+    alert('Please select a class section with enrolled students first.');
+    return;
+  }
+  const dateVal = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+  let displayDate = dateVal;
+  if (dateVal && dateVal.includes('-')) {
+    const parts = dateVal.split('-');
+    if (parts.length === 3) {
+      displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+  const className = (attSelectedClassObj?.name || 'Class').replace(/[\s,]+/g, '_');
+
+  const headers = ['Roll No', 'Student Name', 'Admission No', 'Class Section', 'Date', 'Status'];
+  const rows = attCurrentStudents.map(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    const status = rec && rec.status ? rec.status : 'unmarked';
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      `"${attSelectedClassObj?.name || ''}"`,
+      `"${displayDate}"`,
+      `"${status.toUpperCase()}"`
+    ].join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  downloadCsv(`Attendance_${className}_${displayDate}.csv`, csvContent);
+}
+
+function printMonthlyAttendanceRegister() {
+  if (!attSelectedClassId || !attCurrentStudents.length) {
+    alert('Please select a class section with enrolled students first.');
+    return;
+  }
+  const ym = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [yearStr, monthStr] = ym.split('-');
+  const year = parseInt(yearStr);
+  const monthIdx = parseInt(monthStr) - 1;
+  const totalDays = new Date(year, monthIdx + 1, 0).getDate();
+  const className = attSelectedClassObj?.name || 'Class Section';
+  const monthName = new Date(year, monthIdx, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Build data index
+  const studentDayMap = {};
+  const recordedDaysSet = new Set();
+  attMonthlyRecords.forEach(r => {
+    if (!r.studentUid || !r.date) return;
+    const dayNum = parseInt(r.date.split('-')[2], 10);
+    if (!studentDayMap[r.studentUid]) studentDayMap[r.studentUid] = {};
+    studentDayMap[r.studentUid][dayNum] = r.status;
+    recordedDaysSet.add(dayNum);
+  });
+
+  let tableHtml = `
+    <table style="width:100%; border-collapse:collapse; font-size:10px; text-align:center; border:1px solid #cbd5e1;">
+      <thead>
+        <tr style="background:#f1f5f9; border-bottom:1.5px solid #94a3b8;">
+          <th style="padding:4px; width:35px; border:1px solid #cbd5e1;">Roll</th>
+          <th style="padding:4px; text-align:left; width:130px; border:1px solid #cbd5e1;">Student Name</th>
+  `;
+
+  for (let d = 1; d <= totalDays; d++) {
+    const dow = new Date(year, monthIdx, d).getDay();
+    const isSun = dow === 0;
+    tableHtml += `<th style="padding:4px 2px; width:18px; border:1px solid #cbd5e1; ${isSun ? 'background:#fee2e2;' : ''}">${d}</th>`;
+  }
+
+  tableHtml += `
+          <th style="padding:4px; width:35px; border:1px solid #cbd5e1;">P</th>
+          <th style="padding:4px; width:35px; border:1px solid #cbd5e1;">Tot</th>
+          <th style="padding:4px; width:40px; border:1px solid #cbd5e1;">%</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  attCurrentStudents.forEach(s => {
+    const daysMap = studentDayMap[s.uid] || {};
+    let pres = 0;
+    let tot = 0;
+    recordedDaysSet.forEach(d => {
+      tot++;
+      if (daysMap[d] === 'present') pres++;
+    });
+    const pct = tot ? Math.round((pres / tot) * 100) : 0;
+
+    tableHtml += `
+      <tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:3px; border:1px solid #cbd5e1; font-weight:bold;">${s.rollNo || '—'}</td>
+        <td style="padding:3px 6px; text-align:left; border:1px solid #cbd5e1; font-weight:bold; white-space:nowrap;">${s.name}</td>
+    `;
+
+    for (let d = 1; d <= totalDays; d++) {
+      const dow = new Date(year, monthIdx, d).getDay();
+      const isSun = dow === 0;
+      const st = daysMap[d];
+      let val = '—';
+      let color = '#94a3b8';
+      if (st === 'present') { val = 'P'; color = '#065f46; font-weight:bold;'; }
+      else if (st === 'absent') { val = 'A'; color = '#991b1b; font-weight:bold;'; }
+      else if (st === 'late') { val = 'L'; color = '#92400e; font-weight:bold;'; }
+
+      tableHtml += `<td style="padding:2px; border:1px solid #cbd5e1; color:${color}; ${isSun ? 'background:#fff1f2;' : ''}">${val}</td>`;
+    }
+
+    tableHtml += `
+        <td style="padding:3px; border:1px solid #cbd5e1; font-weight:bold; color:#065f46;">${pres}</td>
+        <td style="padding:3px; border:1px solid #cbd5e1;">${tot}</td>
+        <td style="padding:3px; border:1px solid #cbd5e1; font-weight:bold;">${pct}%</td>
+      </tr>
+    `;
+  });
+
+  tableHtml += '</tbody></table>';
+
+  // Signature block
+  tableHtml += `
+    <div style="margin-top:35px; display:flex; justify-content:space-between; padding:0 30px;">
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:200px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+        Class Teacher / In-Charge Signature
+      </div>
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:200px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+        Principal Verification &amp; Seal
+      </div>
+    </div>
+  `;
+
+  const statsHtml = `
+    <div style="display:flex; gap:12px; margin-bottom:8px; font-size:11.5px;">
+      <span><strong>Month:</strong> ${monthName}</span>
+      <span><strong>Total Working Days Recorded:</strong> ${recordedDaysSet.size}</span>
+      <span><strong>Enrolled Strength:</strong> ${attCurrentStudents.length}</span>
+    </div>
+  `;
+
+  openPrintDocument(
+    `MONTHLY ATTENDANCE REGISTER — ${className}`,
+    `Academic Attendance Registry for ${monthName}`,
+    tableHtml,
+    statsHtml
+  );
+}
+
+function exportMonthlyAttendanceCsv() {
+  if (!attSelectedClassId || !attCurrentStudents.length) {
+    alert('Please select a class section with enrolled students first.');
+    return;
+  }
+  const ym = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [yearStr, monthStr] = ym.split('-');
+  const year = parseInt(yearStr);
+  const monthIdx = parseInt(monthStr) - 1;
+  const totalDays = new Date(year, monthIdx + 1, 0).getDate();
+  const className = (attSelectedClassObj?.name || 'Class').replace(/[\s,]+/g, '_');
+
+  const studentDayMap = {};
+  const recordedDaysSet = new Set();
+  attMonthlyRecords.forEach(r => {
+    if (!r.studentUid || !r.date) return;
+    const dayNum = parseInt(r.date.split('-')[2], 10);
+    if (!studentDayMap[r.studentUid]) studentDayMap[r.studentUid] = {};
+    studentDayMap[r.studentUid][dayNum] = r.status;
+    recordedDaysSet.add(dayNum);
+  });
+
+  const headers = ['Roll No', 'Student Name', 'Admission No'];
+  for (let d = 1; d <= totalDays; d++) {
+    headers.push(`Day ${d}`);
+  }
+  headers.push('Days Present', 'Recorded Days', 'Attendance %');
+
+  const rows = attCurrentStudents.map(s => {
+    const daysMap = studentDayMap[s.uid] || {};
+    let pres = 0;
+    let tot = 0;
+    recordedDaysSet.forEach(d => {
+      tot++;
+      if (daysMap[d] === 'present') pres++;
+    });
+    const pct = tot ? Math.round((pres / tot) * 100) : 0;
+
+    const row = [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`
+    ];
+
+    for (let d = 1; d <= totalDays; d++) {
+      row.push(`"${daysMap[d] || '—'}"`);
+    }
+
+    row.push(pres, tot, `"${pct}%"`);
+    return row.join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  downloadCsv(`Monthly_Register_${className}_${ym}.csv`, csvContent);
+}
+
+// ---------------- ATTENDANCE EVENT LISTENERS SETUP ----------------
+// Class select change
+document.getElementById('attClassFilter')?.addEventListener('change', () => {
+  onAttendanceClassChange();
+});
+
+// Mode Switcher buttons
+document.querySelectorAll('.att-mode-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setAttendanceMode(btn.dataset.attMode);
   });
 });
 
-document.getElementById('attSaveBtn').addEventListener('click', async () => {
-  if (!classTeacherClass || !currentAttStudents.length) return;
-  const date = document.getElementById('attDate').value;
-  const btn = document.getElementById('attSaveBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  
-  for (const s of currentAttStudents) {
-    const sel = document.querySelector(`input[name="att_${s.uid}"]:checked`);
-    const status = sel ? sel.value : 'present';
-    const attId = `${s.uid}_${date}`;
-    await setDoc(doc(db, 'attendance', attId), {
-      studentUid: s.uid, studentName: s.name, rollNo: s.rollNo || s.admissionNo || '',
-      classId: classTeacherClass.id, date, status, markedBy: staffUid, markedAt: serverTimestamp()
-    });
-  }
-  btn.disabled = false; btn.textContent = 'Save Attendance';
-  showToast('Attendance saved successfully for ' + date);
+// Day date picker change
+document.getElementById('attDayDate')?.addEventListener('change', () => {
+  setupLiveDailyAttendance();
+});
+
+// Day prev/next/today/yesterday
+document.getElementById('attDayPrevBtn')?.addEventListener('click', () => {
+  const cur = document.getElementById('attDayDate')?.value;
+  const d = cur ? new Date(cur + 'T00:00:00') : new Date();
+  d.setDate(d.getDate() - 1);
+  document.getElementById('attDayDate').value = formatYmd(d);
+  setupLiveDailyAttendance();
+});
+
+document.getElementById('attDayNextBtn')?.addEventListener('click', () => {
+  const cur = document.getElementById('attDayDate')?.value;
+  const d = cur ? new Date(cur + 'T00:00:00') : new Date();
+  d.setDate(d.getDate() + 1);
+  document.getElementById('attDayDate').value = formatYmd(d);
+  setupLiveDailyAttendance();
+});
+
+document.getElementById('attDayTodayBtn')?.addEventListener('click', () => {
+  document.getElementById('attDayDate').value = formatYmd(new Date());
+  setupLiveDailyAttendance();
+});
+
+document.getElementById('attDayYesterdayBtn')?.addEventListener('click', () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  document.getElementById('attDayDate').value = formatYmd(d);
+  setupLiveDailyAttendance();
+});
+
+// Mark all unmarked as present
+document.getElementById('attMarkAllPresentBtn')?.addEventListener('click', () => {
+  markAllUnmarkedPresent();
+});
+
+// Daily Print & Export
+document.getElementById('attPrintDayBtn')?.addEventListener('click', () => {
+  printDailyAttendanceSlip();
+});
+
+document.getElementById('attExportDayCsvBtn')?.addEventListener('click', () => {
+  exportDailyAttendanceCsv();
+});
+
+// Day filter chips
+document.querySelectorAll('#attDayFilterChips .att-chip-btn').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#attDayFilterChips .att-chip-btn').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    attDailyFilterStatus = chip.dataset.filter || 'all';
+    renderDailyAttendanceTable();
+  });
+});
+
+// Day search input
+document.getElementById('attDaySearchInput')?.addEventListener('input', (e) => {
+  attDailySearchTerm = e.target.value;
+  renderDailyAttendanceTable();
+});
+
+// Month picker change
+document.getElementById('attMonthPicker')?.addEventListener('change', () => {
+  setupLiveMonthlyAttendance();
+});
+
+// Month prev/next/this
+document.getElementById('attMonthPrevBtn')?.addEventListener('click', () => {
+  const cur = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [y, m] = cur.split('-').map(Number);
+  const d = new Date(y, m - 2, 1);
+  document.getElementById('attMonthPicker').value = formatYm(d);
+  setupLiveMonthlyAttendance();
+});
+
+document.getElementById('attMonthNextBtn')?.addEventListener('click', () => {
+  const cur = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [y, m] = cur.split('-').map(Number);
+  const d = new Date(y, m, 1);
+  document.getElementById('attMonthPicker').value = formatYm(d);
+  setupLiveMonthlyAttendance();
+});
+
+document.getElementById('attMonthThisBtn')?.addEventListener('click', () => {
+  document.getElementById('attMonthPicker').value = formatYm(new Date());
+  setupLiveMonthlyAttendance();
+});
+
+// Month search & shortage checkbox
+document.getElementById('attMonthSearchInput')?.addEventListener('input', (e) => {
+  attMonthSearchTerm = e.target.value;
+  const cur = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [y, m] = cur.split('-').map(Number);
+  const totalDays = new Date(y, m, 0).getDate();
+  renderMonthlyAttendanceMatrix(y, m - 1, totalDays);
+});
+
+document.getElementById('attMonthShortageOnly')?.addEventListener('change', (e) => {
+  attMonthShortageOnly = e.target.checked;
+  const cur = document.getElementById('attMonthPicker')?.value || formatYm(new Date());
+  const [y, m] = cur.split('-').map(Number);
+  const totalDays = new Date(y, m, 0).getDate();
+  renderMonthlyAttendanceMatrix(y, m - 1, totalDays);
+});
+
+// Monthly Print & Export
+document.getElementById('attPrintMonthBtn')?.addEventListener('click', () => {
+  printMonthlyAttendanceRegister();
+});
+
+document.getElementById('attExportMonthCsvBtn')?.addEventListener('click', () => {
+  exportMonthlyAttendanceCsv();
+});
+
+// Cumulative Print
+document.getElementById('attPrintAuditBtn')?.addEventListener('click', () => {
+  const table = document.getElementById('attAuditTable');
+  if (!table || !attSelectedClassId) return;
+  openPrintDocument(
+    `CUMULATIVE ATTENDANCE AUDIT — ${attSelectedClassObj?.name || 'Class'}`,
+    'Official Academic Attendance Audit Report',
+    table.outerHTML,
+    `<span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Class: ${attSelectedClassObj?.name || ''} | Enrolled: ${attCurrentStudents.length}</span>`
+  );
 });
 
 // ---------------- MARKS ----------------
