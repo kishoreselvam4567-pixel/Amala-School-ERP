@@ -17,11 +17,30 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-// Primary app — used for the normal signed-in session on every page.
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Determine portal role from current URL
+export function getCurrentPortalRole() {
+  if (typeof window === 'undefined') return null;
+  const path = (window.location.pathname || '').toLowerCase();
+  if (path.includes('/admin/')) return 'admin';
+  if (path.includes('/staff/')) return 'staff';
+  if (path.includes('/student/')) return 'student';
+  if (path.includes('/parent/')) return 'parent';
+  return null;
+}
 
-// Use robust browser local persistence so sessions persist reliably across phone, tablet, laptop, PC, TV
+export function getPortalApp(role) {
+  const appName = role ? `amala-${role}-portal` : '[DEFAULT]';
+  const existing = getApps().find(a => a.name === appName);
+  if (existing) return existing;
+  return appName === '[DEFAULT]'
+    ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
+    : initializeApp(firebaseConfig, appName);
+}
+
+const currentRole = getCurrentPortalRole();
+// Role-isolated app and auth so Admin, Staff, Student, and Parent sessions never overwrite each other in the browser
+export const app = getPortalApp(currentRole);
+export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 export const db = getFirestore(app);
@@ -48,7 +67,7 @@ export function getSecondaryAuth() {
 export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, fbSignOut,
   onAuthStateChanged, sendPasswordResetEmail,
-  setPersistence, browserLocalPersistence, inMemoryPersistence, initializeAuth,
+  setPersistence, browserLocalPersistence, inMemoryPersistence, initializeAuth, getAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
   deleteDoc, serverTimestamp, orderBy, onSnapshot,
   ref, uploadBytes, getDownloadURL, deleteObject
@@ -85,9 +104,27 @@ export async function getUserProfile(uid) {
 export function requirePortal(allowedRoles, onReady, loginPath = "../login.html") {
   let isAuthorized = false;
 
-  onAuthStateChanged(auth, async (user) => {
-    // If not signed in:
+  const handleAuth = async (user) => {
+    // If not signed in on this portal's role-isolated auth instance:
     if (!user) {
+      // Fallback: check if the default app has an active session matching allowed roles
+      try {
+        const defaultApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
+        const defAuth = getAuth(defaultApp);
+        const defUser = defAuth.currentUser;
+        if (defUser && !isAuthorized) {
+          const defProfile = await getUserProfile(defUser.uid);
+          if (defProfile && allowedRoles.includes(defProfile.role)) {
+            isAuthorized = true;
+            onReady({ user: defUser, profile: defProfile });
+            setTimeout(() => {
+              showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
+            }, 300);
+            return;
+          }
+        }
+      } catch (e) {}
+
       if (!isAuthorized) {
         window.location.href = loginPath;
       }
@@ -112,11 +149,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         return;
       }
 
-      // If role does not match this portal (e.g. another tab or role was active):
-      // Simply route to the correct portal for this account without signing out.
+      // Role check: If role is not allowed on this portal, redirect to login for this portal.
+      // CRITICAL: NEVER redirect to another role's portal! That was causing the tab-jumping bug.
       if (!allowedRoles.includes(profile.role)) {
-        const correctPath = portalPathForRole(profile.role);
-        window.location.href = correctPath;
+        console.warn(`User role '${profile.role}' is not authorized for portal '${allowedRoles.join(', ')}'.`);
+        window.location.href = loginPath;
         return;
       }
 
@@ -157,7 +194,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     } catch (err) {
       console.error("Portal authorization check error:", err);
     }
-  });
+  };
+
+  onAuthStateChanged(auth, handleAuth);
 }
 
 // ---------- First-Time Login Instructions Helper ----------
@@ -403,7 +442,14 @@ export function portalPathForRole(role) {
 }
 
 export function logout(loginPath = "../login.html") {
-  fbSignOut(auth).then(() => window.location.href = loginPath);
+  fbSignOut(auth).finally(() => {
+    try {
+      const defApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
+      const defAuth = getAuth(defApp);
+      fbSignOut(defAuth).catch(() => {});
+    } catch(e) {}
+    window.location.href = loginPath;
+  });
 }
 
 export function showBox(el, msg) {
