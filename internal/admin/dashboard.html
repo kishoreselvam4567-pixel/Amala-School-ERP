@@ -182,15 +182,16 @@
       position: absolute;
       top: 68px;
       right: 36px;
-      width: 360px;
+      width: 380px;
       max-width: 90vw;
       background: var(--white);
       border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: var(--shadow-xl);
+      box-shadow: 0 14px 38px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
       z-index: 1000;
       display: none;
-      animation: fadeInScale 0.25s ease both;
+      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+      overflow: hidden;
     }
 
     .notif-dropdown.show {
@@ -198,33 +199,88 @@
     }
 
     .notif-head {
-      padding: 14px 18px;
+      padding: 13px 16px;
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: var(--white);
     }
 
     .notif-head h4 {
       margin: 0;
       font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
     }
 
     .notif-body {
-      max-height: 320px;
+      max-height: 340px;
       overflow-y: auto;
-      padding: 10px 14px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
 
     .notif-item {
-      padding: 10px 12px;
+      padding: 11px 13px;
       border-radius: 10px;
       background: var(--paper);
       font-size: 12.5px;
       line-height: 1.4;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .notif-item:hover {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .notif-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .notif-item-title {
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .notif-item-time {
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+
+    .notif-item-msg {
+      color: var(--ink-soft);
+      font-size: 11.5px;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .notif-footer {
+      padding: 10px 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--paper);
     }
 
     /* Body scroll lock when modal is open */
@@ -1103,27 +1159,23 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- NOTIFICATION DROPDOWN FLYOUT -->
-  <div class="notif-dropdown" id="notifDropdown">
+  <div class="notif-dropdown" id="notifDropdown" role="dialog" aria-label="Campus Notifications">
     <div class="notif-head">
-      <h4>Campus Notifications</h4>
-      <span class="badge badge-good" id="notifCountBadge">3 Active</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <h4>Campus Notifications</h4>
+        <span class="badge badge-outline" id="notifCountBadge" style="font-size:11px;">0 Active</span>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="closeNotifDropdownBtn" style="padding:2px 8px; font-size:17px; line-height:1; border-radius:6px; color:var(--ink-soft);" title="Close Notifications" aria-label="Close Notifications">&times;</button>
     </div>
     <div class="notif-body" id="notifList">
-      <div class="notif-item">
-        <strong>Cloud Sync Active</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Firestore Database &amp; Auth are operating
-          normally.</div>
-      </div>
-      <div class="notif-item">
-        <strong>Student Admissions</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Unified Student + Parent admission engine
-          ready.</div>
-      </div>
-      <div class="notif-item">
-        <strong>Academic Year 2025–2026</strong>
-        <div style="color:var(--ink-soft);font-size:11.5px;margin-top:2px;">Semester registers and examinations active.
-        </div>
-      </div>
+      <div style="text-align:center; padding:24px 12px; color:var(--ink-soft); font-size:12.5px;">Loading campus notifications…</div>
+    </div>
+    <div class="notif-footer">
+      <span style="font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--brand-green);"></span>
+        Live Cloud Sync
+      </span>
+      <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnouncementsBtn" style="font-size:11.5px; padding:4px 10px; font-weight:700;">View Announcements &rarr;</button>
     </div>
   </div>
 
@@ -2140,10 +2192,10 @@
               <path d="m21 21-4.3-4.3" />
             </svg>
             <input type="text" id="globalSearchInput"
-              placeholder="Search homework, classes, students, staff, parents… (Ctrl+K)" autocomplete="off">
+              placeholder="Search homework, classes, students, staff, parents…" autocomplete="off">
             <button type="button" id="globalSearchClearBtn" class="search-clear-btn" title="Clear search">✕</button>
-            <span class="shortcut-badge" title="Focus search (Ctrl+K)" id="globalSearchBadge" onclick="document.getElementById('globalSearchInput').focus()">
-              <kbd style="font-family:inherit;font-weight:700;font-size:11px;">Ctrl+K</kbd>
+            <span class="shortcut-badge" title="Search" id="globalSearchBadge" onclick="document.getElementById('globalSearchInput').focus()">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </span>
             <div id="globalSearchResults" class="global-search-dropdown" style="display:none;"></div>
           </div>
@@ -2963,7 +3015,14 @@
                   <h3>Registered Parent Directory</h3>
                   <p>Official Registry of Connected Parent Accounts &amp; Ward Linkages</p>
                 </div>
-                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <label
+                    style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin:0;">Filter
+                    Class:</label>
+                  <select id="parTableClassFilter"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink);">
+                    <option value="">All Classes (Show All)</option>
+                  </select>
                   <button type="button" class="btn btn-outline btn-sm" id="cleanupOrphanedParentsBtn"
                     style="display:none; align-items:center; gap:6px; font-weight:700; color:#dc2626; border-color:#fca5a5; background:#fff5f5;">
                     Clear Orphaned Parents
@@ -2974,19 +3033,11 @@
                   </button>
                 </div>
               </div>
-              <table id="parTable">
-                <thead>
-                  <tr>
-                    <th>Parent Name</th>
-                    <th>Login Email Address</th>
-                    <th>Linked Child (Student)</th>
-                    <th>Contact Phone (Login Mobile)</th>
-                    <th>Login Password</th>
-                    <th style="text-align:right;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+
+              <!-- Class-Wise Grouped Parent Sections -->
+              <div id="parClassGroupContainer">
+                <div style="text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13px;">Loading parent directory…</div>
+              </div>
             </div>
           </section>
 
@@ -3884,20 +3935,162 @@
         if (window.innerWidth > 820) closeSidebar();
       });
 
-      // Notification Dropdown Toggle
+      // ======================== LIVE CAMPUS NOTIFICATIONS ========================
       const notifBellBtn = document.getElementById('notifBellBtn');
       const notifDropdown = document.getElementById('notifDropdown');
+      const notifList = document.getElementById('notifList');
+      const notifCountBadge = document.getElementById('notifCountBadge');
+      const closeNotifDropdownBtn = document.getElementById('closeNotifDropdownBtn');
+      const viewAllAnnouncementsBtn = document.getElementById('viewAllAnnouncementsBtn');
+      const notifBellDot = notifBellBtn ? notifBellBtn.querySelector('.dot') : null;
+
+      function closeNotificationDropdown() {
+        if (notifDropdown) notifDropdown.classList.remove('show');
+      }
+
+      function openNotificationDropdown() {
+        if (!notifDropdown) return;
+        notifDropdown.classList.add('show');
+        // Once opened/viewed, hide the unread pulse dot
+        if (notifBellDot) notifBellDot.style.display = 'none';
+      }
+
       if (notifBellBtn && notifDropdown) {
         notifBellBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          notifDropdown.classList.toggle('show');
+          if (notifDropdown.classList.contains('show')) {
+            closeNotificationDropdown();
+          } else {
+            openNotificationDropdown();
+          }
         });
+
+        // Close on clicking outside
         document.addEventListener('click', (e) => {
-          if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn) {
-            notifDropdown.classList.remove('show');
+          if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn && !notifBellBtn.contains(e.target)) {
+            closeNotificationDropdown();
+          }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && notifDropdown.classList.contains('show')) {
+            closeNotificationDropdown();
           }
         });
       }
+
+      if (closeNotifDropdownBtn) {
+        closeNotifDropdownBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeNotificationDropdown();
+        });
+      }
+
+      if (viewAllAnnouncementsBtn) {
+        viewAllAnnouncementsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeNotificationDropdown();
+          switchTab('announcements');
+        });
+      }
+
+      function renderLiveCampusNotifications(items) {
+        if (!notifList || !notifCountBadge) return;
+
+        const count = items.length;
+        if (count === 0) {
+          notifCountBadge.textContent = '0 Active';
+          notifCountBadge.className = 'badge badge-outline';
+          if (notifBellDot) notifBellDot.style.display = 'none';
+
+          notifList.innerHTML = `
+            <div style="text-align:center; padding:28px 14px; color:var(--ink-soft); font-size:12.5px;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px auto; opacity:0.4; display:block;">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              <strong style="display:block; color:var(--ink); margin-bottom:2px;">No Notifications Uploaded</strong>
+              <span>Only announcements and circulars uploaded to the system appear here.</span>
+            </div>
+          `;
+          return;
+        }
+
+        notifCountBadge.textContent = `${count} Active`;
+        notifCountBadge.className = 'badge badge-good';
+        if (notifBellDot && !notifDropdown.classList.contains('show')) {
+          notifBellDot.style.display = 'block';
+        }
+
+        notifList.innerHTML = items.slice(0, 10).map(ann => {
+          let dateStr = 'Recent';
+          if (ann.createdAt?.toDate) {
+            const d = ann.createdAt.toDate();
+            dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+          }
+
+          let badgeHtml = '<span class="badge badge-purple" style="font-size:10px; padding:1px 6px;">All Portals</span>';
+          if (ann.targetAudience === 'teachers') {
+            badgeHtml = '<span class="badge badge-good" style="font-size:10px; padding:1px 6px;">Staff Only</span>';
+          } else if (ann.targetAudience === 'students_parents') {
+            badgeHtml = '<span class="badge badge-navy" style="font-size:10px; padding:1px 6px;">Students &amp; Parents</span>';
+          }
+
+          const safeTitle = (ann.title || 'Campus Announcement').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+          const safeMsg = (ann.message || '').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+
+          return `
+            <div class="notif-item" data-id="${ann.id}" title="Click to view in Announcements">
+              <div class="notif-item-header">
+                <span class="notif-item-title">${safeTitle}</span>
+                <span class="notif-item-time">${dateStr}</span>
+              </div>
+              <div class="notif-item-msg">${safeMsg}</div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                ${badgeHtml}
+                <span style="font-size:11px; color:var(--brand-green); font-weight:700;">Open &rarr;</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Once user clicks any notification, immediately close dropdown and switch to announcements
+        notifList.querySelectorAll('.notif-item').forEach(itemEl => {
+          itemEl.addEventListener('click', () => {
+            closeNotificationDropdown();
+            if (notifBellDot) notifBellDot.style.display = 'none';
+            switchTab('announcements');
+          });
+        });
+      }
+
+      // Realtime listener for Firestore announcements collection
+      function setupRealtimeNotifications() {
+        try {
+          const annCol = collection(db, 'announcements');
+          const q = query(annCol, orderBy('createdAt', 'desc'));
+          onSnapshot(q, (snap) => {
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderLiveCampusNotifications(items);
+          }, (err) => {
+            console.warn('Ordered announcements onSnapshot notice, falling back to unordered listener:', err);
+            onSnapshot(annCol, (fallbackSnap) => {
+              const fallbackItems = fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+              fallbackItems.sort((a, b) => {
+                const ta = a.createdAt?.seconds || 0;
+                const tb = b.createdAt?.seconds || 0;
+                return tb - ta;
+              });
+              renderLiveCampusNotifications(fallbackItems);
+            }, (fallbackErr) => {
+              console.error('Announcements onSnapshot fallback failed:', fallbackErr);
+            });
+          });
+        } catch (e) {
+          console.error('Error setting up realtime announcements listener:', e);
+        }
+      }
+      setupRealtimeNotifications();
 
       // Dark Mode Toggle
       const themeToggle = document.getElementById('themeToggle');
@@ -5550,6 +5743,12 @@
         if (mrkF) mrkF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
         if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
         if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+        const parTblF = document.getElementById('parTableClassFilter');
+        if (parTblF) {
+          const curVal = parTblF.value;
+          parTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+          if (curVal) parTblF.value = curVal;
+        }
 
         updateAdmissionSubjectsUI();
       }
@@ -7024,24 +7223,32 @@
         const stuMap = new Map();
         allStudentsCache.forEach(s => stuMap.set(s.uid, s));
 
-        const snap = await getDocs(collection(db, 'parents'));
-        const body = document.querySelector('#parTable tbody');
-        body.innerHTML = '';
+        // Load classes for sorting
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+        const sortedClasses = sortClassList(rawClasses);
+        const classNameMap = new Map();
+        sortedClasses.forEach(c => classNameMap.set(c.id, c.name));
+
+        const container = document.getElementById('parClassGroupContainer');
+        container.innerHTML = '';
         allParentsCache = [];
 
+        const snap = await getDocs(collection(db, 'parents'));
         let orphanCount = 0;
 
         if (snap.empty) {
-          body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--ink-soft);">No parent accounts registered yet.</td></tr>';
+          container.innerHTML = '<div style="text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13px;">No parent accounts registered yet.</div>';
           updateOrphanCleanupBtn(0);
           return;
         }
 
+        // Build parent entries with linked student info
+        const parentEntries = [];
         snap.docs.forEach(d => {
           const r = d.data();
           const parentPass = r.tempPassword || 'Parent@123';
 
-          // Check if linked student exists in database
           let linkedStudent = null;
           if (r.childUid && stuMap.has(r.childUid)) {
             linkedStudent = stuMap.get(r.childUid);
@@ -7054,122 +7261,345 @@
           }
 
           const isOrphan = !linkedStudent;
-          if (isOrphan) {
-            orphanCount++;
-          }
+          if (isOrphan) orphanCount++;
 
-          const childBadgeHtml = linkedStudent
-            ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name} (${linkedStudent.className || 'Class'})</span>`
-            : `<span class="badge badge-bad" style="font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;">Student Deleted / Unlinked</span>`;
+          const entry = {
+            docId: d.id,
+            raw: r,
+            linkedStudent,
+            isOrphan,
+            parentPass,
+            childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
+            childClassName: linkedStudent ? (linkedStudent.className || '') : '',
+          };
 
           allParentsCache.push({
             id: d.id,
             name: r.name || 'Parent',
             email: r.email || '—',
             childName: linkedStudent ? linkedStudent.name : 'Deleted Student',
+            childClassName: entry.childClassName,
+            childClassId: entry.childClassId,
             phone: r.phone || '—',
             tempPassword: parentPass,
             isOrphan
           });
 
-          const tr = document.createElement('tr');
-          if (isOrphan) {
-            tr.style.background = '#fff8f8';
+          parentEntries.push(entry);
+        });
+
+        // Group parents by classId
+        const classGroups = new Map();
+        const orphanEntries = [];
+
+        parentEntries.forEach(entry => {
+          if (entry.isOrphan) {
+            orphanEntries.push(entry);
+          } else {
+            const classId = entry.childClassId || 'unknown';
+            if (!classGroups.has(classId)) {
+              classGroups.set(classId, []);
+            }
+            classGroups.get(classId).push(entry);
           }
+        });
 
-          tr.innerHTML = `
-      <td>
-        <strong>${r.name || 'Parent'}</strong>
-        ${isOrphan ? '<div style="font-size:11px; color:#dc2626; font-weight:700; margin-top:2px;">Orphaned Parent Account</div>' : ''}
-      </td>
-      <td style="font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
-      <td>${childBadgeHtml}</td>
-      <td>
-        <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">${r.phone || '—'}</span>
-        <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
-      </td>
-      <td>
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
-          <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </td>
-      <td style="text-align:right; white-space:nowrap;">
-        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-          <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
-          <button type="button" class="btn btn-sm parEditBtn" data-uid="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
-          <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${d.id}" style="padding:4px 8px; font-size:12px;">Delete</button>
-        </div>
-      </td>
-    `;
+        // Sort class groups by natural academic order
+        const orderedClassIds = sortedClasses.map(c => c.id).filter(id => classGroups.has(id));
+        // Add any classIds that exist in data but not in classes collection
+        classGroups.forEach((_, classId) => {
+          if (!orderedClassIds.includes(classId)) orderedClassIds.push(classId);
+        });
 
-          // Handle show / hide password toggle
-          tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const span = btn.previousElementSibling;
-              const pass = btn.dataset.pass || 'Parent@123';
-              if (span.textContent === '••••••••') {
-                span.textContent = pass;
-                span.style.color = 'var(--brand-green)';
-                span.style.fontWeight = '700';
-                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-                btn.title = 'Hide Password';
-              } else {
-                span.textContent = '••••••••';
-                span.style.color = '';
-                span.style.fontWeight = '';
-                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-                btn.title = 'Show Password';
-              }
-            });
+        // Color palette for class headers
+        const classColors = [
+          { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534', badge: '#dcfce7' },
+          { bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af', badge: '#dbeafe' },
+          { bg: '#fdf4ff', border: '#e9d5ff', text: '#7c3aed', badge: '#f3e8ff' },
+          { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', badge: '#ffedd5' },
+          { bg: '#fdf2f8', border: '#fbcfe8', text: '#be185d', badge: '#fce7f3' },
+          { bg: '#f0fdfa', border: '#99f6e4', text: '#0f766e', badge: '#ccfbf1' },
+          { bg: '#fefce8', border: '#fde68a', text: '#a16207', badge: '#fef9c3' },
+          { bg: '#f1f5f9', border: '#cbd5e1', text: '#334155', badge: '#e2e8f0' },
+        ];
+
+        // Populate the Filter Class dropdown with dynamic counts
+        const parTblF = document.getElementById('parTableClassFilter');
+        if (parTblF) {
+          const currentFilter = parTblF.value;
+          let filterOpts = `<option value="">All Classes (Show All)</option>`;
+          orderedClassIds.forEach(classId => {
+            const cName = classNameMap.get(classId) || classId;
+            const count = classGroups.get(classId)?.length || 0;
+            filterOpts += `<option value="${classId}">${cName} (${count})</option>`;
           });
+          if (orphanEntries.length > 0) {
+            filterOpts += `<option value="orphan">Unlinked / Orphaned (${orphanEntries.length})</option>`;
+          }
+          parTblF.innerHTML = filterOpts;
+          if (currentFilter) {
+            parTblF.value = currentFilter;
+          }
+        }
 
-          // Print parent button
-          tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
-            const item = allParentsCache.find(x => x.id === d.id);
-            if (item) printSingleParentProfile(item);
-          });
+        // Render each class group
+        orderedClassIds.forEach((classId, idx) => {
+          const entries = classGroups.get(classId);
+          const cName = classNameMap.get(classId) || classId;
+          const color = classColors[idx % classColors.length];
 
-          // Edit parent button
-          tr.querySelector('.parEditBtn').addEventListener('click', () => {
-            openEditParentModal({ id: d.id, ...r });
-          });
+          const section = document.createElement('div');
+          section.id = `parGroup_${classId}`;
+          section.style.cssText = `margin-bottom:20px; border:1.5px solid ${color.border}; border-radius:12px; overflow:hidden; background:var(--white);`;
 
-          // Individual parent delete button
-          tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-            if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
-              try {
-                if (r.childUid) {
-                  await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
-                }
+          // Class header
+          const header = document.createElement('div');
+          header.style.cssText = `display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:${color.bg}; border-bottom:1px solid ${color.border}; cursor:pointer; user-select:none; transition: background 0.15s ease;`;
+          header.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${color.text}" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+              <span style="font-size:15px; font-weight:800; color:${color.text};">${cName}</span>
+              <span style="font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; background:${color.badge}; color:${color.text}; border:1px solid ${color.border};">${entries.length} Parent${entries.length !== 1 ? 's' : ''}</span>
+            </div>
+            <svg class="par-group-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${color.text}" stroke-width="2.5" style="transition:transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+          `;
 
-                // Mark disabled/deleted and delete from users collection
-                await setDoc(doc(db, 'users', d.id), {
-                  role: null,
-                  disabled: true,
-                  deleted: true,
-                  revokedAt: serverTimestamp()
-                }, { merge: true }).catch(() => { });
-                await deleteDoc(doc(db, 'users', d.id)).catch(() => { });
+          const tableWrap = document.createElement('div');
+          tableWrap.style.cssText = 'overflow:hidden; transition: max-height 0.3s ease; max-height:5000px;';
 
-                // Delete from parents collection
-                await deleteDoc(doc(db, 'parents', d.id));
-
-                showToast(`Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
-                await loadParents();
-                await loadStudents();
-                await loadOverview();
-              } catch (err) {
-                alert('Error removing parent: ' + err.message);
-              }
+          // Toggle collapse
+          header.addEventListener('click', () => {
+            const chevron = header.querySelector('.par-group-chevron');
+            if (tableWrap.style.maxHeight === '0px') {
+              tableWrap.style.maxHeight = '5000px';
+              chevron.style.transform = 'rotate(0deg)';
+            } else {
+              tableWrap.style.maxHeight = '0px';
+              chevron.style.transform = 'rotate(-90deg)';
             }
           });
-          body.appendChild(tr);
+
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%; border-collapse:collapse;';
+          table.innerHTML = `<thead><tr>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Parent Name</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Login Email</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Linked Child</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Contact Phone</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line); text-align:right;">Actions</th>
+          </tr></thead>`;
+          const tbody = document.createElement('tbody');
+
+          entries.forEach(entry => {
+            renderParentRow(tbody, entry);
+          });
+
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          section.appendChild(header);
+          section.appendChild(tableWrap);
+          container.appendChild(section);
         });
+
+        // Render orphaned parents group
+        if (orphanEntries.length > 0) {
+          const section = document.createElement('div');
+          section.id = 'parGroup_orphan';
+          section.style.cssText = 'margin-bottom:20px; border:1.5px solid #fca5a5; border-radius:12px; overflow:hidden; background:var(--white);';
+
+          const header = document.createElement('div');
+          header.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:#fef2f2; border-bottom:1px solid #fca5a5; cursor:pointer; user-select:none;';
+          header.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#dc2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span style="font-size:15px; font-weight:800; color:#dc2626;">Unlinked / Orphaned Parents</span>
+              <span style="font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5;">${orphanEntries.length} Parent${orphanEntries.length !== 1 ? 's' : ''}</span>
+            </div>
+            <svg class="par-group-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#dc2626" stroke-width="2.5" style="transition:transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+          `;
+
+          const tableWrap = document.createElement('div');
+          tableWrap.style.cssText = 'overflow:hidden; transition: max-height 0.3s ease; max-height:5000px;';
+
+          header.addEventListener('click', () => {
+            const chevron = header.querySelector('.par-group-chevron');
+            if (tableWrap.style.maxHeight === '0px') {
+              tableWrap.style.maxHeight = '5000px';
+              chevron.style.transform = 'rotate(0deg)';
+            } else {
+              tableWrap.style.maxHeight = '0px';
+              chevron.style.transform = 'rotate(-90deg)';
+            }
+          });
+
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%; border-collapse:collapse;';
+          table.innerHTML = `<thead><tr>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Parent Name</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Login Email</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Status</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Contact Phone</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5;">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fff8f8; border-bottom:1px solid #fca5a5; text-align:right;">Actions</th>
+          </tr></thead>`;
+          const tbody = document.createElement('tbody');
+
+          orphanEntries.forEach(entry => {
+            renderParentRow(tbody, entry);
+          });
+
+          table.appendChild(tbody);
+          tableWrap.appendChild(table);
+          section.appendChild(header);
+          section.appendChild(tableWrap);
+          container.appendChild(section);
+        }
 
         updateOrphanCleanupBtn(orphanCount);
       }
+
+      // Render a single parent row inside a tbody
+      function renderParentRow(tbody, entry) {
+        const { docId, raw: r, linkedStudent, isOrphan, parentPass } = entry;
+
+        const childBadgeHtml = linkedStudent
+          ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name}</span>`
+          : `<span class="badge badge-bad" style="font-weight:700; background:#fef2f2; color:#dc2626; border:1px solid #fca5a5;">Student Deleted / Unlinked</span>`;
+
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f1f5f9';
+        if (isOrphan) tr.style.background = '#fff8f8';
+
+        tr.innerHTML = `
+          <td style="padding:10px 14px;">
+            <strong>${r.name || 'Parent'}</strong>
+            ${isOrphan ? '<div style="font-size:11px; color:#dc2626; font-weight:700; margin-top:2px;">Orphaned Account</div>' : ''}
+          </td>
+          <td style="padding:10px 14px; font-size:13px; color:var(--ink-soft);">${r.email || '—'}</td>
+          <td style="padding:10px 14px;">${childBadgeHtml}</td>
+          <td style="padding:10px 14px;">
+            <span style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);">${r.phone || '—'}</span>
+            <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
+          </td>
+          <td style="padding:10px 14px;">
+            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+              <span class="pass-val">••••••••</span>
+              <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </span>
+          </td>
+          <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
+            <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+              <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
+              <button type="button" class="btn btn-sm parEditBtn" data-uid="${docId}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
+              <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px;">Delete</button>
+            </div>
+          </td>
+        `;
+
+        // Password toggle
+        tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const span = btn.previousElementSibling;
+            const pass = btn.dataset.pass || 'Parent@123';
+            if (span.textContent === '••••••••') {
+              span.textContent = pass;
+              span.style.color = 'var(--brand-green)';
+              span.style.fontWeight = '700';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+              btn.title = 'Hide Password';
+            } else {
+              span.textContent = '••••••••';
+              span.style.color = '';
+              span.style.fontWeight = '';
+              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+              btn.title = 'Show Password';
+            }
+          });
+        });
+
+        // Print
+        tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
+          const item = allParentsCache.find(x => x.id === docId);
+          if (item) printSingleParentProfile(item);
+        });
+
+        // Edit
+        tr.querySelector('.parEditBtn').addEventListener('click', () => {
+          openEditParentModal({ id: docId, ...r });
+        });
+
+        // Delete
+        tr.querySelector('.parDelBtn').addEventListener('click', async () => {
+          if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
+            try {
+              if (r.childUid) {
+                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
+              }
+              await setDoc(doc(db, 'users', docId), {
+                role: null,
+                disabled: true,
+                deleted: true,
+                revokedAt: serverTimestamp()
+              }, { merge: true }).catch(() => { });
+              await deleteDoc(doc(db, 'users', docId)).catch(() => { });
+              await deleteDoc(doc(db, 'parents', docId));
+              showToast(`Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
+              await loadParents();
+              await loadStudents();
+              await loadOverview();
+            } catch (err) {
+              alert('Error removing parent: ' + err.message);
+            }
+          }
+        });
+
+        tbody.appendChild(tr);
+      }
+
+      // Filter parent class groups by class select dropdown
+      window.filterParentsByClass = function(filterId) {
+        if (!filterId || filterId === 'all') filterId = 'all';
+        const container = document.getElementById('parClassGroupContainer');
+        if (!container) return;
+
+        const allSections = container.querySelectorAll('[id^="parGroup_"]');
+        const parTblF = document.getElementById('parTableClassFilter');
+
+        // Sync dropdown value with current filter
+        if (parTblF && parTblF.value !== (filterId === 'all' ? '' : filterId)) {
+          parTblF.value = (filterId === 'all' ? '' : filterId);
+        }
+
+        if (filterId === 'all') {
+          // Show all sections
+          allSections.forEach(sec => {
+            sec.style.display = '';
+          });
+        } else {
+          // Show only the selected section, hide others
+          allSections.forEach(sec => {
+            if (sec.id === `parGroup_${filterId}`) {
+              sec.style.display = '';
+              // Auto-expand if collapsed
+              const wrap = sec.querySelector('div[style*="max-height"]');
+              if (wrap && wrap.style.maxHeight === '0px') {
+                wrap.style.maxHeight = '5000px';
+                const chevron = sec.querySelector('.par-group-chevron');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+              }
+            } else {
+              sec.style.display = 'none';
+            }
+          });
+        }
+      };
+
+      // Table Class Filter Trigger for Parents Dropdown
+      document.getElementById('parTableClassFilter')?.addEventListener('change', (e) => {
+        filterParentsByClass(e.target.value || 'all');
+      });
 
       // Bulk Clear Orphaned Parents
       document.getElementById('cleanupOrphanedParentsBtn')?.addEventListener('click', async () => {
@@ -8168,10 +8598,34 @@
         openPrintDocument('TEACHING FACULTY & STAFF ROSTER', 'Official Directory of Teaching Staff, Specializations & Teaching Assignments', tableHtml, statsHtml);
       });
 
-      // 4. Print Parent Directory
+      // 4. Print Parent Directory (respects class filter)
       document.getElementById('printParentsBtn')?.addEventListener('click', () => {
         if (!allParentsCache.length) {
           alert('No parent records found to print.');
+          return;
+        }
+
+        const classFilterEl = document.getElementById('parTableClassFilter');
+        const selectedClassId = classFilterEl ? classFilterEl.value : '';
+        let list = allParentsCache;
+        let title = 'REGISTERED PARENT & GUARDIAN DIRECTORY';
+        let sub = 'Official Registry of Connected Parent Portals & Student Linkages';
+
+        if (selectedClassId && selectedClassId !== 'all') {
+          if (selectedClassId === 'orphan') {
+            list = allParentsCache.filter(p => p.isOrphan);
+            title = 'UNLINKED / ORPHANED PARENT ACCOUNTS';
+            sub = 'Parent accounts without active student linkages';
+          } else {
+            list = allParentsCache.filter(p => p.childClassId === selectedClassId);
+            const className = classFilterEl.options[classFilterEl.selectedIndex]?.textContent || 'Selected Class';
+            title = `PARENT DIRECTORY — ${className.toUpperCase()}`;
+            sub = `Official Parent & Guardian Directory for ${className}`;
+          }
+        }
+
+        if (!list.length) {
+          alert('No parent records found for the selected filter to print.');
           return;
         }
 
@@ -8183,27 +8637,29 @@
               <th>Parent / Guardian Name</th>
               <th>Login Email Address</th>
               <th>Linked Child (Student)</th>
+              <th>Class Section</th>
               <th style="width:130px;">Contact Phone</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-        allParentsCache.forEach((p, idx) => {
+        list.forEach((p, idx) => {
           tableHtml += `
           <tr>
             <td style="text-align:center; font-weight:700; color:#64748b;">${idx + 1}</td>
             <td><strong>${p.name}</strong></td>
             <td style="font-family:monospace; color:#475569;">${p.email}</td>
             <td><span class="badge" style="${p.isOrphan ? 'background:#fef2f2; color:#dc2626; border-color:#fca5a5;' : 'background:#f3e8ff; color:#6b21a8; border-color:#e9d5ff;'} font-weight:700;">${p.isOrphan ? 'Student Deleted' : p.childName}</span></td>
+            <td><strong>${p.childClassName || '—'}</strong></td>
             <td><strong>${p.phone}</strong></td>
           </tr>
         `;
         });
         tableHtml += '</tbody></table>';
 
-        const statsHtml = `<span class="badge" style="background:#d1fae5; color:#065f46; border-color:#a7f3d0; font-size:12px; padding:5px 12px; font-weight:700;">Total Parent Accounts: ${allParentsCache.length}</span>`;
-        openPrintDocument('REGISTERED PARENT & GUARDIAN DIRECTORY', 'Official Registry of Connected Parent Portals & Student Linkages', tableHtml, statsHtml);
+        const statsHtml = `<span class="badge" style="background:#d1fae5; color:#065f46; border-color:#a7f3d0; font-size:12px; padding:5px 12px; font-weight:700;">Total Records: ${list.length}</span>`;
+        openPrintDocument(title, sub, tableHtml, statsHtml);
       });
 
       // ==========================================================
