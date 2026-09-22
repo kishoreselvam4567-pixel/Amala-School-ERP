@@ -2245,8 +2245,13 @@
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
             </svg>
+            <!-- Honeypot fields: absorb Chrome/Edge password-manager autofill so it never reaches the search box -->
+            <input type="text"     name="fake_user_prevent_autofill" aria-hidden="true" tabindex="-1" style="opacity:0;position:absolute;width:0;height:0;pointer-events:none;" autocomplete="username">
+            <input type="password" name="fake_pass_prevent_autofill" aria-hidden="true" tabindex="-1" style="opacity:0;position:absolute;width:0;height:0;pointer-events:none;" autocomplete="current-password">
             <input type="text" id="globalSearchInput"
-              placeholder="Search homework, classes, students, staff, parents…" autocomplete="off">
+              placeholder="Search homework, classes, students, staff, parents…"
+              autocomplete="off" data-lpignore="true" data-form-type="other"
+              onfocus="this.removeAttribute('readonly')" readonly>
             <button type="button" id="globalSearchClearBtn" class="search-clear-btn" title="Clear search">✕</button>
             <span class="shortcut-badge" title="Search" id="globalSearchBadge" onclick="document.getElementById('globalSearchInput').focus()">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -4919,6 +4924,10 @@
       const globalSearchClearBtn = document.getElementById('globalSearchClearBtn');
 
       if (globalSearchInput) {
+        // Remove readonly on interaction to prevent Chrome password manager autofill
+        globalSearchInput.addEventListener('mousedown', () => globalSearchInput.removeAttribute('readonly'));
+        globalSearchInput.addEventListener('focus', () => globalSearchInput.removeAttribute('readonly'));
+
         globalSearchInput.addEventListener('input', (e) => {
           performGlobalSearch(e.target.value);
         });
