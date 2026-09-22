@@ -1163,6 +1163,32 @@
           width: 100% !important;
         }
       }
+
+      /* Campus Student Directory Table Alignment & Spacing */
+      #stuTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      #stuTable th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 8px;
+        border-bottom: 2px solid #e2e8f0;
+        vertical-align: middle;
+      }
+      #stuTable td {
+        padding: 10px 8px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      #stuTable tbody tr:hover {
+        background: rgba(30, 58, 138, 0.03);
+      }
   </style>
 
 </head>
@@ -3010,22 +3036,24 @@
                   </button>
                 </div>
               </div>
-              <table id="stuTable">
-                <thead>
-                  <tr>
-                    <th>Student Identity</th>
-                    <th>Admission No.</th>
-                    <th>Roll No.</th>
-                    <th>Class Section</th>
-                    <th>Student Password</th>
-                    <th>Father / Contact</th>
-                    <th>Blood</th>
-                    <th>Parent Account</th>
-                    <th style="text-align:right;">Profile &amp; Actions</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div style="overflow-x:auto; width:100%; -webkit-overflow-scrolling:touch;">
+                <table id="stuTable">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left; min-width:170px; padding-left:14px;">Student Identity</th>
+                      <th style="text-align:center; white-space:nowrap; width:100px;">Admission No.</th>
+                      <th style="text-align:center; white-space:nowrap; width:65px;">Roll No.</th>
+                      <th style="text-align:center; white-space:nowrap; min-width:110px;">Class Section</th>
+                      <th style="text-align:center; white-space:nowrap; width:125px;">Student Password</th>
+                      <th style="text-align:left; min-width:130px;">Father / Contact</th>
+                      <th style="text-align:center; width:60px;">Blood</th>
+                      <th style="text-align:center; width:85px;">Parent Account</th>
+                      <th style="text-align:right; min-width:215px; padding-right:14px;">Profile &amp; Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
           </section>
 
@@ -6615,38 +6643,48 @@
           const studentPass = r.tempPassword || 'Student@123';
 
           tr.innerHTML = `
-      <td>
+      <td style="text-align:left; padding-left:14px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
+          <div style="width:34px; height:34px; min-width:34px; flex-shrink:0; border-radius:50%; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
             ${(r.name || 'S').charAt(0).toUpperCase()}
           </div>
-          <div>
-            <strong>${r.name}</strong><br>
-            <small style="color:var(--ink-soft);">${r.email || ''}</small>
+          <div style="min-width:0;">
+            <div style="font-weight:700; color:var(--ink); font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">${r.name || '—'}</div>
+            <div style="color:var(--ink-soft); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">${r.email || ''}</div>
           </div>
         </div>
       </td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.admissionNo || '—'}</span></td>
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.rollNo || r.admissionNo || '—'}</span></td>
-      <td><span class="badge badge-purple" style="font-weight:700; font-size:12px; padding:4px 10px;">${r.className || '—'}</span></td>
-      <td>
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; padding:3px 8px;">${r.admissionNo || '—'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700; font-size:11.5px; min-width:28px; justify-content:center; padding:3px 6px;">${r.rollNo || r.admissionNo || '—'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-purple" style="font-weight:700; font-size:11.5px; padding:4px 9px; white-space:nowrap;">${r.className || '—'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:3px 8px; white-space:nowrap;">
           <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </span>
       </td>
-      <td>
-        <strong>${r.fatherName || 'Parent'}</strong><br>
-        <small style="color:var(--ink-soft); font-family:var(--font-mono);">${r.fatherPhone || r.phone || '—'}</small>
+      <td style="text-align:left;">
+        <div style="font-weight:700; color:var(--ink); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${r.fatherName || 'Parent'}</div>
+        <div style="color:var(--ink-soft); font-family:var(--font-mono); font-size:11.5px; white-space:nowrap;">${r.fatherPhone || r.phone || '—'}</div>
       </td>
-      <td><span class="badge badge-purple">${r.bloodGroup || 'O+'}</span></td>
-      <td>${r.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
-      <td style="text-align:right; white-space:nowrap;">
-        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-          <button type="button" class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">View Profile</button>
-          <button type="button" class="btn btn-sm stuEditBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Student Profile">Edit</button>
-          <button type="button" class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">Print</button>
-          <button type="button" class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-purple" style="font-size:11px; font-weight:700; padding:3px 7px;">${r.bloodGroup || 'O+'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        ${r.parentUid ? '<span class="badge badge-good" style="font-size:11px; padding:3px 8px;">Linked</span>' : '<span class="badge badge-bad" style="font-size:11px; padding:3px 8px;">Unlinked</span>'}
+      </td>
+      <td style="text-align:right; white-space:nowrap; padding-right:14px;">
+        <div style="display:inline-flex; gap:5px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700;">View Profile</button>
+          <button type="button" class="btn btn-sm stuEditBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Student Profile">Edit</button>
+          <button type="button" class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700; display:inline-flex; align-items:center; gap:3px;">Print</button>
+          <button type="button" class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700;">Delete</button>
         </div>
       </td>
     `;
