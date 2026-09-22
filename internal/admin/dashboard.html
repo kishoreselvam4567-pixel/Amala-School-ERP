@@ -1189,8 +1189,8 @@
       #stuTable tbody tr:hover {
         background: rgba(30, 58, 138, 0.03);
       }
-      #stuTable th.sortable-th {
-        cursor: pointer;
+      #stuTable th {
+        cursor: default;
         user-select: none;
       }
   </style>
@@ -3071,10 +3071,10 @@
                 <table id="stuTable">
                   <thead>
                     <tr>
-                      <th class="sortable-th" data-sort="name" style="text-align:left; min-width:170px; padding-left:14px;">Student Identity</th>
-                      <th class="sortable-th" data-sort="admissionNo" style="text-align:center; white-space:nowrap; width:100px;">Admission No.</th>
-                      <th class="sortable-th" data-sort="rollNo" style="text-align:center; white-space:nowrap; width:80px;">Roll No.</th>
-                      <th class="sortable-th" data-sort="class" style="text-align:center; white-space:nowrap; min-width:110px;">Class Section</th>
+                      <th style="text-align:left; min-width:170px; padding-left:14px;">Student Identity</th>
+                      <th style="text-align:center; white-space:nowrap; width:100px;">Admission No.</th>
+                      <th style="text-align:center; white-space:nowrap; width:80px;">Roll No.</th>
+                      <th style="text-align:center; white-space:nowrap; min-width:110px;">Class Section</th>
                       <th style="text-align:center; white-space:nowrap; width:125px;">Student Password</th>
                       <th style="text-align:left; min-width:130px;">Father / Contact</th>
                       <th style="text-align:center; width:60px;">Blood</th>
@@ -5219,7 +5219,7 @@
           }
           if (allStudentsCache.length === 0) {
             promises.push(getDocs(collection(db, 'students')).then(snap => {
-              allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+              allStudentsCache = sortStudentsByRollNo(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
             }));
           }
           if (allStaffCache.length === 0) {
@@ -5719,7 +5719,7 @@
         const sortedClasses = sortClassList(rawClasses);
 
         allClasses = sortedClasses;
-        allStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        allStudentsCache = sortStudentsByRollNo(stSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
         allStaffCache = sSnap.docs.filter(d => !d.data().deleted).map(d => ({ id: d.id, ...d.data() }));
         allParentsCache = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -6772,93 +6772,49 @@
       }
 
       // ======================== LOAD STUDENTS & DIRECTORY TABLE (ORDER-WISE ROLL NO.) ========================
-      let currentStuSortBy = 'rollNo';
-      let currentStuSortAsc = true;
       let currentStudentListCache = [];
       let currentClassOptionsCache = [];
 
-      function sortStudentsList(list, sortBy = currentStuSortBy, sortAsc = currentStuSortAsc) {
+      function getStudentRollNumber(s) {
+        if (!s) return 999999;
+        const raw = String(
+          (s.rollNo !== undefined && s.rollNo !== null && String(s.rollNo).trim() !== '')
+            ? s.rollNo
+            : (s.admissionNo || '')
+        ).trim();
+        const parsed = parseInt(raw.replace(/[^\d]/g, ''), 10);
+        return !isNaN(parsed) ? parsed : 999999;
+      }
+
+      function sortStudentsByRollNo(list) {
         if (!Array.isArray(list)) return [];
         return [...list].sort((a, b) => {
-          let res = 0;
-          if (sortBy === 'rollNo') {
-            const rA = parseInt(a.rollNo, 10);
-            const rB = parseInt(b.rollNo, 10);
-            const validA = !isNaN(rA);
-            const validB = !isNaN(rB);
-            if (validA && validB) {
-              res = rA - rB;
-            } else if (validA) {
-              res = -1;
-            } else if (validB) {
-              res = 1;
-            } else {
-              res = (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true });
-            }
-            // Tie-breaker when roll numbers are equal: sort by class academic level, then student name
-            if (res === 0) {
-              const kA = getClassSortKey(a.className || '');
-              const kB = getClassSortKey(b.className || '');
-              if (kA.level !== kB.level) {
-                res = kA.level - kB.level;
-              } else {
-                res = (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
-              }
-              if (res === 0) {
-                res = (a.name || '').localeCompare(b.name || '');
-              }
-            }
-          } else if (sortBy === 'class') {
-            const kA = getClassSortKey(a.className || '');
-            const kB = getClassSortKey(b.className || '');
-            if (kA.level !== kB.level) {
-              res = kA.level - kB.level;
-            } else {
-              res = (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
-            }
-            if (res === 0) {
-              const rA = parseInt(a.rollNo, 10);
-              const rB = parseInt(b.rollNo, 10);
-              if (!isNaN(rA) && !isNaN(rB)) res = rA - rB;
-              else res = (a.rollNo || '').localeCompare(b.rollNo || '');
-            }
-          } else if (sortBy === 'name') {
-            res = (a.name || '').localeCompare(b.name || '');
-            if (res === 0) {
-              const rA = parseInt(a.rollNo, 10) || 999999;
-              const rB = parseInt(b.rollNo, 10) || 999999;
-              res = rA - rB;
-            }
-          } else if (sortBy === 'admissionNo') {
-            res = (a.admissionNo || '').localeCompare(b.admissionNo || '', undefined, { numeric: true });
-          }
-          return sortAsc ? res : -res;
-        });
-      }
+          // If in "All Classes" view, order cleanly by academic class grade level first
+          const kA = getClassSortKey(a.className || '');
+          const kB = getClassSortKey(b.className || '');
+          if (kA.level !== kB.level) return kA.level - kB.level;
+          const classDiff = (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true });
+          if (classDiff !== 0) return classDiff;
 
-      function updateSortHeadersUI() {
-        // Keeps headers clean without visual sort arrow icons
-      }
+          // Within each class, sort strictly order-wise by Roll Number (1, 2, 3, 4, 5, 6, 7, 8, 9, 10...)
+          const rA = getStudentRollNumber(a);
+          const rB = getStudentRollNumber(b);
+          if (rA !== rB) return rA - rB;
 
-      // Attach header click listeners for instant sorting
-      function initStudentTableSortEvents() {
-        document.querySelectorAll('#stuTable th.sortable-th').forEach(th => {
-          th.onclick = () => {
-            const col = th.dataset.sort;
-            if (currentStuSortBy === col) {
-              currentStuSortAsc = !currentStuSortAsc;
-            } else {
-              currentStuSortBy = col;
-              currentStuSortAsc = true;
-            }
-            renderStudentTable(currentStudentListCache, currentClassOptionsCache);
-          };
+          // Secondary tie-breakers if roll numbers match: admission number, then name
+          const admA = String(a.admissionNo || '');
+          const admB = String(b.admissionNo || '');
+          const admDiff = admA.localeCompare(admB, undefined, { numeric: true });
+          if (admDiff !== 0) return admDiff;
+
+          return (a.name || '').localeCompare(b.name || '');
         });
       }
 
       async function loadStudents() {
         const snap = await getDocs(collection(db, 'students'));
-        allStudentsCache = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        const rawStudents = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        allStudentsCache = sortStudentsByRollNo(rawStudents);
 
         // Auto-sync any student whose parent document is missing
         await syncUnlinkedParents();
@@ -6866,8 +6822,6 @@
         const classesSnap = await getDocs(collection(db, 'classes'));
         const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
         const classOptions = sortClassList(rawClasses);
-
-        initStudentTableSortEvents();
 
         const filterEl = document.getElementById('stuTableClassFilter');
         const selectedClassId = filterEl ? filterEl.value : '';
@@ -6879,10 +6833,9 @@
       function renderStudentTable(studentsList, classOptions) {
         currentStudentListCache = studentsList || [];
         currentClassOptionsCache = classOptions || [];
-        updateSortHeadersUI();
 
-        // Always sort order-wise by Roll Number (1, 2, 3...) or active sort column
-        const sortedList = sortStudentsList(studentsList, currentStuSortBy, currentStuSortAsc);
+        // Always sort order-wise by Roll Number strictly (1, 2, 3, 4, 5, 6, 7, 8, 9, 10...)
+        const sortedList = sortStudentsByRollNo(studentsList);
 
         const body = document.querySelector('#stuTable tbody');
         body.innerHTML = '';
@@ -6912,8 +6865,8 @@
       <td style="text-align:center; white-space:nowrap;">
         <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; padding:3px 8px;">${r.admissionNo || '—'}</span>
       </td>
-      <td style="text-align:center; white-space:nowrap;">
-        <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700; font-size:11.5px; min-width:28px; justify-content:center; padding:3px 6px;">${r.rollNo || r.admissionNo || '—'}</span>
+      <td style="text-align:center; vertical-align:middle; white-space:nowrap;">
+        <span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${r.rollNo || r.admissionNo || '—'}</span>
       </td>
       <td style="text-align:center; white-space:nowrap;">
         <span class="badge badge-purple" style="font-weight:700; font-size:11.5px; padding:4px 9px; white-space:nowrap;">${r.className || '—'}</span>
@@ -8884,8 +8837,8 @@
           return;
         }
 
-        // Sort order-wise by Roll Number (1, 2, 3...) or active sort column
-        const sorted = sortStudentsList(list, currentStuSortBy, currentStuSortAsc);
+        // Sort order-wise by Roll Number (1, 2, 3, 4, 5...)
+        const sorted = sortStudentsByRollNo(list);
 
         let tableHtml = `
         <table>

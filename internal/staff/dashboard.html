@@ -1334,15 +1334,20 @@ if (staffFinderSearchBtn) staffFinderSearchBtn.addEventListener('click', runStaf
 if (staffFinderRollInput) staffFinderRollInput.addEventListener('input', runStaffStudentFinder);
 if (staffFinderClassSel) staffFinderClassSel.addEventListener('change', runStaffStudentFinder);
 
-// Helper to fetch class students sorted by roll number
+// Helper to fetch class students sorted strictly by numeric roll number (1, 2, 3...)
 async function getClassStudents(classId) {
   const q = query(collection(db, 'students'), where('classId', '==', classId));
   const snap = await getDocs(q);
   const list = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
   list.sort((a, b) => {
-    const rA = parseInt(a.rollNo) || 9999;
-    const rB = parseInt(b.rollNo) || 9999;
-    return rA - rB;
+    const rawA = String((a.rollNo !== undefined && a.rollNo !== null && String(a.rollNo).trim() !== '') ? a.rollNo : (a.admissionNo || '')).replace(/[^\d]/g, '');
+    const rawB = String((b.rollNo !== undefined && b.rollNo !== null && String(b.rollNo).trim() !== '') ? b.rollNo : (b.admissionNo || '')).replace(/[^\d]/g, '');
+    const rA = parseInt(rawA, 10);
+    const rB = parseInt(rawB, 10);
+    const vA = !isNaN(rA) ? rA : 999999;
+    const vB = !isNaN(rB) ? rB : 999999;
+    if (vA !== vB) return vA - vB;
+    return (a.name || '').localeCompare(b.name || '');
   });
   return list;
 }
@@ -1371,7 +1376,7 @@ document.getElementById('attLoadBtn').addEventListener('click', async () => {
     const currentStatus = existingMap[s.uid] || 'present';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
       <td><strong>${s.name}</strong></td>
       <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
       <td>
@@ -1419,7 +1424,7 @@ document.getElementById('marksLoadBtn').addEventListener('click', async () => {
   currentMarksStudents.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
       <td><strong>${s.name}</strong></td>
       <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
       <td><input type="number" class="marks-input" data-uid="${s.uid}" placeholder="0" min="0" style="width:90px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);"></td>
@@ -1576,7 +1581,7 @@ async function loadStudentsForTeacher() {
   students.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${s.rollNo || '—'}</span></td>
+      <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
       <td><strong>${s.name}</strong></td>
       <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
       <td><span class="badge badge-purple">${s.bloodGroup || 'O+'}</span></td>
