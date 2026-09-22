@@ -3985,6 +3985,11 @@
                   placeholder="Type circular text, instructions, staff notices, or holiday details here…"></textarea>
               </div>
 
+              <div class="field" style="margin-top:12px;">
+                <label>Attachment (Optional PDF, Document, or Image)</label>
+                <input type="file" id="annFile" accept=".pdf,image/*,.doc,.docx">
+              </div>
+
               <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
                 <button class="btn btn-primary" id="annPostBtn">Broadcast to All Portals</button>
                 <span id="annMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
@@ -11247,23 +11252,45 @@
         annPostBtn.disabled = true;
         annPostBtn.textContent = 'Publishing…';
 
-        await addDoc(collection(db, 'announcements'), {
-          title,
-          message,
-          targetAudience: audience,
-          createdAt: serverTimestamp()
-        });
+        try {
+          const file = document.getElementById('annFile')?.files[0];
+          let fileUrl = null;
+          let fileName = null;
+          if (file) {
+            annPostBtn.textContent = 'Uploading File…';
+            const storageRef = ref(storage, `announcements/${Date.now()}_${file.name}`);
+            const snap = await uploadBytes(storageRef, file);
+            fileUrl = await getDownloadURL(snap.ref);
+            fileName = file.name;
+          }
 
-        document.getElementById('annTitle').value = '';
-        document.getElementById('annMessage').value = '';
-        annPostBtn.disabled = false;
-        annPostBtn.textContent = prevText;
+          await addDoc(collection(db, 'announcements'), {
+            title,
+            message,
+            targetAudience: audience,
+            fileUrl: fileUrl || null,
+            fileName: fileName || null,
+            authorName: 'System Administrator',
+            authorRole: 'admin',
+            createdAt: serverTimestamp()
+          });
 
-        const successMsg = audience === 'teachers'
-          ? 'Notice posted exclusively to Teachers & Staff portal.'
-          : (audience === 'students_parents' ? 'Circular published for Students & Parents.' : 'Announcement broadcast to all portals.');
-        showToast(successMsg);
-        loadAnnouncements();
+          document.getElementById('annTitle').value = '';
+          document.getElementById('annMessage').value = '';
+          if (document.getElementById('annFile')) document.getElementById('annFile').value = '';
+
+          const successMsg = audience === 'teachers'
+            ? 'Notice posted exclusively to Teachers & Staff portal.'
+            : (audience === 'students_parents' ? 'Circular published for Students & Parents.' : 'Announcement broadcast to all portals.');
+          showToast(successMsg);
+          loadAnnouncements();
+        } catch (err) {
+          console.error('Error posting announcement:', err);
+          alert('Failed to broadcast announcement: ' + (err.message || 'Unknown error'));
+        } finally {
+          annPostBtn.disabled = false;
+          annPostBtn.textContent = prevText;
+        }
       });
 
       let cachedAnnouncements = [];
@@ -11331,13 +11358,27 @@
             badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
           }
 
+          const authorInfo = r.authorName ? `<span style="font-size:12px; color:var(--ink-soft); margin-left:10px;">By: ${r.authorName}</span>` : '';
+          const fileHtml = r.fileUrl
+            ? `<div style="margin-top:10px; margin-bottom:12px;">
+                 <a href="${r.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:5px 12px; border-radius:8px;">
+                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                   <span>View Attachment (${r.fileName || 'Document'})</span>
+                 </a>
+               </div>`
+            : '';
+
           div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            ${badgeHtml}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+              ${badgeHtml}
+              ${authorInfo}
+            </div>
             <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
           </div>
           <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title}</h3>
-          <p style="color:var(--ink-soft); font-size:14px; margin:0 0 14px 0; line-height:1.6;">${r.message}</p>
+          <p style="color:var(--ink-soft); font-size:14px; margin:0 0 10px 0; line-height:1.6; white-space:pre-line;">${r.message}</p>
+          ${fileHtml}
           <button class="btn btn-danger btn-sm annDelBtn" data-id="${d.id}">Remove Notice</button>
         `;
           div.querySelector('.annDelBtn').addEventListener('click', async () => {
