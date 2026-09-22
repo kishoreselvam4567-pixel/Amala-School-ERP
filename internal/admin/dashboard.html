@@ -1150,11 +1150,11 @@
       /* Teaching Assignment Matrix Responsive Grid Alignment */
       .assignment-matrix-row {
         display: grid;
-        grid-template-columns: 1.2fr 1fr 1.2fr auto;
-        gap: 16px;
+        grid-template-columns: 1.15fr 1fr 1.35fr 1.15fr auto;
+        gap: 14px;
         align-items: flex-end;
       }
-      @media (max-width: 992px) {
+      @media (max-width: 1080px) {
         .assignment-matrix-row {
           grid-template-columns: 1fr !important;
           gap: 12px !important;
@@ -2664,34 +2664,56 @@
               </div>
             </div>
 
-            <!-- CARD 2: Teaching Assignment Matrix (Aligned & Ordered under Register Faculty) -->
+            <!-- CARD 2: Teaching Assignment Matrix -->
             <div class="card" style="margin-bottom:24px;">
-              <div class="form-section-title">Teaching Assignment Matrix</div>
-
-              <h4 style="font-size:14px; margin:16px 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-dark,#0f1e36); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">1</span>
-                Assign Class Teacher (Attendance &amp; Mentorship)
-              </h4>
-              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
-                <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
-                <div class="field"><label>Assignment Role</label><input type="text" value="Class In-Charge (Attendance &amp; Mentorship)" readonly style="background:#f8fafc; color:#64748b; font-weight:600; cursor:default;"></div>
-                <div class="field field-action" style="margin:0;">
-                  <button class="btn btn-dark" id="ctAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Class Teacher</button>
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+                <div>
+                  <div class="form-section-title" style="margin:0 0 4px 0;">Teaching Assignment Matrix</div>
+                  <p style="margin:0; font-size:13px; color:var(--ink-soft);">Select a faculty member, class section, and assignment role to allocate teaching responsibilities.</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button type="button" id="roleTabCT" class="btn btn-sm btn-dark" style="border-radius:20px; font-weight:700; font-size:12px; padding:4px 12px; cursor:pointer;">
+                    Class In-Charge
+                  </button>
+                  <button type="button" id="roleTabSub" class="btn btn-sm btn-outline" style="border-radius:20px; font-weight:700; font-size:12px; padding:4px 12px; cursor:pointer;">
+                    Subject Teacher
+                  </button>
                 </div>
               </div>
 
-              <h4 style="font-size:14px; margin:22px 0 8px 0; display:flex; align-items:center; gap:8px;">
-                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-green,#16a34a); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">2</span>
-                Assign Subject Teaching (Marks, Notes &amp; Exams)
-              </h4>
-              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
-                <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
-                <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
-                    placeholder="e.g. Mathematics / Physics"></div>
+              <div class="field-row assignment-matrix-row" style="align-items:flex-end;">
+                <div class="field">
+                  <label for="ctStaffSel">Select Faculty</label>
+                  <select id="ctStaffSel"></select>
+                </div>
+                <div class="field">
+                  <label for="ctClassSel">Select Class Section</label>
+                  <select id="ctClassSel"></select>
+                </div>
+                <div class="field">
+                  <label for="assignmentRoleSel">Assignment Role</label>
+                  <select id="assignmentRoleSel" style="font-weight:700; color:var(--ink); background:var(--white); cursor:pointer;">
+                    <option value="classTeacher">Class In-Charge (Attendance &amp; Mentorship)</option>
+                    <option value="subject">Subject Teacher (Marks, Notes &amp; Exams)</option>
+                  </select>
+                </div>
+                <div class="field" id="matrixDynamicField">
+                  <label id="matrixDynamicLabel">Role Scope &amp; Authority</label>
+                  <div id="ctScopeBadge" style="height:42px; display:flex; align-items:center; padding:0 12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; color:#166534; font-size:12.5px; font-weight:700; gap:6px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Full Attendance &amp; Mentorship</span>
+                  </div>
+                  <input type="text" id="subSubject" placeholder="e.g. Mathematics / Physics" style="display:none; height:42px;">
+                </div>
                 <div class="field field-action" style="margin:0;">
-                  <button class="btn btn-primary" id="subAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Subject</button>
+                  <button class="btn btn-dark" id="matrixAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; gap:6px;">
+                    <span id="matrixBtnText">Assign Class Teacher</span>
+                  </button>
+                  <!-- Legacy compatibility elements -->
+                  <button id="ctAssignBtn" style="display:none;"></button>
+                  <button id="subAssignBtn" style="display:none;"></button>
+                  <select id="subStaffSel" style="display:none;"></select>
+                  <select id="subClassSel" style="display:none;"></select>
                 </div>
               </div>
               <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px; display:block; margin-top:10px;"></span>
@@ -6320,42 +6342,165 @@
         });
       }
 
-      document.getElementById('ctAssignBtn').addEventListener('click', async () => {
-        const staffUid = document.getElementById('ctStaffSel').value;
-        const classId = document.getElementById('ctClassSel').value;
-        if (!staffUid || !classId) return;
-        const staffSnap = await getDoc(doc(db, 'staff', staffUid));
-        const current = staffSnap.data();
-        await updateDoc(doc(db, 'staff', staffUid), {
-          classTeacherOf: classId,
-          type: (current.subjects && current.subjects.length) ? 'both' : 'classTeacher'
-        });
-        await updateDoc(doc(db, 'classes', classId), { classTeacherUid: staffUid });
-        showToast('Class teacher assigned.');
-        await loadStaff(); await loadClasses();
+      // ======================== TEACHING ASSIGNMENT MATRIX (ROLE SELECTION & ASSIGNMENT) ========================
+      const roleSel = document.getElementById('assignmentRoleSel');
+      const roleTabCT = document.getElementById('roleTabCT');
+      const roleTabSub = document.getElementById('roleTabSub');
+      const dynamicLabel = document.getElementById('matrixDynamicLabel');
+      const ctScopeBadge = document.getElementById('ctScopeBadge');
+      const subSubjectInput = document.getElementById('subSubject');
+      const matrixBtn = document.getElementById('matrixAssignBtn');
+      const matrixBtnText = document.getElementById('matrixBtnText');
+
+      function syncAssignmentRoleUI(role) {
+        if (role === 'subject') {
+          if (roleSel) roleSel.value = 'subject';
+          if (roleTabCT) {
+            roleTabCT.className = 'btn btn-sm btn-outline';
+            roleTabCT.style.background = 'transparent';
+            roleTabCT.style.color = 'var(--ink)';
+          }
+          if (roleTabSub) {
+            roleTabSub.className = 'btn btn-sm btn-primary';
+            roleTabSub.style.background = 'var(--brand-green, #16a34a)';
+            roleTabSub.style.color = '#fff';
+          }
+          if (dynamicLabel) dynamicLabel.innerHTML = 'Subject Name <span style="color:#dc2626;">*</span>';
+          if (ctScopeBadge) ctScopeBadge.style.display = 'none';
+          if (subSubjectInput) {
+            subSubjectInput.style.display = 'block';
+            subSubjectInput.focus();
+          }
+          if (matrixBtn) {
+            matrixBtn.className = 'btn btn-primary';
+            matrixBtn.style.background = 'var(--brand-green, #16a34a)';
+            matrixBtn.style.borderColor = 'var(--brand-green, #16a34a)';
+          }
+          if (matrixBtnText) matrixBtnText.textContent = 'Assign Subject';
+        } else {
+          if (roleSel) roleSel.value = 'classTeacher';
+          if (roleTabCT) {
+            roleTabCT.className = 'btn btn-sm btn-dark';
+            roleTabCT.style.background = 'var(--brand-dark, #0f1e36)';
+            roleTabCT.style.color = '#fff';
+          }
+          if (roleTabSub) {
+            roleTabSub.className = 'btn btn-sm btn-outline';
+            roleTabSub.style.background = 'transparent';
+            roleTabSub.style.color = 'var(--ink)';
+          }
+          if (dynamicLabel) dynamicLabel.textContent = 'Role Scope & Authority';
+          if (ctScopeBadge) ctScopeBadge.style.display = 'flex';
+          if (subSubjectInput) subSubjectInput.style.display = 'none';
+          if (matrixBtn) {
+            matrixBtn.className = 'btn btn-dark';
+            matrixBtn.style.background = 'var(--brand-dark, #0f1e36)';
+            matrixBtn.style.borderColor = 'var(--brand-dark, #0f1e36)';
+          }
+          if (matrixBtnText) matrixBtnText.textContent = 'Assign Class Teacher';
+        }
+      }
+
+      roleSel?.addEventListener('change', (e) => {
+        syncAssignmentRoleUI(e.target.value);
+      });
+      roleTabCT?.addEventListener('click', () => syncAssignmentRoleUI('classTeacher'));
+      roleTabSub?.addEventListener('click', () => syncAssignmentRoleUI('subject'));
+
+      // Perform assignment
+      matrixBtn?.addEventListener('click', async () => {
+        const role = roleSel ? roleSel.value : 'classTeacher';
+        const staffUid = document.getElementById('ctStaffSel')?.value;
+        const classId = document.getElementById('ctClassSel')?.value;
+
+        if (!staffUid || !classId) {
+          alert('Please select both a faculty member and a class section.');
+          return;
+        }
+
+        const btn = matrixAssignBtn;
+        btn.disabled = true;
+        const originalText = matrixBtnText ? matrixBtnText.textContent : 'Assign';
+        if (matrixBtnText) matrixBtnText.textContent = 'Assigning…';
+
+        try {
+          if (role === 'classTeacher') {
+            const classSnap = await getDoc(doc(db, 'classes', classId));
+            const className = classSnap.exists() ? (classSnap.data().name || 'Class') : 'Class';
+            const prevTeacherUid = classSnap.exists() ? classSnap.data().classTeacherUid : null;
+
+            // Clear any previous class teacher assigned to this class
+            if (prevTeacherUid && prevTeacherUid !== staffUid) {
+              const prevSnap = await getDoc(doc(db, 'staff', prevTeacherUid));
+              if (prevSnap.exists()) {
+                const prevData = prevSnap.data();
+                await updateDoc(doc(db, 'staff', prevTeacherUid), {
+                  classTeacherOf: null,
+                  type: (prevData.subjects && prevData.subjects.length) ? 'subject' : 'subject'
+                }).catch(() => {});
+              }
+            }
+
+            const staffSnap = await getDoc(doc(db, 'staff', staffUid));
+            const current = staffSnap.exists() ? staffSnap.data() : {};
+            const staffName = current.name || 'Faculty';
+
+            await updateDoc(doc(db, 'staff', staffUid), {
+              classTeacherOf: classId,
+              type: (current.subjects && current.subjects.length) ? 'both' : 'classTeacher'
+            });
+            await updateDoc(doc(db, 'classes', classId), { classTeacherUid: staffUid });
+
+            showToast(`${staffName} assigned as Class In-Charge of ${className}.`);
+            await loadStaff();
+            await loadClasses();
+          } else {
+            const subject = document.getElementById('subSubject')?.value.trim();
+            if (!subject) {
+              alert('Please enter the Subject Name (e.g. Mathematics, Science).');
+              document.getElementById('subSubject')?.focus();
+              return;
+            }
+
+            const classSnap = await getDoc(doc(db, 'classes', classId));
+            const className = classSnap.exists() ? (classSnap.data().name || 'Class') : 'Class';
+
+            const staffSnap = await getDoc(doc(db, 'staff', staffUid));
+            const current = staffSnap.exists() ? staffSnap.data() : {};
+            const staffName = current.name || 'Faculty';
+            const subjects = current.subjects || [];
+
+            if (subjects.some(s => s.classId === classId && s.subject.toLowerCase() === subject.toLowerCase())) {
+              alert(`${staffName} is already assigned to teach ${subject} in ${className}.`);
+              return;
+            }
+
+            subjects.push({ classId, className, subject });
+            await updateDoc(doc(db, 'staff', staffUid), {
+              subjects,
+              type: current.classTeacherOf ? 'both' : 'subject'
+            });
+
+            if (subSubjectInput) subSubjectInput.value = '';
+            showToast(`Assigned ${subject} (${className}) to ${staffName}.`);
+            await loadStaff();
+          }
+        } catch (err) {
+          alert('Error updating assignment: ' + err.message);
+        } finally {
+          btn.disabled = false;
+          if (matrixBtnText) matrixBtnText.textContent = originalText;
+        }
       });
 
-      document.getElementById('subAssignBtn').addEventListener('click', async () => {
-        const staffUid = document.getElementById('subStaffSel').value;
-        const classId = document.getElementById('subClassSel').value;
-        const subject = document.getElementById('subSubject').value.trim();
-        if (!staffUid || !classId || !subject) { alert('Fill all fields.'); return; }
-
-        const classSnap = await getDoc(doc(db, 'classes', classId));
-        const className = classSnap.exists() ? classSnap.data().name : '';
-
-        const staffSnap = await getDoc(doc(db, 'staff', staffUid));
-        const current = staffSnap.data();
-        const subjects = current.subjects || [];
-        if (!subjects.some(s => s.classId === classId && s.subject === subject)) {
-          subjects.push({ classId, className, subject });
-        }
-        await updateDoc(doc(db, 'staff', staffUid), {
-          subjects, type: current.classTeacherOf ? 'both' : 'subject'
-        });
-        document.getElementById('subSubject').value = '';
-        showToast('Subject assigned.');
-        await loadStaff();
+      // Forward legacy event listeners for backwards compatibility
+      document.getElementById('ctAssignBtn')?.addEventListener('click', () => {
+        syncAssignmentRoleUI('classTeacher');
+        matrixBtn?.click();
+      });
+      document.getElementById('subAssignBtn')?.addEventListener('click', () => {
+        syncAssignmentRoleUI('subject');
+        matrixBtn?.click();
       });
 
       // ======================== UNIFIED STUDENT & PARENT ADMISSION ========================
