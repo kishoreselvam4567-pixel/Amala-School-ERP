@@ -859,8 +859,14 @@ requirePortal(['student'], async ({ user, profile }) => {
       div.className = 'card';
       div.style.marginBottom = '14px';
       const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+      let badgeHtml = '<span class="badge badge-purple">Announcement</span>';
+      if (r.targetAudience === 'students') {
+        badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
+      } else if (r.targetAudience === 'students_parents') {
+        badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
+      }
       div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="badge badge-purple">Announcement</span>
+        ${badgeHtml}
         <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
       </div>
       <h3 style="font-size:17px;">${r.title || ''}</h3>

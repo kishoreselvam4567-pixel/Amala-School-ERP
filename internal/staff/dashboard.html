@@ -373,22 +373,78 @@
         </div>
       </section>
 
-      <!-- ANNOUNCEMENTS & FACULTY CIRCULARS -->
+      <!-- ================= ANNOUNCEMENTS & CIRCULARS ================= -->
       <section id="panel-announcements" style="display:none;">
         <div class="main-header">
           <div>
-            <h2>Announcements &amp; Faculty Circulars</h2>
-            <p style="color:var(--ink-soft);">Official school circulars and staff-exclusive notices broadcast by administration.</p>
+            <h2>School Announcements &amp; Circulars</h2>
+            <p>Broadcast Notices to Students &amp; Parents, or View Faculty Circulars</p>
           </div>
-          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview"
+            title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
             Exit to Home
           </button>
         </div>
 
+        <div class="card" style="border: 1.5px solid var(--line); box-shadow: var(--shadow-sm);">
+          <div class="form-section-title"
+            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <span>Publish New Announcement</span>
+            <span class="badge badge-navy" id="annAudienceBadge">Students &amp; Parents Only</span>
+          </div>
+
+          <div class="field-row" style="margin-bottom:16px;">
+            <div class="field" style="flex:1;">
+              <label>Target Audience / Category</label>
+              <select id="annAudience" style="font-weight:600;">
+                <option value="students_parents">Students &amp; Parents Only</option>
+                <option value="students">Students Only</option>
+              </select>
+            </div>
+            <div class="field" style="flex:2;">
+              <label>Announcement Title</label>
+              <input type="text" id="annTitle"
+                placeholder="e.g. Science Fair Projects / Homework Submission / Exam Prep">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Detailed Message Content</label>
+            <textarea id="annMessage" rows="3"
+              placeholder="Type circular text, instructions, student notices, or reminder details here…"></textarea>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
+            <button class="btn btn-primary" id="annPostBtn">Broadcast to Students &amp; Parents</button>
+            <span id="annMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
+          </div>
+        </div>
+
+        <!-- Filter Category Tabs -->
+        <div style="display:flex; gap:10px; margin:28px 0 16px; align-items:center; flex-wrap:wrap;">
+          <span
+            style="font-size:13px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;">Filter
+            Notices:</span>
+          <button type="button" class="btn btn-sm ann-filter-btn active" data-filter="all"
+            style="border-radius:20px; padding:6px 14px;">All Notices (<span id="countAllAnn">0</span>)</button>
+          <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students_parents"
+            style="border-radius:20px; padding:6px 14px;">Students &amp; Parents (<span
+              id="countParentAnn">0</span>)</button>
+          <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students"
+            style="border-radius:20px; padding:6px 14px;">Students Only (<span
+              id="countStudentAnn">0</span>)</button>
+          <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="teachers"
+            style="border-radius:20px; padding:6px 14px;">Faculty &amp; Staff (<span
+              id="countFacultyAnn">0</span>)</button>
+        </div>
+
         <div id="staffAnnList"></div>
-        <div class="empty-state" id="staffAnnEmpty" style="display:none;">No announcements or staff notices posted yet.</div>
+        <div class="empty-state" id="staffAnnEmpty" style="display:none;">No school announcements posted yet.</div>
       </section>
+
 
       <!-- DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
       <section id="panel-lookup" style="display:none;">
@@ -607,7 +663,7 @@
 <script type="module">
 import {
   auth, db, storage, requirePortal, logout, doc, getDoc, setDoc, collection,
-  query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp,
+  query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp, orderBy,
   ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
 } from '../../js/auth.js';
 
@@ -1193,71 +1249,232 @@ document.getElementById('viewAllAnnBtn')?.addEventListener('click', () => {
 });
 
 // ======================== STAFF ANNOUNCEMENTS & CIRCULARS ========================
+const annAudienceEl = document.getElementById('annAudience');
+const annPostBtn = document.getElementById('annPostBtn');
+const annAudienceBadge = document.getElementById('annAudienceBadge');
+
+if (annAudienceEl && annPostBtn && annAudienceBadge) {
+  annAudienceEl.addEventListener('change', () => {
+    const val = annAudienceEl.value;
+    if (val === 'students') {
+      annPostBtn.textContent = 'Broadcast to Students Only';
+      annAudienceBadge.className = 'badge badge-yellow';
+      annAudienceBadge.textContent = 'Students Only';
+    } else {
+      annPostBtn.textContent = 'Broadcast to Students & Parents';
+      annAudienceBadge.className = 'badge badge-navy';
+      annAudienceBadge.textContent = 'Students & Parents Only';
+    }
+  });
+}
+
+if (annPostBtn) {
+  annPostBtn.addEventListener('click', async () => {
+    const title = document.getElementById('annTitle').value.trim();
+    const message = document.getElementById('annMessage').value.trim();
+    const audience = annAudienceEl ? annAudienceEl.value : 'students_parents';
+    if (!title || !message) {
+      alert('Enter both title and message.');
+      return;
+    }
+
+    const prevText = annPostBtn.textContent;
+    annPostBtn.disabled = true;
+    annPostBtn.textContent = 'Publishing…';
+
+    try {
+      await addDoc(collection(db, 'announcements'), {
+        title,
+        message,
+        targetAudience: audience,
+        authorName: staffProfile?.name || 'Staff Faculty',
+        authorRole: 'staff',
+        authorUid: staffUid || auth.currentUser?.uid || '',
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById('annTitle').value = '';
+      document.getElementById('annMessage').value = '';
+      
+      const successMsg = audience === 'students'
+        ? 'Notice published exclusively for Students.'
+        : 'Circular broadcast for Students & Parents.';
+      showToast(successMsg);
+      await loadStaffAnnouncements();
+    } catch (err) {
+      console.error('Error publishing announcement:', err);
+      alert('Failed to publish announcement: ' + (err.message || 'Unknown error'));
+    } finally {
+      annPostBtn.disabled = false;
+      annPostBtn.textContent = prevText;
+    }
+  });
+}
+
+let cachedStaffAnnouncements = [];
+let activeStaffAnnFilter = 'all';
+
+document.querySelectorAll('.ann-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ann-filter-btn').forEach(b => {
+      b.classList.remove('active');
+      b.classList.add('btn-outline');
+    });
+    btn.classList.add('active');
+    btn.classList.remove('btn-outline');
+    activeStaffAnnFilter = btn.dataset.filter;
+    renderStaffAnnouncements();
+  });
+});
+
+function renderStaffAnnouncements() {
+  const list = document.getElementById('staffAnnList');
+  const emptyEl = document.getElementById('staffAnnEmpty');
+  if (!list) return;
+  list.innerHTML = '';
+
+  // Update counts
+  const countAll = cachedStaffAnnouncements.length;
+  const countParents = cachedStaffAnnouncements.filter(a => a.targetAudience === 'students_parents').length;
+  const countStudents = cachedStaffAnnouncements.filter(a => a.targetAudience === 'students').length;
+  const countFaculty = cachedStaffAnnouncements.filter(a => a.targetAudience === 'teachers' || a.targetAudience === 'all').length;
+
+  const countAllEl = document.getElementById('countAllAnn');
+  const countParentEl = document.getElementById('countParentAnn');
+  const countStudentEl = document.getElementById('countStudentAnn');
+  const countFacultyEl = document.getElementById('countFacultyAnn');
+
+  if (countAllEl) countAllEl.textContent = countAll;
+  if (countParentEl) countParentEl.textContent = countParents;
+  if (countStudentEl) countStudentEl.textContent = countStudents;
+  if (countFacultyEl) countFacultyEl.textContent = countFaculty;
+
+  // Filter docs
+  let filtered = cachedStaffAnnouncements;
+  if (activeStaffAnnFilter === 'students_parents') {
+    filtered = cachedStaffAnnouncements.filter(a => a.targetAudience === 'students_parents');
+  } else if (activeStaffAnnFilter === 'students') {
+    filtered = cachedStaffAnnouncements.filter(a => a.targetAudience === 'students');
+  } else if (activeStaffAnnFilter === 'teachers') {
+    filtered = cachedStaffAnnouncements.filter(a => a.targetAudience === 'teachers' || a.targetAudience === 'all');
+  }
+
+  if (filtered.length === 0) {
+    if (emptyEl) {
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = activeStaffAnnFilter === 'students'
+        ? 'No student-only announcements posted yet.'
+        : (activeStaffAnnFilter === 'students_parents'
+          ? 'No student & parent circulars posted yet.'
+          : (activeStaffAnnFilter === 'teachers'
+            ? 'No faculty & staff circulars posted yet.'
+            : 'No school announcements posted yet.'));
+    }
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const currentUid = staffUid || auth.currentUser?.uid;
+
+  filtered.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'card card-static';
+    card.style.marginBottom = '14px';
+
+    const date = d.createdAt?.toDate?.() ? d.createdAt.toDate().toLocaleDateString() : 'Just now';
+
+    let badgeHtml = '<span class="badge badge-purple">Broadcast to All</span>';
+    if (d.targetAudience === 'teachers') {
+      badgeHtml = '<span class="badge badge-good" style="font-weight:700;">Faculty &amp; Staff Only</span>';
+      card.style.borderLeft = '4px solid var(--good)';
+    } else if (d.targetAudience === 'students_parents') {
+      badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
+      card.style.borderLeft = '4px solid var(--brand-navy, #1e3a8a)';
+    } else if (d.targetAudience === 'students') {
+      badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
+      card.style.borderLeft = '4px solid #eab308';
+    }
+
+    const authorInfo = d.authorName ? `<span style="font-size:12px; color:var(--ink-soft); margin-left:10px;">By: ${d.authorName}</span>` : '';
+    const canDelete = d.authorUid && d.authorUid === currentUid;
+    const deleteBtnHtml = canDelete
+      ? `<button type="button" class="btn btn-danger btn-sm staffAnnDelBtn" data-id="${d.id}" style="font-size:12px; padding:4px 10px; margin-top:12px;">Remove Notice</button>`
+      : '';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+          ${badgeHtml}
+          ${authorInfo}
+        </div>
+        <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
+      </div>
+      <h3 style="font-size:17px; margin:0 0 6px 0;">${d.title || ''}</h3>
+      <p style="color:var(--ink-soft); font-size:14px; margin:0; line-height:1.6; white-space:pre-line;">${d.message || ''}</p>
+      ${deleteBtnHtml}
+    `;
+
+    if (canDelete) {
+      card.querySelector('.staffAnnDelBtn')?.addEventListener('click', async () => {
+        if (confirm('Delete this announcement?')) {
+          try {
+            await deleteDoc(doc(db, 'announcements', d.id));
+            showToast('Announcement removed.');
+            loadStaffAnnouncements();
+          } catch (err) {
+            console.error('Error deleting announcement:', err);
+            alert('Failed to delete announcement: ' + (err.message || 'Permission denied'));
+          }
+        }
+      });
+    }
+
+    list.appendChild(card);
+  });
+}
+
 async function loadStaffAnnouncements() {
   try {
     const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
-    const list = document.getElementById('staffAnnList');
+    
+    // In staff portal, faculty sees all circulars: faculty notices, students & parents, students only, and school-wide
+    cachedStaffAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStaffAnnouncements();
+
+    // Also update Overview top 3 items (show recent faculty/school notices)
     const overviewList = document.getElementById('overviewAnnList');
-    const emptyEl = document.getElementById('staffAnnEmpty');
-    
-    if (list) list.innerHTML = '';
-    if (overviewList) overviewList.innerHTML = '';
-    
-    let count = 0;
-    snap.docs.forEach(d => {
-      const r = d.data();
-      // Skip student/parent only notices
-      if (r.targetAudience === 'students_parents') return;
-      count++;
-      
-      const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
-      const isTeacherOnly = r.targetAudience === 'teachers';
-      const badgeHtml = isTeacherOnly 
-        ? '<span class="badge badge-good" style="font-weight:700;">Faculty &amp; Staff Only</span>'
-        : '<span class="badge badge-purple">School-Wide Broadcast</span>';
+    if (overviewList) {
+      overviewList.innerHTML = '';
+      const recentForOverview = cachedStaffAnnouncements.slice(0, 3);
+      if (recentForOverview.length === 0) {
+        overviewList.innerHTML = '<div style="color:var(--ink-soft); font-size:13.5px; padding:8px 0;">No active notices at this time.</div>';
+      } else {
+        recentForOverview.forEach(r => {
+          const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : 'Just now';
+          let badgeHtml = '<span class="badge badge-purple">School-Wide Broadcast</span>';
+          if (r.targetAudience === 'teachers') {
+            badgeHtml = '<span class="badge badge-good" style="font-weight:700;">Faculty &amp; Staff Only</span>';
+          } else if (r.targetAudience === 'students_parents') {
+            badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
+          } else if (r.targetAudience === 'students') {
+            badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
+          }
 
-      // Full panel item
-      if (list) {
-        const card = document.createElement('div');
-        card.className = 'card card-static';
-        card.style.marginBottom = '14px';
-        if (isTeacherOnly) {
-          card.style.borderLeft = '4px solid var(--good)';
-        }
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            ${badgeHtml}
-            <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
-          </div>
-          <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title || ''}</h3>
-          <p style="color:var(--ink-soft); font-size:14px; margin:0; line-height:1.6; white-space:pre-line;">${r.message || ''}</p>
-        `;
-        list.appendChild(card);
+          const item = document.createElement('div');
+          item.style.padding = '10px 0';
+          item.style.borderBottom = '1px solid var(--line)';
+          item.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              ${badgeHtml}
+              <span style="font-size:11.5px; color:var(--ink-soft);">${date}</span>
+            </div>
+            <div style="font-weight:600; font-size:14px; color:var(--ink);">${r.title || ''}</div>
+            <div style="font-size:13px; color:var(--ink-soft); margin-top:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${r.message || ''}</div>
+          `;
+          overviewList.appendChild(item);
+        });
       }
-
-      // Overview top 3 items
-      if (overviewList && count <= 3) {
-        const item = document.createElement('div');
-        item.style.padding = '10px 0';
-        item.style.borderBottom = '1px solid var(--line)';
-        item.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            ${badgeHtml}
-            <span style="font-size:11.5px; color:var(--ink-soft);">${date}</span>
-          </div>
-          <div style="font-weight:600; font-size:14px; color:var(--ink);">${r.title || ''}</div>
-          <div style="font-size:13px; color:var(--ink-soft); margin-top:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${r.message || ''}</div>
-        `;
-        overviewList.appendChild(item);
-      }
-    });
-
-    if (count === 0) {
-      if (emptyEl) emptyEl.style.display = 'block';
-      if (overviewList) overviewList.innerHTML = '<div style="color:var(--ink-soft); font-size:13.5px; padding:8px 0;">No active faculty notices at this time.</div>';
-    } else {
-      if (emptyEl) emptyEl.style.display = 'none';
     }
   } catch (err) {
     console.error('Error loading staff announcements:', err);

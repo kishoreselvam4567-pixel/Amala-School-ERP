@@ -822,14 +822,18 @@ requirePortal(['parent'], async ({ user, profile }) => {
     let count = 0;
     annSnap.docs.forEach(d => {
       const r = d.data();
-      if (r.targetAudience === 'teachers') return; // Exclude teacher/staff-only notices
+      if (r.targetAudience === 'teachers' || r.targetAudience === 'students') return; // Exclude teacher-only and student-only notices
       count++;
       const div = document.createElement('div');
       div.className = 'card';
       div.style.marginBottom = '14px';
       const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+      let badgeHtml = '<span class="badge badge-purple">Announcement</span>';
+      if (r.targetAudience === 'students_parents') {
+        badgeHtml = '<span class="badge badge-navy">Students &amp; Parents</span>';
+      }
       div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="badge badge-purple">Announcement</span>
+        ${badgeHtml}
         <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
       </div>
       <h3 style="font-size:17px;">${r.title || ''}</h3>
