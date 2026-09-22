@@ -1146,6 +1146,49 @@
         background: #e0f2fe;
         color: #0369a1;
       }
+
+      /* Teaching Assignment Matrix Responsive Grid Alignment */
+      .assignment-matrix-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1.2fr auto;
+        gap: 16px;
+        align-items: flex-end;
+      }
+      @media (max-width: 992px) {
+        .assignment-matrix-row {
+          grid-template-columns: 1fr !important;
+          gap: 12px !important;
+        }
+        .assignment-matrix-row .field.field-action button {
+          width: 100% !important;
+        }
+      }
+
+      /* Campus Student Directory Table Alignment & Spacing */
+      #stuTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      #stuTable th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 8px;
+        border-bottom: 2px solid #e2e8f0;
+        vertical-align: middle;
+      }
+      #stuTable td {
+        padding: 10px 8px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      #stuTable tbody tr:hover {
+        background: rgba(30, 58, 138, 0.03);
+      }
   </style>
 
 </head>
@@ -1273,6 +1316,13 @@
             </div>
             <div class="detail-item"><label>Student Login Email</label>
               <div class="detail-val" id="mp_email">—</div>
+            </div>
+            <div class="detail-item"><label>Student Login Password</label>
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+                <span id="mp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
+                <button type="button" class="btn btn-outline btn-sm" id="mp_togglePassBtn"
+                  style="font-size:11px; padding:2px 8px; font-weight:700; height:24px; display:inline-flex; align-items:center;">Reveal</button>
+              </div>
             </div>
             <div class="detail-item" style="grid-column:1/-1;"><label>Assigned Subjects &amp; Curriculum Stream</label>
               <div class="detail-val" id="mp_subjects" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">—
@@ -1675,6 +1725,10 @@
           <div class="field" style="flex:1.4;">
             <label>Student Login Email <span style="color:var(--bad);">*</span></label>
             <input type="email" id="editStuEmail" required placeholder="student@amalaschool.edu.in">
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Student Password</label>
+            <input type="text" id="editStuPass" placeholder="e.g. Student@123">
           </div>
         </div>
 
@@ -2538,7 +2592,7 @@
               </button>
             </div>
 
-            <div class="card">
+            <div class="card" style="margin-bottom:24px;">
               <div class="form-section-title">Register New Faculty Account</div>
               <div class="field-row">
                 <div class="field" style="flex:1.2;">
@@ -2615,6 +2669,40 @@
               </div>
             </div>
 
+            <!-- CARD 2: Teaching Assignment Matrix (Aligned & Ordered under Register Faculty) -->
+            <div class="card" style="margin-bottom:24px;">
+              <div class="form-section-title">Teaching Assignment Matrix</div>
+
+              <h4 style="font-size:14px; margin:16px 0 8px 0; display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-dark,#0f1e36); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">1</span>
+                Assign Class Teacher (Attendance &amp; Mentorship)
+              </h4>
+              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
+                <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
+                <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
+                <div class="field"><label>Assignment Role</label><input type="text" value="Class In-Charge (Attendance &amp; Mentorship)" readonly style="background:#f8fafc; color:#64748b; font-weight:600; cursor:default;"></div>
+                <div class="field field-action" style="margin:0;">
+                  <button class="btn btn-dark" id="ctAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Class Teacher</button>
+                </div>
+              </div>
+
+              <h4 style="font-size:14px; margin:22px 0 8px 0; display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; background:var(--brand-green,#16a34a); color:#fff; border-radius:50%; font-size:12px; font-weight:700;">2</span>
+                Assign Subject Teaching (Marks, Notes &amp; Exams)
+              </h4>
+              <div class="field-row assignment-matrix-row" style="align-items:flex-end; display:grid; grid-template-columns:1.2fr 1fr 1.2fr auto; gap:16px;">
+                <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
+                <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
+                <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
+                    placeholder="e.g. Mathematics / Physics"></div>
+                <div class="field field-action" style="margin:0;">
+                  <button class="btn btn-primary" id="subAssignBtn" style="min-width:180px; height:42px; display:inline-flex; align-items:center; justify-content:center; font-weight:700;">Assign Subject</button>
+                </div>
+              </div>
+              <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px; display:block; margin-top:10px;"></span>
+            </div>
+
+            <!-- CARD 3: Faculty & Staff Directory -->
             <div class="card table-wrap" style="margin-bottom:24px;">
               <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
                 <div>
@@ -2640,33 +2728,6 @@
                 </thead>
                 <tbody></tbody>
               </table>
-            </div>
-
-            <div class="card">
-              <div class="form-section-title">Teaching Assignment Matrix</div>
-
-              <h4 style="font-size:14px; margin:16px 0 8px 0;">1. Assign Class Teacher (Attendance &amp; Mentorship)
-              </h4>
-              <div class="field-row" style="align-items:flex-end;">
-                <div class="field"><label>Select Faculty</label><select id="ctStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="ctClassSel"></select></div>
-                <div class="field field-action">
-                  <button class="btn btn-dark" id="ctAssignBtn">Assign Class Teacher</button>
-                </div>
-              </div>
-
-              <h4 style="font-size:14px; margin:22px 0 8px 0;">2. Assign Subject Teaching (Marks, Notes &amp; Exams)
-              </h4>
-              <div class="field-row" style="align-items:flex-end;">
-                <div class="field"><label>Select Faculty</label><select id="subStaffSel"></select></div>
-                <div class="field"><label>Select Class Section</label><select id="subClassSel"></select></div>
-                <div class="field"><label>Subject Name</label><input type="text" id="subSubject"
-                    placeholder="e.g. Mathematics / Physics"></div>
-                <div class="field field-action">
-                  <button class="btn btn-primary" id="subAssignBtn">Assign Subject</button>
-                </div>
-              </div>
-              <span id="assignMsg" style="color:var(--good); font-weight:700; font-size:13.5px;"></span>
             </div>
           </section>
 
@@ -2980,21 +3041,24 @@
                   </button>
                 </div>
               </div>
-              <table id="stuTable">
-                <thead>
-                  <tr>
-                    <th>Student Identity</th>
-                    <th>Admission No.</th>
-                    <th>Roll No.</th>
-                    <th>Class Section</th>
-                    <th>Father / Contact</th>
-                    <th>Blood</th>
-                    <th>Parent Account</th>
-                    <th style="text-align:right;">Profile &amp; Actions</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div style="overflow-x:auto; width:100%; -webkit-overflow-scrolling:touch;">
+                <table id="stuTable">
+                  <thead>
+                    <tr>
+                      <th style="text-align:left; min-width:170px; padding-left:14px;">Student Identity</th>
+                      <th style="text-align:center; white-space:nowrap; width:100px;">Admission No.</th>
+                      <th style="text-align:center; white-space:nowrap; width:65px;">Roll No.</th>
+                      <th style="text-align:center; white-space:nowrap; min-width:110px;">Class Section</th>
+                      <th style="text-align:center; white-space:nowrap; width:125px;">Student Password</th>
+                      <th style="text-align:left; min-width:130px;">Father / Contact</th>
+                      <th style="text-align:center; width:60px;">Blood</th>
+                      <th style="text-align:center; width:85px;">Parent Account</th>
+                      <th style="text-align:right; min-width:215px; padding-right:14px;">Profile &amp; Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
           </section>
 
@@ -6424,7 +6488,7 @@
 
           // 3. Save Student Record in Firestore
           await setDoc(doc(db, 'users', stuUid), {
-            role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
+            role: 'student', name, email: stuEmail, tempPassword: stuPass, createdAt: serverTimestamp()
           }, { merge: true });
 
           const assignedSubjects = currentAdmissionSubjects && currentAdmissionSubjects.length
@@ -6441,6 +6505,7 @@
             address, city, pincode, parentUid: parUid || null,
             subjects: assignedSubjects,
             stream: assignedStream,
+            tempPassword: stuPass,
             createdAt: serverTimestamp()
           }, { merge: true });
 
@@ -6577,44 +6642,83 @@
         body.innerHTML = '';
 
         if (!studentsList.length) {
-          body.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--ink-soft);">No students found matching this criteria.</td></tr>';
+          body.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--ink-soft);">No students found matching this criteria.</td></tr>';
           return;
         }
 
         studentsList.forEach(r => {
           const tr = document.createElement('tr');
           const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
+          const studentPass = r.tempPassword || 'Student@123';
 
           tr.innerHTML = `
-      <td>
+      <td style="text-align:left; padding-left:14px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
+          <div style="width:34px; height:34px; min-width:34px; flex-shrink:0; border-radius:50%; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
             ${(r.name || 'S').charAt(0).toUpperCase()}
           </div>
-          <div>
-            <strong>${r.name}</strong><br>
-            <small style="color:var(--ink-soft);">${r.email || ''}</small>
+          <div style="min-width:0;">
+            <div style="font-weight:700; color:var(--ink); font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">${r.name || '—'}</div>
+            <div style="color:var(--ink-soft); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">${r.email || ''}</div>
           </div>
         </div>
       </td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.admissionNo || '—'}</span></td>
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.rollNo || r.admissionNo || '—'}</span></td>
-      <td><span class="badge badge-purple" style="font-weight:700; font-size:12px; padding:4px 10px;">${r.className || '—'}</span></td>
-      <td>
-        <strong>${r.fatherName || 'Parent'}</strong><br>
-        <small style="color:var(--ink-soft); font-family:var(--font-mono);">${r.fatherPhone || r.phone || '—'}</small>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; padding:3px 8px;">${r.admissionNo || '—'}</span>
       </td>
-      <td><span class="badge badge-purple">${r.bloodGroup || 'O+'}</span></td>
-      <td>${r.parentUid ? '<span class="badge badge-good">Linked</span>' : '<span class="badge badge-bad">Unlinked</span>'}</td>
-      <td style="text-align:right; white-space:nowrap;">
-        <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-          <button type="button" class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">View Profile</button>
-          <button type="button" class="btn btn-sm stuEditBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Student Profile">Edit</button>
-          <button type="button" class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">Print</button>
-          <button type="button" class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:12px; padding:5px 10px;">Delete</button>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700; font-size:11.5px; min-width:28px; justify-content:center; padding:3px 6px;">${r.rollNo || r.admissionNo || '—'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-purple" style="font-weight:700; font-size:11.5px; padding:4px 9px; white-space:nowrap;">${r.className || '—'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:3px 8px; white-space:nowrap;">
+          <span class="pass-val">••••••••</span>
+          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </span>
+      </td>
+      <td style="text-align:left;">
+        <div style="font-weight:700; color:var(--ink); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;">${r.fatherName || 'Parent'}</div>
+        <div style="color:var(--ink-soft); font-family:var(--font-mono); font-size:11.5px; white-space:nowrap;">${r.fatherPhone || r.phone || '—'}</div>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        <span class="badge badge-purple" style="font-size:11px; font-weight:700; padding:3px 7px;">${r.bloodGroup || 'O+'}</span>
+      </td>
+      <td style="text-align:center; white-space:nowrap;">
+        ${r.parentUid ? '<span class="badge badge-good" style="font-size:11px; padding:3px 8px;">Linked</span>' : '<span class="badge badge-bad" style="font-size:11px; padding:3px 8px;">Unlinked</span>'}
+      </td>
+      <td style="text-align:right; white-space:nowrap; padding-right:14px;">
+        <div style="display:inline-flex; gap:5px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-primary btn-sm stuViewBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700;">View Profile</button>
+          <button type="button" class="btn btn-sm stuEditBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Student Profile">Edit</button>
+          <button type="button" class="btn btn-outline btn-sm stuPrintRowBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700; display:inline-flex; align-items:center; gap:3px;">Print</button>
+          <button type="button" class="btn btn-danger btn-sm stuDelBtn" data-uid="${r.uid}" style="font-size:11.5px; padding:5px 9px; font-weight:700;">Delete</button>
         </div>
       </td>
     `;
+
+          // Handle show / hide student password toggle
+          tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const span = btn.previousElementSibling;
+              const pass = btn.dataset.pass || 'Student@123';
+              if (span.textContent === '••••••••') {
+                span.textContent = pass;
+                span.style.color = 'var(--brand-green)';
+                span.style.fontWeight = '700';
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+                btn.title = 'Hide Password';
+              } else {
+                span.textContent = '••••••••';
+                span.style.color = '';
+                span.style.fontWeight = '';
+                btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+                btn.title = 'Show Password';
+              }
+            });
+          });
 
           // View Full Profile Modal Trigger
           tr.querySelector('.stuViewBtn').addEventListener('click', () => {
@@ -6932,6 +7036,18 @@
         document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
         document.getElementById('mp_aadhaar').innerHTML = formatAadhaarDisplay(s.aadhaarNo);
         document.getElementById('mp_email').textContent = s.email || '—';
+        const stuPassSpan = document.getElementById('mp_pass');
+        const stuToggleBtn = document.getElementById('mp_togglePassBtn');
+        const realStuPass = s.tempPassword || 'Student@123';
+        if (stuPassSpan) {
+          stuPassSpan.textContent = '••••••••';
+          stuPassSpan.dataset.realPass = realStuPass;
+          stuPassSpan.dataset.revealed = 'false';
+          stuPassSpan.style.color = '';
+        }
+        if (stuToggleBtn) {
+          stuToggleBtn.textContent = 'Reveal';
+        }
 
         // Assigned subjects & stream
         const sSubs = getStudentSubjects(s);
@@ -6958,6 +7074,24 @@
         const sBody = studentDetailModal.querySelector('.profile-modal-body');
         if (sBody) sBody.scrollTop = 0;
       }
+
+      // Student Profile Modal Password Reveal Listener
+      document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
+        const passSpan = document.getElementById('mp_pass');
+        const btn = document.getElementById('mp_togglePassBtn');
+        if (!passSpan || !btn) return;
+        if (passSpan.dataset.revealed === 'true') {
+          passSpan.textContent = '••••••••';
+          passSpan.dataset.revealed = 'false';
+          passSpan.style.color = '';
+          btn.textContent = 'Reveal';
+        } else {
+          passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
+          passSpan.dataset.revealed = 'true';
+          passSpan.style.color = 'var(--brand-green)';
+          btn.textContent = 'Hide';
+        }
+      });
 
       // ======================== EDIT STUDENT ========================
       const editStudentModal = document.getElementById('editStudentModal');
@@ -7022,6 +7156,7 @@
         document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
         document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
         document.getElementById('editStuEmail').value = s.email || '';
+        document.getElementById('editStuPass').value = s.tempPassword || 'Student@123';
 
         document.getElementById('editStuFatherName').value = s.fatherName || '';
         document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
@@ -7129,6 +7264,11 @@
             updatedAt: serverTimestamp()
           };
 
+          const passVal = document.getElementById('editStuPass')?.value.trim();
+          if (passVal) {
+            studentUpdate.tempPassword = passVal;
+          }
+
           if (isHigherSecondaryClass(className)) {
             const streamVal = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
             studentUpdate.stream = streamVal;
@@ -7138,12 +7278,14 @@
           await updateDoc(doc(db, 'students', uid), studentUpdate);
 
           // 2. Update user doc for student
-          await setDoc(doc(db, 'users', uid), {
+          const userDocUpdate = {
             role: 'student',
             name,
             email,
             updatedAt: serverTimestamp()
-          }, { merge: true });
+          };
+          if (passVal) userDocUpdate.tempPassword = passVal;
+          await setDoc(doc(db, 'users', uid), userDocUpdate, { merge: true });
 
           // 3. Update or create linked parent account
           const currentStudent = allStudentsCache.find(x => x.uid === uid);
@@ -8084,7 +8226,8 @@
     <div class="field-item"><span class="field-lbl">Gender:</span><span class="field-val">${s.gender || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
-    <div class="field-item" style="grid-column:1 / -1;"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
+    <div class="field-item"><span class="field-lbl">Student Password:</span><span class="field-val" style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</span></div>
   </div>
 
   <div class="section-title">2. Parent &amp; Family Information</div>
@@ -8515,6 +8658,7 @@
               <th>Student Full Name</th>
               <th style="width:90px;">Adm No.</th>
               <th style="width:90px;">Class</th>
+              <th style="width:95px;">Password</th>
               <th style="width:70px;">Gender</th>
               <th style="width:60px;">Blood</th>
               <th>Father / Guardian</th>
@@ -8532,6 +8676,7 @@
             <td><strong>${s.name || '—'}</strong></td>
             <td><span class="badge">${s.admissionNo || '—'}</span></td>
             <td><strong>${s.className || '—'}</strong></td>
+            <td><code style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</code></td>
             <td>${s.gender || '—'}</td>
             <td>${s.bloodGroup || '—'}</td>
             <td>${s.fatherName || '—'}</td>

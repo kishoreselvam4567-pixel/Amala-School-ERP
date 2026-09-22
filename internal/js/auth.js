@@ -149,10 +149,185 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 
       isAuthorized = true;
       onReady({ user, profile });
+
+      // Trigger first-time login instructions notification (only once per user)
+      setTimeout(() => {
+        showFirstTimeLoginGuide(profile.role, user, profile);
+      }, 300);
     } catch (err) {
       console.error("Portal authorization check error:", err);
     }
   });
+}
+
+// ---------- First-Time Login Instructions Helper ----------
+export function showFirstTimeLoginGuide(role, user, profile) {
+  if (!user || !user.uid) return;
+  const storageKey = 'amala_first_time_login_shown_' + user.uid;
+  if (localStorage.getItem(storageKey)) return;
+
+  const roleConfigs = {
+    student: {
+      badge: 'Student Orientation',
+      badgeColor: '#2563eb',
+      title: 'Welcome to Your Student ERP Portal',
+      intro: 'Here is what you need to know on your first login:',
+      tips: [
+        {
+          title: 'Verify Your Profile & ID Card',
+          desc: 'Visit the "My Profile" tab to check your registered Admission Number, Roll Number, Class Section, and Date of Birth.'
+        },
+        {
+          title: 'Track Daily Attendance & Results',
+          desc: 'Check live attendance percentages and subject-wise exam marksheets in "Attendance" and "Marks & Report".'
+        },
+        {
+          title: 'Download Notes & Submit Homework',
+          desc: 'Access curriculum materials and syllabus notes uploaded by faculty members under "Syllabus Notes" and "Homework".'
+        },
+        {
+          title: 'Security & Password Practice',
+          desc: 'Never share your User ID or Date of Birth credentials. Keep your login session secure.'
+        }
+      ]
+    },
+    parent: {
+      badge: 'Parent Portal Orientation',
+      badgeColor: '#059669',
+      title: 'Welcome to Amala Parent Portal',
+      intro: 'Key instructions for monitoring your child\'s academic progress:',
+      tips: [
+        {
+          title: 'Real-Time Academic Progress',
+          desc: 'View your child\'s daily attendance, terminal test marks, and gradecards in real time.'
+        },
+        {
+          title: 'Official School Circulars',
+          desc: 'Stay informed with central notices, upcoming exam timetables, and holiday circulars under "Announcements".'
+        },
+        {
+          title: 'Homework & Assignment Tracking',
+          desc: 'Monitor homework assigned by teachers daily to support your child\'s study schedule.'
+        },
+        {
+          title: 'Convenient 1-Click Login',
+          desc: 'You can log into this portal anytime simply by entering your registered Mobile Number.'
+        }
+      ]
+    },
+    staff: {
+      badge: 'Faculty Portal Guide',
+      badgeColor: '#d97706',
+      title: 'Welcome to Amala Faculty Portal',
+      intro: 'Essential instructions for managing your classes and academic records:',
+      tips: [
+        {
+          title: 'Daily Class Attendance Register',
+          desc: 'Mark and submit period-wise or daily class attendance for your assigned sections.'
+        },
+        {
+          title: 'Marksheet & Grade Entry',
+          desc: 'Enter test marks, project scores, and term examination grades with automatic totals calculation.'
+        },
+        {
+          title: 'Publish Notes & Homework',
+          desc: 'Upload study notes (PDFs/docs) and post homework with deadlines for students in your class.'
+        },
+        {
+          title: 'Student Roster Access',
+          desc: 'View student roll lists and emergency guardian contact details whenever required.'
+        }
+      ]
+    },
+    admin: {
+      badge: 'Admin Console Guide',
+      badgeColor: '#7c3aed',
+      title: 'Welcome to ERP Admin Console',
+      intro: 'Administrator overview and operational controls:',
+      tips: [
+        {
+          title: 'User Admissions & Provisioning',
+          desc: 'Provision student admission numbers, parent accounts, and faculty credentials from the Admissions panel.'
+        },
+        {
+          title: 'Class & Section Management',
+          desc: 'Configure grades, sections, academic calendars, and assign class teachers.'
+        },
+        {
+          title: 'School-Wide Circulars',
+          desc: 'Broadcast high-priority institutional announcements across student, parent, and faculty portals.'
+        },
+        {
+          title: 'System Access & Security',
+          desc: 'Manage account statuses, activate/deactivate portal access, and oversee institutional records.'
+        }
+      ]
+    }
+  };
+
+  const cfg = roleConfigs[role] || roleConfigs.student;
+  const userName = (profile && profile.name) ? profile.name : 'User';
+
+  const modalId = 'amalaFirstLoginModal';
+  if (document.getElementById(modalId)) return;
+
+  const modalHtml = `
+    <div id="${modalId}" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); padding:16px; font-family:'Inter', sans-serif;">
+      <div style="background:#ffffff; max-width:560px; width:100%; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid #e2e8f0; overflow:hidden;">
+        <div style="background:linear-gradient(135deg, #0f1e36, #1e3a8a); padding:24px 28px; color:#ffffff; position:relative;">
+          <div style="display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:3px 10px; border-radius:20px; background:${cfg.badgeColor}; color:#ffffff; margin-bottom:8px;">
+            ${cfg.badge}
+          </div>
+          <h2 style="font-size:20px; font-weight:800; margin:0 0 4px 0; letter-spacing:-0.01em; color:#ffffff;">
+            ${cfg.title}
+          </h2>
+          <p style="font-size:13px; color:#cbd5e1; margin:0; line-height:1.4;">
+            Hello <strong>${userName}</strong>! ${cfg.intro}
+          </p>
+        </div>
+        
+        <div style="padding:22px 28px; max-height:60vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${cfg.tips.map((t, idx) => `
+              <div style="display:flex; align-items:flex-start; gap:12px; background:#f8fafc; padding:12px 14px; border-radius:12px; border:1px solid #e2e8f0;">
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e3a8a; color:#ffffff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                  ${idx + 1}
+                </div>
+                <div>
+                  <div style="font-size:13.5px; font-weight:700; color:#0f172a; margin-bottom:2px;">${t.title}</div>
+                  <div style="font-size:12.5px; color:#475569; line-height:1.45;">${t.desc}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="padding:16px 28px; background:#f1f5f9; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <span style="font-size:11.5px; color:#64748b; font-weight:500;">
+            This guide appears only on your first login.
+          </span>
+          <button id="dismissFirstLoginBtn" style="background:#1e3a8a; color:#ffffff; border:none; padding:10px 20px; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(30,58,138,0.25); transition:all 0.15s ease;">
+            Got it, Let's Get Started &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const dismissBtn = document.getElementById('dismissFirstLoginBtn');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => {
+      localStorage.setItem(storageKey, 'true');
+      const el = document.getElementById(modalId);
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => el.remove(), 200);
+      }
+    });
+  }
 }
 
 // Central redirect used right after login on login.html
