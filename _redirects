@@ -1,0 +1,7 @@
+# Netlify Redirects
+/login       /login.html                  200
+/register    /register.html               200
+/admin       /internal/admin/dashboard.html 200
+/staff       /internal/staff/dashboard.html 200
+/student     /student/dashboard.html      200
+/parent      /parent/dashboard.html       200

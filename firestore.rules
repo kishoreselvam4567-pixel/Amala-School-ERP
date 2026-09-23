@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    
+    function isAdminEmail() {
+      return signedIn() && (
+        request.auth.token.email == 'amala@123.gmail.com' ||
+        request.auth.token.email == 'admin@kishore.gmail.com' ||
+        request.auth.token.email == 'amala123@gmail.com'
+      );
+    }
+    
+    function hasUserDoc() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    function myRole() { 
+      return hasUserDoc() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : ''; 
+    }
+    
+    function isAdmin() { return isAdminEmail() || (signedIn() && myRole() == 'admin'); }
+    function isStaff() { return signedIn() && myRole() == 'staff'; }
+    function isAdminOrStaff() { return isAdmin() || isStaff(); }
+
+    // users collection: allow unauthenticated read of email/phone for login lookup only
+    match /users/{uid} {
+      allow read: if true; // needed for email lookup during login before auth
+      allow create: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+    match /classes/{classId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    // students: allow unauthenticated list/read for admission number → email lookup at login
+    match /students/{studentUid} {
+      allow read, list: if true; // login page needs to resolve admissionNo → email before signing in
+      allow create: if signedIn() && (request.auth.uid == studentUid || isAdmin());
+      allow update: if isAdminOrStaff() || (signedIn() && request.auth.uid == studentUid);
+      allow delete: if isAdmin();
+    }
+    // staff: allow unauthenticated read for username → email lookup at login
+    match /staff/{staffUid} {
+      allow read, list: if true; // login page needs to resolve username → email before signing in
+      allow create, update, delete: if isAdmin();
+    }
+    // parents: allow unauthenticated read for phone → email lookup at login
+    match /parents/{parentUid} {
+      allow read, list: if true; // login page needs to resolve phone → email before signing in
+      allow create: if signedIn() && (request.auth.uid == parentUid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+    match /attendance/{docId} { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /marks/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /exams/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /notes/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /homework/{docId}   { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /announcements/{docId} { allow read: if signedIn(); allow write: if isAdmin(); }
+  }
+}
