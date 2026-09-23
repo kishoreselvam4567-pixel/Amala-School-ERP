@@ -1006,24 +1006,31 @@
 
       // Auto-provision if Auth user was not yet created in Firebase Auth
       if (!cred || !cred.user) {
-        if (matchedParentData) {
-          const provPass = matchedParentData.tempPassword || (pass.length >= 6 ? pass : 'Parent@123');
+        const isParentEmail = authEmail.includes('parent') || (matchedRole === 'parent');
+        const isStudentEmail = authEmail.includes('student') || (matchedRole === 'student') || authEmail.endsWith('@amalaschool.edu.in');
+
+        const provPassCandidates = [
+          matchedParentData?.tempPassword,
+          matchedStudentData?.tempPassword,
+          pass,
+          isParentEmail ? 'Parent@123' : 'Student@123',
+          'Parent@123',
+          'Student@123'
+        ].filter(p => p && String(p).length >= 6);
+
+        for (const tryProv of [...new Set(provPassCandidates)]) {
           try {
-            cred = await auth.createUserWithEmailAndPassword(authEmail, provPass);
-            matchedPass = provPass;
-          } catch(provErr) {
-            if (provErr.code !== 'auth/email-already-in-use') {
-              console.warn('Parent auto-provision note:', provErr.message);
+            cred = await auth.createUserWithEmailAndPassword(authEmail, tryProv);
+            if (cred && cred.user) {
+              matchedPass = tryProv;
+              break;
             }
-          }
-        } else if (matchedStudentData) {
-          const provPass = matchedStudentData.tempPassword || (pass.length >= 6 ? pass : 'Student@123');
-          try {
-            cred = await auth.createUserWithEmailAndPassword(authEmail, provPass);
-            matchedPass = provPass;
           } catch(provErr) {
-            if (provErr.code !== 'auth/email-already-in-use') {
-              console.warn('Student auto-provision note:', provErr.message);
+            if (provErr.code === 'auth/email-already-in-use') {
+              // User exists in Firebase Auth, wrong password entered
+              break;
+            } else {
+              console.warn('Auto-provision attempt note:', provErr.message);
             }
           }
         }
@@ -1038,25 +1045,56 @@
         }
       } catch(tErr) {}
 
-      // ── Read user profile with multi-collection fallback ───────────────────────
+      const curEmail    = (cred.user.email || authEmail).toLowerCase().trim();
+      const rawCurEmail = (cred.user.email || authEmail).trim();
+      const cleanUser   = curEmail.split('@')[0];
+      const isAdminAcc  = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+
+      // ── Post-Auth Parent Data Lookup (User is now authenticated so queries succeed) ──
+      if (!matchedParentData && curEmail.includes('parent')) {
+        try {
+          const pQ = await db.collection('parents').where('email', '==', curEmail).limit(1).get();
+          if (!pQ.empty) matchedParentData = pQ.docs[0].data();
+        } catch(e) {}
+      }
+
+      // If still missing child linkage, derive from parent.<adm>@... format
+      if (!matchedParentData && curEmail.startsWith('parent.')) {
+        const admCandidate = curEmail.replace(/^parent\./, '').replace(/@.*$/, '');
+        try {
+          const allStu = await db.collection('students').get();
+          const match = allStu.docs.find(d => {
+            const adm = String(d.data().admissionNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const roll = String(d.data().rollNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const cleanAdm = admCandidate.replace(/[^a-z0-9]/g, '');
+            return adm.includes(cleanAdm) || cleanAdm.includes(adm) || roll === cleanAdm;
+          });
+          if (match) {
+            matchedParentData = {
+              childUid: match.id,
+              childName: match.data().name || '',
+              name: match.data().fatherName || 'Parent User',
+              email: curEmail,
+              phone: match.data().fatherPhone || '',
+              motherPhone: match.data().motherPhone || ''
+            };
+          }
+        } catch(e) {}
+      }
+
+      // ── Read user profile ──────────────────────────────────────
       let userData = null;
       try {
         const uSnap = await db.collection('users').doc(cred.user.uid).get();
         if (uSnap.exists) userData = uSnap.data();
       } catch(e) {
         console.warn('Profile read attempt 1 failed:', e.message);
-        // Small delay and retry in case auth token was propagating
         await new Promise(r => setTimeout(r, 120));
         try {
           const uSnap2 = await db.collection('users').doc(cred.user.uid).get();
           if (uSnap2.exists) userData = uSnap2.data();
         } catch(e2) {}
       }
-
-      const curEmail    = (cred.user.email || authEmail).toLowerCase().trim();
-      const rawCurEmail = (cred.user.email || authEmail).trim();
-      const cleanUser   = curEmail.split('@')[0];
-      const isAdminAcc  = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
       // ── Auto-heal admin doc ────────────────────────────────────
       if (isAdminAcc && (!userData || !userData.role)) {
@@ -1182,13 +1220,46 @@
       }
 
       if (!userData || !userData.role) {
-        // Fallback: If roshan or staff in email, default to staff
-        if (curEmail.includes('roshan') || curEmail.includes('staff') || curEmail.includes('teacher')) {
-          userData = { role: 'staff', name: (matchedRecord && matchedRecord.name) || 'G.Roshan', email: curEmail, deleted: false, disabled: false };
+        if (curEmail.includes('parent') || (matchedRecord && matchedRecord.childUid) || (matchedParentData && matchedParentData.childUid)) {
+          userData = {
+            role: 'parent',
+            name: (matchedRecord && matchedRecord.name) || (matchedParentData && matchedParentData.name) || 'Parent User',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
+        } else if (curEmail.includes('student') || (matchedRecord && (matchedRecord.admissionNo || matchedRecord.className))) {
+          userData = {
+            role: 'student',
+            name: (matchedRecord && matchedRecord.name) || (matchedStudentData && matchedStudentData.name) || 'Student User',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
+        } else if (curEmail.includes('roshan') || curEmail.includes('staff') || curEmail.includes('teacher')) {
+          userData = {
+            role: 'staff',
+            name: (matchedRecord && matchedRecord.name) || 'G.Roshan',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
         } else {
           await auth.signOut();
           throw new Error('Unable to resolve user role. Please contact school IT support.');
         }
+
+        // Auto-heal users document with the resolved role
+        try {
+          await db.collection('users').doc(cred.user.uid).set({
+            role: userData.role,
+            name: userData.name || '',
+            email: curEmail,
+            deleted: false,
+            disabled: false,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch(e) {}
       }
 
       const role = userData.role;
