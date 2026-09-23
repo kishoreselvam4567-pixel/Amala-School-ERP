@@ -898,10 +898,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Announcements
       </a>
-      <a href="#" data-tab="lookup">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Student Finder
-      </a>
       <a href="#" data-tab="attendance">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
         Mark Attendance
@@ -973,7 +969,7 @@
             </div>
             <div class="metric-footer">
               <span id="stfMetricStudentsCount">Class roster</span>
-              <a href="#" data-tab="lookup" class="metric-link tab-switch-btn">View Students &rarr;</a>
+              <a href="#" data-tab="students" id="stfMetricStudentsLink" class="metric-link tab-switch-btn" style="display:none;">View Students &rarr;</a>
             </div>
           </div>
 
@@ -1164,9 +1160,6 @@
           <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="students"
             style="border-radius:20px; padding:6px 14px;">Students Only (<span
               id="countStudentAnn">0</span>)</button>
-          <button type="button" class="btn btn-outline btn-sm ann-filter-btn" data-filter="teachers"
-            style="border-radius:20px; padding:6px 14px;">Faculty &amp; Staff (<span
-              id="countFacultyAnn">0</span>)</button>
         </div>
 
         <div id="staffAnnList"></div>
@@ -1174,39 +1167,6 @@
       </section>
 
 
-      <!-- DEDICATED STUDENT LOOKUP BY CLASS & ROLL NUMBER -->
-      <section id="panel-lookup" style="display:none;">
-        <div class="main-header">
-          <div>
-            <h2>Instant Student Lookup</h2>
-            <p style="color:var(--ink-soft);">Search any student by class section and Roll Number or Admission Number</p>
-          </div>
-          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Exit to Home
-          </button>
-        </div>
-
-        <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, var(--white) 100%); border:1.5px solid var(--brand-green); margin-bottom:24px;">
-          <div class="field-row" style="align-items:flex-end;">
-            <div class="field" style="flex:1.2; min-width:200px;">
-              <label>1. Select Class Section</label>
-              <select id="staffFinderClassSel"><option value="">-- Choose Class Section --</option></select>
-            </div>
-            <div class="field" style="flex:1; min-width:200px;">
-              <label>2. Enter Roll No. or Register / Adm No.</label>
-              <input type="text" id="staffFinderRollInput" placeholder="e.g. 23 or 2026-001">
-            </div>
-            <div class="field field-action">
-              <button type="button" class="btn btn-primary" id="staffFinderSearchBtn">Find Student</button>
-            </div>
-          </div>
-
-          <!-- Live Result Display Box -->
-          <div id="staffFinderResultBox" style="display:none; margin-top:16px; padding:18px; background:var(--white); border-radius:14px; border:1px solid var(--line); box-shadow:var(--shadow-md);">
-          </div>
-        </div>
-      </section>
 
       <!-- ================= 4. ATTENDANCE TAB (CAMPUS ATTENDANCE INTELLIGENCE) ================= -->
       <section id="panel-attendance" style="display:none;">
@@ -1771,9 +1731,20 @@
             Exit to Home
           </button>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
             <span id="staffStuCountBadge" class="badge" style="background:#e0e7ff; color:#3730a3; font-weight:700; padding:6px 12px; border-radius:20px;">0 Enrolled</span>
+            <!-- Student Search Bar -->
+            <div style="position:relative; width:280px; max-width:100%;">
+              <input type="text" id="staffStuSearchInput" placeholder="Search student name, roll no, adm no…"
+                style="padding:7px 30px 7px 32px; font-size:13px; border-radius:8px; border:1px solid var(--line); width:100%; background:var(--white); color:var(--ink); outline:none; transition:border-color 0.2s, box-shadow 0.2s;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--ink-soft); pointer-events:none;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <button type="button" id="staffStuSearchClearBtn" style="display:none; position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--ink-soft); cursor:pointer; padding:2px 4px; font-size:14px; line-height:1;" title="Clear search">✕</button>
+            </div>
           </div>
           <div style="display:flex; gap:8px;">
             <button class="btn btn-outline" id="staffStuExportCsvBtn" type="button" style="border:1px solid var(--border);background:#fff;color:var(--ink-main);font-weight:600;display:inline-flex;align-items:center;gap:6px;">
@@ -2345,6 +2316,8 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
     // Configure Students Access for Class Teacher
     if (classTeacherClass) {
       document.getElementById('navStudents').style.display = 'flex';
+      const stuLink = document.getElementById('stfMetricStudentsLink');
+      if (stuLink) stuLink.style.display = 'inline-flex';
     }
 
     // Populate Top Colorful Metric Boxes (Yellow, Pink, Purple)
@@ -2482,12 +2455,6 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
           if (kA.level !== kB.level) return kA.level - kB.level;
           return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
         });
-
-        const finderClassSel = document.getElementById('staffFinderClassSel');
-        if (finderClassSel) {
-          finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
-            sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        }
 
         allClassesCache = sortedClasses;
 
@@ -2771,76 +2738,6 @@ async function loadStaffAnnouncements() {
     console.error('Error loading staff announcements:', err);
   }
 }
-
-// ======================== INSTANT STUDENT LOOKUP ========================
-const staffFinderClassSel = document.getElementById('staffFinderClassSel');
-const staffFinderRollInput = document.getElementById('staffFinderRollInput');
-const staffFinderSearchBtn = document.getElementById('staffFinderSearchBtn');
-const staffFinderResultBox = document.getElementById('staffFinderResultBox');
-
-function runStaffStudentFinder() {
-  const selectedClassId = staffFinderClassSel.value;
-  const rollTerm = staffFinderRollInput.value.trim().toLowerCase();
-
-  if (!rollTerm && !selectedClassId) {
-    staffFinderResultBox.style.display = 'none';
-    return;
-  }
-
-  let matches = allSchoolStudentsCache;
-  if (selectedClassId) {
-    matches = matches.filter(s => s.classId === selectedClassId);
-  }
-  if (rollTerm) {
-    matches = matches.filter(s => 
-      (s.rollNo && s.rollNo.toLowerCase().includes(rollTerm)) ||
-      (s.admissionNo && s.admissionNo.toLowerCase().includes(rollTerm)) ||
-      (s.name && s.name.toLowerCase().includes(rollTerm))
-    );
-  }
-
-  staffFinderResultBox.style.display = 'block';
-  if (!matches.length) {
-    staffFinderResultBox.innerHTML = `
-      <div style="text-align:center; padding:12px; color:var(--ink-soft); font-size:13.5px;">
-        No student found with Roll/Adm No. "<strong>${rollTerm}</strong>" in the selected class.
-      </div>
-    `;
-    return;
-  }
-
-  const s = matches[0];
-  staffFinderResultBox.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:var(--brand-green); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">
-          ${(s.name || 'S').charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h3 style="margin:0; font-size:16px; color:var(--ink);">${s.name}</h3>
-            <span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">Roll No: ${s.rollNo || '—'}</span>
-            <span class="badge badge-navy" style="font-family:var(--font-mono);">Adm: ${s.admissionNo || '—'}</span>
-          </div>
-          <div style="font-size:13px; color:var(--ink-soft); margin-top:3px;">
-            Class: <strong>${s.className || '—'}</strong> • Father: <strong>${s.fatherName || 'Parent'} (${s.fatherPhone || '—'})</strong> • Blood: <strong>${s.bloodGroup || '—'}</strong>
-          </div>
-        </div>
-      </div>
-      <button type="button" class="btn btn-primary btn-sm" id="staffFinderOpenProfileBtn" style="padding:8px 16px;">
-        View Complete ID Card &amp; Profile &rarr;
-      </button>
-    </div>
-  `;
-
-  document.getElementById('staffFinderOpenProfileBtn').addEventListener('click', () => {
-    openStudentProfileModal(s);
-  });
-}
-
-if (staffFinderSearchBtn) staffFinderSearchBtn.addEventListener('click', runStaffStudentFinder);
-if (staffFinderRollInput) staffFinderRollInput.addEventListener('input', runStaffStudentFinder);
-if (staffFinderClassSel) staffFinderClassSel.addEventListener('change', runStaffStudentFinder);
 
 // Helper to fetch class students sorted strictly by numeric roll number (1, 2, 3...)
 async function getClassStudents(classId, className = '') {
@@ -4673,20 +4570,61 @@ async function loadHwList() {
 
 let cachedTeacherStudents = [];
 
-async function loadStudentsForTeacher() {
-  if (!classTeacherClass) return;
-  const students = await getClassStudents(classTeacherClass.id);
-  cachedTeacherStudents = students;
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[m]));
+}
+
+function renderTeacherStudentsTable() {
+  const searchInput = document.getElementById('staffStuSearchInput');
+  const clearBtn = document.getElementById('staffStuSearchClearBtn');
+  const term = (searchInput?.value || '').trim().toLowerCase();
+
+  if (clearBtn) {
+    clearBtn.style.display = term ? 'inline-block' : 'none';
+  }
+
+  let filtered = cachedTeacherStudents;
+  if (term) {
+    filtered = cachedTeacherStudents.filter(s => {
+      const name = (s.name || '').toLowerCase();
+      const roll = (s.rollNo || '').toString().toLowerCase();
+      const adm = (s.admissionNo || '').toString().toLowerCase();
+      const blood = (s.bloodGroup || '').toLowerCase();
+      return name.includes(term) || roll.includes(term) || adm.includes(term) || blood.includes(term);
+    });
+  }
+
   const countBadge = document.getElementById('staffStuCountBadge');
-  if (countBadge) countBadge.textContent = `${students.length} Enrolled`;
+  if (countBadge) {
+    if (term) {
+      countBadge.textContent = `${filtered.length} of ${cachedTeacherStudents.length} Found`;
+    } else {
+      countBadge.textContent = `${cachedTeacherStudents.length} Enrolled`;
+    }
+  }
 
   const body = document.querySelector('#stuTable tbody');
+  if (!body) return;
   body.innerHTML = '';
-  if (!students.length) {
-    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:20px;">No students enrolled yet. Use "Import CSV" to bulk register your class roster.</td></tr>';
+
+  if (!cachedTeacherStudents.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:24px;">No students enrolled yet. Use "Import CSV" to bulk register your class roster.</td></tr>';
     return;
   }
-  students.forEach(s => {
+
+  if (!filtered.length) {
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:24px;">No students found matching "<strong>${escapeHtml(searchInput?.value.trim())}</strong>".</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
@@ -4703,6 +4641,28 @@ async function loadStudentsForTeacher() {
     });
     body.appendChild(tr);
   });
+}
+
+// Student search bar event listeners
+document.getElementById('staffStuSearchInput')?.addEventListener('input', () => {
+  renderTeacherStudentsTable();
+});
+
+document.getElementById('staffStuSearchClearBtn')?.addEventListener('click', () => {
+  const searchInput = document.getElementById('staffStuSearchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
+  renderTeacherStudentsTable();
+});
+
+async function loadStudentsForTeacher() {
+  if (!classTeacherClass) return;
+  const students = await getClassStudents(classTeacherClass.id);
+  cachedTeacherStudents = students;
+  renderTeacherStudentsTable();
+
   const parSel = document.getElementById('parStudentSel');
   if (parSel) parSel.innerHTML = '';
 }
