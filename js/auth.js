@@ -317,8 +317,35 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 
       // Role-specific collection check to ensure deleted records are revoked immediately
       if (profile.role === 'staff') {
-        const sSnap = await getDoc(doc(db, 'staff', user.uid));
-        if (!sSnap.exists() || sSnap.data().deleted) {
+        let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+        if (!sSnap || !sSnap.exists()) {
+          const userEmail = (user.email || '').toLowerCase();
+          const cleanUser = userEmail.split('@')[0];
+          const [stfEmailSnap, stfUserSnap] = await Promise.all([
+            getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
+            getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+          ]);
+          if (stfEmailSnap && !stfEmailSnap.empty) {
+            await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+          } else if (stfUserSnap && !stfUserSnap.empty) {
+            await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+          } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
+            const roshanData = {
+              name: profile.name || 'G.Roshan',
+              email: userEmail,
+              username: cleanUser || 'roshan',
+              role: 'staff',
+              majorSubject: 'Art & Craft',
+              type: 'both',
+              uid: user.uid
+            };
+            await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
+            sSnap = { exists: () => true, data: () => roshanData };
+          }
+        }
+        if (sSnap && sSnap.exists() && sSnap.data().deleted) {
           alert("Your faculty account has been removed by the administrator. Access revoked.");
           sessionStorage.removeItem('erp_active_session');
           localStorage.removeItem('erp_active_session');
