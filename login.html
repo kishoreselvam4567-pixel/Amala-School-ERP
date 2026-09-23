@@ -851,6 +851,8 @@
       // ── Resolve authEmail from User ID ────────────────────
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
+      let matchedParentData = null;
+      let matchedStudentData = null;
 
       if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
         authEmail = 'admin@kishore.gmail.com';
@@ -858,8 +860,53 @@
         authEmail = 'amala@123.gmail.com';
       } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
         authEmail = 'amala@123.gmail.com';
-      } else if (!rawUser.includes('@')) {
-        // Not an email → look up in Firestore
+      } else if (rawUser.includes('@')) {
+        // User provided an email → check for matching parent or student record in Firestore
+        authEmail = normUser;
+        try {
+          const pSnap = await db.collection('parents').where('email', '==', normUser).limit(1).get();
+          if (!pSnap.empty) {
+            matchedParentData = pSnap.docs[0].data();
+          } else {
+            // Case-insensitive or partial scan fallback
+            const allPar = await db.collection('parents').get();
+            const match = allPar.docs.find(d => String(d.data().email || '').toLowerCase().trim() === normUser);
+            if (match) matchedParentData = match.data();
+          }
+        } catch(e) { console.warn('Parent email check:', e.message); }
+
+        try {
+          const sSnap = await db.collection('students').where('email', '==', normUser).limit(1).get();
+          if (!sSnap.empty) {
+            matchedStudentData = sSnap.docs[0].data();
+          }
+        } catch(e) {}
+
+        // If parent email was entered with variant formatting (e.g., parent.<adm>@amalaschool.edu.in)
+        if (!matchedParentData && normUser.startsWith('parent.')) {
+          const admCandidate = normUser.replace(/^parent\./, '').replace(/@.*$/, '');
+          try {
+            const allStu = await db.collection('students').get();
+            const match = allStu.docs.find(d => {
+              const adm = String(d.data().admissionNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const roll = String(d.data().rollNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const cleanAdm = admCandidate.replace(/[^a-z0-9]/g, '');
+              return adm === cleanAdm || roll === cleanAdm;
+            });
+            if (match && match.data().parentEmail) {
+              authEmail = match.data().parentEmail;
+              matchedParentData = {
+                childUid: match.id,
+                childName: match.data().name,
+                name: match.data().fatherName || 'Parent',
+                email: authEmail,
+                phone: match.data().fatherPhone || ''
+              };
+            }
+          } catch(e) {}
+        }
+      } else {
+        // Not an email → look up in Firestore (admissionNo, rollNo, phone, username)
         const cleanInput = normUser.replace(/^@/, '');
         const digitsOnly = rawUser.replace(/\D/g, '');
         let resolved = false;
@@ -867,7 +914,11 @@
         // 1. Students — exact admissionNo
         try {
           const stuSnap = await db.collection('students').where('admissionNo', '==', rawUser).limit(1).get();
-          if (!stuSnap.empty) { authEmail = stuSnap.docs[0].data().email; resolved = true; }
+          if (!stuSnap.empty) {
+            matchedStudentData = stuSnap.docs[0].data();
+            authEmail = matchedStudentData.email;
+            resolved = true;
+          }
         } catch(e) { console.warn('Student exact lookup:', e.message); }
 
         // 2. Students — case-insensitive scan (admissionNo / rollNo)
@@ -879,7 +930,11 @@
               const roll = String(d.data().rollNo      || '').trim().toLowerCase();
               return adm === cleanInput || roll === cleanInput;
             });
-            if (match) { authEmail = match.data().email; resolved = true; }
+            if (match) {
+              matchedStudentData = match.data();
+              authEmail = matchedStudentData.email;
+              resolved = true;
+            }
           } catch(e) { console.warn('Student scan:', e.message); }
         }
 
@@ -889,20 +944,26 @@
           const variants = [...new Set([rawUser, digitsOnly, last10,
             '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10);
 
-          // Indexed query first
           try {
             const pSnap = await db.collection('parents').where('phone','in',variants).limit(1).get();
-            if (!pSnap.empty) { authEmail = pSnap.docs[0].data().email; resolved = true; }
+            if (!pSnap.empty) {
+              matchedParentData = pSnap.docs[0].data();
+              authEmail = matchedParentData.email;
+              resolved = true;
+            }
           } catch(e) { console.warn('Parent phone query:', e.message); }
 
           if (!resolved) {
             try {
               const mSnap = await db.collection('parents').where('motherPhone','in',variants).limit(1).get();
-              if (!mSnap.empty) { authEmail = mSnap.docs[0].data().email; resolved = true; }
+              if (!mSnap.empty) {
+                matchedParentData = mSnap.docs[0].data();
+                authEmail = matchedParentData.email;
+                resolved = true;
+              }
             } catch(e) {}
           }
 
-          // Full scan fallback
           if (!resolved) {
             try {
               const allPar = await db.collection('parents').get();
@@ -912,7 +973,11 @@
                 return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
                        (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
               });
-              if (match) { authEmail = match.data().email; resolved = true; }
+              if (match) {
+                matchedParentData = match.data();
+                authEmail = matchedParentData.email;
+                resolved = true;
+              }
             } catch(e) { console.warn('Parent scan:', e.message); }
           }
         }
@@ -938,23 +1003,59 @@
         }
       }
 
-      // ── Build password candidate list (DOB variants + defaults) ──
+      // ── Build password candidate list (entered password + tempPass + DOB variants + defaults) ──
       const candidatePasswords = [pass];
+      if (matchedParentData && matchedParentData.tempPassword) {
+        candidatePasswords.unshift(matchedParentData.tempPassword);
+      }
+      if (matchedStudentData && matchedStudentData.tempPassword) {
+        candidatePasswords.unshift(matchedStudentData.tempPassword);
+      }
       const cleanDigits = pass.replace(/\D/g, '');
       if (cleanDigits.length === 8) {
         const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
         candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
-      candidatePasswords.push('Student@123', 'Parent@123');
-      const uniquePasswords = [...new Set(candidatePasswords)];
+      candidatePasswords.push('Parent@123', 'Student@123', 'parent@123', 'student@123', 'Amala@123');
+      const uniquePasswords = [...new Set(candidatePasswords.filter(Boolean))];
 
       // ── Attempt Firebase Auth sign-in ──────────────────────────
-      let cred = null, authError = null;
+      let cred = null, authError = null, successPassword = pass;
       for (const tryPass of uniquePasswords) {
         try {
           cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
-          if (cred && cred.user) break;
-        } catch(err) { authError = err; }
+          if (cred && cred.user) {
+            successPassword = tryPass;
+            break;
+          }
+        } catch(err) {
+          authError = err;
+        }
+      }
+
+      // Auto-provision if Auth user was not yet created in Firebase Auth
+      if (!cred || !cred.user) {
+        if (matchedParentData) {
+          const provPass = matchedParentData.tempPassword || (pass.length >= 6 ? pass : 'Parent@123');
+          try {
+            cred = await auth.createUserWithEmailAndPassword(authEmail, provPass);
+            successPassword = provPass;
+          } catch(provErr) {
+            if (provErr.code !== 'auth/email-already-in-use') {
+              console.warn('Parent auto-provision note:', provErr.message);
+            }
+          }
+        } else if (matchedStudentData) {
+          const provPass = matchedStudentData.tempPassword || (pass.length >= 6 ? pass : 'Student@123');
+          try {
+            cred = await auth.createUserWithEmailAndPassword(authEmail, provPass);
+            successPassword = provPass;
+          } catch(provErr) {
+            if (provErr.code !== 'auth/email-already-in-use') {
+              console.warn('Student auto-provision note:', provErr.message);
+            }
+          }
+        }
       }
 
       if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
@@ -966,13 +1067,57 @@
         userData = uSnap.exists ? uSnap.data() : null;
       } catch(e) { console.warn('Profile read:', e.message); }
 
-      // ── Auto-heal admin doc ────────────────────────────────────
+      // ── Auto-heal user & role doc if missing ───────────────────
       const curEmail   = (cred.user.email || authEmail).toLowerCase();
       const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+
       if (isAdminAcc && (!userData || !userData.role)) {
         const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
         try { await db.collection('users').doc(cred.user.uid).set(adminData, {merge:true}); } catch(e) {}
         userData = adminData;
+      }
+
+      // If user profile is missing role, auto-heal from matched data or email heuristics
+      if (!userData || !userData.role) {
+        if (matchedParentData || curEmail.includes('parent')) {
+          const parentProfile = {
+            role: 'parent',
+            name: matchedParentData?.name || 'Parent User',
+            email: curEmail,
+            phone: matchedParentData?.phone || '',
+            tempPassword: successPassword
+          };
+          try {
+            await db.collection('users').doc(cred.user.uid).set(parentProfile, {merge:true});
+            await db.collection('parents').doc(cred.user.uid).set({
+              ...matchedParentData,
+              role: 'parent',
+              name: matchedParentData?.name || 'Parent User',
+              email: curEmail,
+              phone: matchedParentData?.phone || '',
+              childUid: matchedParentData?.childUid || null,
+              childName: matchedParentData?.childName || '',
+              uid: cred.user.uid
+            }, {merge:true});
+          } catch(e) {}
+          userData = parentProfile;
+        } else if (matchedStudentData || curEmail.includes('student')) {
+          const stuProfile = {
+            role: 'student',
+            name: matchedStudentData?.name || 'Student User',
+            email: curEmail,
+            tempPassword: successPassword
+          };
+          try {
+            await db.collection('users').doc(cred.user.uid).set(stuProfile, {merge:true});
+            await db.collection('students').doc(cred.user.uid).set({
+              ...matchedStudentData,
+              email: curEmail,
+              uid: cred.user.uid
+            }, {merge:true});
+          } catch(e) {}
+          userData = stuProfile;
+        }
       }
 
       if (!userData || userData.deleted || userData.disabled || !userData.role) {
@@ -982,7 +1127,7 @@
 
       const role = userData.role;
 
-      // ── Role-specific record check ─────────────────────────────
+      // ── Role-specific record check with auto-linking ───────────
       if (role === 'staff') {
         const s = await db.collection('staff').doc(cred.user.uid).get().catch(() => null);
         if (!s || !s.exists || s.data().deleted) {
@@ -990,13 +1135,40 @@
           throw new Error('Faculty account removed by administrator. Portal access denied.');
         }
       } else if (role === 'student') {
-        const s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
+        let s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
+        if (!s || !s.exists) {
+          const sQ = await db.collection('students').where('email', '==', curEmail).limit(1).get().catch(() => null);
+          if (sQ && !sQ.empty) {
+            await db.collection('students').doc(cred.user.uid).set({ ...sQ.docs[0].data(), uid: cred.user.uid }, { merge: true }).catch(() => {});
+            s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
+          }
+        }
         if (!s || !s.exists || s.data().deleted) {
           await auth.signOut();
           throw new Error('Student account removed by administrator. Portal access denied.');
         }
       } else if (role === 'parent') {
-        const s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
+        let s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
+        if (!s || !s.exists) {
+          const pQ = await db.collection('parents').where('email', '==', curEmail).limit(1).get().catch(() => null);
+          if (pQ && !pQ.empty) {
+            await db.collection('parents').doc(cred.user.uid).set({ ...pQ.docs[0].data(), uid: cred.user.uid }, { merge: true }).catch(() => {});
+            s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
+          }
+        }
+        if (!s || !s.exists) {
+          // Fallback create parent doc
+          const fallbackData = {
+            role: 'parent',
+            name: userData.name || 'Parent User',
+            email: curEmail,
+            uid: cred.user.uid,
+            childUid: matchedParentData?.childUid || null,
+            childName: matchedParentData?.childName || ''
+          };
+          await db.collection('parents').doc(cred.user.uid).set(fallbackData, { merge: true }).catch(() => {});
+          s = { exists: true, data: () => fallbackData };
+        }
         if (!s || !s.exists || s.data().deleted) {
           await auth.signOut();
           throw new Error('Parent account removed by administrator. Portal access denied.');
@@ -1015,7 +1187,8 @@
         const roleApp = firebase.apps.find(a => a.name === roleAppName) || firebase.initializeApp(firebaseConfig, roleAppName);
         const roleAuth = roleApp.auth();
         await roleAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        for (const tryPass of uniquePasswords) {
+        const syncPasswords = [successPassword, pass, 'Parent@123', 'Student@123'];
+        for (const tryPass of [...new Set(syncPasswords)]) {
           try {
             await roleAuth.signInWithEmailAndPassword(authEmail, tryPass);
             break;

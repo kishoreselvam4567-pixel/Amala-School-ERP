@@ -635,9 +635,44 @@ requirePortal(['parent'], async ({ user, profile }) => {
   document.getElementById('uName').textContent = pName;
   document.getElementById('topName').textContent = pName;
 
-  const parentSnap = await getDoc(doc(db, 'parents', user.uid));
-  const parentData = parentSnap.exists() ? parentSnap.data() : {};
-  const childUid = parentData.childUid;
+  let parentSnap = await getDoc(doc(db, 'parents', user.uid));
+  let parentData = parentSnap.exists() ? parentSnap.data() : {};
+  let childUid = parentData.childUid;
+
+  if (!childUid) {
+    const userEmail = (user.email || '').toLowerCase();
+    try {
+      // 1. Try finding in parents collection by email
+      const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+      const pQSnap = await getDocs(pQ);
+      if (!pQSnap.empty) {
+        const foundData = pQSnap.docs[0].data();
+        if (foundData.childUid) {
+          childUid = foundData.childUid;
+          parentData = { ...parentData, ...foundData };
+          await setDoc(doc(db, 'parents', user.uid), { ...parentData, childUid }, { merge: true }).catch(() => {});
+        }
+      }
+
+      // 2. Try finding student by parentEmail
+      if (!childUid) {
+        const stQ = query(collection(db, 'students'), where('parentEmail', '==', userEmail));
+        const stQSnap = await getDocs(stQ);
+        if (!stQSnap.empty) {
+          childUid = stQSnap.docs[0].id;
+          const stData = stQSnap.docs[0].data();
+          await setDoc(doc(db, 'parents', user.uid), {
+            childUid,
+            childName: stData.name || '',
+            email: userEmail,
+            phone: parentData.phone || stData.fatherPhone || ''
+          }, { merge: true }).catch(() => {});
+        }
+      }
+    } catch(err) {
+      console.warn('Child lookup fallback notice:', err);
+    }
+  }
 
   if (!childUid) {
     document.getElementById('loadingState').innerHTML = '<div style="padding:40px; text-align:center;"><h3>No student linked yet</h3><p style="color:var(--ink-soft);">Please contact the school administration to link your student profile.</p></div>';

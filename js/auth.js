@@ -96,6 +96,48 @@ export async function getUserProfile(uid) {
     };
   }
 
+  // Resilient fallback for Parent account:
+  if (userEmail) {
+    try {
+      const pSnap = await getDoc(doc(db, "parents", uid));
+      if (pSnap.exists()) {
+        const pData = pSnap.data();
+        const profile = { uid, role: 'parent', name: pData.name || 'Parent', email: userEmail, phone: pData.phone || '' };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        return profile;
+      }
+      const pQuery = query(collection(db, "parents"), where("email", "==", userEmail));
+      const pQSnap = await getDocs(pQuery);
+      if (!pQSnap.empty) {
+        const pData = pQSnap.docs[0].data();
+        const profile = { uid, role: 'parent', name: pData.name || 'Parent', email: userEmail, phone: pData.phone || '' };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "parents", uid), { ...pData, uid }, { merge: true }).catch(() => {});
+        return profile;
+      }
+    } catch(e) {}
+
+    // Resilient fallback for Student account:
+    try {
+      const sSnap = await getDoc(doc(db, "students", uid));
+      if (sSnap.exists()) {
+        const sData = sSnap.data();
+        const profile = { uid, role: 'student', name: sData.name || 'Student', email: userEmail };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        return profile;
+      }
+      const sQuery = query(collection(db, "students"), where("email", "==", userEmail));
+      const sQSnap = await getDocs(sQuery);
+      if (!sQSnap.empty) {
+        const sData = sQSnap.docs[0].data();
+        const profile = { uid, role: 'student', name: sData.name || 'Student', email: userEmail };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "students", uid), { ...sData, uid }, { merge: true }).catch(() => {});
+        return profile;
+      }
+    } catch(e) {}
+  }
+
   return null;
 }
 
@@ -135,7 +177,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     if (isAuthorized) return;
 
     try {
-      const profile = await getUserProfile(user.uid);
+      let profile = await getUserProfile(user.uid);
       if (!profile) {
         window.location.href = loginPath;
         return;
@@ -167,7 +209,16 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           return;
         }
       } else if (profile.role === 'student') {
-        const stSnap = await getDoc(doc(db, 'students', user.uid));
+        let stSnap = await getDoc(doc(db, 'students', user.uid));
+        if (!stSnap.exists()) {
+          const userEmail = (user.email || '').toLowerCase();
+          const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
+          const sQSnap = await getDocs(sQ);
+          if (!sQSnap.empty) {
+            await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            stSnap = await getDoc(doc(db, 'students', user.uid));
+          }
+        }
         if (!stSnap.exists() || stSnap.data().deleted) {
           alert("Your student account has been removed by the administrator. Access revoked.");
           await fbSignOut(auth);
@@ -175,7 +226,16 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           return;
         }
       } else if (profile.role === 'parent') {
-        const pSnap = await getDoc(doc(db, 'parents', user.uid));
+        let pSnap = await getDoc(doc(db, 'parents', user.uid));
+        if (!pSnap.exists()) {
+          const userEmail = (user.email || '').toLowerCase();
+          const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+          const pQSnap = await getDocs(pQ);
+          if (!pQSnap.empty) {
+            await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            pSnap = await getDoc(doc(db, 'parents', user.uid));
+          }
+        }
         if (!pSnap.exists() || pSnap.data().deleted) {
           alert("Your parent account has been removed by the administrator. Access revoked.");
           await fbSignOut(auth);
