@@ -1220,13 +1220,46 @@
       }
 
       if (!userData || !userData.role) {
-        // Fallback: If roshan or staff in email, default to staff
-        if (curEmail.includes('roshan') || curEmail.includes('staff') || curEmail.includes('teacher')) {
-          userData = { role: 'staff', name: (matchedRecord && matchedRecord.name) || 'G.Roshan', email: curEmail, deleted: false, disabled: false };
+        if (curEmail.includes('parent') || (matchedRecord && matchedRecord.childUid) || (matchedParentData && matchedParentData.childUid)) {
+          userData = {
+            role: 'parent',
+            name: (matchedRecord && matchedRecord.name) || (matchedParentData && matchedParentData.name) || 'Parent User',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
+        } else if (curEmail.includes('student') || (matchedRecord && (matchedRecord.admissionNo || matchedRecord.className))) {
+          userData = {
+            role: 'student',
+            name: (matchedRecord && matchedRecord.name) || (matchedStudentData && matchedStudentData.name) || 'Student User',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
+        } else if (curEmail.includes('roshan') || curEmail.includes('staff') || curEmail.includes('teacher')) {
+          userData = {
+            role: 'staff',
+            name: (matchedRecord && matchedRecord.name) || 'G.Roshan',
+            email: curEmail,
+            deleted: false,
+            disabled: false
+          };
         } else {
           await auth.signOut();
           throw new Error('Unable to resolve user role. Please contact school IT support.');
         }
+
+        // Auto-heal users document with the resolved role
+        try {
+          await db.collection('users').doc(cred.user.uid).set({
+            role: userData.role,
+            name: userData.name || '',
+            email: curEmail,
+            deleted: false,
+            disabled: false,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch(e) {}
       }
 
       const role = userData.role;
