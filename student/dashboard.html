@@ -26,7 +26,7 @@
     </div>
     
     <div class="nav-section-title">Main Menu</div>
-    
+    <nav>
       <a href="#" data-tab="overview" class="active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
         Dashboard
@@ -657,240 +657,339 @@ if (topSearch) {
 let currentStudentProfile = null;
 
 requirePortal(['student'], async ({ user, profile }) => {
-  const name = profile.name || 'Student';
-  const initial = name.charAt(0).toUpperCase();
-
-  document.getElementById('uName').textContent = name;
-  document.getElementById('topName').textContent = name;
-  document.getElementById('sideStudentName').textContent = name;
-  document.getElementById('uAvatarInitial').textContent = initial;
-  document.getElementById('topInitial').textContent = initial;
-  document.getElementById('pileInit').textContent = initial;
-  document.getElementById('heroAvatarInit').textContent = initial;
-  document.getElementById('heroStudentName').textContent = name;
-
-  const stSnap = await getDoc(doc(db, 'students', user.uid));
-  const student = stSnap.exists() ? stSnap.data() : {};
-
-  const className = student.className || '—';
-  const admNo = student.admissionNo || '—';
-  const rollNo = student.rollNo || student.admissionNo || '—';
-  const aadhaar = student.aadhaarNo || student.aadhaar || '—';
-  const dob = student.dob || '—';
-  const gender = student.gender || '—';
-  const blood = student.bloodGroup || '—';
-  const email = student.email || user.email || '—';
-
-  // Parent & Family
-  const fatherName = student.fatherName || '—';
-  const fatherPhone = student.fatherPhone || '—';
-  const motherName = student.motherName || '—';
-  const motherPhone = student.motherPhone || '—';
-  const address = student.address || '—';
-  const city = student.city || '—';
-  const pincode = student.pincode || '—';
-  const emergencyPhone = student.emergencyPhone || student.fatherPhone || student.motherPhone || '—';
-
-  document.getElementById('uClass').textContent = 'Class: ' + className;
-  document.getElementById('heroStudentSub').textContent = `Class ${className} • Adm No: ${admNo}`;
-  document.getElementById('tagClass').textContent = `Class: ${className}`;
-  document.getElementById('tagAdmNo').textContent = `Adm No: ${admNo}`;
-  document.getElementById('tagRollNo').textContent = `Roll No: ${rollNo}`;
-  document.getElementById('tagAadhaar').textContent = `Aadhaar: ${aadhaar}`;
-
-  // Populate Detailed Profile Tab
-  document.getElementById('p_fullname').textContent = name;
-  document.getElementById('p_admno').textContent = admNo;
-  document.getElementById('p_rollno').textContent = rollNo;
-  document.getElementById('p_class').textContent = className;
-  document.getElementById('p_dob').textContent = dob;
-  document.getElementById('p_gender').textContent = gender;
-  document.getElementById('p_blood').textContent = blood;
-  document.getElementById('p_aadhaar').textContent = aadhaar;
-  document.getElementById('p_email').textContent = email;
-
-  document.getElementById('p_fatherName').textContent = fatherName;
-  document.getElementById('p_fatherPhone').textContent = fatherPhone;
-  document.getElementById('p_motherName').textContent = motherName;
-  document.getElementById('p_motherPhone').textContent = motherPhone;
-  document.getElementById('p_address').textContent = address;
-  document.getElementById('p_city').textContent = city;
-  document.getElementById('p_pincode').textContent = pincode;
-  document.getElementById('p_emergencyPhone').textContent = emergencyPhone;
-
-  // Check parent account details
-  if (student.parentUid) {
-    const pSnap = await getDoc(doc(db, 'parents', student.parentUid));
-    if (pSnap.exists()) {
-      document.getElementById('p_parentEmail').textContent = pSnap.data().email || '—';
-      document.getElementById('p_parentStatus').innerHTML = '<span class="badge badge-good">Linked (' + (pSnap.data().name || 'Parent') + ')</span>';
-    } else {
-      document.getElementById('p_parentEmail').textContent = 'Linked';
-      document.getElementById('p_parentStatus').innerHTML = '<span class="badge badge-good">Linked</span>';
-    }
-  } else {
-    document.getElementById('p_parentEmail').textContent = 'Not linked';
-    document.getElementById('p_parentStatus').innerHTML = '<span class="badge badge-bad">Unlinked</span>';
-  }
-
-  currentStudentProfile = {
-    name,
-    admissionNo: admNo,
-    rollNo,
-    className,
-    dob,
-    gender,
-    bloodGroup: blood,
-    aadhaarNo: aadhaar,
-    email,
-    fatherName,
-    fatherPhone,
-    motherName,
-    motherPhone,
-    parentEmail: document.getElementById('p_parentEmail')?.textContent || '—',
-    emergencyPhone,
-    address,
-    city,
-    pincode
-  };
-
-  // ---- ATTENDANCE ----
-  const attQ = query(collection(db, 'attendance'), where('studentUid', '==', user.uid));
-  const attSnap = await getDocs(attQ);
-  const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  const present = attRows.filter(r => r.status === 'present').length;
-  const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
-  
-  document.getElementById('attPct').textContent = pct !== null ? pct + '%' : '—';
-  document.getElementById('attSummary').textContent = attRows.length
-    ? `${present} / ${attRows.length} days present (${pct}%)` : 'No attendance recorded yet';
-  document.getElementById('attSummaryShort').textContent = attRows.length ? `${present} of ${attRows.length} Days Attended` : 'No records yet';
-
-  const attBody = document.querySelector('#attTable tbody');
-  if (!attRows.length) { document.getElementById('attEmpty').style.display = 'block'; }
-  attRows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${r.date}</strong></td><td>Regular School Day</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${r.status.toUpperCase()}</span></td>`;
-    attBody.appendChild(tr);
-  });
-
-  // ---- MARKS ----
-  const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid));
-  const marksSnap = await getDocs(marksQ);
-  const marksRows = marksSnap.docs.map(d => d.data());
-  const marksBody = document.querySelector('#marksTable tbody');
-  if (!marksRows.length) { document.getElementById('marksEmpty').style.display = 'block'; }
-  let totalPct = 0;
-  marksRows.forEach(r => {
-    const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
-    totalPct += p;
-    let grade = 'A';
-    if (p < 40) grade = 'F';
-    else if (p < 60) grade = 'C';
-    else if (p < 75) grade = 'B';
-    else if (p < 90) grade = 'A';
-    else grade = 'A+';
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
-    marksBody.appendChild(tr);
-  });
-  document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
-
-  // ---- EXAMS ----
-  const examsQ = query(collection(db, 'exams'), where('classId', '==', student.classId || '__none__'));
-  const examsSnap = await getDocs(examsQ);
-  const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => (a.date > b.date ? 1 : -1));
-  const examsBody = document.querySelector('#examsTable tbody');
-  if (!examsRows.length) { document.getElementById('examsEmpty').style.display = 'block'; }
-  const today = new Date().toISOString().slice(0, 10);
-  const upcoming = examsRows.find(r => r.date >= today);
-  document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} (${upcoming.subject})` : 'None scheduled';
-  examsRows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${r.examName}</strong>${r.maxMarks ? ` <span class="badge badge-navy" style="font-size:10.5px;">${r.maxMarks} M</span>` : ''}</td>
-      <td><span class="badge badge-purple">${r.subject}</span></td>
-      <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">${r.time}</div>` : ''}</td>
-      <td>${r.syllabus || '—'}</td>`;
-    examsBody.appendChild(tr);
-  });
-
-  // ---- NOTES ----
-  const notesQ = query(collection(db, 'notes'), where('classId', '==', student.classId || '__none__'));
-  const notesSnap = await getDocs(notesQ);
-  const notesRows = notesSnap.docs.map(d => d.data());
-  const notesGrid = document.getElementById('notesGrid');
-  if (!notesRows.length) { document.getElementById('notesEmpty').style.display = 'block'; }
-  notesRows.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `<div class="pill" style="color:var(--brand-green);">&bull; ${r.subject}</div>
-      <h3 style="font-size:16px;margin:8px 0 14px;">${r.title}</h3>
-      <a href="${r.fileUrl}" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Download PDF
-      </a>`;
-    notesGrid.appendChild(div);
-  });
-
-  // ---- HOMEWORK ----
-  const hwQ = query(collection(db, 'homework'), where('classId', '==', student.classId || '__none__'));
-  const hwSnap = await getDocs(hwQ);
-  const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
-  const hwBody = document.querySelector('#hwTable tbody');
-  if (!hwRows.length) { document.getElementById('hwEmpty').style.display = 'block'; }
-  hwRows.forEach(r => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${r.subject}</strong></td><td><div><strong>${r.title}</strong></div><div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">Open File</a>` : '—'}</td>`;
-    hwBody.appendChild(tr);
-  });
-
-  // ---- ANNOUNCEMENTS ----
   try {
-    const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-    const annSnap = await getDocs(annQ);
-    const annList = document.getElementById('announcementsList');
-    annList.innerHTML = '';
-    let count = 0;
-    annSnap.docs.forEach((d) => {
-      const r = d.data();
-      if (r.targetAudience === 'teachers') return; // Exclude teacher/staff-only notices
-      count++;
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.style.marginBottom = '14px';
-      const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
-      let badgeHtml = '<span class="badge badge-purple">Announcement</span>';
-      if (r.targetAudience === 'students') {
-        badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
-      } else if (r.targetAudience === 'students_parents') {
-        badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
-      }
-      const fileHtml = r.fileUrl
-        ? `<div style="margin-top:10px;">
-             <a href="${r.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:5px 12px; border-radius:8px;">
-               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-               <span>View Attachment (${r.fileName || 'Document'})</span>
-             </a>
-           </div>`
-        : '';
-      div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        ${badgeHtml}
-        <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
-      </div>
-      <h3 style="font-size:17px;">${r.title || ''}</h3>
-      <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>
-      ${fileHtml}`;
-      annList.appendChild(div);
-    });
-    if (count === 0) { document.getElementById('annEmpty').style.display = 'block'; }
-    else { document.getElementById('annEmpty').style.display = 'none'; }
-  } catch (e) {
-    document.getElementById('annEmpty').style.display = 'block';
-  }
+    const name = profile.name || 'Student';
+    const initial = name.charAt(0).toUpperCase();
 
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setHtml = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+
+    setText('uName', name);
+    setText('topName', name);
+    setText('sideStudentName', name);
+    setText('uAvatarInitial', initial);
+    setText('topInitial', initial);
+    setText('pileInit', initial);
+    setText('heroAvatarInit', initial);
+    setText('heroStudentName', name);
+
+    let student = {};
+    try {
+      const stSnap = await getDoc(doc(db, 'students', user.uid));
+      if (stSnap.exists()) student = stSnap.data();
+    } catch (e) {
+      console.warn("Could not load student document:", e);
+    }
+
+    const className = student.className || '—';
+    const admNo = student.admissionNo || '—';
+    const rollNo = student.rollNo || student.admissionNo || '—';
+    const aadhaar = student.aadhaarNo || student.aadhaar || '—';
+    const dob = student.dob || '—';
+    const gender = student.gender || '—';
+    const blood = student.bloodGroup || '—';
+    const email = student.email || user.email || '—';
+
+    // Parent & Family
+    const fatherName = student.fatherName || '—';
+    const fatherPhone = student.fatherPhone || '—';
+    const motherName = student.motherName || '—';
+    const motherPhone = student.motherPhone || '—';
+    const address = student.address || '—';
+    const city = student.city || '—';
+    const pincode = student.pincode || '—';
+    const emergencyPhone = student.emergencyPhone || student.fatherPhone || student.motherPhone || '—';
+
+    setText('uClass', 'Class: ' + className);
+    setText('heroStudentSub', `Class ${className} • Adm No: ${admNo}`);
+    setText('tagClass', `Class: ${className}`);
+    setText('tagAdmNo', `Adm No: ${admNo}`);
+    setText('tagRollNo', `Roll No: ${rollNo}`);
+    setText('tagAadhaar', `Aadhaar: ${aadhaar}`);
+
+    // Populate Detailed Profile Tab
+    setText('p_fullname', name);
+    setText('p_admno', admNo);
+    setText('p_rollno', rollNo);
+    setText('p_class', className);
+    setText('p_dob', dob);
+    setText('p_gender', gender);
+    setText('p_blood', blood);
+    setText('p_aadhaar', aadhaar);
+    setText('p_email', email);
+
+    setText('p_fatherName', fatherName);
+    setText('p_fatherPhone', fatherPhone);
+    setText('p_motherName', motherName);
+    setText('p_motherPhone', motherPhone);
+    setText('p_address', address);
+    setText('p_city', city);
+    setText('p_pincode', pincode);
+    setText('p_emergencyPhone', emergencyPhone);
+
+    // Check parent account details safely
+    if (student.parentUid && typeof student.parentUid === 'string' && student.parentUid.trim()) {
+      try {
+        const pSnap = await getDoc(doc(db, 'parents', student.parentUid.trim()));
+        if (pSnap.exists()) {
+          setText('p_parentEmail', pSnap.data().email || '—');
+          setHtml('p_parentStatus', '<span class="badge badge-good">Linked (' + (pSnap.data().name || 'Parent') + ')</span>');
+        } else {
+          setText('p_parentEmail', 'Linked');
+          setHtml('p_parentStatus', '<span class="badge badge-good">Linked</span>');
+        }
+      } catch (e) {
+        console.warn("Parent account lookup error:", e);
+        setText('p_parentEmail', 'Linked');
+        setHtml('p_parentStatus', '<span class="badge badge-good">Linked</span>');
+      }
+    } else {
+      setText('p_parentEmail', 'Not linked');
+      setHtml('p_parentStatus', '<span class="badge badge-bad">Unlinked</span>');
+    }
+
+    currentStudentProfile = {
+      name,
+      admissionNo: admNo,
+      rollNo,
+      className,
+      dob,
+      gender,
+      bloodGroup: blood,
+      aadhaarNo: aadhaar,
+      email,
+      fatherName,
+      fatherPhone,
+      motherName,
+      motherPhone,
+      parentEmail: document.getElementById('p_parentEmail')?.textContent || '—',
+      emergencyPhone,
+      address,
+      city,
+      pincode
+    };
+
+    // ---- ATTENDANCE ----
+    try {
+      const attQ = query(collection(db, 'attendance'), where('studentUid', '==', user.uid));
+      const attSnap = await getDocs(attQ);
+      const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
+      const present = attRows.filter(r => r.status === 'present').length;
+      const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
+      
+      setText('attPct', pct !== null ? pct + '%' : '—');
+      setText('attSummary', attRows.length
+        ? `${present} / ${attRows.length} days present (${pct}%)` : 'No attendance recorded yet');
+      setText('attSummaryShort', attRows.length ? `${present} of ${attRows.length} Days Attended` : 'No records yet');
+
+      const attBody = document.querySelector('#attTable tbody');
+      if (attBody) {
+        attBody.innerHTML = '';
+        if (!attRows.length) {
+          const empty = document.getElementById('attEmpty');
+          if (empty) empty.style.display = 'block';
+        }
+        attRows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><strong>${r.date || '—'}</strong></td><td>Regular School Day</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${(r.status || 'ABSENT').toUpperCase()}</span></td>`;
+          attBody.appendChild(tr);
+        });
+      }
+    } catch (e) {
+      console.warn("Error loading attendance:", e);
+      const empty = document.getElementById('attEmpty');
+      if (empty) empty.style.display = 'block';
+    }
+
+    // ---- MARKS ----
+    try {
+      const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid));
+      const marksSnap = await getDocs(marksQ);
+      const marksRows = marksSnap.docs.map(d => d.data());
+      const marksBody = document.querySelector('#marksTable tbody');
+      if (marksBody) {
+        marksBody.innerHTML = '';
+        if (!marksRows.length) {
+          const empty = document.getElementById('marksEmpty');
+          if (empty) empty.style.display = 'block';
+        }
+        let totalPct = 0;
+        marksRows.forEach(r => {
+          const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+          totalPct += p;
+          let grade = 'A';
+          if (p < 40) grade = 'F';
+          else if (p < 60) grade = 'C';
+          else if (p < 75) grade = 'B';
+          else if (p < 90) grade = 'A';
+          else grade = 'A+';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><strong>${r.subject || '—'}</strong></td><td>${r.examName || '—'}</td><td>${r.marks ?? '—'}</td><td>${r.maxMarks ?? '—'}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
+          marksBody.appendChild(tr);
+        });
+        setText('avgMarks', marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—');
+      }
+    } catch (e) {
+      console.warn("Error loading marks:", e);
+      const empty = document.getElementById('marksEmpty');
+      if (empty) empty.style.display = 'block';
+    }
+
+    // ---- EXAMS ----
+    try {
+      const targetClass = student.classId || student.className;
+      let examsRows = [];
+      if (targetClass) {
+        const examsQ = query(collection(db, 'exams'), where('classId', '==', targetClass));
+        const examsSnap = await getDocs(examsQ);
+        examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => ((a.date || '') > (b.date || '') ? 1 : -1));
+      }
+      const examsBody = document.querySelector('#examsTable tbody');
+      if (examsBody) {
+        examsBody.innerHTML = '';
+        if (!examsRows.length) {
+          const empty = document.getElementById('examsEmpty');
+          if (empty) empty.style.display = 'block';
+        }
+        const today = new Date().toISOString().slice(0, 10);
+        const upcoming = examsRows.find(r => r.date && r.date >= today);
+        setText('nextExam', upcoming ? `${upcoming.examName || 'Exam'} (${upcoming.subject || 'Subject'})` : 'None scheduled');
+        examsRows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><strong>${r.examName || '—'}</strong>${r.maxMarks ? ` <span class="badge badge-navy" style="font-size:10.5px;">${r.maxMarks} M</span>` : ''}</td>
+            <td><span class="badge badge-purple">${r.subject || '—'}</span></td>
+            <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date || '—'}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">${r.time}</div>` : ''}</td>
+            <td>${r.syllabus || '—'}</td>`;
+          examsBody.appendChild(tr);
+        });
+      }
+    } catch (e) {
+      console.warn("Error loading exams:", e);
+      const empty = document.getElementById('examsEmpty');
+      if (empty) empty.style.display = 'block';
+    }
+
+    // ---- NOTES ----
+    try {
+      const targetClass = student.classId || student.className;
+      let notesRows = [];
+      if (targetClass) {
+        const notesQ = query(collection(db, 'notes'), where('classId', '==', targetClass));
+        const notesSnap = await getDocs(notesQ);
+        notesRows = notesSnap.docs.map(d => d.data());
+      }
+      const notesGrid = document.getElementById('notesGrid');
+      if (notesGrid) {
+        notesGrid.innerHTML = '';
+        if (!notesRows.length) {
+          const empty = document.getElementById('notesEmpty');
+          if (empty) empty.style.display = 'block';
+        }
+        notesRows.forEach(r => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `<div class="pill" style="color:var(--brand-green);">&bull; ${r.subject || 'Study Note'}</div>
+            <h3 style="font-size:16px;margin:8px 0 14px;">${r.title || 'Untitled'}</h3>
+            ${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Download PDF
+            </a>` : '<span style="font-size:12px;color:var(--ink-soft);">No file attached</span>'}`;
+          notesGrid.appendChild(div);
+        });
+      }
+    } catch (e) {
+      console.warn("Error loading notes:", e);
+      const empty = document.getElementById('notesEmpty');
+      if (empty) empty.style.display = 'block';
+    }
+
+    // ---- HOMEWORK ----
+    try {
+      const targetClass = student.classId || student.className;
+      let hwRows = [];
+      if (targetClass) {
+        const hwQ = query(collection(db, 'homework'), where('classId', '==', targetClass));
+        const hwSnap = await getDocs(hwQ);
+        hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => ((a.dueDate || '') > (b.dueDate || '') ? 1 : -1));
+      }
+      const hwBody = document.querySelector('#hwTable tbody');
+      if (hwBody) {
+        hwBody.innerHTML = '';
+        if (!hwRows.length) {
+          const empty = document.getElementById('hwEmpty');
+          if (empty) empty.style.display = 'block';
+        }
+        hwRows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td><strong>${r.subject || '—'}</strong></td><td><div><strong>${r.title || 'Untitled'}</strong></div><div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">Open File</a>` : '—'}</td>`;
+          hwBody.appendChild(tr);
+        });
+      }
+    } catch (e) {
+      console.warn("Error loading homework:", e);
+      const empty = document.getElementById('hwEmpty');
+      if (empty) empty.style.display = 'block';
+    }
+
+    // ---- ANNOUNCEMENTS ----
+    try {
+      const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+      const annSnap = await getDocs(annQ);
+      const annList = document.getElementById('announcementsList');
+      if (annList) {
+        annList.innerHTML = '';
+        let count = 0;
+        annSnap.docs.forEach((d) => {
+          const r = d.data();
+          if (r.targetAudience === 'teachers') return; // Exclude teacher/staff-only notices
+          count++;
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.style.marginBottom = '14px';
+          const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+          let badgeHtml = '<span class="badge badge-purple">Announcement</span>';
+          if (r.targetAudience === 'students') {
+            badgeHtml = '<span class="badge badge-yellow" style="font-weight:700;">Students Only</span>';
+          } else if (r.targetAudience === 'students_parents') {
+            badgeHtml = '<span class="badge badge-navy" style="font-weight:700;">Students &amp; Parents</span>';
+          }
+          const fileHtml = r.fileUrl
+            ? `<div style="margin-top:10px;">
+                 <a href="${r.fileUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:5px 12px; border-radius:8px;">
+                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                   <span>View Attachment (${r.fileName || 'Document'})</span>
+                 </a>
+               </div>`
+            : '';
+          div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            ${badgeHtml}
+            <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
+          </div>
+          <h3 style="font-size:17px;">${r.title || ''}</h3>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>
+          ${fileHtml}`;
+          annList.appendChild(div);
+        });
+        const annEmpty = document.getElementById('annEmpty');
+        if (annEmpty) {
+          annEmpty.style.display = count === 0 ? 'block' : 'none';
+        }
+      }
+    } catch (e) {
+      console.warn("Error loading announcements:", e);
+      const annEmpty = document.getElementById('annEmpty');
+      if (annEmpty) annEmpty.style.display = 'block';
+    }
+
+  } catch (err) {
+    console.error("Critical error in student portal:", err);
+  } finally {
+    const loadingState = document.getElementById('loadingState');
+    if (loadingState) loadingState.style.display = 'none';
+    const content = document.getElementById('content');
+    if (content) content.style.display = 'block';
+  }
 });
 
 
