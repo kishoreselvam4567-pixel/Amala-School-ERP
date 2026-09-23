@@ -131,12 +131,14 @@ export async function getUserProfile(uid) {
       return p;
     }
 
-    // Secondary lookup by email if doc(uid) didn't match
+    // Secondary lookup by email & username if doc(uid) didn't match
     if (userEmail) {
       const cleanUser = userEmail.split('@')[0];
-      const [stfEmailSnap, stfUserSnap] = await Promise.all([
+      const [stfEmailSnap, stfUserSnap, pQSnap, sQSnap] = await Promise.all([
         getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
-        getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+        getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null),
+        getDocs(query(collection(db, 'parents'), where('email', '==', userEmail))).catch(() => null),
+        getDocs(query(collection(db, 'students'), where('email', '==', userEmail))).catch(() => null)
       ]);
 
       if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
@@ -150,6 +152,22 @@ export async function getUserProfile(uid) {
         const p = { uid, role: 'staff', name: d.name || 'Faculty', ...d, deleted: false, disabled: false };
         userProfileCache.set(uid, p);
         return p;
+      }
+      if (pQSnap && !pQSnap.empty && !pQSnap.docs[0].data().deleted) {
+        const pData = pQSnap.docs[0].data();
+        const profile = { uid, role: 'parent', name: pData.name || 'Parent', email: userEmail, phone: pData.phone || '', ...pData, deleted: false, disabled: false };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "parents", uid), { ...pData, uid }, { merge: true }).catch(() => {});
+        userProfileCache.set(uid, profile);
+        return profile;
+      }
+      if (sQSnap && !sQSnap.empty && !sQSnap.docs[0].data().deleted) {
+        const sData = sQSnap.docs[0].data();
+        const profile = { uid, role: 'student', name: sData.name || 'Student', email: userEmail, ...sData, deleted: false, disabled: false };
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "students", uid), { ...sData, uid }, { merge: true }).catch(() => {});
+        userProfileCache.set(uid, profile);
+        return profile;
       }
     }
 
@@ -268,7 +286,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     }
 
     try {
-      const profile = await getUserProfile(user.uid);
+      let profile = await getUserProfile(user.uid);
       if (!profile) {
         if (!hasHydratedFromCache) {
           sessionStorage.removeItem('erp_active_session');
@@ -295,6 +313,57 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         localStorage.removeItem('erp_active_session');
         window.location.href = loginPath;
         return;
+      }
+
+      // Role-specific collection check to ensure deleted records are revoked immediately
+      if (profile.role === 'staff') {
+        const sSnap = await getDoc(doc(db, 'staff', user.uid));
+        if (!sSnap.exists() || sSnap.data().deleted) {
+          alert("Your faculty account has been removed by the administrator. Access revoked.");
+          sessionStorage.removeItem('erp_active_session');
+          localStorage.removeItem('erp_active_session');
+          await fbSignOut(auth);
+          window.location.href = loginPath;
+          return;
+        }
+      } else if (profile.role === 'student') {
+        let stSnap = await getDoc(doc(db, 'students', user.uid));
+        if (!stSnap.exists()) {
+          const userEmail = (user.email || '').toLowerCase();
+          const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
+          const sQSnap = await getDocs(sQ);
+          if (!sQSnap.empty) {
+            await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            stSnap = await getDoc(doc(db, 'students', user.uid));
+          }
+        }
+        if (!stSnap.exists() || stSnap.data().deleted) {
+          alert("Your student account has been removed by the administrator. Access revoked.");
+          sessionStorage.removeItem('erp_active_session');
+          localStorage.removeItem('erp_active_session');
+          await fbSignOut(auth);
+          window.location.href = loginPath;
+          return;
+        }
+      } else if (profile.role === 'parent') {
+        let pSnap = await getDoc(doc(db, 'parents', user.uid));
+        if (!pSnap.exists()) {
+          const userEmail = (user.email || '').toLowerCase();
+          const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+          const pQSnap = await getDocs(pQ);
+          if (!pQSnap.empty) {
+            await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+            pSnap = await getDoc(doc(db, 'parents', user.uid));
+          }
+        }
+        if (!pSnap.exists() || pSnap.data().deleted) {
+          alert("Your parent account has been removed by the administrator. Access revoked.");
+          sessionStorage.removeItem('erp_active_session');
+          localStorage.removeItem('erp_active_session');
+          await fbSignOut(auth);
+          window.location.href = loginPath;
+          return;
+        }
       }
 
       // Update session cache silently in both storages

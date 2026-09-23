@@ -648,7 +648,42 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
       if (parentSnap.exists()) parentData = parentSnap.data();
     } catch(e) {}
   }
-  const childUid = parentData.childUid;
+  let childUid = parentData.childUid;
+
+  if (!childUid) {
+    const userEmail = (user.email || '').toLowerCase();
+    try {
+      // 1. Try finding in parents collection by email
+      const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+      const pQSnap = await getDocs(pQ);
+      if (!pQSnap.empty) {
+        const foundData = pQSnap.docs[0].data();
+        if (foundData.childUid) {
+          childUid = foundData.childUid;
+          parentData = { ...parentData, ...foundData };
+          await setDoc(doc(db, 'parents', user.uid), { ...parentData, childUid }, { merge: true }).catch(() => {});
+        }
+      }
+
+      // 2. Try finding student by parentEmail
+      if (!childUid) {
+        const stQ = query(collection(db, 'students'), where('parentEmail', '==', userEmail));
+        const stQSnap = await getDocs(stQ);
+        if (!stQSnap.empty) {
+          childUid = stQSnap.docs[0].id;
+          const stData = stQSnap.docs[0].data();
+          await setDoc(doc(db, 'parents', user.uid), {
+            childUid,
+            childName: stData.name || '',
+            email: userEmail,
+            phone: parentData.phone || stData.fatherPhone || ''
+          }, { merge: true }).catch(() => {});
+        }
+      }
+    } catch(err) {
+      console.warn('Child lookup fallback notice:', err);
+    }
+  }
 
   if (!childUid) {
     if (loadingState) {
