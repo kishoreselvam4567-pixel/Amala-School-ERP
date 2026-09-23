@@ -2077,149 +2077,160 @@ let allSchoolStudentsCache = [];
 let allClassesCache = [];
 
 requirePortal(['staff'], async ({ user, profile }) => {
-  staffUid = user.uid;
-  staffProfile = profile;
-  const facultyName = profile.name || 'Faculty';
-  document.getElementById('uName').textContent = facultyName;
-  const avatarEl = document.getElementById('uAvatarInitial');
-  if (avatarEl) avatarEl.textContent = facultyName.charAt(0).toUpperCase() || 'F';
-  document.getElementById('welcomeName').textContent = ', ' + facultyName;
+  try {
+    staffUid = user.uid;
+    staffProfile = profile;
+    const facultyName = profile.name || 'Faculty';
+    document.getElementById('uName').textContent = facultyName;
+    const avatarEl = document.getElementById('uAvatarInitial');
+    if (avatarEl) avatarEl.textContent = facultyName.charAt(0).toUpperCase() || 'F';
+    document.getElementById('welcomeName').textContent = ', ' + facultyName;
 
-  const staffDoc = await getDoc(doc(db, 'staff', staffUid));
-  const staffData = staffDoc.exists() ? staffDoc.data() : {};
-  subjectAssignments = staffData.subjects || [];
+    const staffDoc = await getDoc(doc(db, 'staff', staffUid));
+    const staffData = staffDoc.exists() ? staffDoc.data() : {};
+    subjectAssignments = staffData.subjects || [];
 
-  if (staffData.classTeacherOf) {
-    const classDoc = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
-    if (classDoc.exists()) {
-      classTeacherClass = { id: classDoc.id, ...classDoc.data() };
+    if (staffData.classTeacherOf) {
+      const classDoc = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
+      if (classDoc.exists()) {
+        classTeacherClass = { id: classDoc.id, ...classDoc.data() };
+      }
     }
-  }
 
-  // Set roles label
-  const roles = [];
-  if (classTeacherClass) roles.push(`Class Teacher (${classTeacherClass.name})`);
-  if (subjectAssignments.length) roles.push(`Subject Teacher (${subjectAssignments.length})`);
-  
-  const uTypeEl = document.getElementById('uType');
-  if (uTypeEl) {
-    if (classTeacherClass && subjectAssignments.length) {
-      uTypeEl.textContent = `CT: ${classTeacherClass.name} • Subjects (${subjectAssignments.length})`;
-    } else if (classTeacherClass) {
-      uTypeEl.textContent = `Class Teacher (${classTeacherClass.name})`;
-    } else if (subjectAssignments.length) {
-      uTypeEl.textContent = `Subject Teacher (${subjectAssignments.length})`;
-    } else {
-      uTypeEl.textContent = 'Staff Faculty';
+    // Set roles label
+    const roles = [];
+    if (classTeacherClass) roles.push(`Class Teacher (${classTeacherClass.name})`);
+    if (subjectAssignments.length) roles.push(`Subject Teacher (${subjectAssignments.length})`);
+    
+    const uTypeEl = document.getElementById('uType');
+    if (uTypeEl) {
+      if (classTeacherClass && subjectAssignments.length) {
+        uTypeEl.textContent = `CT: ${classTeacherClass.name} • Subjects (${subjectAssignments.length})`;
+      } else if (classTeacherClass) {
+        uTypeEl.textContent = `Class Teacher (${classTeacherClass.name})`;
+      } else if (subjectAssignments.length) {
+        uTypeEl.textContent = `Subject Teacher (${subjectAssignments.length})`;
+      } else {
+        uTypeEl.textContent = 'Staff Faculty';
+      }
+      uTypeEl.title = roles.join(' • ') || 'Staff Faculty';
     }
-    uTypeEl.title = roles.join(' • ') || 'Staff Faculty';
-  }
 
-  // Overview box & Faculty Profile Particulars
-  const stfMajor = staffData.majorSubject || profile.majorSubject || 'General Faculty';
-  const stfUser = staffData.username || profile.username || (user.email ? user.email.split('@')[0] : 'staff');
-  const stfGender = staffData.gender || profile.gender || '—';
-  const stfPhone = staffData.phone || profile.phone || '—';
+    // Overview box & Faculty Profile Particulars
+    const stfMajor = staffData.majorSubject || profile.majorSubject || 'General Faculty';
+    const stfUser = staffData.username || profile.username || (user.email ? user.email.split('@')[0] : 'staff');
+    const stfGender = staffData.gender || profile.gender || '—';
+    const stfPhone = staffData.phone || profile.phone || '—';
 
-  let html = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:16px;">
-      <div>
-        <div style="font-size:11.5px; font-weight:700; color:var(--brand-green); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Faculty Profile Details</div>
-        <h3 style="margin:0 0 6px 0; font-size:18px; color:var(--ink);">${facultyName}</h3>
-        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
-          <span class="badge badge-purple" style="font-family:var(--font-mono); font-size:11.5px;">@${stfUser}</span>
-          <span class="badge badge-blue" style="font-weight:700;">Major: ${stfMajor}</span>
-          <span class="badge ${stfGender === 'Female' ? 'badge-amber' : 'badge-navy'}">${stfGender === 'Female' ? 'Female' : (stfGender === 'Male' ? 'Male' : stfGender)}</span>
-          <span class="badge" style="font-family:var(--font-mono);">${stfPhone}</span>
+    let html = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:16px;">
+        <div>
+          <div style="font-size:11.5px; font-weight:700; color:var(--brand-green); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Faculty Profile Details</div>
+          <h3 style="margin:0 0 6px 0; font-size:18px; color:var(--ink);">${facultyName}</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <span class="badge badge-purple" style="font-family:var(--font-mono); font-size:11.5px;">@${stfUser}</span>
+            <span class="badge badge-blue" style="font-weight:700;">Major: ${stfMajor}</span>
+            <span class="badge ${stfGender === 'Female' ? 'badge-amber' : 'badge-navy'}">${stfGender === 'Female' ? 'Female' : (stfGender === 'Male' ? 'Male' : stfGender)}</span>
+            <span class="badge" style="font-family:var(--font-mono);">${stfPhone}</span>
+          </div>
         </div>
       </div>
-    </div>
-    <h4 style="margin:0 0 10px 0; font-size:14px;">Assigned Classes &amp; Subjects</h4>
-  `;
+      <h4 style="margin:0 0 10px 0; font-size:14px;">Assigned Classes &amp; Subjects</h4>
+    `;
 
-  if (classTeacherClass) {
-    html += `<div style="margin-bottom:12px;"><span class="badge badge-good">Class Teacher</span> <strong>${classTeacherClass.name}</strong></div>`;
-  }
-  if (subjectAssignments.length) {
-    html += '<div><strong>Subject Allocations:</strong><ul style="margin:8px 0 0 20px;padding:0;">';
-    subjectAssignments.forEach(a => {
-      html += `<li><strong>${a.subject}</strong> — ${a.className || 'Class'}</li>`;
-    });
-    html += '</ul></div>';
-  }
-  if (!classTeacherClass && !subjectAssignments.length) {
-    html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
-  }
-  document.getElementById('assignBox').innerHTML = html;
-
-  // Cache school students & classes for finder
-  const [stSnap, clSnap] = await Promise.all([
-    getDocs(collection(db, 'students')),
-    getDocs(collection(db, 'classes'))
-  ]);
-  allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
-
-  function getClassSortKey(className = '') {
-    const norm = (className || '').trim().toUpperCase();
-    if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
-    if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
-    if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
-    const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
-               || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
-               || norm.match(/(\d{1,2})[-\s]*(.*)/);
-    if (match) {
-      return { level: parseInt(match[1], 10), sub: (match[2] || '').trim() };
+    if (classTeacherClass) {
+      html += `<div style="margin-bottom:12px;"><span class="badge badge-good">Class Teacher</span> <strong>${classTeacherClass.name}</strong></div>`;
     }
-    return { level: 99, sub: norm };
+    if (subjectAssignments.length) {
+      html += '<div><strong>Subject Allocations:</strong><ul style="margin:8px 0 0 20px;padding:0;">';
+      subjectAssignments.forEach(a => {
+        html += `<li><strong>${a.subject}</strong> — ${a.className || 'Class'}</li>`;
+      });
+      html += '</ul></div>';
+    }
+    if (!classTeacherClass && !subjectAssignments.length) {
+      html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
+    }
+    document.getElementById('assignBox').innerHTML = html;
+
+    // Cache school students & classes for finder
+    const [stSnap, clSnap] = await Promise.all([
+      getDocs(collection(db, 'students')),
+      getDocs(collection(db, 'classes'))
+    ]);
+    allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+    function getClassSortKey(className = '') {
+      const norm = (className || '').trim().toUpperCase();
+      if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
+      if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
+      if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
+      const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
+                 || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
+                 || norm.match(/(\d{1,2})[-\s]*(.*)/);
+      if (match) {
+        return { level: parseInt(match[1], 10), sub: (match[2] || '').trim() };
+      }
+      return { level: 99, sub: norm };
+    }
+
+    const sortedClasses = clSnap.docs.map(d => ({ id: d.id, name: d.data().name })).sort((a, b) => {
+      const kA = getClassSortKey(a.name);
+      const kB = getClassSortKey(b.name);
+      if (kA.level !== kB.level) return kA.level - kB.level;
+      return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    const finderClassSel = document.getElementById('staffFinderClassSel');
+    if (finderClassSel) {
+      finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+        sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    // Cache sorted classes for Attendance Intelligence
+    allClassesCache = sortedClasses;
+
+    // Configure Students Access for Class Teacher
+    if (classTeacherClass) {
+      document.getElementById('navStudents').style.display = 'block';
+    }
+
+    // If page was loaded directly on the Attendance tab, initialize panel
+    if (window.location.hash === '#attendance') {
+      initStaffAttendancePanel();
+    }
+
+    // Configure Marks Access
+    if (subjectAssignments.length) {
+      document.getElementById('marksAccess').style.display = 'block';
+      document.getElementById('notesAccess').style.display = 'block';
+      document.getElementById('hwAccess').style.display = 'block';
+
+      const opts = subjectAssignments.map((a, i) => `<option value="${i}">${a.className || 'Class'} — ${a.subject}</option>`).join('');
+      document.getElementById('marksAssignSel').innerHTML = opts;
+      document.getElementById('notesAssignSel').innerHTML = opts;
+      document.getElementById('hwAssignSel').innerHTML = opts;
+    } else {
+      document.getElementById('marksNoAccess').style.display = 'block';
+      document.getElementById('notesNoAccess').style.display = 'block';
+      document.getElementById('hwNoAccess').style.display = 'block';
+    }
+
+    // Load staff circulars & announcements
+    loadStaffAnnouncements();
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  } catch (err) {
+    console.error('Failed to initialize staff portal:', err);
+    const ls = document.getElementById('loadingState');
+    if (ls) {
+      ls.innerHTML = `<div style="color:var(--bad); font-weight:600; padding:20px;">
+        Failed to load assignments: ${err.message || 'Unknown error'}.<br>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="location.reload()">Retry</button>
+      </div>`;
+    }
   }
-
-  const sortedClasses = clSnap.docs.map(d => ({ id: d.id, name: d.data().name })).sort((a, b) => {
-    const kA = getClassSortKey(a.name);
-    const kB = getClassSortKey(b.name);
-    if (kA.level !== kB.level) return kA.level - kB.level;
-    return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
-  });
-
-  const finderClassSel = document.getElementById('staffFinderClassSel');
-  if (finderClassSel) {
-    finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
-      sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  }
-
-  // Cache sorted classes for Attendance Intelligence
-  allClassesCache = sortedClasses;
-
-  // Configure Students Access for Class Teacher
-  if (classTeacherClass) {
-    document.getElementById('navStudents').style.display = 'block';
-  }
-
-  // If page was loaded directly on the Attendance tab, initialize panel
-  if (window.location.hash === '#attendance') {
-    initStaffAttendancePanel();
-  }
-
-  // Configure Marks Access
-  if (subjectAssignments.length) {
-    document.getElementById('marksAccess').style.display = 'block';
-    document.getElementById('notesAccess').style.display = 'block';
-    document.getElementById('hwAccess').style.display = 'block';
-
-    const opts = subjectAssignments.map((a, i) => `<option value="${i}">${a.className || 'Class'} — ${a.subject}</option>`).join('');
-    document.getElementById('marksAssignSel').innerHTML = opts;
-    document.getElementById('notesAssignSel').innerHTML = opts;
-    document.getElementById('hwAssignSel').innerHTML = opts;
-  } else {
-    document.getElementById('marksNoAccess').style.display = 'block';
-    document.getElementById('notesNoAccess').style.display = 'block';
-    document.getElementById('hwNoAccess').style.display = 'block';
-  }
-
-  // Load staff circulars & announcements
-  loadStaffAnnouncements();
-
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
 });
 
 // View all notices button from Overview
@@ -4186,18 +4197,7 @@ async function loadStudentsForTeacher() {
 }
 
 // ---------------- CSV UTILITIES ----------------
-function downloadCsv(filename, csvContent) {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
+// downloadCsv is defined above in print & export utilities
 
 function parseCsv(text) {
   const lines = [];
