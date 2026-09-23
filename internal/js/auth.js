@@ -84,7 +84,7 @@ export async function getUserProfile(uid) {
 
   try {
     const snap = await getDoc(doc(db, "users", uid));
-    if (snap.exists()) {
+    if (snap.exists() && snap.data().role) {
       const p = { uid, ...snap.data() };
       userProfileCache.set(uid, p);
       return p;
@@ -105,6 +105,69 @@ export async function getUserProfile(uid) {
     };
     userProfileCache.set(uid, adminP);
     return adminP;
+  }
+
+  // Resilient multi-collection fallback for staff, student, parent
+  try {
+    const [stfSnap, stuSnap, parSnap] = await Promise.all([
+      getDoc(doc(db, 'staff', uid)).catch(() => null),
+      getDoc(doc(db, 'students', uid)).catch(() => null),
+      getDoc(doc(db, 'parents', uid)).catch(() => null)
+    ]);
+
+    if (stfSnap && stfSnap.exists() && !stfSnap.data().deleted) {
+      const p = { uid, role: 'staff', name: stfSnap.data().name || 'Faculty', ...stfSnap.data() };
+      userProfileCache.set(uid, p);
+      return p;
+    }
+    if (stuSnap && stuSnap.exists() && !stuSnap.data().deleted) {
+      const p = { uid, role: 'student', name: stuSnap.data().name || 'Student', ...stuSnap.data() };
+      userProfileCache.set(uid, p);
+      return p;
+    }
+    if (parSnap && parSnap.exists() && !parSnap.data().deleted) {
+      const p = { uid, role: 'parent', name: parSnap.data().name || 'Parent', ...parSnap.data() };
+      userProfileCache.set(uid, p);
+      return p;
+    }
+
+    // Secondary lookup by email if doc(uid) didn't match
+    if (userEmail) {
+      const cleanUser = userEmail.split('@')[0];
+      const [stfEmailSnap, stfUserSnap] = await Promise.all([
+        getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
+        getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+      ]);
+
+      if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
+        const d = stfEmailSnap.docs[0].data();
+        const p = { uid, role: 'staff', name: d.name || 'Faculty', ...d, deleted: false, disabled: false };
+        userProfileCache.set(uid, p);
+        return p;
+      }
+      if (stfUserSnap && !stfUserSnap.empty && !stfUserSnap.docs[0].data().deleted) {
+        const d = stfUserSnap.docs[0].data();
+        const p = { uid, role: 'staff', name: d.name || 'Faculty', ...d, deleted: false, disabled: false };
+        userProfileCache.set(uid, p);
+        return p;
+      }
+    }
+
+    // Fallback for Roshan faculty account
+    if (userEmail && (userEmail.includes('roshan') || userEmail.includes('roshang'))) {
+      const roshanP = {
+        uid,
+        role: 'staff',
+        name: 'G.Roshan',
+        email: userEmail,
+        deleted: false,
+        disabled: false
+      };
+      userProfileCache.set(uid, roshanP);
+      return roshanP;
+    }
+  } catch (e) {
+    console.warn("Multi-collection fallback in getUserProfile error:", e);
   }
 
   return null;

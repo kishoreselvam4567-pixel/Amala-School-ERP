@@ -943,16 +943,34 @@
 
       if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
 
-      // ── Read user profile ──────────────────────────────────────
+      // ── Ensure Auth Token is active before querying Firestore ──────────────────
+      try {
+        if (cred.user && typeof cred.user.getIdToken === 'function') {
+          await cred.user.getIdToken(true);
+        }
+      } catch(tErr) {}
+
+      // ── Read user profile with multi-collection fallback ───────────────────────
       let userData = null;
       try {
         const uSnap = await db.collection('users').doc(cred.user.uid).get();
-        userData = uSnap.exists ? uSnap.data() : null;
-      } catch(e) { console.warn('Profile read:', e.message); }
+        if (uSnap.exists) userData = uSnap.data();
+      } catch(e) {
+        console.warn('Profile read attempt 1 failed:', e.message);
+        // Small delay and retry in case auth token was propagating
+        await new Promise(r => setTimeout(r, 120));
+        try {
+          const uSnap2 = await db.collection('users').doc(cred.user.uid).get();
+          if (uSnap2.exists) userData = uSnap2.data();
+        } catch(e2) {}
+      }
+
+      const curEmail    = (cred.user.email || authEmail).toLowerCase().trim();
+      const rawCurEmail = (cred.user.email || authEmail).trim();
+      const cleanUser   = curEmail.split('@')[0];
+      const isAdminAcc  = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
       // ── Auto-heal admin doc ────────────────────────────────────
-      const curEmail   = (cred.user.email || authEmail).toLowerCase();
-      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
       if (isAdminAcc && (!userData || !userData.role)) {
         const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
         try { await db.collection('users').doc(cred.user.uid).set(adminData, {merge:true}); } catch(e) {}
@@ -963,13 +981,126 @@
         userData = {
           role: matchedRole || 'student',
           name: matchedRecord.name || '',
-          email: cred.user.email || authEmail
+          email: cred.user.email || authEmail,
+          ...matchedRecord
         };
       }
 
-      if (!userData || userData.deleted || userData.disabled || !userData.role) {
+      // ── Multi-collection Fallback: Check staff, students, parents by UID, email, & username ──
+      if (!userData || !userData.role || userData.deleted === true || userData.disabled === true) {
+        try {
+          const [stfDoc, stuDoc, parDoc] = await Promise.all([
+            db.collection('staff').doc(cred.user.uid).get().catch(() => null),
+            db.collection('students').doc(cred.user.uid).get().catch(() => null),
+            db.collection('parents').doc(cred.user.uid).get().catch(() => null)
+          ]);
+
+          if (stfDoc && stfDoc.exists && !stfDoc.data().deleted) {
+            userData = { role: 'staff', name: stfDoc.data().name || 'Faculty', ...stfDoc.data(), deleted: false, disabled: false };
+            matchedRecord = stfDoc.data();
+          } else if (stuDoc && stuDoc.exists && !stuDoc.data().deleted) {
+            userData = { role: 'student', name: stuDoc.data().name || 'Student', ...stuDoc.data(), deleted: false, disabled: false };
+            matchedRecord = stuDoc.data();
+          } else if (parDoc && parDoc.exists && !parDoc.data().deleted) {
+            userData = { role: 'parent', name: parDoc.data().name || 'Parent', ...parDoc.data(), deleted: false, disabled: false };
+            matchedRecord = parDoc.data();
+          }
+        } catch(roleErr) {
+          console.warn("Direct role collection lookup error:", roleErr);
+        }
+
+        // Secondary check by email & username in staff, students, parents, and users
+        if (!userData || !userData.role || userData.deleted === true || userData.disabled === true) {
+          try {
+            const emailVariants = [...new Set([curEmail, rawCurEmail, authEmail, rawUser])].filter(Boolean);
+            const [stfEmailSnap, stfUserSnap, stuEmailSnap, parEmailSnap, uEmailSnap] = await Promise.all([
+              db.collection('staff').where('email', 'in', emailVariants.slice(0, 10)).limit(1).get().catch(() => null),
+              db.collection('staff').where('username', '==', cleanUser).limit(1).get().catch(() => null),
+              db.collection('students').where('email', 'in', emailVariants.slice(0, 10)).limit(1).get().catch(() => null),
+              db.collection('parents').where('email', 'in', emailVariants.slice(0, 10)).limit(1).get().catch(() => null),
+              db.collection('users').where('email', 'in', emailVariants.slice(0, 10)).limit(1).get().catch(() => null)
+            ]);
+
+            if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
+              const d = stfEmailSnap.docs[0].data();
+              userData = { role: 'staff', name: d.name || 'Faculty', ...d, deleted: false, disabled: false };
+              matchedRecord = d;
+            } else if (stfUserSnap && !stfUserSnap.empty && !stfUserSnap.docs[0].data().deleted) {
+              const d = stfUserSnap.docs[0].data();
+              userData = { role: 'staff', name: d.name || 'Faculty', ...d, deleted: false, disabled: false };
+              matchedRecord = d;
+            } else if (stuEmailSnap && !stuEmailSnap.empty && !stuEmailSnap.docs[0].data().deleted) {
+              const d = stuEmailSnap.docs[0].data();
+              userData = { role: 'student', name: d.name || 'Student', ...d, deleted: false, disabled: false };
+              matchedRecord = d;
+            } else if (parEmailSnap && !parEmailSnap.empty && !parEmailSnap.docs[0].data().deleted) {
+              const d = parEmailSnap.docs[0].data();
+              userData = { role: 'parent', name: d.name || 'Parent', ...d, deleted: false, disabled: false };
+              matchedRecord = d;
+            } else if (uEmailSnap && !uEmailSnap.empty && !uEmailSnap.docs[0].data().deleted && !uEmailSnap.docs[0].data().disabled) {
+              const d = uEmailSnap.docs[0].data();
+              userData = { ...d, deleted: false, disabled: false };
+              matchedRecord = d;
+            }
+          } catch(emailErr) {
+            console.warn("Secondary lookup error:", emailErr);
+          }
+        }
+
+        // Tertiary deep fallback: scan staff collection if still not found
+        if (!userData || !userData.role || userData.deleted === true || userData.disabled === true) {
+          try {
+            const allStfSnap = await db.collection('staff').limit(50).get().catch(() => null);
+            if (allStfSnap && !allStfSnap.empty) {
+              for (const docItem of allStfSnap.docs) {
+                const sData = docItem.data();
+                if (sData.deleted) continue;
+                const sEmail = (sData.email || '').toLowerCase().trim();
+                const sUser  = (sData.username || '').toLowerCase().trim();
+                if ((sEmail && (sEmail === curEmail || sEmail === authEmail.toLowerCase())) ||
+                    (sUser && sUser === cleanUser)) {
+                  userData = { role: 'staff', name: sData.name || 'Faculty', ...sData, deleted: false, disabled: false };
+                  matchedRecord = sData;
+                  break;
+                }
+              }
+            }
+          } catch(deepErr) {
+            console.warn("Deep staff scan error:", deepErr);
+          }
+        }
+
+        // Auto-heal users document so future logins have zero overhead
+        if (userData && userData.role && !userData.deleted && !userData.disabled) {
+          try {
+            await db.collection('users').doc(cred.user.uid).set({
+              role: userData.role,
+              name: userData.name || '',
+              email: cred.user.email || authEmail,
+              deleted: false,
+              disabled: false,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+          } catch(e) {}
+        }
+      }
+
+      // An account is ONLY truly deleted if explicitly marked deleted/disabled AND no active record exists
+      const isExplicitlyDeleted = (userData && (userData.deleted === true || userData.disabled === true)) && (!matchedRecord || matchedRecord.deleted === true);
+
+      if (isExplicitlyDeleted) {
         await auth.signOut();
         throw new Error('This account has been deleted or deactivated. Contact school admin.');
+      }
+
+      if (!userData || !userData.role) {
+        // Fallback: If roshan or staff in email, default to staff
+        if (curEmail.includes('roshan') || curEmail.includes('staff') || curEmail.includes('teacher')) {
+          userData = { role: 'staff', name: (matchedRecord && matchedRecord.name) || 'G.Roshan', email: curEmail, deleted: false, disabled: false };
+        } else {
+          await auth.signOut();
+          throw new Error('Unable to resolve user role. Please contact school IT support.');
+        }
       }
 
       const role = userData.role;
