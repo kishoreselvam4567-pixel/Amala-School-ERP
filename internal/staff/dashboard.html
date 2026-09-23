@@ -1182,6 +1182,16 @@
                   </svg>
                   Mark Unmarked Present
                 </button>
+                <button type="button" class="btn btn-primary btn-sm" id="attSubmitDayBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px; background:var(--brand-green); color:#fff; border-color:var(--brand-green); padding:6px 14px; box-shadow:0 2px 6px rgba(22,101,52,0.25);">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                    stroke-width="2.5">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  Submit Attendance
+                </button>
                 <button type="button" class="btn btn-outline btn-sm" id="attPrintDayBtn"
                   style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
@@ -1284,6 +1294,26 @@
 
             <div class="empty-state" id="attDayEmpty" style="display:none; padding:36px 16px; text-align:center;">
               No students match your filter criteria.
+            </div>
+
+            <!-- Submit Bottom Action Bar -->
+            <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:14px 18px; background:var(--slate-50, #f8fafc); border:1.5px solid var(--line, #e2e8f0); border-radius:12px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width:10px; height:10px; border-radius:50%; background:var(--brand-green);"></div>
+                <div>
+                  <div style="font-size:13.5px; font-weight:700; color:var(--ink);">Daily Roll Call Submission</div>
+                  <div style="font-size:12px; color:var(--ink-soft);" id="attSubmitSummaryTxt">Review your student attendance and submit for the day.</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <button type="button" class="btn btn-primary" id="attBottomSubmitBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:8px; padding:9px 22px; background:var(--brand-green); color:#fff; border-radius:8px; box-shadow:0 3px 10px rgba(22,101,52,0.25); font-size:13.5px;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Submit &amp; Finalize Attendance
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2626,6 +2656,7 @@ let attDailyRecordsMap = {}; // studentUid -> attendanceRecord
 let attMonthlyRecords = [];
 let attDayUnsubscribe = null;
 let attMonthUnsubscribe = null;
+let attDayIsSubmitted = false;
 
 let attDailyFilterStatus = 'all';
 let attDailySearchTerm = '';
@@ -2820,12 +2851,24 @@ function setupLiveDailyAttendance() {
 
   attDayUnsubscribe = onSnapshot(attQ, (snapshot) => {
     attDailyRecordsMap = {};
+    attDayIsSubmitted = false;
+    let submittedCount = 0;
     snapshot.docs.forEach(d => {
       const data = d.data();
-      if (data.studentUid) {
+      if (data.isSummaryDoc) {
+        if (data.submitted || data.status === 'submitted') {
+          attDayIsSubmitted = true;
+        }
+      } else if (data.studentUid) {
         attDailyRecordsMap[data.studentUid] = { id: d.id, ...data };
+        if (data.submitted) {
+          submittedCount++;
+        }
       }
     });
+    if (submittedCount > 0 && submittedCount === attCurrentStudents.length) {
+      attDayIsSubmitted = true;
+    }
 
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -2845,6 +2888,7 @@ function updateDailyMetricsAndChips() {
   let absent = 0;
   let late = 0;
   let unmarked = 0;
+  let submittedCount = 0;
 
   attCurrentStudents.forEach(s => {
     const rec = attDailyRecordsMap[s.uid];
@@ -2858,6 +2902,9 @@ function updateDailyMetricsAndChips() {
       late++;
     } else {
       unmarked++;
+    }
+    if (rec && rec.submitted) {
+      submittedCount++;
     }
   });
 
@@ -2879,6 +2926,46 @@ function updateDailyMetricsAndChips() {
   setTxt('attChipCntAbsent', absent);
   setTxt('attChipCntLate', late);
   setTxt('attChipCntUnmarked', unmarked);
+
+  // Update Submit Attendance UI status and button labels
+  const isFullySubmitted = (total > 0 && submittedCount === total) || attDayIsSubmitted;
+  const topSubmitBtn = document.getElementById('attSubmitDayBtn');
+  const btmSubmitBtn = document.getElementById('attBottomSubmitBtn');
+  const summaryTxtEl = document.getElementById('attSubmitSummaryTxt');
+
+  if (summaryTxtEl) {
+    if (isFullySubmitted) {
+      summaryTxtEl.innerHTML = `<span style="color:var(--brand-green); font-weight:700;">✓ Attendance Submitted &amp; Finalized</span> for today (${present} Present, ${absent} Absent, ${late} Late). You can update &amp; re-submit anytime.`;
+    } else if (unmarked > 0) {
+      summaryTxtEl.innerHTML = `<span style="color:#d97706; font-weight:600;">⚠ ${unmarked} student(s) pending roll call.</span> Mark all students before submitting.`;
+    } else if (total > 0) {
+      summaryTxtEl.innerHTML = `<span style="color:var(--ink); font-weight:600;">All ${total} students marked</span> (${present} Present, ${absent} Absent, ${late} Late). Ready to submit.`;
+    } else {
+      summaryTxtEl.textContent = 'Review your student attendance and submit for the day.';
+    }
+  }
+
+  if (topSubmitBtn) {
+    if (isFullySubmitted) {
+      topSubmitBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submitted ✓';
+      topSubmitBtn.style.background = '#15803d';
+      topSubmitBtn.title = 'Attendance has been submitted. Click to update & re-submit.';
+    } else {
+      topSubmitBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Submit Attendance';
+      topSubmitBtn.style.background = 'var(--brand-green)';
+      topSubmitBtn.title = 'Submit attendance for this section';
+    }
+  }
+
+  if (btmSubmitBtn) {
+    if (isFullySubmitted) {
+      btmSubmitBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Update &amp; Re-Submit Attendance';
+      btmSubmitBtn.style.background = '#15803d';
+    } else {
+      btmSubmitBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submit &amp; Finalize Attendance';
+      btmSubmitBtn.style.background = 'var(--brand-green)';
+    }
+  }
 }
 
 function renderDailyAttendanceTable() {
@@ -2929,12 +3016,14 @@ function renderDailyAttendanceTable() {
     const tr = document.createElement('tr');
 
     let statusBadge = '';
+    const isSub = rec && (rec.submitted || attDayIsSubmitted);
+    const subMark = isSub ? ' <span title="Submitted" style="color:var(--brand-green); font-size:11px; margin-left:3px;">✓</span>' : '';
     if (status === 'present') {
-      statusBadge = '<span class="badge badge-good" style="font-weight:700;">Present</span>';
+      statusBadge = `<span class="badge badge-good" style="font-weight:700;">Present${subMark}</span>`;
     } else if (status === 'absent') {
-      statusBadge = '<span class="badge badge-bad" style="font-weight:700;">Absent</span>';
+      statusBadge = `<span class="badge badge-bad" style="font-weight:700;">Absent${subMark}</span>`;
     } else if (status === 'late') {
-      statusBadge = '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;">Late</span>';
+      statusBadge = `<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:700;">Late${subMark}</span>`;
     } else {
       statusBadge = '<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; font-weight:700;">Unmarked</span>';
     }
@@ -3075,6 +3164,147 @@ async function markAllUnmarkedPresent() {
       btn.disabled = false;
       btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Mark Unmarked Present';
     }
+  }
+}
+
+async function submitDailyAttendance() {
+  if (!attSelectedClassId || !attCurrentStudents.length) {
+    alert('Please select your class section first.');
+    return;
+  }
+  const date = document.getElementById('attDayDate')?.value || formatYmd(new Date());
+
+  const unmarkedStudents = attCurrentStudents.filter(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    return !rec || !rec.status;
+  });
+
+  if (unmarkedStudents.length > 0) {
+    const autoMark = confirm(
+      `${unmarkedStudents.length} student(s) are still unmarked for ${date}.\n\n` +
+      `Would you like to automatically mark them as 'Present' and proceed with submission?\n\n` +
+      `• Click OK to mark remaining students as Present & Submit\n` +
+      `• Click Cancel to review and mark manually`
+    );
+    if (!autoMark) {
+      return;
+    }
+
+    // Auto mark them as present optimistically
+    unmarkedStudents.forEach(s => {
+      attDailyRecordsMap[s.uid] = {
+        id: `${s.uid}_${date}`,
+        studentUid: s.uid,
+        studentName: s.name || '',
+        rollNo: s.rollNo || s.admissionNo || '',
+        classId: attSelectedClassId,
+        date,
+        status: 'present',
+        submitted: true
+      };
+    });
+    updateDailyMetricsAndChips();
+    renderDailyAttendanceTable();
+  }
+
+  // Calculate final totals
+  let present = 0, absent = 0, late = 0;
+  attCurrentStudents.forEach(s => {
+    const rec = attDailyRecordsMap[s.uid];
+    const st = rec && rec.status ? rec.status : 'present';
+    if (st === 'absent') absent++;
+    else if (st === 'late') late++;
+    else present++;
+  });
+  const total = attCurrentStudents.length;
+  const className = attSelectedClassObj?.name || (document.getElementById('attClassFilter')?.selectedOptions[0]?.textContent || attSelectedClassId);
+
+  const confirmMsg =
+    `Submit Attendance for ${date}\n` +
+    `----------------------------------------\n` +
+    `Class: ${className}\n` +
+    `Total Students: ${total}\n` +
+    `Present: ${present} (${Math.round((present / total) * 100)}%)\n` +
+    `Absent: ${absent}\n` +
+    `Late: ${late}\n` +
+    `----------------------------------------\n` +
+    `Confirm submission to school database?`;
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  const topBtn = document.getElementById('attSubmitDayBtn');
+  const btmBtn = document.getElementById('attBottomSubmitBtn');
+
+  if (topBtn) { topBtn.disabled = true; topBtn.textContent = 'Submitting…'; }
+  if (btmBtn) { btmBtn.disabled = true; btmBtn.textContent = 'Submitting…'; }
+
+  try {
+    const currentStaffUid = staffUid || auth.currentUser?.uid || 'staff';
+    const currentStaffName = staffProfile?.name || 'Staff';
+    const nowTimestamp = serverTimestamp();
+
+    attDayIsSubmitted = true;
+    attCurrentStudents.forEach(s => {
+      if (attDailyRecordsMap[s.uid]) {
+        attDailyRecordsMap[s.uid].submitted = true;
+      }
+    });
+    updateDailyMetricsAndChips();
+
+    // 1. Save / update individual attendance records
+    const studentWrites = attCurrentStudents.map(s => {
+      const rec = attDailyRecordsMap[s.uid];
+      const status = rec && rec.status ? rec.status : 'present';
+      const attId = `${s.uid}_${date}`;
+
+      return setDoc(doc(db, 'attendance', attId), {
+        studentUid: s.uid,
+        studentName: s.name || '',
+        rollNo: s.rollNo || s.admissionNo || '',
+        classId: attSelectedClassId,
+        className: className,
+        date,
+        status,
+        submitted: true,
+        submittedAt: nowTimestamp,
+        submittedBy: currentStaffUid,
+        markedBy: rec?.markedBy || currentStaffUid,
+        markedAt: rec?.markedAt || nowTimestamp
+      }, { merge: true });
+    });
+
+    // 2. Class daily summary record
+    const summaryDocId = `summary_${attSelectedClassId}_${date}`;
+    const summaryWrite = setDoc(doc(db, 'attendance', summaryDocId), {
+      isSummaryDoc: true,
+      classId: attSelectedClassId,
+      className: className,
+      date,
+      totalStudents: total,
+      presentCount: present,
+      absentCount: absent,
+      lateCount: late,
+      status: 'submitted',
+      submitted: true,
+      submittedAt: nowTimestamp,
+      submittedBy: currentStaffUid,
+      staffName: currentStaffName
+    }, { merge: true });
+
+    await Promise.all([...studentWrites, summaryWrite]);
+
+    showToast(`✓ Attendance for ${date} successfully submitted!`);
+    alert(`✓ Daily attendance for ${date} (${className}) has been successfully submitted!\n\nTotal: ${total} | Present: ${present} | Absent: ${absent} | Late: ${late}`);
+  } catch (err) {
+    console.error('Error submitting daily attendance:', err);
+    alert('Failed to submit attendance: ' + err.message);
+  } finally {
+    if (topBtn) topBtn.disabled = false;
+    if (btmBtn) btmBtn.disabled = false;
+    updateDailyMetricsAndChips();
+    renderDailyAttendanceTable();
   }
 }
 
@@ -3917,6 +4147,15 @@ document.getElementById('attDayYesterdayBtn')?.addEventListener('click', () => {
 // Mark all unmarked as present
 document.getElementById('attMarkAllPresentBtn')?.addEventListener('click', () => {
   markAllUnmarkedPresent();
+});
+
+// Submit Daily Attendance
+document.getElementById('attSubmitDayBtn')?.addEventListener('click', () => {
+  submitDailyAttendance();
+});
+
+document.getElementById('attBottomSubmitBtn')?.addEventListener('click', () => {
+  submitDailyAttendance();
 });
 
 // Daily Print & Export
