@@ -644,8 +644,9 @@ requirePortal(['parent'], async ({ user, profile }) => {
     return;
   }
 
-  const stSnap = await getDoc(doc(db, 'students', childUid));
-  const student = stSnap.exists() ? stSnap.data() : {};
+  try {
+    const stSnap = await getDoc(doc(db, 'students', childUid));
+    const student = stSnap.exists() ? stSnap.data() : {};
 
   const childName = student.name || parentData.childName || 'Child';
   const childInit = childName.charAt(0).toUpperCase();
@@ -856,8 +857,14 @@ requirePortal(['parent'], async ({ user, profile }) => {
     document.getElementById('annEmpty').style.display = 'block';
   }
 
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
+  } catch (err) {
+    console.error("Critical error in parent portal:", err);
+  } finally {
+    const loadingState = document.getElementById('loadingState');
+    if (loadingState) loadingState.style.display = 'none';
+    const content = document.getElementById('content');
+    if (content) content.style.display = 'block';
+  }
 });
 
 
