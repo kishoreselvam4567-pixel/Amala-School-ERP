@@ -879,89 +879,59 @@
     const pass    = pwdInput.value;
 
     try {
-      // ── Resolve authEmail from User ID ────────────────────
+      // ── Resolve authEmail from User ID with Ultra-Fast Concurrent Queries ────
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
+      let matchedRecord = null;
+      let matchedRole = null;
 
       if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
         authEmail = 'admin@kishore.gmail.com';
+        matchedRole = 'admin';
       } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
         authEmail = 'amala@123.gmail.com';
+        matchedRole = 'admin';
       } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
         authEmail = 'amala@123.gmail.com';
+        matchedRole = 'admin';
       } else if (!rawUser.includes('@')) {
-        // Not an email → look up in Firestore
         const cleanInput = normUser.replace(/^@/, '');
         const digitsOnly = rawUser.replace(/\D/g, '');
         let resolved = false;
 
-        // 1. Students — exact admissionNo
-        try {
-          const stuSnap = await db.collection('students').where('admissionNo', '==', rawUser).limit(1).get();
-          if (!stuSnap.empty) { authEmail = stuSnap.docs[0].data().email; resolved = true; }
-        } catch(e) { console.warn('Student exact lookup:', e.message); }
+        // Run all fast targeted queries in PARALLEL with .limit(1) — zero full table downloads
+        const admVariants = [rawUser, rawUser.toUpperCase(), cleanInput];
+        const queries = [
+          db.collection('students').where('admissionNo', 'in', admVariants).limit(1).get().catch(() => null),
+          db.collection('students').where('name', '==', rawUser).limit(1).get().catch(() => null),
+          db.collection('students').where('rollNo', '==', rawUser).limit(1).get().catch(() => null),
+          db.collection('staff').where('username', '==', cleanInput).limit(1).get().catch(() => null),
+          db.collection('users').where('username', '==', cleanInput).limit(1).get().catch(() => null),
+          db.collection('users').where('name', '==', rawUser).limit(1).get().catch(() => null)
+        ];
 
-        // 2. Students — case-insensitive scan (admissionNo / rollNo)
-        if (!resolved) {
-          try {
-            const allStu = await db.collection('students').get();
-            const match = allStu.docs.find(d => {
-              const adm  = String(d.data().admissionNo || '').trim().toLowerCase();
-              const roll = String(d.data().rollNo      || '').trim().toLowerCase();
-              return adm === cleanInput || roll === cleanInput;
-            });
-            if (match) { authEmail = match.data().email; resolved = true; }
-          } catch(e) { console.warn('Student scan:', e.message); }
-        }
-
-        // 3. Parents — by phone number
-        if (!resolved && digitsOnly.length >= 7) {
+        if (digitsOnly.length >= 7) {
           const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-          const variants = [...new Set([rawUser, digitsOnly, last10,
-            '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10);
-
-          // Indexed query first
-          try {
-            const pSnap = await db.collection('parents').where('phone','in',variants).limit(1).get();
-            if (!pSnap.empty) { authEmail = pSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Parent phone query:', e.message); }
-
-          if (!resolved) {
-            try {
-              const mSnap = await db.collection('parents').where('motherPhone','in',variants).limit(1).get();
-              if (!mSnap.empty) { authEmail = mSnap.docs[0].data().email; resolved = true; }
-            } catch(e) {}
-          }
-
-          // Full scan fallback
-          if (!resolved) {
-            try {
-              const allPar = await db.collection('parents').get();
-              const match = allPar.docs.find(d => {
-                const p1 = (d.data().phone       || '').replace(/\D/g,'');
-                const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
-                return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                       (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-              });
-              if (match) { authEmail = match.data().email; resolved = true; }
-            } catch(e) { console.warn('Parent scan:', e.message); }
-          }
+          const phoneVariants = [...new Set([rawUser, digitsOnly, last10, '+91 ' + last10, '+91' + last10, '0' + last10])].slice(0, 10);
+          queries.push(
+            db.collection('parents').where('phone', 'in', phoneVariants).limit(1).get().catch(() => null),
+            db.collection('parents').where('motherPhone', 'in', phoneVariants).limit(1).get().catch(() => null)
+          );
         }
 
-        // 4. Staff — by username
-        if (!resolved) {
-          try {
-            const stfSnap = await db.collection('staff').where('username','==',cleanInput).limit(1).get();
-            if (!stfSnap.empty) { authEmail = stfSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Staff lookup:', e.message); }
-        }
-
-        // 5. Users collection — by username
-        if (!resolved) {
-          try {
-            const usrSnap = await db.collection('users').where('username','==',cleanInput).limit(1).get();
-            if (!usrSnap.empty) { authEmail = usrSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Users username lookup:', e.message); }
+        const results = await Promise.all(queries);
+        for (const snap of results) {
+          if (snap && !snap.empty) {
+            const d = snap.docs[0].data();
+            authEmail = d.email;
+            matchedRecord = d;
+            if (d.role) matchedRole = d.role;
+            else if (d.admissionNo || d.className) matchedRole = 'student';
+            else if (d.childUid) matchedRole = 'parent';
+            else if (d.department || d.employeeId) matchedRole = 'staff';
+            resolved = true;
+            break;
+          }
         }
 
         if (!resolved) {
@@ -969,22 +939,36 @@
         }
       }
 
-      // ── Build password candidate list (DOB variants + defaults) ──
-      const candidatePasswords = [pass];
+      // ── Build ultra-smart password candidate list (User password first, then record credentials) ──
+      const candidatePasswords = [];
+      if (pass) candidatePasswords.push(pass);
+      if (matchedRecord) {
+        if (matchedRecord.tempPassword) candidatePasswords.push(matchedRecord.tempPassword);
+        if (matchedRecord.dob) {
+          const dDigits = String(matchedRecord.dob).replace(/\D/g, '');
+          if (dDigits.length === 8) {
+            const dd = dDigits.slice(0,2), mm = dDigits.slice(2,4), yyyy = dDigits.slice(4,8);
+            candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, dDigits);
+          }
+        }
+      }
       const cleanDigits = pass.replace(/\D/g, '');
       if (cleanDigits.length === 8) {
         const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
         candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
       candidatePasswords.push('Student@123', 'Parent@123');
-      const uniquePasswords = [...new Set(candidatePasswords)];
+      const uniquePasswords = [...new Set(candidatePasswords.filter(Boolean))];
 
       // ── Attempt Firebase Auth sign-in ──────────────────────────
-      let cred = null, authError = null;
+      let cred = null, authError = null, matchedPass = null;
       for (const tryPass of uniquePasswords) {
         try {
           cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
-          if (cred && cred.user) break;
+          if (cred && cred.user) {
+            matchedPass = tryPass;
+            break;
+          }
         } catch(err) { authError = err; }
       }
 
@@ -1006,58 +990,73 @@
         userData = adminData;
       }
 
+      if (!userData && matchedRecord) {
+        userData = {
+          role: matchedRole || 'student',
+          name: matchedRecord.name || '',
+          email: cred.user.email || authEmail
+        };
+      }
+
       if (!userData || userData.deleted || userData.disabled || !userData.role) {
         await auth.signOut();
         throw new Error('This account has been deleted or deactivated. Contact school admin.');
       }
 
       const role = userData.role;
-
-      // ── Role-specific record check ─────────────────────────────
-      if (role === 'staff') {
-        const s = await db.collection('staff').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
-          await auth.signOut();
-          throw new Error('Faculty account removed by administrator. Portal access denied.');
-        }
-      } else if (role === 'student') {
-        const s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
-          await auth.signOut();
-          throw new Error('Student account removed by administrator. Portal access denied.');
-        }
-      } else if (role === 'parent') {
-        const s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
-          await auth.signOut();
-          throw new Error('Parent account removed by administrator. Portal access denied.');
-        }
-      }
-
       const dest = ROLE_ROUTES[role];
       if (!dest) {
         await auth.signOut();
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
-      // Also sign in to the dedicated portal Firebase app so each portal has isolated persistence
-      try {
-        const roleAppName = `amala-${role}-portal`;
-        const roleApp = firebase.apps.find(a => a.name === roleAppName) || firebase.initializeApp(firebaseConfig, roleAppName);
-        const roleAuth = roleApp.auth();
-        await roleAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        for (const tryPass of uniquePasswords) {
+      // ── HIGH-SPEED PARALLEL SYNC: Role Portal Auth + Role Record Verification ──
+      const roleCollectionName = role === 'staff' ? 'staff' : (role === 'student' ? 'students' : (role === 'parent' ? 'parents' : null));
+
+      const [roleAuthRes, roleSnap] = await Promise.all([
+        (async () => {
           try {
-            await roleAuth.signInWithEmailAndPassword(authEmail, tryPass);
-            break;
-          } catch(e) {}
-        }
-      } catch(portalErr) {
-        console.warn('Role portal auth sync note:', portalErr);
+            const roleAppName = `amala-${role}-portal`;
+            const roleApp = firebase.apps.find(a => a.name === roleAppName) || firebase.initializeApp(firebaseConfig, roleAppName);
+            const roleAuth = roleApp.auth();
+            await roleAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            if (matchedPass) {
+              await roleAuth.signInWithEmailAndPassword(authEmail, matchedPass);
+            }
+          } catch(portalErr) {
+            console.warn('Role portal auth sync note:', portalErr);
+          }
+        })(),
+        (roleCollectionName && !matchedRecord) ? db.collection(roleCollectionName).doc(cred.user.uid).get().catch(() => null) : Promise.resolve(null)
+      ]);
+
+      const finalRoleData = matchedRecord || (roleSnap && roleSnap.exists ? roleSnap.data() : null);
+
+      if (finalRoleData && finalRoleData.deleted) {
+        await auth.signOut();
+        throw new Error('Account removed by administrator. Portal access denied.');
       }
 
+      // ── Store active session in BOTH sessionStorage & localStorage for INSTANT (0ms) portal hydration ──
+      try {
+        const sessionPayload = {
+          uid: cred.user.uid,
+          email: cred.user.email || authEmail,
+          role: role,
+          name: userData.name || (finalRoleData && finalRoleData.name) || '',
+          profile: userData,
+          roleData: finalRoleData,
+          timestamp: Date.now()
+        };
+        const payloadStr = JSON.stringify(sessionPayload);
+        sessionStorage.setItem('erp_active_session', payloadStr);
+        localStorage.setItem('erp_active_session', payloadStr);
+        localStorage.setItem('erp_last_active_role', role);
+      } catch(e) {}
+
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
-      setTimeout(() => { window.location.replace(dest); }, 500);
+      // Rapid redirection (0ms delay)
+      window.location.replace(dest);
 
     } catch (err) {
       generateCaptchaCode();

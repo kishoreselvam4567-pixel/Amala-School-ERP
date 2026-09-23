@@ -2554,11 +2554,11 @@
         </div>
 
         <!-- LOADING STATE -->
-        <div id="loadingState" class="empty-state">
+        <div id="loadingState" class="empty-state" style="display:none;">
           <span class="loader"></span> Loading campus analytics &amp; master data…
         </div>
 
-        <div id="content" style="display:none;">
+        <div id="content" style="display:block;">
 
           <!-- ================= 1. OVERVIEW PANEL ================= -->
           <section id="panel-overview">
@@ -6025,8 +6025,15 @@
           const dateEl = document.getElementById('todayDateStr');
           if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
-          await loadClasses();
+          // Unhide dashboard content immediately for 0ms visual latency
+          const loadEl = document.getElementById('loadingState');
+          const contentEl = document.getElementById('content');
+          if (loadEl) loadEl.style.display = 'none';
+          if (contentEl) contentEl.style.display = 'block';
+
+          // Load overview (which seeds allStaffCache) followed by loadClasses
           await loadOverview();
+          await loadClasses();
           preloadAllDataForSearch();
         } catch (err) {
           console.error('Portal init error:', err);
@@ -6167,15 +6174,33 @@
         const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         allClasses = sortClassList(rawClasses);
         const body = document.querySelector('#clsTable tbody');
-        body.innerHTML = '';
+        if (body) body.innerHTML = '';
         const selOptions = [];
 
+        // Build teacher lookup map using cached staff first
+        const staffMap = new Map();
+        if (allStaffCache && allStaffCache.length) {
+          allStaffCache.forEach(s => staffMap.set(s.id, s.name));
+        }
+
+        // Parallel resolve any missing class teacher names (no sequential loops)
+        const missingUids = [];
         for (const r of allClasses) {
-          let teacherName = '—';
-          if (r.classTeacherUid) {
-            const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
-            if (t.exists()) teacherName = t.data().name;
+          if (r.classTeacherUid && !staffMap.has(r.classTeacherUid)) {
+            missingUids.push(r.classTeacherUid);
           }
+        }
+        if (missingUids.length) {
+          await Promise.all(missingUids.map(async uid => {
+            try {
+              const t = await getDoc(doc(db, 'staff', uid));
+              if (t.exists()) staffMap.set(uid, t.data().name);
+            } catch(e) {}
+          }));
+        }
+
+        for (const r of allClasses) {
+          const teacherName = (r.classTeacherUid && staffMap.get(r.classTeacherUid)) || '—';
           const tr = document.createElement('tr');
           tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -6193,7 +6218,7 @@
               await loadOverview();
             }
           });
-          body.appendChild(tr);
+          if (body) body.appendChild(tr);
           selOptions.push(`<option value="${r.id}">${r.name}</option>`);
         }
 
