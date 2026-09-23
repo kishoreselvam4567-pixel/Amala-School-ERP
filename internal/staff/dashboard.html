@@ -948,7 +948,138 @@
 
       <!-- OVERVIEW -->
       <section id="panel-overview">
-        <div class="main-header"><div><h2>Welcome <span id="welcomeName"></span></h2><p style="color:var(--ink-soft);">Your teaching assignments and class roster at a glance.</p></div></div>
+        <div class="main-header">
+          <div>
+            <h2>Welcome, <span id="welcomeName"></span></h2>
+            <p style="color:var(--ink-soft);">Teaching assignments, daily attendance status, and academic overview.</p>
+          </div>
+        </div>
+
+        <!-- 3 Modern Colorful Pastel Metric Cards -->
+        <div class="metric-grid">
+          <!-- Yellow Card: Assigned Class / Students -->
+          <div class="metric-card yellow">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <span>Assigned Class</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="stfMetricClassVal" style="font-size:26px;">—</div>
+              <div class="metric-trend trend-up" id="stfMetricClassBadge">Class Faculty</div>
+            </div>
+            <div class="metric-footer">
+              <span id="stfMetricStudentsCount">Class roster</span>
+              <a href="#" data-tab="lookup" class="metric-link tab-switch-btn">View Students &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Pink Card: Today's Attendance -->
+          <div class="metric-card pink">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+                </div>
+                <span>Today's Attendance</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="stfMetricAttVal" style="font-size:26px;">Roll Call</div>
+              <div class="metric-trend trend-up" id="stfMetricAttBadge">Daily Status</div>
+            </div>
+            <div class="metric-footer">
+              <span id="stfMetricAttSub">Morning attendance</span>
+              <a href="#" data-tab="attendance" class="metric-link tab-switch-btn">Mark Attendance &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Purple Card: Subject Allocations -->
+          <div class="metric-card purple">
+            <div class="metric-header">
+              <div class="metric-title-wrap">
+                <div class="metric-icon">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
+                </div>
+                <span>Subject Allocations</span>
+              </div>
+            </div>
+            <div class="metric-card-body">
+              <div class="metric-value" id="stfMetricSubjectsVal" style="font-size:26px;">—</div>
+              <div class="metric-trend" style="color:var(--text-purple); font-weight:700;" id="stfMetricMajorBadge">Academic Load</div>
+            </div>
+            <div class="metric-footer">
+              <span id="stfMetricSubjectsSub">Assigned subjects</span>
+              <a href="#" data-tab="notes" class="metric-link tab-switch-btn">Syllabus Notes &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Faculty Routine & Schedule Workflow -->
+        <div class="card card-static anim-fadeInUp" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div>
+              <h3>Daily Faculty Routine &amp; Workflow</h3>
+              <p>Essential daily campus milestones for teaching faculty</p>
+            </div>
+            <span class="badge badge-navy">Today's Schedule</span>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon-wrap purple">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+                </div>
+                <div class="activity-info">
+                  <h4>Morning Roll Call &amp; Assembly Attendance</h4>
+                  <p>Mark daily session presence for students before morning periods</p>
+                </div>
+              </div>
+              <div class="activity-right">
+                <a href="#" data-tab="attendance" class="badge badge-good tab-switch-btn" style="text-decoration:none; cursor:pointer;">Mark Attendance &rarr;</a>
+                <div class="activity-time">09:00 AM - 09:30 AM</div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon-wrap yellow">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+                <div class="activity-info">
+                  <h4>Subject Classes &amp; Practical Lectures</h4>
+                  <p>Deliver syllabus lessons according to assigned timetable periods</p>
+                </div>
+              </div>
+              <div class="activity-right">
+                <a href="#" data-tab="notes" class="badge badge-yellow tab-switch-btn" style="text-decoration:none; cursor:pointer;">Syllabus Notes &rarr;</a>
+                <div class="activity-time">09:30 AM - 01:00 PM</div>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon-wrap pink">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="activity-info">
+                  <h4>Homework Review &amp; Examination Marks</h4>
+                  <p>Assign subject homework and upload student exam marks</p>
+                </div>
+              </div>
+              <div class="activity-right">
+                <a href="#" data-tab="marks" class="badge badge-purple tab-switch-btn" style="text-decoration:none; cursor:pointer;">Upload Marks &rarr;</a>
+                <div class="activity-time">02:00 PM - 04:30 PM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Faculty Details & Allocations Box -->
         <div class="card card-static anim-fadeInUp" id="assignBox"></div>
 
         <!-- Recent Faculty Notices & Circulars -->
@@ -1895,10 +2026,11 @@ document.querySelectorAll('.sidebar nav a').forEach(a => {
   });
 });
 
-document.querySelectorAll('[data-go-tab]').forEach(btn => {
+document.querySelectorAll('[data-go-tab], .tab-switch-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
-    switchTab(btn.dataset.goTab);
+    const dest = btn.dataset.goTab || btn.dataset.tab;
+    if (dest) switchTab(dest);
   });
 });
 
@@ -2228,6 +2360,93 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
       document.getElementById('navStudents').style.display = 'flex';
     }
 
+<<<<<<< HEAD
+=======
+    // Populate Top Colorful Metric Boxes (Yellow, Pink, Purple)
+    try {
+      // 1. Class & Students Box (Yellow)
+      const stfMetricClassVal = document.getElementById('stfMetricClassVal');
+      const stfMetricStudentsCount = document.getElementById('stfMetricStudentsCount');
+      const stfMetricClassBadge = document.getElementById('stfMetricClassBadge');
+
+      if (stfMetricClassVal) {
+        if (classTeacherClass) {
+          const ctStudents = allSchoolStudentsCache.filter(s => s.classId === classTeacherClass.id);
+          stfMetricClassVal.textContent = classTeacherClass.name;
+          if (stfMetricStudentsCount) stfMetricStudentsCount.textContent = `${ctStudents.length} Active Students`;
+          if (stfMetricClassBadge) {
+            stfMetricClassBadge.textContent = '★ Class Teacher';
+            stfMetricClassBadge.className = 'metric-trend trend-up';
+          }
+        } else {
+          stfMetricClassVal.textContent = 'General Faculty';
+          if (stfMetricStudentsCount) stfMetricStudentsCount.textContent = `${allSchoolStudentsCache.length} Campus Students`;
+          if (stfMetricClassBadge) {
+            stfMetricClassBadge.textContent = 'Subject Faculty';
+            stfMetricClassBadge.className = 'metric-trend';
+          }
+        }
+      }
+
+      // 2. Attendance Status Box (Pink)
+      const stfMetricAttVal = document.getElementById('stfMetricAttVal');
+      const stfMetricAttBadge = document.getElementById('stfMetricAttBadge');
+      const stfMetricAttSub = document.getElementById('stfMetricAttSub');
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      let isAttRecorded = false;
+      try {
+        const attTargetClassId = classTeacherClass ? classTeacherClass.id : (subjectAssignments[0] ? subjectAssignments[0].classId : null);
+        if (attTargetClassId) {
+          const attCheckQ = query(collection(db, 'attendance'), where('classId', '==', attTargetClassId), where('date', '==', todayStr));
+          const attCheckSnap = await getDocs(attCheckQ);
+          if (!attCheckSnap.empty) isAttRecorded = true;
+        }
+      } catch (e) {
+        console.warn("Could not check today's attendance status:", e);
+      }
+
+      if (stfMetricAttVal) {
+        if (isAttRecorded) {
+          stfMetricAttVal.textContent = 'Completed ✓';
+          if (stfMetricAttBadge) {
+            stfMetricAttBadge.textContent = 'Marked Today';
+            stfMetricAttBadge.className = 'metric-trend trend-up';
+          }
+          if (stfMetricAttSub) stfMetricAttSub.textContent = 'Attendance saved';
+        } else {
+          stfMetricAttVal.textContent = 'Pending';
+          if (stfMetricAttBadge) {
+            stfMetricAttBadge.textContent = 'Roll Call';
+            stfMetricAttBadge.className = 'metric-trend trend-down';
+          }
+          if (stfMetricAttSub) stfMetricAttSub.textContent = 'Click to record now';
+        }
+      }
+
+      // 3. Subjects Box (Purple)
+      const stfMetricSubjectsVal = document.getElementById('stfMetricSubjectsVal');
+      const stfMetricMajorBadge = document.getElementById('stfMetricMajorBadge');
+      const stfMetricSubjectsSub = document.getElementById('stfMetricSubjectsSub');
+
+      if (stfMetricSubjectsVal) {
+        const sCount = subjectAssignments.length;
+        stfMetricSubjectsVal.textContent = sCount ? `${sCount} ${sCount === 1 ? 'Subject' : 'Subjects'}` : '0 Subjects';
+        if (stfMetricMajorBadge) stfMetricMajorBadge.textContent = `Major: ${stfMajor}`;
+        if (stfMetricSubjectsSub) {
+          stfMetricSubjectsSub.textContent = sCount ? subjectAssignments.map(a => a.subject).slice(0, 2).join(', ') : 'No subjects assigned';
+        }
+      }
+    } catch (metricErr) {
+      console.warn("Error populating staff metric cards:", metricErr);
+    }
+
+    // If page was loaded directly on the Attendance tab, initialize panel
+    if (window.location.hash === '#attendance') {
+      initStaffAttendancePanel();
+    }
+
+>>>>>>> 5ab2302de5e8207896d9ae5bda72a4c02cafb019
     // Configure Marks Access
     if (subjectAssignments.length) {
       document.getElementById('marksAccess').style.display = 'block';
