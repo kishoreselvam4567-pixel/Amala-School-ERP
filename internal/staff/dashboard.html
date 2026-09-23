@@ -1145,7 +1145,6 @@
               <path d="M6 6h10M6 10h10" />
             </svg>
           </div>
-<<<<<<< HEAD
           <h3 style="margin:0 0 6px 0; font-size:17px; font-weight:700;">Please Select a Class Section Above</h3>
           <p style="margin:0; font-size:13px; color:var(--ink-soft); max-width:460px; margin:0 auto;">Choose any
             class section from the dropdown (e.g. 10-A, 10-B) to view live day-wise roll call attendance or
@@ -1813,6 +1812,7 @@ function switchTab(tabName, pushState = true) {
 
   if (tabName === 'announcements') loadStaffAnnouncements();
   if (tabName === 'attendance') initStaffAttendancePanel();
+  if (tabName === 'marks') loadMarksForCurrentAssignment();
   if (tabName === 'exams') loadExams();
   if (tabName === 'notes') loadNotesList();
   if (tabName === 'homework') loadHwList();
@@ -2210,6 +2210,10 @@ requirePortal(['staff'], async ({ user, profile }) => {
       document.getElementById('marksAssignSel').innerHTML = opts;
       document.getElementById('notesAssignSel').innerHTML = opts;
       document.getElementById('hwAssignSel').innerHTML = opts;
+
+      if (window.location.hash === '#marks') {
+        loadMarksForCurrentAssignment();
+      }
     } else {
       document.getElementById('marksNoAccess').style.display = 'block';
       document.getElementById('notesNoAccess').style.display = 'block';
@@ -2566,10 +2570,40 @@ if (staffFinderRollInput) staffFinderRollInput.addEventListener('input', runStaf
 if (staffFinderClassSel) staffFinderClassSel.addEventListener('change', runStaffStudentFinder);
 
 // Helper to fetch class students sorted strictly by numeric roll number (1, 2, 3...)
-async function getClassStudents(classId) {
-  const q = query(collection(db, 'students'), where('classId', '==', classId));
-  const snap = await getDocs(q);
-  const list = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+async function getClassStudents(classId, className = '') {
+  let list = [];
+
+  // 1. Fast in-memory lookup from allSchoolStudentsCache if available
+  if (allSchoolStudentsCache && allSchoolStudentsCache.length) {
+    list = allSchoolStudentsCache.filter(s => {
+      if (classId && s.classId === classId) return true;
+      if (className && s.className && s.className.trim().toLowerCase() === className.trim().toLowerCase()) return true;
+      return false;
+    });
+  }
+
+  // 2. Fallback to Firestore query if cache had 0 matches
+  if (!list.length && classId) {
+    try {
+      const q = query(collection(db, 'students'), where('classId', '==', classId));
+      const snap = await getDocs(q);
+      list = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    } catch (e) {
+      console.error('Error fetching students by classId:', e);
+    }
+  }
+
+  // 3. Fallback by className if classId query returned nothing
+  if (!list.length && className) {
+    try {
+      const q2 = query(collection(db, 'students'), where('className', '==', className));
+      const snap2 = await getDocs(q2);
+      list = snap2.docs.map(d => ({ uid: d.id, ...d.data() }));
+    } catch (e) {
+      console.error('Error fetching students by className:', e);
+    }
+  }
+
   list.sort((a, b) => {
     const rawA = String((a.rollNo !== undefined && a.rollNo !== null && String(a.rollNo).trim() !== '') ? a.rollNo : (a.admissionNo || '')).replace(/[^\d]/g, '');
     const rawB = String((b.rollNo !== undefined && b.rollNo !== null && String(b.rollNo).trim() !== '') ? b.rollNo : (b.admissionNo || '')).replace(/[^\d]/g, '');
@@ -2636,63 +2670,43 @@ async function initStaffAttendancePanel() {
     monthInput.value = curMonthStr;
   }
 
-  // Populate Class Selector with teacher's assigned classes prioritized
+  // Populate Class Selector with ONLY the teacher's maintained class
   const attF = document.getElementById('attClassFilter');
   if (attF) {
-    let optionsHtml = '<option value="">-- Choose Class Section --</option>';
+    let optionsHtml = '';
 
-    // 1. My Class (Class Teacher)
     if (classTeacherClass) {
-      optionsHtml += `<optgroup label="My Class (Class Teacher)">
-        <option value="${classTeacherClass.id}">${classTeacherClass.name} (My Class)</option>
-      </optgroup>`;
-    }
+      // 1. If assigned as Class Teacher, strictly allow only their maintained class
+      optionsHtml = `<option value="${classTeacherClass.id}">${classTeacherClass.name} (My Class)</option>`;
+    } else {
+      // 2. If not a Class Teacher, allow only assigned subject classes
+      const subjClasses = [];
+      const seenSubjClassIds = new Set();
+      (subjectAssignments || []).forEach(sa => {
+        if (sa.classId && !seenSubjClassIds.has(sa.classId)) {
+          seenSubjClassIds.add(sa.classId);
+          subjClasses.push(sa);
+        }
+      });
 
-    // 2. My Subject Classes
-    const subjClasses = [];
-    const seenSubjClassIds = new Set();
-    (subjectAssignments || []).forEach(sa => {
-      if (sa.classId && (!classTeacherClass || sa.classId !== classTeacherClass.id) && !seenSubjClassIds.has(sa.classId)) {
-        seenSubjClassIds.add(sa.classId);
-        subjClasses.push(sa);
+      if (subjClasses.length) {
+        optionsHtml = '<option value="">-- Choose Assigned Class --</option>';
+        subjClasses.forEach(sc => {
+          optionsHtml += `<option value="${sc.classId}">${sc.className || 'Class'} (${sc.subject || 'Subject'})</option>`;
+        });
+      } else {
+        optionsHtml = '<option value="">No Class Assigned to You</option>';
       }
-    });
-
-    if (subjClasses.length) {
-      optionsHtml += '<optgroup label="My Subject Classes">';
-      subjClasses.forEach(sc => {
-        optionsHtml += `<option value="${sc.classId}">${sc.className || 'Class'} (${sc.subject || 'Subject'})</option>`;
-      });
-      optionsHtml += '</optgroup>';
     }
 
-    // 3. All School Classes
-    const otherClasses = (allClassesCache || []).filter(c => {
-      if (classTeacherClass && c.id === classTeacherClass.id) return false;
-      if (seenSubjClassIds.has(c.id)) return false;
-      return true;
-    });
-
-    if (otherClasses.length) {
-      optionsHtml += '<optgroup label="All School Classes">';
-      otherClasses.forEach(c => {
-        optionsHtml += `<option value="${c.id}">${c.name}</option>`;
-      });
-      optionsHtml += '</optgroup>';
-    }
-
-    const cur = attF.value;
     attF.innerHTML = optionsHtml;
 
-    // Auto-select priority: keep existing value if still valid, else prioritize Class Teacher class, then subject class, then first class
-    if (cur && attF.querySelector(`option[value="${cur}"]`)) {
-      attF.value = cur;
-    } else if (classTeacherClass) {
+    // Auto-select: if classTeacherClass exists, directly select it; else select first assigned class if available
+    if (classTeacherClass) {
       attF.value = classTeacherClass.id;
-    } else if (subjClasses.length > 0) {
-      attF.value = subjClasses[0].classId;
-    } else if (allClassesCache && allClassesCache.length > 0) {
-      attF.value = allClassesCache[0].id;
+    } else {
+      const firstOpt = attF.querySelector('option[value]:not([value=""])');
+      attF.value = firstOpt ? firstOpt.value : '';
     }
   }
 
@@ -3997,28 +4011,43 @@ document.getElementById('attPrintAuditBtn')?.addEventListener('click', () => {
 
 // ---------------- MARKS ----------------
 let currentMarksStudents = [];
-document.getElementById('marksLoadBtn').addEventListener('click', async () => {
-  const selIdx = document.getElementById('marksAssignSel').value;
-  const a = subjectAssignments[selIdx];
-  if (!a) return;
-  currentMarksStudents = await getClassStudents(a.classId);
-  const body = document.querySelector('#marksEntryTable tbody');
-  body.innerHTML = '';
-  if (!currentMarksStudents.length) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);">No students found in this class.</td></tr>';
+
+async function loadMarksForCurrentAssignment() {
+  const selIdx = document.getElementById('marksAssignSel')?.value;
+  if (selIdx === undefined || selIdx === '' || !subjectAssignments || !subjectAssignments[selIdx]) {
+    const body = document.querySelector('#marksEntryTable tbody');
+    if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--ink-soft);">No class selected.</td></tr>';
     return;
   }
+  const a = subjectAssignments[selIdx];
+  const body = document.querySelector('#marksEntryTable tbody');
+  if (body) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--ink-soft);"><span class="loader"></span> Loading students…</td></tr>';
+  }
+
+  currentMarksStudents = await getClassStudents(a.classId, a.className);
+  if (!body) return;
+  body.innerHTML = '';
+
+  if (!currentMarksStudents.length) {
+    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--ink-soft);">No enrolled students found for <strong>' + (a.className || 'this class') + '</strong>.</td></tr>';
+    return;
+  }
+
   currentMarksStudents.forEach(s => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
       <td><strong>${s.name}</strong></td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo}</span></td>
-      <td><input type="number" class="marks-input" data-uid="${s.uid}" placeholder="0" min="0" style="width:90px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);"></td>
+      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo || '—'}</span></td>
+      <td><input type="number" class="marks-input" data-uid="${s.uid}" placeholder="0" min="0" max="${document.getElementById('marksMax')?.value || 100}" style="width:90px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);"></td>
     `;
     body.appendChild(tr);
   });
-});
+}
+
+document.getElementById('marksLoadBtn')?.addEventListener('click', loadMarksForCurrentAssignment);
+document.getElementById('marksAssignSel')?.addEventListener('change', loadMarksForCurrentAssignment);
 
 document.getElementById('marksSaveBtn').addEventListener('click', async () => {
   const selIdx = document.getElementById('marksAssignSel').value;
