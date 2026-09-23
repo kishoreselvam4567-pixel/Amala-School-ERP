@@ -943,8 +943,8 @@
   </div>
 
   <div class="main">
-    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading your assignments…</div>
-    <div id="content" style="display:none;">
+    <div id="loadingState" class="empty-state" style="display:none;"><span class="loader"></span> Loading your assignments…</div>
+    <div id="content" style="display:block;">
 
       <!-- OVERVIEW -->
       <section id="panel-overview">
@@ -2265,8 +2265,14 @@ let staffUid, staffProfile, classTeacherClass = null, subjectAssignments = [];
 let allSchoolStudentsCache = [];
 let allClassesCache = [];
 
-requirePortal(['staff'], async ({ user, profile }) => {
+requirePortal(['staff'], async ({ user, profile, roleData }) => {
   try {
+    // 0ms immediate UI reveal
+    const lsInit = document.getElementById('loadingState');
+    if (lsInit) lsInit.style.display = 'none';
+    const ctInit = document.getElementById('content');
+    if (ctInit) ctInit.style.display = 'block';
+
     staffUid = user.uid;
     staffProfile = profile;
     const facultyName = profile.name || 'Faculty';
@@ -2275,15 +2281,22 @@ requirePortal(['staff'], async ({ user, profile }) => {
     if (avatarEl) avatarEl.textContent = facultyName.charAt(0).toUpperCase() || 'F';
     document.getElementById('welcomeName').textContent = ', ' + facultyName;
 
-    const staffDoc = await getDoc(doc(db, 'staff', staffUid));
-    const staffData = staffDoc.exists() ? staffDoc.data() : {};
+    let staffData = (roleData && typeof roleData === 'object') ? roleData : {};
+    if (!staffData.subjects) {
+      try {
+        const staffDoc = await getDoc(doc(db, 'staff', staffUid));
+        if (staffDoc.exists()) staffData = { ...staffData, ...staffDoc.data() };
+      } catch (e) {}
+    }
     subjectAssignments = staffData.subjects || [];
 
     if (staffData.classTeacherOf) {
-      const classDoc = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
-      if (classDoc.exists()) {
-        classTeacherClass = { id: classDoc.id, ...classDoc.data() };
-      }
+      try {
+        const classDoc = await getDoc(doc(db, 'classes', staffData.classTeacherOf));
+        if (classDoc.exists()) {
+          classTeacherClass = { id: classDoc.id, ...classDoc.data() };
+        }
+      } catch(e) {}
     }
 
     // Set roles label
@@ -2341,43 +2354,6 @@ requirePortal(['staff'], async ({ user, profile }) => {
       html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
     }
     document.getElementById('assignBox').innerHTML = html;
-
-    // Cache school students & classes for finder
-    const [stSnap, clSnap] = await Promise.all([
-      getDocs(collection(db, 'students')),
-      getDocs(collection(db, 'classes'))
-    ]);
-    allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
-
-    function getClassSortKey(className = '') {
-      const norm = (className || '').trim().toUpperCase();
-      if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
-      if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
-      if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
-      const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
-                 || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
-                 || norm.match(/(\d{1,2})[-\s]*(.*)/);
-      if (match) {
-        return { level: parseInt(match[1], 10), sub: (match[2] || '').trim() };
-      }
-      return { level: 99, sub: norm };
-    }
-
-    const sortedClasses = clSnap.docs.map(d => ({ id: d.id, name: d.data().name })).sort((a, b) => {
-      const kA = getClassSortKey(a.name);
-      const kB = getClassSortKey(b.name);
-      if (kA.level !== kB.level) return kA.level - kB.level;
-      return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
-    });
-
-    const finderClassSel = document.getElementById('staffFinderClassSel');
-    if (finderClassSel) {
-      finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
-        sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-
-    // Cache sorted classes for Attendance Intelligence
-    allClassesCache = sortedClasses;
 
     // Configure Students Access for Class Teacher
     if (classTeacherClass) {
@@ -2467,7 +2443,6 @@ requirePortal(['staff'], async ({ user, profile }) => {
     if (window.location.hash === '#attendance') {
       initStaffAttendancePanel();
     }
-
     // Configure Marks Access
     if (subjectAssignments.length) {
       document.getElementById('marksAccess').style.display = 'block';
@@ -2488,20 +2463,63 @@ requirePortal(['staff'], async ({ user, profile }) => {
       document.getElementById('hwNoAccess').style.display = 'block';
     }
 
-    // Load staff circulars & announcements
+    // Load staff circulars & announcements in background
     loadStaffAnnouncements();
 
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('content').style.display = 'block';
+    // Cache school students & classes asynchronously without blocking UI
+    (async () => {
+      try {
+        const [stSnap, clSnap] = await Promise.all([
+          getDocs(collection(db, 'students')),
+          getDocs(collection(db, 'classes'))
+        ]);
+        allSchoolStudentsCache = stSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+        function getClassSortKey(className = '') {
+          const norm = (className || '').trim().toUpperCase();
+          if (/PRE[-\s]?KG|NURSERY|PLAY/i.test(norm)) return { level: -3, sub: norm };
+          if (/L\.?K\.?G/i.test(norm)) return { level: -2, sub: norm };
+          if (/U\.?K\.?G/i.test(norm)) return { level: -1, sub: norm };
+          const match = norm.match(/^(\d{1,2})(?:ST|ND|RD|TH)?(?:[-\s]STD|[-\s]GRADE|[-\s]CLASS)?(.*)$/i)
+                     || norm.match(/(?:CLASS|GRADE|STD)[-\s]*(\d{1,2})(.*)/i)
+                     || norm.match(/(\d{1,2})[-\s]*(.*)/);
+          if (match) {
+            return { level: parseInt(match[1], 10), sub: (match[2] || '').trim() };
+          }
+          return { level: 99, sub: norm };
+        }
+
+        const sortedClasses = clSnap.docs.map(d => ({ id: d.id, name: d.data().name })).sort((a, b) => {
+          const kA = getClassSortKey(a.name);
+          const kB = getClassSortKey(b.name);
+          if (kA.level !== kB.level) return kA.level - kB.level;
+          return (kA.sub || '').localeCompare(kB.sub || '', undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        const finderClassSel = document.getElementById('staffFinderClassSel');
+        if (finderClassSel) {
+          finderClassSel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+            sortedClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        allClassesCache = sortedClasses;
+
+        // If page was loaded directly on Attendance tab, re-init
+        if (window.location.hash === '#attendance') {
+          initStaffAttendancePanel();
+        }
+      } catch (err) {
+        console.warn("Background directory cache error:", err);
+      }
+    })();
+
   } catch (err) {
     console.error('Failed to initialize staff portal:', err);
+  } finally {
     const ls = document.getElementById('loadingState');
-    if (ls) {
-      ls.innerHTML = `<div style="color:var(--bad); font-weight:600; padding:20px;">
-        Failed to load assignments: ${err.message || 'Unknown error'}.<br>
-        <button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="location.reload()">Retry</button>
-      </div>`;
-    }
+    if (ls) ls.style.display = 'none';
+    const ct = document.getElementById('content');
+    if (ct) ct.style.display = 'block';
   }
 });
 

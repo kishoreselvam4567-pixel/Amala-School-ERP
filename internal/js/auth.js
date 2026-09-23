@@ -73,12 +73,21 @@ export {
   ref, uploadBytes, getDownloadURL, deleteObject
 };
 
+// In-memory profile cache for instantaneous lookups
+const userProfileCache = new Map();
+
 // ---------- role/profile lookup ----------
 export async function getUserProfile(uid) {
+  if (userProfileCache.has(uid)) {
+    return userProfileCache.get(uid);
+  }
+
   try {
     const snap = await getDoc(doc(db, "users", uid));
     if (snap.exists()) {
-      return { uid, ...snap.data() };
+      const p = { uid, ...snap.data() };
+      userProfileCache.set(uid, p);
+      return p;
     }
   } catch (err) {
     console.warn("getUserProfile read failed:", err);
@@ -88,12 +97,14 @@ export async function getUserProfile(uid) {
   const curUser = auth.currentUser;
   const userEmail = (curUser && curUser.email) ? curUser.email.toLowerCase() : '';
   if (userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com') {
-    return {
+    const adminP = {
       uid,
       role: 'admin',
       name: 'School Administrator',
       email: userEmail
     };
+    userProfileCache.set(uid, adminP);
+    return adminP;
   }
 
   return null;
@@ -103,20 +114,73 @@ export async function getUserProfile(uid) {
 // Returns { user, profile } on success (also calls onReady with it).
 export function requirePortal(allowedRoles, onReady, loginPath = "../login.html") {
   let isAuthorized = false;
+  let hasHydratedFromCache = false;
+
+  // 1. INSTANT HYDRATION: Check sessionStorage and localStorage for active session
+  try {
+    const rawCache = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+    if (rawCache) {
+      const cached = JSON.parse(rawCache);
+      // Valid if less than 24 hours old and matches portal role
+      if (cached && cached.uid && allowedRoles.includes(cached.role) && (Date.now() - (cached.timestamp || 0)) < 86400000) {
+        hasHydratedFromCache = true;
+        isAuthorized = true;
+        userProfileCache.set(cached.uid, cached.profile || { uid: cached.uid, name: cached.name, role: cached.role });
+
+        // Synchronous immediate zero-latency dispatch
+        try {
+          onReady({
+            user: { uid: cached.uid, email: cached.email },
+            profile: cached.profile || { uid: cached.uid, name: cached.name, role: cached.role },
+            roleData: cached.roleData || null,
+            isCached: true
+          });
+        } catch(onReadyErr) {
+          console.warn("Immediate cache hydration dispatch warning:", onReadyErr);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Session cache read warning:", e);
+  }
 
   const handleAuth = async (user) => {
     // If not signed in on this portal's role-isolated auth instance:
     if (!user) {
+      // If we already hydrated a valid authorized session from cache, do NOT boot to login.
+      if (hasHydratedFromCache) {
+        return;
+      }
+
       // Fallback: check if the default app has an active session matching allowed roles
       try {
         const defaultApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
         const defAuth = getAuth(defaultApp);
+        if (typeof defAuth.authStateReady === 'function') {
+          await defAuth.authStateReady().catch(() => {});
+        }
         const defUser = defAuth.currentUser;
-        if (defUser && !isAuthorized) {
+        if (defUser) {
           const defProfile = await getUserProfile(defUser.uid);
           if (defProfile && allowedRoles.includes(defProfile.role)) {
-            isAuthorized = true;
-            onReady({ user: defUser, profile: defProfile });
+            // Update session cache
+            try {
+              const payload = JSON.stringify({
+                uid: defUser.uid,
+                email: defUser.email,
+                role: defProfile.role,
+                name: defProfile.name || '',
+                profile: defProfile,
+                timestamp: Date.now()
+              });
+              sessionStorage.setItem('erp_active_session', payload);
+              localStorage.setItem('erp_active_session', payload);
+            } catch(e) {}
+
+            if (!hasHydratedFromCache) {
+              isAuthorized = true;
+              onReady({ user: defUser, profile: defProfile });
+            }
             setTimeout(() => {
               showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
             }, 300);
@@ -125,67 +189,70 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         }
       } catch (e) {}
 
-      if (!isAuthorized) {
+      // Wait for role auth to finish restoring session before concluding unauthenticated
+      if (typeof auth.authStateReady === 'function') {
+        try { await auth.authStateReady(); } catch(e) {}
+        if (auth.currentUser) return; // Will re-trigger handleAuth with user
+      }
+
+      // If neither instance is authenticated and not hydrated from cache, redirect
+      if (!hasHydratedFromCache) {
+        sessionStorage.removeItem('erp_active_session');
+        localStorage.removeItem('erp_active_session');
         window.location.href = loginPath;
       }
       return;
     }
 
-    // Once already authorized and portal is running, don't re-run or kick user out on background token refreshes
-    if (isAuthorized) return;
-
     try {
       const profile = await getUserProfile(user.uid);
       if (!profile) {
-        window.location.href = loginPath;
+        if (!hasHydratedFromCache) {
+          sessionStorage.removeItem('erp_active_session');
+          localStorage.removeItem('erp_active_session');
+          window.location.href = loginPath;
+        }
         return;
       }
 
       // Only sign out if the user was explicitly deleted or deactivated by the admin
       if (profile.deleted || profile.disabled) {
         alert("This account has been deleted or deactivated by the school administrator.");
+        sessionStorage.removeItem('erp_active_session');
+        localStorage.removeItem('erp_active_session');
         await fbSignOut(auth);
         window.location.href = loginPath;
         return;
       }
 
       // Role check: If role is not allowed on this portal, redirect to login for this portal.
-      // CRITICAL: NEVER redirect to another role's portal! That was causing the tab-jumping bug.
       if (!allowedRoles.includes(profile.role)) {
         console.warn(`User role '${profile.role}' is not authorized for portal '${allowedRoles.join(', ')}'.`);
+        sessionStorage.removeItem('erp_active_session');
+        localStorage.removeItem('erp_active_session');
         window.location.href = loginPath;
         return;
       }
 
-      // Role-specific collection check to ensure deleted records are revoked immediately
-      if (profile.role === 'staff') {
-        const sSnap = await getDoc(doc(db, 'staff', user.uid));
-        if (!sSnap.exists() || sSnap.data().deleted) {
-          alert("Your faculty account has been removed by the administrator. Access revoked.");
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
-        }
-      } else if (profile.role === 'student') {
-        const stSnap = await getDoc(doc(db, 'students', user.uid));
-        if (!stSnap.exists() || stSnap.data().deleted) {
-          alert("Your student account has been removed by the administrator. Access revoked.");
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
-        }
-      } else if (profile.role === 'parent') {
-        const pSnap = await getDoc(doc(db, 'parents', user.uid));
-        if (!pSnap.exists() || pSnap.data().deleted) {
-          alert("Your parent account has been removed by the administrator. Access revoked.");
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
-        }
-      }
+      // Update session cache silently in both storages
+      try {
+        const payload = JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          role: profile.role,
+          name: profile.name || '',
+          profile: profile,
+          timestamp: Date.now()
+        });
+        sessionStorage.setItem('erp_active_session', payload);
+        localStorage.setItem('erp_active_session', payload);
+      } catch(e) {}
 
-      isAuthorized = true;
-      onReady({ user, profile });
+      // If not previously hydrated from cache, invoke onReady now
+      if (!hasHydratedFromCache) {
+        isAuthorized = true;
+        onReady({ user, profile });
+      }
 
       // Trigger first-time login instructions notification (only once per user)
       setTimeout(() => {
@@ -442,6 +509,11 @@ export function portalPathForRole(role) {
 }
 
 export function logout(loginPath = "../login.html") {
+  try {
+    sessionStorage.removeItem('erp_active_session');
+    localStorage.removeItem('erp_last_active_role');
+    userProfileCache.clear();
+  } catch(e) {}
   fbSignOut(auth).finally(() => {
     try {
       const defApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
