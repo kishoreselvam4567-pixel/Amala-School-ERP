@@ -528,19 +528,6 @@
         <div class="error-box" id="errBox"></div>
         <div class="success-box" id="okBox"></div>
 
-        <!-- Active Session Banner -->
-        <div id="alreadyLoggedInBanner" style="display:none; margin-bottom:18px; padding:12px 14px; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:10px; font-size:12.5px; color:#1e40af; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-          <div>
-            <span style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#2563eb; letter-spacing:0.5px;">Active Session Detected</span>
-            <span>Signed in as <strong id="activeUserLabel">User</strong></span>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <a id="activeUserGoBtn" href="#" class="btn btn-sm" style="background:#2563eb; color:#fff; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-              Go to Portal &rarr;
-            </a>
-          </div>
-        </div>
-
         <form id="erpLoginForm">
           <!-- User ID -->
           <div class="erp-field">
@@ -810,48 +797,30 @@
     document.getElementById('loginUserId').focus();
   });
 
-  // ── Session detection on login page ───────────────────────
+  // ── Session handling on login page ───────────────────────
   const urlParams         = new URLSearchParams(window.location.search);
   const allowAutoRedirect = urlParams.has('autoredirect');
 
   auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      const banner = document.getElementById('alreadyLoggedInBanner');
-      if (banner) banner.style.display = 'none';
-      return;
-    }
+    if (!user) return;
     try {
-      const uEmail = (user.email || '').toLowerCase();
-      let role = null;
-      let name = '';
-      try {
-        const snap = await db.collection('users').doc(user.uid).get();
-        if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
-          role = snap.data().role;
-          name = snap.data().name || '';
-        }
-      } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
-
-      if (!role && ADMIN_EMAILS.includes(uEmail)) {
-        role = 'admin';
-        name = name || 'Administrator';
-      }
-
-      if (role && ROLE_ROUTES[role]) {
-        if (allowAutoRedirect) {
+      if (allowAutoRedirect) {
+        const uEmail = (user.email || '').toLowerCase();
+        let role = null;
+        try {
+          const snap = await db.collection('users').doc(user.uid).get();
+          if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
+            role = snap.data().role;
+          }
+        } catch(e) {}
+        if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
+        if (role && ROLE_ROUTES[role]) {
           window.location.replace(ROLE_ROUTES[role]);
           return;
         }
-        // Show polite banner: let user jump to their active portal or sign into another account below
-        const banner = document.getElementById('alreadyLoggedInBanner');
-        const label = document.getElementById('activeUserLabel');
-        const goBtn = document.getElementById('activeUserGoBtn');
-        if (banner && label && goBtn) {
-          label.textContent = `${name || uEmail} (${role.toUpperCase()})`;
-          goBtn.href = ROLE_ROUTES[role];
-          banner.style.display = 'flex';
-        }
       }
+      // Clear previous session so user starts with a completely fresh login form
+      auth.signOut().catch(() => {});
     } catch(e) {}
   });
 
