@@ -581,6 +581,53 @@
     border-top: 2px solid var(--line);
   }
 
+  /* Academic Marks & Full Subject Inspector Styles */
+  .mrk-tab-btn {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .mrk-tab-btn.active {
+    background: var(--brand-green, #059669);
+    color: #ffffff;
+    border-color: var(--brand-green, #059669);
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  }
+
+  .mrk-student-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .mrk-student-row:hover {
+    background: #f0fdf4 !important;
+  }
+
+  .mrk-input {
+    width: 84px;
+    padding: 6px 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 6px;
+    border: 1.5px solid var(--line);
+    font-family: var(--font-mono);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .mrk-input:focus {
+    outline: none;
+    border-color: var(--brand-green, #059669);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+  }
+
   /* Staff Topbar Notifications Flyout */
   .notif-wrapper {
     position: relative;
@@ -944,10 +991,172 @@
   </div>
 </div>
 
-<!-- ================= STAFF BULK MARKS IMPORT MODAL ================= -->
-<div class="profile-modal-overlay" id="staffMarksImportModal">
-  <div class="profile-modal-card" style="max-width:740px; width:95%;">
-    <button type="button" class="modal-close" id="closeStaffMarksImportModal">&times;</button>
+<!-- ================= STUDENT FULL SUBJECT MARKS & REPORT CARD MODAL ================= -->
+<div class="profile-modal-overlay" id="studentFullMarksModal" style="display:none; z-index:1050;">
+  <div class="profile-modal-card has-header" style="max-width:920px; width:95%; max-height:92vh; overflow-y:auto;">
+    <div class="profile-modal-header" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+      <div class="pm-header-left">
+        <div class="pm-header-icon"
+          style="background:rgba(255,255,255,0.15); color:#ffffff; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="pm-header-title" style="color:#ffffff;">Student Academic Progress Dossier</h3>
+          <p class="pm-header-subtitle" style="color:#94a3b8;">Full Subject List &amp; Official Marks Statement</p>
+        </div>
+      </div>
+      <div class="pm-header-actions">
+        <button type="button" class="btn btn-primary btn-sm sfm-save-marks-btn" id="sfmSaveHeaderBtn"
+          style="font-size:12px; padding:7px 14px; font-weight:700; background:var(--brand-green); color:#ffffff; border:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Save Marks
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="printSingleReportCardBtn"
+          style="font-size:12px; padding:7px 14px; font-weight:700; background:#ffffff; color:#0f172a; border:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          Print Report Card
+        </button>
+        <button type="button" class="modal-close-btn" id="closeFullMarksModal"
+          title="Close modal (Esc)">&times;</button>
+      </div>
+    </div>
+
+    <div class="profile-modal-body" style="padding:22px;">
+      <!-- Student Dossier Banner -->
+      <div
+        style="background:var(--bg-card,#f8fafc); border:1px solid var(--line,#e2e8f0); border-radius:12px; padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h2 id="sfmStudentName" style="margin:0; font-size:20px; color:var(--ink);">Student Name</h2>
+            <span class="badge badge-purple" id="sfmClassBadge" style="font-weight:700;">Class: —</span>
+            <span class="badge badge-navy" id="sfmStreamBadge" style="display:none; font-weight:700;">Stream: —</span>
+          </div>
+          <div style="font-size:12.5px; color:var(--ink-soft); margin-top:6px; font-family:var(--font-mono);">
+            Roll No: <strong id="sfmRollNo" style="color:var(--ink);">—</strong> &bull; Admission No: <strong
+              id="sfmAdmNo" style="color:var(--ink);">—</strong> &bull; Exam: <strong id="sfmExamName"
+              style="color:var(--brand-green);">—</strong>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" class="btn btn-outline btn-sm" id="sfmPrevStudentBtn"
+            style="font-weight:700;">&larr; Prev Student</button>
+          <button type="button" class="btn btn-primary btn-sm sfm-save-marks-btn" id="sfmSaveTopBtn"
+            style="font-weight:700; padding:6px 14px; background:var(--brand-green); color:#fff; border:none; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Marks
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="sfmNextStudentBtn" style="font-weight:700;">Next
+            Student &rarr;</button>
+        </div>
+      </div>
+
+      <!-- FULL SUBJECTS TABLE -->
+      <div style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h4
+            style="margin:0; font-size:13.5px; font-weight:800; color:var(--ink); text-transform:uppercase; letter-spacing:0.5px;">
+            Prescribed Subject List &amp; Marks Entry
+          </h4>
+          <span style="font-size:12px; color:var(--ink-soft);" id="sfmSubjectCountText">5 Subjects Assigned</span>
+        </div>
+
+        <div class="table-wrap" style="border:1px solid var(--line); border-radius:10px; overflow:hidden;">
+          <table id="sfmSubjectTable" style="margin:0; width:100%;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="width:45px; text-align:center;">#</th>
+                <th>Subject Name</th>
+                <th style="width:110px; text-align:center;">Max Marks</th>
+                <th style="width:140px; text-align:center;">Marks Obtained</th>
+                <th style="width:100px; text-align:center;">Percentage</th>
+                <th style="width:90px; text-align:center;">Grade</th>
+                <th style="width:100px; text-align:center;">Result</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COMPREHENSIVE SCORECARD / SUMMARY -->
+      <div
+        style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px;">
+        <div
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Total Marks</div>
+          <div style="font-size:20px; font-weight:800; color:var(--ink); margin-top:2px;" id="sfmTotalMarksVal">0 / 500</div>
+        </div>
+        <div
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Overall Percentage</div>
+          <div style="font-size:20px; font-weight:800; color:#2563eb; margin-top:2px;" id="sfmPercentageVal">0%</div>
+        </div>
+        <div
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Overall Grade</div>
+          <div style="font-size:20px; font-weight:800; color:#059669; margin-top:2px;" id="sfmGradeVal">—</div>
+        </div>
+        <div
+          style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Academic Result</div>
+          <div style="font-size:20px; font-weight:800; margin-top:2px;" id="sfmResultVal">—</div>
+        </div>
+      </div>
+
+      <!-- Direct Save Action Bar -->
+      <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding:12px 16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px;">
+        <span style="font-size:12.5px; color:#166534; font-weight:600;">
+          💡 Tip: Type mark and press <kbd style="background:#fff; border:1px solid #86efac; border-radius:4px; padding:2px 6px;">Enter</kbd> to jump between subjects.
+        </span>
+        <button type="button" class="btn btn-primary sfm-save-marks-btn" id="sfmSaveCardBtn"
+          style="font-weight:700; font-size:13.5px; padding:10px 22px; background:var(--brand-green); color:#fff; border-radius:8px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Save All Marks for <span id="sfmSaveCardStudentName" style="margin-left:4px; text-decoration:underline;">Student</span>
+        </button>
+      </div>
+
+      <!-- MODAL FOOTER ACTIONS -->
+      <div
+        style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding-top:16px;">
+        <button type="button" class="btn btn-outline" id="sfmCloseBottomBtn">Close</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span id="sfmSaveMsg" style="font-size:13px; font-weight:700; color:var(--good); display:none;"></span>
+          <button type="button" class="btn btn-primary sfm-save-marks-btn" id="sfmSaveMarksBtn"
+            style="font-weight:700; padding:10px 24px;">
+            Save All Subject Marks Live
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BULK MARKS IMPORT MODAL ================= -->
+<div class="profile-modal-overlay" id="bulkMarksImportModal">
+  <div class="profile-modal-card" style="max-width:780px; width:95%;">
+    <button type="button" class="modal-close" id="closeBulkMarksImportModal">&times;</button>
     <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
       <div style="width:42px; height:42px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center;">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
@@ -957,29 +1166,56 @@
         </svg>
       </div>
       <div>
-        <h3 style="margin:0; font-size:18px; color:var(--ink);">Import Exam Marks CSV</h3>
-        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Bulk fill student marks obtained from a spreadsheet.</p>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Examination Marks CSV Import</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload exam marks in bulk for students by Admission No. or Roll No.</p>
       </div>
     </div>
 
-    <div class="field" style="margin-bottom:16px;">
-      <label>Select Marks CSV <span style="color:var(--bad);">*</span></label>
-      <input type="file" id="staffMarksCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+    <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:14px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div>
+        <strong style="color:#92400e; font-size:13px; display:block;">Download Examination Marks Template:</strong>
+        <span style="color:#b45309; font-size:12px;">Download current class exam sheet or sample marks template.</span>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="downloadMarksTemplateBtn" style="background:#fff; font-weight:700; color:#92400e; border-color:#fcd34d; display:inline-flex; align-items:center; gap:6px;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Download Marks Template
+      </button>
     </div>
 
-    <div id="staffMarksPreviewBox" style="display:none; margin-bottom:16px;">
+    <div class="field-row" style="margin-bottom:16px;">
+      <div class="field" style="flex:1;">
+        <label>Examination Name</label>
+        <input type="text" id="bulkMarksExamInput" placeholder="e.g. Midterm 1">
+      </div>
+      <div class="field" style="flex:1;">
+        <label>Default Max Marks</label>
+        <input type="number" id="bulkMarksMaxInput" value="100" min="1">
+      </div>
+      <div class="field" style="flex:1.5;">
+        <label>Select Marks CSV <span style="color:var(--bad);">*</span></label>
+        <input type="file" id="bulkMarksCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+      </div>
+    </div>
+
+    <div id="bulkMarksPreviewBox" style="display:none; margin-bottom:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <strong style="font-size:13px; color:var(--ink);">Parsed Marks (<span id="staffMarksRowCount">0</span> matched)</strong>
+        <strong style="font-size:13px; color:var(--ink);">Parsed Marks (<span id="bulkMarksRowCount">0</span> entries ready)</strong>
         <span style="font-size:12px; font-weight:600; color:var(--good);">Ready to populate</span>
       </div>
       <div style="max-height:220px; overflow:auto; border:1px solid var(--line); border-radius:10px;">
-        <table style="width:100%; border-collapse:collapse; font-size:12px;" id="staffMarksPreviewTable">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;" id="bulkMarksPreviewTable">
           <thead>
             <tr style="background:#f8fafc; border-bottom:1px solid var(--line); text-align:left;">
-              <th style="padding:6px 10px;">Roll</th>
               <th style="padding:6px 10px;">Student Name</th>
               <th style="padding:6px 10px;">Adm No.</th>
+              <th style="padding:6px 10px;">Subject</th>
+              <th style="padding:6px 10px;">Exam</th>
               <th style="padding:6px 10px;">Marks</th>
+              <th style="padding:6px 10px;">Max</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -988,9 +1224,9 @@
     </div>
 
     <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-      <button type="button" class="btn btn-outline" id="cancelStaffMarksImportBtn">Close</button>
-      <button type="button" class="btn btn-primary" id="startStaffMarksImportBtn" disabled style="min-width:160px; font-weight:700;">
-        Populate Marks
+      <button type="button" class="btn btn-outline" id="cancelBulkMarksImportBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="startBulkMarksImportBtn" disabled style="min-width:160px; font-weight:700;">
+        Apply Bulk Marks
       </button>
     </div>
   </div>
@@ -1022,7 +1258,7 @@
       </a>
       <a href="#" data-tab="marks">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        Upload Marks
+        Marks &amp; Results
       </a>
       <a href="#" data-tab="exams">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -1238,7 +1474,7 @@
                 </div>
               </div>
               <div class="activity-right">
-                <a href="#" data-tab="marks" class="badge badge-purple tab-switch-btn" style="text-decoration:none; cursor:pointer;">Upload Marks &rarr;</a>
+                <a href="#" data-tab="marks" class="badge badge-purple tab-switch-btn" style="text-decoration:none; cursor:pointer;">Marks &amp; Results &rarr;</a>
                 <div class="activity-time">02:00 PM - 04:30 PM</div>
               </div>
             </div>
@@ -1767,42 +2003,154 @@
         </div>
       </section>
 
-      <!-- MARKS -->
+      <!-- ================= ACADEMIC PERFORMANCE & MARKS INTELLIGENCE ================= -->
       <section id="panel-marks" style="display:none;">
         <div class="main-header">
           <div>
-            <h2>Upload Marks</h2>
-            <p style="color:var(--ink-soft);">Pick a class and subject you teach, then enter student marks by Roll No.</p>
+            <h2>Academic Performance &amp; Marks Intelligence</h2>
+            <p>Multi-Subject Progress Reports, Examination Registers &amp; Student-Wise Marksheets</p>
           </div>
-          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Exit to Home
-          </button>
-        </div>
-        <div id="marksNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet. Ask admin.</div>
-        <div id="marksAccess" style="display:none;">
-          <div class="card card-static" style="margin-bottom:20px;">
-            <div class="field-row" style="align-items:flex-end;">
-              <div class="field" style="flex:1.2; min-width:180px;"><label>Class / Subject</label><select id="marksAssignSel"></select></div>
-              <div class="field" style="flex:1.2; min-width:180px;"><label>Exam Name</label><input type="text" id="marksExamName" placeholder="e.g. Midterm 1"></div>
-              <div class="field" style="flex:0.8; min-width:100px;"><label>Max Marks</label><input type="number" id="marksMax" value="100"></div>
-              <div class="field field-action"><button class="btn btn-primary" id="marksLoadBtn">Load</button></div>
-            </div>
-          </div>
-          <div class="card card-static table-wrap">
-            <table id="marksEntryTable"><thead><tr><th>Roll No.</th><th>Student Name</th><th>Admission No.</th><th>Marks Obtained</th></tr></thead><tbody></tbody></table>
-          </div>
-          <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <button class="btn btn-brass" id="marksSaveBtn">Save Marks</button>
-            <button class="btn btn-outline" id="staffMarksExportCsvBtn" type="button" style="border:1px solid var(--border);background:#fff;color:var(--ink-main);font-weight:600;display:inline-flex;align-items:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" id="printConsolidatedMarksBtn"
+              style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              Print Register
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="exportConsolidatedMarksCsvBtn"
+              style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
               Export CSV
             </button>
-            <button class="btn btn-outline" id="staffMarksImportCsvBtn" type="button" style="border:1px solid #d97706;background:#fffbeb;color:#b45309;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <button type="button" class="btn btn-outline btn-sm" id="importConsolidatedMarksCsvBtn"
+              style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
               Import CSV
             </button>
-            <span id="marksMsg" style="color:var(--good);font-weight:600;font-size:14px;"></span>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview"
+              title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Exit to Home
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Control Card -->
+        <div class="card" style="margin-bottom:20px; padding:18px 22px;">
+          <div class="field-row" style="align-items:flex-end; gap:16px;">
+            <div class="field" style="flex:1.2; min-width:200px;">
+              <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Class Section *</label>
+              <select id="marksClassFilter" style="font-weight:600; font-size:13.5px; padding:9px 12px;">
+                <option value="">-- Choose Class Section --</option>
+              </select>
+            </div>
+
+            <div class="field" style="flex:1.2; min-width:200px;">
+              <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Examination *</label>
+              <div style="display:flex; gap:8px;">
+                <select id="marksExamSelect" style="flex:1; font-weight:600; font-size:13.5px; padding:9px 12px;">
+                  <option value="Quarterly Examination">Quarterly Examination</option>
+                  <option value="Midterm 1">Midterm 1</option>
+                  <option value="Midterm 2">Midterm 2</option>
+                  <option value="Half Yearly Examination">Half Yearly Examination</option>
+                  <option value="Annual / Final Examination">Annual / Final Examination</option>
+                  <option value="Unit Test 1">Unit Test 1</option>
+                  <option value="Unit Test 2">Unit Test 2</option>
+                  <option value="__custom__">+ Custom Exam...</option>
+                </select>
+                <input type="text" id="marksCustomExamInput" placeholder="Exam Name"
+                  style="display:none; flex:1; padding:9px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
+              </div>
+            </div>
+
+            <div class="field" style="flex:0.8; min-width:140px;">
+              <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Max Marks per Subject</label>
+              <input type="number" id="marksMaxPerSubject" value="100" min="10" max="500"
+                style="padding:9px 12px; font-size:13.5px; font-weight:700; border-radius:8px; border:1px solid var(--line);">
+            </div>
+
+            <div class="field field-action" style="display:flex; gap:8px;">
+              <button class="btn btn-primary" id="marksReportBtn" style="padding:10px 18px; font-weight:700;">
+                Load Class Marks
+              </button>
+            </div>
+          </div>
+
+          <!-- Subject Curriculum Info Bar -->
+          <div id="marksCurriculumBar"
+            style="display:none; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="badge badge-navy" id="marksCurriculumTag"
+                style="font-weight:700; font-size:12px;">Curriculum: Standard 5 Subjects</span>
+              <span style="font-size:12.5px; color:var(--ink-soft);" id="marksCurriculumSubjectList">Tamil, English,
+                Mathematics, Science, Social Science</span>
+            </div>
+            <div style="font-size:12px; color:var(--ink-soft);">
+              💡 <em>Click any student below to inspect their full subject list and enter/edit marks.</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- View Mode Tabs -->
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+          <button type="button" class="btn btn-sm mrk-tab-btn active" id="marksTabBtnStudents">
+            Student-Wise Roll (Click Student to Inspect Full Subjects)
+          </button>
+          <button type="button" class="btn btn-sm mrk-tab-btn" id="marksTabBtnConsolidated">
+            Consolidated Class Register (All Subjects Matrix)
+          </button>
+        </div>
+
+        <!-- VIEW 1: Students Roll Call (Click any student to see their full subject list) -->
+        <div id="marksViewStudents">
+          <div class="card table-wrap" style="margin:0;">
+            <table id="marksStudentsTable" style="margin:0;">
+              <thead>
+                <tr>
+                  <th style="width:70px; text-align:center;">Roll No</th>
+                  <th>Student Details</th>
+                  <th style="width:120px; text-align:center;">Admission No</th>
+                  <th style="width:160px;">Curriculum / Stream</th>
+                  <th style="width:100px; text-align:center;">Subjects</th>
+                  <th style="width:130px; text-align:center;">Total Marks</th>
+                  <th style="width:100px; text-align:center;">Percentage</th>
+                  <th style="width:90px; text-align:center;">Grade</th>
+                  <th style="width:100px; text-align:center;">Result</th>
+                  <th style="width:150px; text-align:center;">Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="empty-state" id="marksStudentsEmpty" style="padding:48px 16px; text-align:center;">
+              Please select a class section above and click "Load Class Marks".
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: Consolidated Class Register (All Subjects Matrix) -->
+        <div id="marksViewConsolidated" style="display:none;">
+          <div class="card table-wrap" style="margin:0; overflow-x:auto;">
+            <table id="marksConsolidatedTable" style="margin:0; min-width:800px;">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+            <div class="empty-state" id="marksConsolidatedEmpty"
+              style="display:none; padding:48px 16px; text-align:center;">
+              No marks data loaded yet.
+            </div>
           </div>
         </div>
       </section>
@@ -2128,7 +2476,7 @@ function switchTab(tabName, pushState = true) {
 
   if (tabName === 'announcements') loadStaffAnnouncements();
   if (tabName === 'attendance') initStaffAttendancePanel();
-  if (tabName === 'marks') loadMarksForCurrentAssignment();
+  if (tabName === 'marks') onStaffMarksTabOpen();
   if (tabName === 'exams') loadExams();
   if (tabName === 'notes') loadNotesList();
   if (tabName === 'homework') loadHwList();
@@ -2587,24 +2935,23 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
     if (window.location.hash === '#attendance') {
       initStaffAttendancePanel();
     }
-    // Configure Marks Access
+    // Configure Notes & Homework Access
     if (subjectAssignments.length) {
-      document.getElementById('marksAccess').style.display = 'block';
       document.getElementById('notesAccess').style.display = 'block';
       document.getElementById('hwAccess').style.display = 'block';
 
       const opts = subjectAssignments.map((a, i) => `<option value="${i}">${a.className || 'Class'} — ${a.subject}</option>`).join('');
-      document.getElementById('marksAssignSel').innerHTML = opts;
       document.getElementById('notesAssignSel').innerHTML = opts;
       document.getElementById('hwAssignSel').innerHTML = opts;
-
-      if (window.location.hash === '#marks') {
-        loadMarksForCurrentAssignment();
-      }
     } else {
-      document.getElementById('marksNoAccess').style.display = 'block';
       document.getElementById('notesNoAccess').style.display = 'block';
       document.getElementById('hwNoAccess').style.display = 'block';
+    }
+
+    // Initialize Marks & Results Class Filter
+    initStaffMarksClassFilter();
+    if (window.location.hash === '#marks') {
+      onStaffMarksTabOpen();
     }
 
     // Load staff circulars & announcements in background
@@ -2641,6 +2988,9 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
         });
 
         allClassesCache = sortedClasses;
+
+        // Refresh marks class selector if allClassesCache arrived
+        initStaffMarksClassFilter();
 
         // If page was loaded directly on Attendance tab, re-init
         if (window.location.hash === '#attendance') {
@@ -4730,77 +5080,1133 @@ document.getElementById('attPrintAuditBtn')?.addEventListener('click', () => {
   );
 });
 
-// ---------------- MARKS ----------------
-let currentMarksStudents = [];
+// ======================== ACADEMIC PERFORMANCE & MARKS INTELLIGENCE ========================
+const STANDARD_CORE_SUBJECTS = [
+  'Tamil',
+  'English',
+  'Mathematics',
+  'Science',
+  'Social Science'
+];
 
-async function loadMarksForCurrentAssignment() {
-  const selIdx = document.getElementById('marksAssignSel')?.value;
-  if (selIdx === undefined || selIdx === '' || !subjectAssignments || !subjectAssignments[selIdx]) {
-    const body = document.querySelector('#marksEntryTable tbody');
-    if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--ink-soft);">No class selected.</td></tr>';
+const HIGHER_SECONDARY_STREAMS = {
+  'bio_maths': {
+    name: 'Group 1: Bio-Maths (6 Subjects)',
+    subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+  },
+  'computer_science': {
+    name: 'Group 2: Computer Science & Maths (6 Subjects)',
+    subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry', 'Computer Science']
+  },
+  'pure_science': {
+    name: 'Group 3: Pure Science (6 Subjects)',
+    subjects: ['Tamil', 'English', 'Physics', 'Chemistry', 'Botany', 'Zoology']
+  },
+  'commerce_bm': {
+    name: 'Group 4: Commerce & Business Maths (6 Subjects)',
+    subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Business Mathematics']
+  },
+  'commerce_ca': {
+    name: 'Group 5: Commerce & Computer Applications (6 Subjects)',
+    subjects: ['Tamil', 'English', 'Commerce', 'Accountancy', 'Economics', 'Computer Applications']
+  },
+  'arts': {
+    name: 'Group 6: Arts & Humanities (6 Subjects)',
+    subjects: ['Tamil', 'English', 'History', 'Geography', 'Economics', 'Political Science']
+  },
+  'custom': {
+    name: 'Custom / Electives',
+    subjects: ['Tamil', 'English', 'Mathematics', 'Physics', 'Chemistry']
+  }
+};
+
+function isHigherSecondaryClass(className) {
+  if (!className) return false;
+  const s = String(className).toUpperCase().trim();
+  return /\b(11|12|XI|XII)\b/.test(s) || /11TH|12TH|CLASS\s*11|CLASS\s*12|GRADE\s*11|GRADE\s*12/.test(s);
+}
+
+function isKindergartenClass(className) {
+  if (!className) return false;
+  const s = String(className).toUpperCase().trim();
+  return /PRE[-\s.]?KG|L\.?K\.?G|U\.?K\.?G|NURSERY|PLAY|MONT/i.test(s);
+}
+
+const KINDERGARTEN_DEFAULT_SUBJECTS = [
+  'English',
+  'Tamil',
+  'Mathematics',
+  'Rhymes & Stories',
+  'Drawing & Activity'
+];
+
+function getStudentSubjects(student, classObj = null) {
+  if (student && Array.isArray(student.subjects) && student.subjects.length > 0) {
+    return student.subjects;
+  }
+  if (student && student.stream && HIGHER_SECONDARY_STREAMS[student.stream]) {
+    return HIGHER_SECONDARY_STREAMS[student.stream].subjects;
+  }
+  const clsName = student?.className || classObj?.name || '';
+  if (isHigherSecondaryClass(clsName)) {
+    return HIGHER_SECONDARY_STREAMS.bio_maths.subjects;
+  }
+  if (isKindergartenClass(clsName)) {
+    return [...KINDERGARTEN_DEFAULT_SUBJECTS];
+  }
+  return [...STANDARD_CORE_SUBJECTS];
+}
+
+let currentMarksClassId = null;
+let currentMarksExamName = 'Quarterly Examination';
+let currentMarksStudents = [];
+let currentMarksRecordsMap = {}; // key: `${studentUid}_${subject}` -> record obj
+let currentMarksActiveStudentIdx = 0;
+let currentMarksViewMode = 'students'; // 'students' or 'consolidated'
+
+function initStaffMarksClassFilter() {
+  const sel = document.getElementById('marksClassFilter');
+  if (!sel) return;
+  const prevVal = sel.value;
+
+  const assignedClasses = [];
+  const seenClassIds = new Set();
+
+  if (classTeacherClass && classTeacherClass.id) {
+    seenClassIds.add(classTeacherClass.id);
+    assignedClasses.push({
+      id: classTeacherClass.id,
+      name: `${classTeacherClass.name} ★ (My Class Teacher Section)`
+    });
+  }
+
+  (subjectAssignments || []).forEach(sa => {
+    if (sa.classId && !seenClassIds.has(sa.classId)) {
+      seenClassIds.add(sa.classId);
+      assignedClasses.push({
+        id: sa.classId,
+        name: `${sa.className || 'Class'} (${sa.subject})`
+      });
+    }
+  });
+
+  let optionsHtml = '';
+  if (assignedClasses.length > 1) {
+    optionsHtml = '<option value="">-- Choose Managed Class --</option>';
+    assignedClasses.forEach(c => {
+      optionsHtml += `<option value="${c.id}">${c.name}</option>`;
+    });
+  } else if (assignedClasses.length === 1) {
+    optionsHtml = `<option value="${assignedClasses[0].id}">${assignedClasses[0].name}</option>`;
+  } else {
+    optionsHtml = '<option value="">No Class Assigned to You</option>';
+  }
+
+  sel.innerHTML = optionsHtml;
+
+  if (prevVal && sel.querySelector(`option[value="${prevVal}"]`)) {
+    sel.value = prevVal;
+  } else if (assignedClasses.length > 0) {
+    sel.value = assignedClasses[0].id;
+  }
+}
+
+function onStaffMarksTabOpen() {
+  initStaffMarksClassFilter();
+  const cid = document.getElementById('marksClassFilter')?.value;
+  if (cid && (!currentMarksClassId || currentMarksClassId !== cid || !currentMarksStudents.length)) {
+    loadClassAcademicMarks();
+  }
+}
+
+// Tab buttons
+document.getElementById('marksTabBtnStudents')?.addEventListener('click', () => {
+  currentMarksViewMode = 'students';
+  document.getElementById('marksTabBtnStudents')?.classList.add('active');
+  document.getElementById('marksTabBtnConsolidated')?.classList.remove('active');
+  document.getElementById('marksViewStudents').style.display = 'block';
+  document.getElementById('marksViewConsolidated').style.display = 'none';
+});
+
+document.getElementById('marksTabBtnConsolidated')?.addEventListener('click', () => {
+  currentMarksViewMode = 'consolidated';
+  document.getElementById('marksTabBtnConsolidated')?.classList.add('active');
+  document.getElementById('marksTabBtnStudents')?.classList.remove('active');
+  document.getElementById('marksViewStudents').style.display = 'none';
+  document.getElementById('marksViewConsolidated').style.display = 'block';
+  renderConsolidatedMarksTable();
+});
+
+// Custom Exam input toggle
+document.getElementById('marksExamSelect')?.addEventListener('change', (e) => {
+  const customInp = document.getElementById('marksCustomExamInput');
+  if (e.target.value === '__custom__') {
+    if (customInp) { customInp.style.display = 'block'; customInp.focus(); }
+  } else {
+    if (customInp) { customInp.style.display = 'none'; }
+  }
+});
+
+function getSelectedExamName() {
+  const sel = document.getElementById('marksExamSelect');
+  if (!sel) return 'Quarterly Examination';
+  if (sel.value === '__custom__') {
+    return (document.getElementById('marksCustomExamInput')?.value.trim()) || 'Custom Examination';
+  }
+  return sel.value;
+}
+
+// Load Class Marks handler
+document.getElementById('marksReportBtn')?.addEventListener('click', async () => {
+  await loadClassAcademicMarks();
+});
+
+document.getElementById('marksClassFilter')?.addEventListener('change', async () => {
+  if (document.getElementById('marksClassFilter')?.value) {
+    await loadClassAcademicMarks();
+  }
+});
+
+async function loadClassAcademicMarks() {
+  const classId = document.getElementById('marksClassFilter')?.value;
+  if (!classId) {
+    alert('Please select a class section first.');
     return;
   }
-  const a = subjectAssignments[selIdx];
-  const body = document.querySelector('#marksEntryTable tbody');
-  if (body) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--ink-soft);"><span class="loader"></span> Loading students…</td></tr>';
-  }
+  currentMarksClassId = classId;
+  currentMarksExamName = getSelectedExamName();
+  const maxMarksVal = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
 
-  currentMarksStudents = await getClassStudents(a.classId, a.className);
-  if (!body) return;
-  body.innerHTML = '';
+  const btn = document.getElementById('marksReportBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading Marks…'; }
+
+  try {
+    const classObj = (allClassesCache && allClassesCache.find(c => c.id === classId)) || (classTeacherClass && classTeacherClass.id === classId ? classTeacherClass : { id: classId, name: 'Class' });
+    const isHS = isHigherSecondaryClass(classObj.name);
+
+    // Update curriculum info bar
+    const currBar = document.getElementById('marksCurriculumBar');
+    const currTag = document.getElementById('marksCurriculumTag');
+    const currSubList = document.getElementById('marksCurriculumSubjectList');
+    if (currBar) currBar.style.display = 'flex';
+    if (currTag) {
+      currTag.textContent = isHS ? 'Higher Secondary Stream Curriculum (6 Subjects)' : 'Standard Curriculum (5 Core Subjects)';
+    }
+    if (currSubList) {
+      currSubList.textContent = isHS
+        ? 'Tamil, English, Mathematics, Physics, Chemistry, Biology / Stream Electives'
+        : STANDARD_CORE_SUBJECTS.join(', ');
+    }
+
+    // 1. Fetch Students
+    const rawStudents = await getClassStudents(classId, classObj.name);
+
+    // Sort by Roll No
+    currentMarksStudents = rawStudents.sort((a, b) => {
+      const numA = parseInt(a.rollNo, 10);
+      const numB = parseInt(b.rollNo, 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return String(a.rollNo || a.name || '').localeCompare(String(b.rollNo || b.name || ''));
+    });
+
+    // 2. Fetch Marks for this class
+    const qMarks = query(collection(db, 'marks'), where('classId', '==', classId));
+    const marksSnap = await getDocs(qMarks);
+
+    currentMarksRecordsMap = {};
+    marksSnap.docs.forEach(d => {
+      const rec = { id: d.id, ...d.data() };
+      const sId = rec.studentUid || rec.studentId || rec.uid;
+      if (sId && rec.subject) {
+        const rExam = (rec.examName || '').trim().toLowerCase();
+        const curExam = currentMarksExamName.trim().toLowerCase();
+        if (rExam === curExam) {
+          const key = `${sId}_${rec.subject.trim().toLowerCase()}`;
+          currentMarksRecordsMap[key] = rec;
+        }
+      }
+    });
+
+    renderStudentsMarksTable();
+    renderConsolidatedMarksTable();
+
+  } catch (err) {
+    console.error('Error loading marks:', err);
+    alert('Failed to load marks: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Load Class Marks'; }
+  }
+}
+
+function calculateStudentMarksSummary(student, classObj) {
+  const subs = getStudentSubjects(student, classObj);
+  const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+  let totalObtained = 0;
+  let totalMax = 0;
+  let anyMarkEntered = false;
+  let allPassed = true;
+
+  subs.forEach(sub => {
+    const key = `${student.id || student.uid}_${sub.trim().toLowerCase()}`;
+    const rec = currentMarksRecordsMap[key];
+    const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+    const marks = rec && rec.marks !== undefined && rec.marks !== null ? Number(rec.marks) : null;
+    totalMax += maxM;
+
+    if (marks !== null) {
+      totalObtained += marks;
+      anyMarkEntered = true;
+      if (marks < (maxM * 0.35)) {
+        allPassed = false;
+      }
+    } else {
+      allPassed = false;
+    }
+  });
+
+  const pct = totalMax && anyMarkEntered ? Math.round((totalObtained / totalMax) * 100) : null;
+  let grade = '—';
+  if (pct !== null) {
+    grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B+' : pct >= 60 ? 'B' : pct >= 50 ? 'C' : pct >= 35 ? 'D' : 'F';
+  }
+  const result = anyMarkEntered ? (allPassed && pct >= 35 ? 'PASSED' : 'FAIL') : 'UNMARKED';
+
+  return {
+    subjects: subs,
+    totalObtained,
+    totalMax,
+    percentage: pct,
+    grade,
+    result,
+    anyMarkEntered
+  };
+}
+
+function renderStudentsMarksTable() {
+  const tbody = document.querySelector('#marksStudentsTable tbody');
+  const emptyEl = document.getElementById('marksStudentsEmpty');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
   if (!currentMarksStudents.length) {
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--ink-soft);">No enrolled students found for <strong>' + (a.className || 'this class') + '</strong>.</td></tr>';
+    if (emptyEl) {
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = 'No students found enrolled in this class section.';
+    }
     return;
   }
+  if (emptyEl) emptyEl.style.display = 'none';
 
-  currentMarksStudents.forEach(s => {
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+
+  currentMarksStudents.forEach((s, idx) => {
+    const summary = calculateStudentMarksSummary(s, classObj);
     const tr = document.createElement('tr');
+    tr.className = 'mrk-student-row';
+
+    const resultBadge = summary.result === 'PASSED'
+      ? '<span class="badge badge-good" style="font-weight:700;">PASSED</span>'
+      : (summary.result === 'FAIL'
+        ? '<span class="badge badge-bad" style="font-weight:700;">FAIL</span>'
+        : '<span class="badge" style="background:#f1f5f9; color:#64748b; font-weight:700;">Unmarked</span>');
+
+    const gradeBadge = summary.grade !== '—'
+      ? `<span class="badge ${summary.grade === 'F' ? 'badge-bad' : 'badge-good'}" style="font-weight:700;">${summary.grade}</span>`
+      : '<span style="color:var(--ink-soft);">—</span>';
+
+    const pctDisplay = summary.percentage !== null
+      ? `<span style="font-family:var(--font-mono); font-weight:700; color:${summary.percentage >= 35 ? 'var(--brand-green)' : 'var(--bad)'};">${summary.percentage}%</span>`
+      : '<span style="color:var(--ink-soft);">—</span>';
+
+    const totalDisplay = summary.anyMarkEntered
+      ? `<span style="font-family:var(--font-mono); font-weight:700;">${summary.totalObtained}</span> <small style="color:var(--ink-soft);">/ ${summary.totalMax}</small>`
+      : '<span style="color:var(--ink-soft);">—</span>';
+
+    const streamDisplay = s.stream
+      ? `<span class="badge badge-navy" style="font-size:11px;">${HIGHER_SECONDARY_STREAMS[s.stream]?.name.split(':')[1]?.trim() || s.stream}</span>`
+      : (isHigherSecondaryClass(classObj?.name) ? '<span class="badge badge-navy" style="font-size:11px;">Higher Secondary</span>' : '<span class="badge badge-yellow" style="font-size:11px;">Standard 5 Sub</span>');
+
     tr.innerHTML = `
-      <td><span class="badge badge-yellow" style="display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:28px; border-radius:999px; font-family:var(--font-mono); font-weight:700; font-size:12px; padding:0 8px; margin:0 auto;">${s.rollNo || '—'}</span></td>
-      <td><strong>${s.name}</strong></td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${s.admissionNo || '—'}</span></td>
-      <td><input type="number" class="marks-input" data-uid="${s.uid}" placeholder="0" min="0" max="${document.getElementById('marksMax')?.value || 100}" style="width:90px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);"></td>
+      <td style="text-align:center;">
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
+      </td>
+      <td>
+        <strong style="color:var(--ink); font-size:13.5px;">${s.name}</strong>
+        <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
+      </td>
+      <td style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">
+        ${s.admissionNo || '—'}
+      </td>
+      <td>${streamDisplay}</td>
+      <td style="text-align:center;">
+        <span class="badge badge-purple" style="font-weight:700;">${summary.subjects.length} Subjects</span>
+      </td>
+      <td style="text-align:center;">${totalDisplay}</td>
+      <td style="text-align:center;">${pctDisplay}</td>
+      <td style="text-align:center;">${gradeBadge}</td>
+      <td style="text-align:center;">${resultBadge}</td>
+      <td style="text-align:center;">
+        <button type="button" class="btn btn-outline btn-sm inspectStudentMarksBtn" data-idx="${idx}" style="font-weight:700; font-size:12px; padding:5px 12px; background:var(--white); border-color:var(--brand-green); color:var(--brand-green); border-radius:6px; cursor:pointer;" title="Inspect full subjects and enter/edit marks">
+          Inspect Subjects &rarr;
+        </button>
+      </td>
     `;
-    body.appendChild(tr);
+
+    // Clicking anywhere on row opens full subjects modal
+    tr.addEventListener('click', () => {
+      openStudentFullMarksModal(idx);
+    });
+
+    tbody.appendChild(tr);
   });
 }
 
-document.getElementById('marksLoadBtn')?.addEventListener('click', loadMarksForCurrentAssignment);
-document.getElementById('marksAssignSel')?.addEventListener('change', loadMarksForCurrentAssignment);
+function openStudentFullMarksModal(studentIdx) {
+  studentIdx = parseInt(studentIdx, 10);
+  if (isNaN(studentIdx) || studentIdx < 0 || studentIdx >= currentMarksStudents.length) return;
+  currentMarksActiveStudentIdx = studentIdx;
+  const s = currentMarksStudents[studentIdx];
+  if (!s) return;
 
-document.getElementById('marksSaveBtn').addEventListener('click', async () => {
-  const selIdx = document.getElementById('marksAssignSel').value;
-  const a = subjectAssignments[selIdx];
-  const examName = document.getElementById('marksExamName').value.trim();
-  const maxMarks = parseInt(document.getElementById('marksMax').value) || 100;
-  if (!a || !examName || !currentMarksStudents.length) {
-    alert('Select assignment, enter exam name, and load students first.'); return;
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const isHS = isHigherSecondaryClass(classObj?.name);
+  const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+  // Populate Dossier Header
+  document.getElementById('sfmStudentName').textContent = s.name || 'Student';
+  document.getElementById('sfmClassBadge').textContent = `Class: ${classObj?.name || s.className || '—'}`;
+  document.getElementById('sfmRollNo').textContent = s.rollNo || s.admissionNo || '—';
+  document.getElementById('sfmAdmNo').textContent = s.admissionNo || '—';
+  document.getElementById('sfmExamName').textContent = currentMarksExamName;
+
+  const saveCardName = document.getElementById('sfmSaveCardStudentName');
+  if (saveCardName) saveCardName.textContent = s.name || 'Student';
+
+  const streamBadge = document.getElementById('sfmStreamBadge');
+  if (s.stream || isHS) {
+    streamBadge.style.display = 'inline-block';
+    streamBadge.textContent = s.stream ? (HIGHER_SECONDARY_STREAMS[s.stream]?.name || s.stream) : 'Bio-Maths Group';
+  } else {
+    streamBadge.style.display = 'none';
   }
-  const btn = document.getElementById('marksSaveBtn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-  
-  for (const s of currentMarksStudents) {
-    const inp = document.querySelector(`.marks-input[data-uid="${s.uid}"]`);
-    const marks = inp ? (parseFloat(inp.value) || 0) : 0;
-    await addDoc(collection(db, 'marks'), {
-      studentUid: s.uid,
-      studentName: s.name || '',
-      admissionNo: s.admissionNo || '',
-      rollNo: s.rollNo || '',
-      classId: a.classId,
-      className: a.className || '',
-      subject: a.subject,
-      examName,
-      marks,
-      maxMarks,
-      uploadedBy: staffUid,
-      uploadedAt: serverTimestamp()
+
+  // Prev / Next button states
+  const prevBtn = document.getElementById('sfmPrevStudentBtn');
+  const nextBtn = document.getElementById('sfmNextStudentBtn');
+  if (prevBtn) {
+    prevBtn.disabled = studentIdx <= 0;
+    prevBtn.style.opacity = studentIdx <= 0 ? '0.45' : '1';
+    prevBtn.style.cursor = studentIdx <= 0 ? 'not-allowed' : 'pointer';
+  }
+  if (nextBtn) {
+    nextBtn.disabled = studentIdx >= currentMarksStudents.length - 1;
+    nextBtn.style.opacity = studentIdx >= currentMarksStudents.length - 1 ? '0.45' : '1';
+    nextBtn.style.cursor = studentIdx >= currentMarksStudents.length - 1 ? 'not-allowed' : 'pointer';
+  }
+
+  // Populate Subjects Table
+  const subs = getStudentSubjects(s, classObj);
+  document.getElementById('sfmSubjectCountText').textContent = `${subs.length} Prescribed Subjects (${isHS ? 'Higher Secondary' : 'Standard 5 Core'})`;
+
+  const tbody = document.querySelector('#sfmSubjectTable tbody');
+  tbody.innerHTML = '';
+
+  subs.forEach((sub, i) => {
+    const sUid = s.id || s.uid;
+    const key = `${sUid}_${sub.trim().toLowerCase()}`;
+    const rec = currentMarksRecordsMap[key];
+    const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+    const marksVal = (rec && rec.marks !== undefined && rec.marks !== null) ? rec.marks : '';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:center; font-weight:bold; color:var(--ink-soft);">${i + 1}</td>
+      <td>
+        <strong style="color:var(--ink); font-size:13.5px;">${sub}</strong>
+      </td>
+      <td style="text-align:center;">
+        <input type="number" class="sfm-max-input mrk-input" data-sub="${sub}" value="${maxM}" min="10" max="500" style="width:70px;">
+      </td>
+      <td style="text-align:center;">
+        <input type="number" class="sfm-marks-input mrk-input" data-sub="${sub}" value="${marksVal}" min="0" max="${maxM}" placeholder="—" style="width:80px; font-size:14px; color:var(--brand-green);">
+      </td>
+      <td style="text-align:center;" class="sfm-row-pct font-mono font-bold">—</td>
+      <td style="text-align:center;" class="sfm-row-grade">—</td>
+      <td style="text-align:center;" class="sfm-row-result">—</td>
+    `;
+
+    // Live calculation event listeners
+    const marksInput = tr.querySelector('.sfm-marks-input');
+    const maxInput = tr.querySelector('.sfm-max-input');
+
+    const updateRowLive = () => {
+      const mVal = marksInput.value.trim();
+      const maxVal = parseFloat(maxInput.value) || 100;
+      const marksNum = mVal !== '' ? parseFloat(mVal) : null;
+      const pctEl = tr.querySelector('.sfm-row-pct');
+      const gradeEl = tr.querySelector('.sfm-row-grade');
+      const resEl = tr.querySelector('.sfm-row-result');
+
+      if (marksNum !== null && !isNaN(marksNum)) {
+        const p = maxVal ? Math.round((marksNum / maxVal) * 100) : 0;
+        pctEl.textContent = `${p}%`;
+        pctEl.style.color = p >= 35 ? 'var(--brand-green)' : 'var(--bad)';
+        const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+        gradeEl.innerHTML = `<span class="badge ${g === 'F' ? 'badge-bad' : 'badge-good'}" style="font-weight:700;">${g}</span>`;
+        const isP = marksNum >= (maxVal * 0.35);
+        resEl.innerHTML = isP
+          ? '<span class="badge badge-good" style="font-size:11px; font-weight:700;">PASS</span>'
+          : '<span class="badge badge-bad" style="font-size:11px; font-weight:700;">FAIL</span>';
+      } else {
+        pctEl.textContent = '—';
+        gradeEl.textContent = '—';
+        resEl.innerHTML = '<span style="color:var(--ink-soft);">—</span>';
+      }
+      updateModalScorecardLive();
+    };
+
+    marksInput.addEventListener('input', updateRowLive);
+    maxInput.addEventListener('input', updateRowLive);
+
+    // Enter key navigation to jump to next subject input
+    marksInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const allInputs = Array.from(document.querySelectorAll('#sfmSubjectTable .sfm-marks-input'));
+        const curIdx = allInputs.indexOf(marksInput);
+        if (curIdx !== -1 && curIdx < allInputs.length - 1) {
+          allInputs[curIdx + 1].focus();
+          allInputs[curIdx + 1].select();
+        } else {
+          saveActiveStudentMarks(false);
+        }
+      }
+    });
+
+    tbody.appendChild(tr);
+    updateRowLive(); // initial calculate
+  });
+
+  updateModalScorecardLive();
+
+  const modal = document.getElementById('studentFullMarksModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('open');
+    updateBodyModalState();
+  }
+}
+
+function updateModalScorecardLive() {
+  const rows = document.querySelectorAll('#sfmSubjectTable tbody tr');
+  let totalObtained = 0;
+  let totalMax = 0;
+  let marksEnteredCount = 0;
+  let allPassed = true;
+
+  rows.forEach(tr => {
+    const mInput = tr.querySelector('.sfm-marks-input');
+    const maxInput = tr.querySelector('.sfm-max-input');
+    const maxVal = parseFloat(maxInput?.value) || 100;
+    const mVal = mInput?.value.trim();
+    totalMax += maxVal;
+
+    if (mVal !== '' && !isNaN(parseFloat(mVal))) {
+      const num = parseFloat(mVal);
+      totalObtained += num;
+      marksEnteredCount++;
+      if (num < (maxVal * 0.35)) {
+        allPassed = false;
+      }
+    } else {
+      allPassed = false;
+    }
+  });
+
+  const totalEl = document.getElementById('sfmTotalMarksVal');
+  const pctEl = document.getElementById('sfmPercentageVal');
+  const gradeEl = document.getElementById('sfmGradeVal');
+  const resEl = document.getElementById('sfmResultVal');
+
+  if (marksEnteredCount > 0) {
+    totalEl.textContent = `${totalObtained} / ${totalMax}`;
+    const pct = totalMax ? Math.round((totalObtained / totalMax) * 100) : 0;
+    pctEl.textContent = `${pct}%`;
+    const g = pct >= 90 ? 'A+ (Distinction)' : pct >= 80 ? 'A (Very Good)' : pct >= 70 ? 'B+ (Good)' : pct >= 60 ? 'B (Average)' : pct >= 50 ? 'C (Pass)' : pct >= 35 ? 'D (Conditional)' : 'F (Needs Improvement)';
+    gradeEl.textContent = g;
+    gradeEl.style.color = pct >= 35 ? '#059669' : '#dc2626';
+
+    if (allPassed && marksEnteredCount === rows.length && pct >= 35) {
+      resEl.innerHTML = '<span style="color:#059669;">PASSED</span>';
+    } else if (allPassed && marksEnteredCount < rows.length) {
+      resEl.innerHTML = '<span style="color:#d97706;">IN PROGRESS</span>';
+    } else {
+      resEl.innerHTML = '<span style="color:#dc2626;">NEEDS IMPROVEMENT</span>';
+    }
+  } else {
+    totalEl.textContent = `0 / ${totalMax}`;
+    pctEl.textContent = '0%';
+    gradeEl.textContent = '—';
+    gradeEl.style.color = '';
+    resEl.textContent = '—';
+  }
+}
+
+// Core function to save current student's marks from modal
+async function saveActiveStudentMarks(silent = false) {
+  const currentIdx = parseInt(currentMarksActiveStudentIdx, 10);
+  const s = currentMarksStudents[currentIdx];
+  if (!s) return 0;
+  const sUid = s.id || s.uid;
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const rows = document.querySelectorAll('#sfmSubjectTable tbody tr');
+
+  const saveBtns = document.querySelectorAll('.sfm-save-marks-btn');
+  saveBtns.forEach(b => {
+    b.disabled = true;
+    b.dataset.prevHtml = b.innerHTML;
+    b.innerHTML = 'Saving Marks…';
+  });
+
+  try {
+    const promises = [];
+
+    rows.forEach(tr => {
+      const marksInput = tr.querySelector('.sfm-marks-input');
+      const maxInput = tr.querySelector('.sfm-max-input');
+      const subject = marksInput?.dataset.sub;
+      const marksVal = marksInput?.value.trim();
+      const maxMarksVal = parseInt(maxInput?.value) || 100;
+
+      if (subject && marksVal !== '' && !isNaN(parseFloat(marksVal))) {
+        const numMarks = parseFloat(marksVal);
+        const cleanSub = subject.replace(/[\s/]+/g, '_');
+        const cleanExam = currentMarksExamName.replace(/[\s/]+/g, '_');
+        const docId = `${sUid}_${cleanExam}_${cleanSub}`;
+
+        const markData = {
+          studentUid: sUid,
+          studentName: s.name || '',
+          admissionNo: s.admissionNo || '',
+          rollNo: s.rollNo || '',
+          classId: currentMarksClassId,
+          className: classObj?.name || s.className || '',
+          subject: subject,
+          examName: currentMarksExamName,
+          marks: numMarks,
+          maxMarks: maxMarksVal,
+          updatedAt: serverTimestamp(),
+          uploadedBy: staffUid || auth.currentUser?.uid || 'staff'
+        };
+
+        const key = `${sUid}_${subject.trim().toLowerCase()}`;
+        currentMarksRecordsMap[key] = { id: docId, ...markData };
+        promises.push(setDoc(doc(db, 'marks', docId), markData, { merge: true }));
+      }
+    });
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
+
+    if (!silent) {
+      showToast(`Marks saved for ${s.name} (${promises.length} subjects)!`);
+      const msgEl = document.getElementById('sfmSaveMsg');
+      if (msgEl) {
+        msgEl.style.display = 'inline';
+        msgEl.textContent = `Saved ${promises.length} subjects!`;
+        setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+      }
+    }
+
+    // Refresh background class roll call and consolidated register
+    renderStudentsMarksTable();
+    renderConsolidatedMarksTable();
+
+    return promises.length;
+  } catch (err) {
+    console.error('Error saving subject marks:', err);
+    if (!silent) alert('Failed to save subject marks: ' + err.message);
+    return 0;
+  } finally {
+    saveBtns.forEach(b => {
+      b.disabled = false;
+      if (b.dataset.prevHtml) {
+        b.innerHTML = b.dataset.prevHtml;
+      } else {
+        b.textContent = 'Save All Subject Marks Live';
+      }
     });
   }
-  btn.disabled = false; btn.textContent = 'Save Marks';
-  showToast(`Marks saved for ${a.subject} (${examName})`);
+}
+
+// Prev / Next Student in Modal with Auto-Save
+document.getElementById('sfmPrevStudentBtn')?.addEventListener('click', async () => {
+  const currentIdx = parseInt(currentMarksActiveStudentIdx, 10);
+  if (currentIdx > 0) {
+    await saveActiveStudentMarks(true);
+    openStudentFullMarksModal(currentIdx - 1);
+  }
+});
+
+document.getElementById('sfmNextStudentBtn')?.addEventListener('click', async () => {
+  const currentIdx = parseInt(currentMarksActiveStudentIdx, 10);
+  if (currentIdx < currentMarksStudents.length - 1) {
+    await saveActiveStudentMarks(true);
+    openStudentFullMarksModal(currentIdx + 1);
+  }
+});
+
+// Bind all Save Marks buttons inside modal
+document.querySelectorAll('.sfm-save-marks-btn').forEach(btn => {
+  btn.addEventListener('click', () => saveActiveStudentMarks(false));
+});
+
+// Close modal handlers
+function closeFullMarksModalFunc() {
+  const modal = document.getElementById('studentFullMarksModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('open');
+    updateBodyModalState();
+  }
+}
+document.getElementById('closeFullMarksModal')?.addEventListener('click', closeFullMarksModalFunc);
+document.getElementById('sfmCloseBottomBtn')?.addEventListener('click', closeFullMarksModalFunc);
+document.getElementById('studentFullMarksModal')?.addEventListener('click', (e) => {
+  if (e.target.id === 'studentFullMarksModal') {
+    closeFullMarksModalFunc();
+  }
+});
+
+// Print Single Student Report Card
+document.getElementById('printSingleReportCardBtn')?.addEventListener('click', () => {
+  const s = currentMarksStudents[currentMarksActiveStudentIdx];
+  if (!s) return;
+  const sUid = s.id || s.uid;
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const subs = getStudentSubjects(s, classObj);
+  const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+  let subRowsHtml = '';
+  let totalObtained = 0;
+  let totalMax = 0;
+
+  subs.forEach((sub, idx) => {
+    const key = `${sUid}_${sub.trim().toLowerCase()}`;
+    const rec = currentMarksRecordsMap[key];
+    const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
+    const marks = rec && rec.marks !== undefined && rec.marks !== null ? Number(rec.marks) : 0;
+    totalMax += maxM;
+    totalObtained += marks;
+
+    const p = maxM ? Math.round((marks / maxM) * 100) : 0;
+    const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+    const isP = marks >= (maxM * 0.35);
+
+    subRowsHtml += `
+      <tr style="border-bottom:1px solid #e2e8f0;">
+        <td style="padding:8px; text-align:center; font-weight:bold;">${idx + 1}</td>
+        <td style="padding:8px; font-weight:bold;">${sub}</td>
+        <td style="padding:8px; text-align:center;">${maxM}</td>
+        <td style="padding:8px; text-align:center; font-weight:bold; color:#059669;">${marks}</td>
+        <td style="padding:8px; text-align:center;">${p}%</td>
+        <td style="padding:8px; text-align:center; font-weight:bold;">${g}</td>
+        <td style="padding:8px; text-align:center; font-weight:bold; color:${isP ? '#059669' : '#dc2626'};">${isP ? 'PASS' : 'FAIL'}</td>
+      </tr>
+    `;
+  });
+
+  const overallPct = totalMax ? Math.round((totalObtained / totalMax) * 100) : 0;
+  const overallGrade = overallPct >= 90 ? 'A+ (Distinction)' : overallPct >= 80 ? 'A (First Class)' : overallPct >= 70 ? 'B+ (Second Class)' : overallPct >= 60 ? 'B' : overallPct >= 50 ? 'C' : overallPct >= 35 ? 'D' : 'F';
+  const resultText = overallPct >= 35 ? 'PASSED & PROMOTED' : 'NEEDS IMPROVEMENT';
+
+  const tableHtml = `
+    <table style="width:100%; border-collapse:collapse; font-size:12.5px; margin-top:14px;">
+      <thead>
+        <tr style="background:#f1f5f9; border-bottom:2px solid #cbd5e1;">
+          <th style="padding:8px; text-align:center; width:40px;">#</th>
+          <th style="padding:8px; text-align:left;">Subject Name</th>
+          <th style="padding:8px; text-align:center; width:90px;">Max Marks</th>
+          <th style="padding:8px; text-align:center; width:110px;">Marks Scored</th>
+          <th style="padding:8px; text-align:center; width:90px;">Percentage</th>
+          <th style="padding:8px; text-align:center; width:70px;">Grade</th>
+          <th style="padding:8px; text-align:center; width:80px;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${subRowsHtml}
+        <tr style="background:#f8fafc; font-weight:bold; border-top:2px solid #cbd5e1;">
+          <td colspan="2" style="padding:10px; text-align:right;">GRAND TOTAL:</td>
+          <td style="padding:10px; text-align:center;">${totalMax}</td>
+          <td style="padding:10px; text-align:center; color:#059669; font-size:14px;">${totalObtained}</td>
+          <td style="padding:10px; text-align:center;">${overallPct}%</td>
+          <td style="padding:10px; text-align:center;">${overallGrade.split(' ')[0]}</td>
+          <td style="padding:10px; text-align:center; color:${overallPct >= 35 ? '#059669' : '#dc2626'};">${overallPct >= 35 ? 'PASS' : 'FAIL'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Signatures block -->
+    <div style="margin-top:45px; display:flex; justify-content:space-between; padding:0 30px;">
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+        Class Teacher
+      </div>
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+        Parent / Guardian
+      </div>
+      <div style="text-align:center; border-top:1.5px dashed #64748b; width:160px; padding-top:6px; font-size:11.5px; font-weight:bold; color:#475569;">
+        Principal
+      </div>
+    </div>
+  `;
+
+  const statsHtml = `
+    <div style="display:flex; gap:12px; flex-wrap:wrap; font-size:12px; margin-bottom:10px;">
+      <span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Student: ${s.name} (Roll: ${s.rollNo || s.admissionNo})</span>
+      <span style="background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-weight:bold;">Admission No: ${s.admissionNo}</span>
+      <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:6px; font-weight:bold;">Total: ${totalObtained} / ${totalMax} (${overallPct}%)</span>
+      <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:6px; font-weight:bold;">Grade: ${overallGrade}</span>
+      <span style="background:${overallPct >= 35 ? '#d1fae5' : '#fee2e2'}; color:${overallPct >= 35 ? '#065f46' : '#991b1b'}; padding:4px 10px; border-radius:6px; font-weight:bold;">Result: ${resultText}</span>
+    </div>
+  `;
+
+  openPrintDocument(
+    `ACADEMIC PROGRESS REPORT CARD — ${s.name.toUpperCase()}`,
+    `Official Mark Statement for ${currentMarksExamName} • Class: ${classObj?.name || s.className || ''}`,
+    tableHtml,
+    statsHtml
+  );
+});
+
+// Consolidated Register Table
+function renderConsolidatedMarksTable() {
+  const thead = document.querySelector('#marksConsolidatedTable thead');
+  const tbody = document.querySelector('#marksConsolidatedTable tbody');
+  const emptyEl = document.getElementById('marksConsolidatedEmpty');
+  if (!thead || !tbody) return;
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
+
+  if (!currentMarksStudents.length) {
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const isHS = isHigherSecondaryClass(classObj?.name);
+  const subjectsList = isHS
+    ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects
+    : STANDARD_CORE_SUBJECTS;
+
+  // Render thead
+  let headHtml = `
+    <tr style="background:#f1f5f9;">
+      <th style="width:65px; text-align:center;">Roll</th>
+      <th style="min-width:160px;">Student Name</th>
+      <th style="width:100px; text-align:center;">Adm No</th>
+  `;
+  subjectsList.forEach(sub => {
+    headHtml += `<th style="text-align:center; min-width:90px;">${sub}</th>`;
+  });
+  headHtml += `
+      <th style="width:90px; text-align:center;">Total</th>
+      <th style="width:75px; text-align:center;">%</th>
+      <th style="width:70px; text-align:center;">Grade</th>
+      <th style="width:85px; text-align:center;">Result</th>
+    </tr>
+  `;
+  thead.innerHTML = headHtml;
+
+  // Render tbody rows
+  currentMarksStudents.forEach((s, idx) => {
+    const summary = calculateStudentMarksSummary(s, classObj);
+    const sUid = s.id || s.uid;
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+
+    let rowHtml = `
+      <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${s.rollNo || '—'}</td>
+      <td><strong>${s.name}</strong></td>
+      <td style="text-align:center; font-family:var(--font-mono); font-size:12px;">${s.admissionNo || '—'}</td>
+    `;
+
+    subjectsList.forEach(sub => {
+      const key = `${sUid}_${sub.trim().toLowerCase()}`;
+      const rec = currentMarksRecordsMap[key];
+      const m = rec && rec.marks !== undefined && rec.marks !== null ? rec.marks : '—';
+      rowHtml += `<td style="text-align:center; font-family:var(--font-mono); font-weight:${m !== '—' ? 'bold' : 'normal'}; color:${m !== '—' ? 'var(--brand-green)' : 'var(--ink-soft)'};">${m}</td>`;
+    });
+
+    const resColor = summary.result === 'PASSED' ? '#059669' : (summary.result === 'FAIL' ? '#dc2626' : '#64748b');
+
+    rowHtml += `
+      <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${summary.anyMarkEntered ? summary.totalObtained : '—'}</td>
+      <td style="text-align:center; font-weight:bold; font-family:var(--font-mono);">${summary.percentage !== null ? summary.percentage + '%' : '—'}</td>
+      <td style="text-align:center; font-weight:bold;">${summary.grade}</td>
+      <td style="text-align:center; font-weight:bold; color:${resColor};">${summary.result}</td>
+    `;
+
+    tr.innerHTML = rowHtml;
+    tr.addEventListener('click', () => openStudentFullMarksModal(idx));
+    tbody.appendChild(tr);
+  });
+}
+
+// Print Consolidated Register
+document.getElementById('printConsolidatedMarksBtn')?.addEventListener('click', () => {
+  const table = document.getElementById('marksConsolidatedTable');
+  if (!table || !currentMarksStudents.length) {
+    alert('Please load class marks first.');
+    return;
+  }
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  openPrintDocument(
+    `CONSOLIDATED MARKS REGISTER — ${classObj?.name || 'Class'}`,
+    `Official Examination Record for ${currentMarksExamName} • Total Students: ${currentMarksStudents.length}`,
+    table.outerHTML,
+    `<span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:6px; font-weight:bold;">Class: ${classObj?.name || ''}</span>
+   <span style="background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-weight:bold;">Exam: ${currentMarksExamName}</span>`
+  );
+});
+
+// Export Consolidated Marks CSV
+document.getElementById('exportConsolidatedMarksCsvBtn')?.addEventListener('click', () => {
+  if (!currentMarksStudents.length || !currentMarksClassId) {
+    alert('Please load class marks first.');
+    return;
+  }
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const isHS = isHigherSecondaryClass(classObj?.name);
+  const subjectsList = isHS
+    ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects
+    : STANDARD_CORE_SUBJECTS;
+
+  const headers = ['Roll No', 'Student Name', 'Admission No', ...subjectsList, 'Total Marks', 'Max Marks', 'Percentage', 'Grade', 'Result'];
+  const rows = currentMarksStudents.map(s => {
+    const summary = calculateStudentMarksSummary(s, classObj);
+    const sUid = s.id || s.uid;
+    const subMarks = subjectsList.map(sub => {
+      const key = `${sUid}_${sub.trim().toLowerCase()}`;
+      const rec = currentMarksRecordsMap[key];
+      return (rec && rec.marks !== undefined && rec.marks !== null) ? String(rec.marks) : '';
+    });
+
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      ...subMarks.map(m => `"${m}"`),
+      `"${summary.anyMarkEntered ? summary.totalObtained : ''}"`,
+      `"${summary.totalMax}"`,
+      `"${summary.percentage !== null ? summary.percentage + '%' : ''}"`,
+      `"${summary.grade}"`,
+      `"${summary.result}"`
+    ].join(',');
+  });
+
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  const classNameClean = (classObj?.name || 'Class').replace(/[\s,]+/g, '_');
+  const examNameClean = currentMarksExamName.replace(/[\s,]+/g, '_');
+  downloadCsv(`Marks_${classNameClean}_${examNameClean}.csv`, csvContent);
+});
+
+// ---------------- MARKS BULK IMPORT ----------------
+let parsedBulkMarks = [];
+
+function downloadMarksSampleTemplate() {
+  if (!currentMarksStudents.length || !currentMarksClassId) {
+    alert('Please load class marks first.');
+    return;
+  }
+  const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+  const isHS = isHigherSecondaryClass(classObj?.name);
+  const subjectsList = isHS
+    ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects
+    : STANDARD_CORE_SUBJECTS;
+  const headers = ['Roll No', 'Student Name', 'Admission No', ...subjectsList];
+  const rows = currentMarksStudents.map(s => {
+    return [
+      `"${s.rollNo || ''}"`,
+      `"${(s.name || '').replace(/"/g, '""')}"`,
+      `"${s.admissionNo || ''}"`,
+      ...subjectsList.map(() => '""')
+    ].join(',');
+  });
+  const csvContent = headers.join(',') + '\n' + rows.join('\n');
+  downloadCsv(`Marks_Template_${(classObj?.name || 'Class').replace(/[\s,]+/g, '_')}.csv`, csvContent);
+}
+
+function openBulkMarksModal() {
+  if (!currentMarksStudents.length || !currentMarksClassId) {
+    alert('Please load class marks first.');
+    return;
+  }
+  const modal = document.getElementById('bulkMarksImportModal');
+  if (!modal) return;
+  const examInput = document.getElementById('bulkMarksExamInput');
+  if (examInput) examInput.value = currentMarksExamName || 'Midterm 1';
+  const fileInput = document.getElementById('bulkMarksCsvFileInput');
+  if (fileInput) fileInput.value = '';
+  parsedBulkMarks = [];
+  document.getElementById('bulkMarksPreviewBox').style.display = 'none';
+  document.getElementById('startBulkMarksImportBtn').disabled = true;
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+  updateBodyModalState();
+}
+
+function closeBulkMarksModal() {
+  const modal = document.getElementById('bulkMarksImportModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+  updateBodyModalState();
+}
+
+document.getElementById('importConsolidatedMarksCsvBtn')?.addEventListener('click', openBulkMarksModal);
+document.getElementById('downloadMarksTemplateBtn')?.addEventListener('click', downloadMarksSampleTemplate);
+document.getElementById('closeBulkMarksImportModal')?.addEventListener('click', closeBulkMarksModal);
+document.getElementById('cancelBulkMarksImportBtn')?.addEventListener('click', closeBulkMarksModal);
+
+document.getElementById('bulkMarksCsvFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const text = evt.target.result;
+      const rows = parseCsv(text);
+      if (rows.length < 2) {
+        alert('CSV is empty or missing headers.');
+        return;
+      }
+      const headers = rows[0].map(h => h.trim());
+      const headersLower = headers.map(h => h.toLowerCase());
+      const idxAdm = headersLower.findIndex(h => h.includes('adm') || h.includes('admission'));
+      const idxRoll = headersLower.findIndex(h => h.includes('roll'));
+      const idxName = headersLower.findIndex(h => h.includes('name'));
+      const examName = document.getElementById('bulkMarksExamInput')?.value.trim() || currentMarksExamName || 'General Exam';
+      const defaultMax = parseFloat(document.getElementById('bulkMarksMaxInput')?.value) || 100;
+
+      const nonSubjectCols = new Set(['roll no', 'roll', 'student name', 'name', 'admission no', 'adm no', 'total marks', 'max marks', 'percentage', 'grade', 'result']);
+      const subjectColIndices = [];
+      headers.forEach((h, colIdx) => {
+        if (!nonSubjectCols.has(h.toLowerCase().trim())) {
+          subjectColIndices.push({ subject: h.trim(), idx: colIdx });
+        }
+      });
+
+      parsedBulkMarks = [];
+      const tbody = document.querySelector('#bulkMarksPreviewTable tbody');
+      tbody.innerHTML = '';
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || !r.length) continue;
+        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
+        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
+        const nameVal = idxName !== -1 ? r[idxName] : '';
+
+        const matchedStudent = currentMarksStudents.find(s => {
+          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
+          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
+          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
+          return false;
+        });
+
+        if (matchedStudent) {
+          const sUid = matchedStudent.id || matchedStudent.uid;
+          subjectColIndices.forEach(({ subject, idx }) => {
+            const rawMark = r[idx];
+            if (rawMark !== undefined && rawMark !== null && rawMark.trim() !== '') {
+              const markNum = parseFloat(rawMark);
+              if (!isNaN(markNum)) {
+                parsedBulkMarks.push({
+                  studentUid: sUid,
+                  studentName: matchedStudent.name,
+                  admissionNo: matchedStudent.admissionNo,
+                  rollNo: matchedStudent.rollNo,
+                  examName,
+                  subject,
+                  marks: markNum,
+                  maxMarks: defaultMax
+                });
+              }
+            }
+          });
+        }
+      }
+
+      // Populate preview (up to 10 entries)
+      parsedBulkMarks.slice(0, 10).forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding:6px 10px;"><strong>${m.studentName}</strong></td>
+          <td style="padding:6px 10px; font-family:var(--font-mono);">${m.admissionNo || '—'}</td>
+          <td style="padding:6px 10px;"><span class="badge badge-navy">${m.subject}</span></td>
+          <td style="padding:6px 10px;">${m.examName}</td>
+          <td style="padding:6px 10px; font-weight:700; color:var(--good);">${m.marks}</td>
+          <td style="padding:6px 10px;">${m.maxMarks}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('bulkMarksRowCount').textContent = parsedBulkMarks.length;
+      document.getElementById('bulkMarksPreviewBox').style.display = 'block';
+      document.getElementById('startBulkMarksImportBtn').disabled = parsedBulkMarks.length === 0;
+    } catch (err) {
+      alert('Failed to parse marks CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('startBulkMarksImportBtn')?.addEventListener('click', async () => {
+  if (!parsedBulkMarks.length || !currentMarksClassId) return;
+  const btn = document.getElementById('startBulkMarksImportBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving Marks...';
+
+  try {
+    const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+    for (const m of parsedBulkMarks) {
+      const cleanSub = m.subject.replace(/[\s/]+/g, '_');
+      const cleanExam = m.examName.replace(/[\s/]+/g, '_');
+      const docId = `${m.studentUid}_${cleanExam}_${cleanSub}`;
+
+      const markData = {
+        studentUid: m.studentUid,
+        studentName: m.studentName || '',
+        admissionNo: m.admissionNo || '',
+        rollNo: m.rollNo || '',
+        classId: currentMarksClassId,
+        className: classObj?.name || '',
+        subject: m.subject,
+        examName: m.examName,
+        marks: m.marks,
+        maxMarks: m.maxMarks,
+        uploadedBy: staffUid || auth.currentUser?.uid || 'staff',
+        updatedAt: serverTimestamp()
+      };
+
+      const key = `${m.studentUid}_${m.subject.trim().toLowerCase()}`;
+      currentMarksRecordsMap[key] = { id: docId, ...markData };
+
+      await setDoc(doc(db, 'marks', docId), markData, { merge: true });
+    }
+    closeBulkMarksModal();
+    showToast(`Successfully imported ${parsedBulkMarks.length} subject marks.`);
+    renderStudentsMarksTable();
+    renderConsolidatedMarksTable();
+  } catch (err) {
+    alert('Error saving marks: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Apply Bulk Marks';
+  }
 });
 
 // ---------------- EXAMS CALENDAR ----------------
@@ -5515,152 +6921,6 @@ document.getElementById('startStaffAttImportBtn')?.addEventListener('click', asy
     btn.disabled = false;
     btn.textContent = 'Populate Attendance';
   }
-});
-
-// ======================== TEACHER MARKS IMPORT & EXPORT ========================
-function exportStaffMarksCsv() {
-  const selIdx = document.getElementById('marksAssignSel')?.value;
-  const a = subjectAssignments && subjectAssignments[selIdx];
-  const examName = document.getElementById('marksExamName')?.value.trim() || 'Exam';
-  const maxMarks = parseInt(document.getElementById('marksMax')?.value) || 100;
-  if (!a || !currentMarksStudents.length) {
-    alert('Please select assignment, exam name, and load students first.');
-    return;
-  }
-  const headers = ['Roll No', 'Student Name', 'Admission No', 'Marks Obtained', 'Max Marks'];
-  const rows = currentMarksStudents.map(s => {
-    const inp = document.querySelector(`.marks-input[data-uid="${s.uid}"]`);
-    const marks = inp ? inp.value : '';
-    return [
-      `"${s.rollNo || ''}"`,
-      `"${(s.name || '').replace(/"/g, '""')}"`,
-      `"${s.admissionNo || ''}"`,
-      `"${marks}"`,
-      `"${maxMarks}"`
-    ].join(',');
-  });
-
-  const csvContent = headers.join(',') + '\n' + rows.join('\n');
-  const classNameClean = (a.className || 'Class').replace(/[\s,]+/g, '_');
-  const examClean = examName.replace(/[\s,]+/g, '_');
-  const subClean = (a.subject || 'Subject').replace(/[\s,]+/g, '_');
-  downloadCsv(`Marks_${classNameClean}_${subClean}_${examClean}.csv`, csvContent);
-}
-
-document.getElementById('staffMarksExportCsvBtn')?.addEventListener('click', exportStaffMarksCsv);
-
-let parsedStaffMarks = [];
-
-function openStaffMarksImportModal() {
-  const selIdx = document.getElementById('marksAssignSel')?.value;
-  const a = subjectAssignments && subjectAssignments[selIdx];
-  if (!a || !currentMarksStudents.length) {
-    alert('Please select class / subject assignment and click "Load" first.');
-    return;
-  }
-  const modal = document.getElementById('staffMarksImportModal');
-  if (!modal) return;
-  const fileInput = document.getElementById('staffMarksCsvFileInput');
-  if (fileInput) fileInput.value = '';
-  parsedStaffMarks = [];
-  document.getElementById('staffMarksPreviewBox').style.display = 'none';
-  document.getElementById('startStaffMarksImportBtn').disabled = true;
-  modal.classList.add('open');
-  updateBodyModalState();
-}
-
-function closeStaffMarksImportModal() {
-  const modal = document.getElementById('staffMarksImportModal');
-  if (modal) modal.classList.remove('open');
-  updateBodyModalState();
-}
-
-document.getElementById('staffMarksImportCsvBtn')?.addEventListener('click', openStaffMarksImportModal);
-document.getElementById('closeStaffMarksImportModal')?.addEventListener('click', closeStaffMarksImportModal);
-document.getElementById('cancelStaffMarksImportBtn')?.addEventListener('click', closeStaffMarksImportModal);
-
-document.getElementById('staffMarksCsvFileInput')?.addEventListener('change', (e) => {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const text = evt.target.result;
-      const rows = parseCsv(text);
-      if (rows.length < 2) {
-        alert('CSV is empty or missing headers.');
-        return;
-      }
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission'));
-      const idxRoll = headers.findIndex(h => h.includes('roll'));
-      const idxName = headers.findIndex(h => h.includes('name'));
-      const idxMarks = headers.findIndex(h => h.includes('mark') || h.includes('score') || h.includes('obtained'));
-
-      parsedStaffMarks = [];
-      const tbody = document.querySelector('#staffMarksPreviewTable tbody');
-      tbody.innerHTML = '';
-
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || !r.length) continue;
-        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
-        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
-        const nameVal = idxName !== -1 ? r[idxName] : '';
-        const marksVal = idxMarks !== -1 ? parseFloat(r[idxMarks]) : NaN;
-
-        const matchedStudent = currentMarksStudents.find(s => {
-          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
-          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
-          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
-          return false;
-        });
-
-        if (matchedStudent) {
-          const validMark = !isNaN(marksVal) ? marksVal : 0;
-          parsedStaffMarks.push({
-            studentUid: matchedStudent.uid,
-            studentName: matchedStudent.name,
-            admissionNo: matchedStudent.admissionNo,
-            rollNo: matchedStudent.rollNo,
-            marks: validMark
-          });
-
-          if (parsedStaffMarks.length <= 10) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td style="padding:6px 10px; font-weight:700;">${matchedStudent.rollNo || '—'}</td>
-              <td style="padding:6px 10px;"><strong>${matchedStudent.name}</strong></td>
-              <td style="padding:6px 10px; font-family:var(--font-mono);">${matchedStudent.admissionNo || '—'}</td>
-              <td style="padding:6px 10px; font-weight:700; color:var(--brand-green);">${validMark}</td>
-            `;
-            tbody.appendChild(tr);
-          }
-        }
-      }
-
-      document.getElementById('staffMarksRowCount').textContent = parsedStaffMarks.length;
-      document.getElementById('staffMarksPreviewBox').style.display = 'block';
-      document.getElementById('startStaffMarksImportBtn').disabled = parsedStaffMarks.length === 0;
-    } catch (err) {
-      alert('Failed to parse marks CSV: ' + err.message);
-    }
-  };
-  reader.readAsText(file);
-});
-
-document.getElementById('startStaffMarksImportBtn')?.addEventListener('click', () => {
-  if (!parsedStaffMarks.length) return;
-  for (const item of parsedStaffMarks) {
-    const inp = document.querySelector(`.marks-input[data-uid="${item.studentUid}"]`);
-    if (inp) {
-      inp.value = item.marks;
-      inp.style.borderColor = 'var(--brand-green)';
-      inp.style.background = '#f0fdf4';
-    }
-  }
-  closeStaffMarksImportModal();
-  showToast(`Successfully populated marks for ${parsedStaffMarks.length} students! Click "Save Marks" to commit.`);
 });
 </script>
 <script src="../../js/site-brand.js"></script>
