@@ -580,6 +580,124 @@
     color: var(--navy);
     border-top: 2px solid var(--line);
   }
+
+  /* Staff Topbar Notifications Flyout */
+  .notif-wrapper {
+    position: relative;
+  }
+  .notif-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 380px;
+    max-width: min(380px, calc(100vw - 32px));
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 14px 38px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    z-index: 1000;
+    display: none;
+    animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    overflow: hidden;
+  }
+  .notif-dropdown.show {
+    display: block;
+  }
+  .notif-head {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+  }
+  .notif-head h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .notif-body {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .notif-item {
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: var(--paper);
+    font-size: 12.5px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .notif-item:hover {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .notif-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  .notif-item-title {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .notif-item-time {
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .notif-item-msg {
+    color: var(--ink-soft);
+    font-size: 11.5px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .notif-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper);
+  }
+  [data-theme="dark"] .notif-dropdown {
+    background: #161b22;
+    border-color: #30363d;
+  }
+  [data-theme="dark"] .notif-head {
+    background: #161b22;
+    border-bottom-color: #30363d;
+  }
+  [data-theme="dark"] .notif-item {
+    background: #21262d;
+    border-color: #30363d;
+  }
+  [data-theme="dark"] .notif-item:hover {
+    background: #28303a;
+    border-color: #388bfd;
+  }
+  [data-theme="dark"] .notif-footer {
+    background: #161b22;
+    border-top-color: #30363d;
+  }
 </style>
 </head>
 <body>
@@ -939,6 +1057,58 @@
   </div>
 
   <div class="main">
+    <!-- Top Navigation Bar -->
+    <div class="topbar">
+      <div class="topbar-search">
+        <span class="search-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="search" placeholder="Search students, marks, notes, homework..." id="topSearchInput"
+          autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" name="staff_omni_search" data-lpignore="true">
+        <span class="shortcut-badge" title="Search" onclick="document.getElementById('topSearchInput').focus()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="notif-wrapper">
+          <button class="btn-icon" title="Notifications" id="notifBellBtn" type="button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dot" id="notifBellDot" style="display:none;"></span>
+          </button>
+
+          <!-- NOTIFICATION DROPDOWN FLYOUT -->
+          <div class="notif-dropdown" id="notifDropdown" role="dialog" aria-label="Staff Notifications">
+            <div class="notif-head">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h4>Staff Notifications</h4>
+                <span class="badge badge-outline" id="notifCountBadge" style="font-size:11px;">0 Active</span>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="closeNotifDropdownBtn" style="padding:2px 8px; font-size:17px; line-height:1; border-radius:6px; color:var(--ink-soft);" title="Close Notifications" aria-label="Close Notifications">&times;</button>
+            </div>
+            <div class="notif-body" id="notifList">
+              <div style="text-align:center; padding:24px 12px; color:var(--ink-soft); font-size:12.5px;">Loading staff notices…</div>
+            </div>
+            <div class="notif-footer">
+              <span style="font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+                <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--brand-green);"></span>
+                Live Cloud Sync
+              </span>
+              <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnouncementsBtn" style="font-size:11.5px; padding:4px 10px; font-weight:700;">View Announcements &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="user-badge-pill" id="topUserBadge" style="cursor:pointer;" title="View Faculty Profile">
+          <div class="pill-avatar" id="topAvatarInit">F</div>
+          <div class="pill-info">
+            <div class="pill-name" id="topFacultyName">Faculty</div>
+            <div class="pill-role" id="topFacultyRole">Staff Faculty</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="loadingState" class="empty-state" style="display:none;"><span class="loader"></span> Loading your assignments…</div>
     <div id="content" style="display:block;">
 
@@ -2236,8 +2406,15 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
     const facultyName = profile.name || 'Faculty';
     document.getElementById('uName').textContent = facultyName;
     const avatarEl = document.getElementById('uAvatarInitial');
-    if (avatarEl) avatarEl.textContent = facultyName.charAt(0).toUpperCase() || 'F';
+    const facultyInitial = facultyName.charAt(0).toUpperCase() || 'F';
+    if (avatarEl) avatarEl.textContent = facultyInitial;
     document.getElementById('welcomeName').textContent = ', ' + facultyName;
+
+    // Topbar Account Holder Name & Avatar
+    const topFacultyName = document.getElementById('topFacultyName');
+    if (topFacultyName) topFacultyName.textContent = facultyName;
+    const topAvatarInit = document.getElementById('topAvatarInit');
+    if (topAvatarInit) topAvatarInit.textContent = facultyInitial;
 
     let staffData = (roleData && typeof roleData === 'object') ? roleData : {};
     if (!staffData.subjects) {
@@ -2262,18 +2439,25 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
     if (classTeacherClass) roles.push(`Class Teacher (${classTeacherClass.name})`);
     if (subjectAssignments.length) roles.push(`Subject Teacher (${subjectAssignments.length})`);
     
+    let roleSubtitle = 'Staff Faculty';
+    if (classTeacherClass && subjectAssignments.length) {
+      roleSubtitle = `CT: ${classTeacherClass.name} • Faculty`;
+    } else if (classTeacherClass) {
+      roleSubtitle = `Class Teacher (${classTeacherClass.name})`;
+    } else if (subjectAssignments.length) {
+      roleSubtitle = `Subject Teacher (${subjectAssignments.length})`;
+    }
+
     const uTypeEl = document.getElementById('uType');
     if (uTypeEl) {
-      if (classTeacherClass && subjectAssignments.length) {
-        uTypeEl.textContent = `CT: ${classTeacherClass.name} • Subjects (${subjectAssignments.length})`;
-      } else if (classTeacherClass) {
-        uTypeEl.textContent = `Class Teacher (${classTeacherClass.name})`;
-      } else if (subjectAssignments.length) {
-        uTypeEl.textContent = `Subject Teacher (${subjectAssignments.length})`;
-      } else {
-        uTypeEl.textContent = 'Staff Faculty';
-      }
+      uTypeEl.textContent = roleSubtitle;
       uTypeEl.title = roles.join(' • ') || 'Staff Faculty';
+    }
+
+    const topFacultyRole = document.getElementById('topFacultyRole');
+    if (topFacultyRole) {
+      topFacultyRole.textContent = roleSubtitle;
+      topFacultyRole.title = roles.join(' • ') || 'Staff Faculty';
     }
 
     // Overview box & Faculty Profile Particulars
@@ -2482,6 +2666,163 @@ document.getElementById('viewAllAnnBtn')?.addEventListener('click', () => {
   const annNav = document.querySelector('.sidebar nav a[data-tab="announcements"]');
   if (annNav) annNav.click();
 });
+
+// User badge click -> overview tab
+document.getElementById('topUserBadge')?.addEventListener('click', () => {
+  switchTab('overview');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ======================== STAFF LIVE NOTIFICATIONS ========================
+const notifBellBtn = document.getElementById('notifBellBtn');
+const notifDropdown = document.getElementById('notifDropdown');
+const notifList = document.getElementById('notifList');
+const notifCountBadge = document.getElementById('notifCountBadge');
+const closeNotifDropdownBtn = document.getElementById('closeNotifDropdownBtn');
+const viewAllAnnouncementsBtn = document.getElementById('viewAllAnnouncementsBtn');
+const notifBellDot = document.getElementById('notifBellDot');
+
+function closeNotificationDropdown() {
+  if (notifDropdown) notifDropdown.classList.remove('show');
+}
+
+function openNotificationDropdown() {
+  if (!notifDropdown) return;
+  notifDropdown.classList.add('show');
+  if (notifBellDot) notifBellDot.style.display = 'none';
+}
+
+if (notifBellBtn && notifDropdown) {
+  notifBellBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (notifDropdown.classList.contains('show')) {
+      closeNotificationDropdown();
+    } else {
+      openNotificationDropdown();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!notifDropdown.contains(e.target) && e.target !== notifBellBtn && !notifBellBtn.contains(e.target)) {
+      closeNotificationDropdown();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && notifDropdown.classList.contains('show')) {
+      closeNotificationDropdown();
+    }
+  });
+}
+
+if (closeNotifDropdownBtn) {
+  closeNotifDropdownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeNotificationDropdown();
+  });
+}
+
+if (viewAllAnnouncementsBtn) {
+  viewAllAnnouncementsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeNotificationDropdown();
+    switchTab('announcements');
+  });
+}
+
+function renderStaffNotifications(items) {
+  if (!notifList || !notifCountBadge) return;
+  const count = items ? items.length : 0;
+  if (count === 0) {
+    notifCountBadge.textContent = '0 Active';
+    notifCountBadge.className = 'badge badge-outline';
+    if (notifBellDot) notifBellDot.style.display = 'none';
+    notifList.innerHTML = `
+      <div style="text-align:center; padding:28px 14px; color:var(--ink-soft); font-size:12.5px;">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px auto; opacity:0.4; display:block;">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <strong style="display:block; color:var(--ink); margin-bottom:2px;">No Notices Right Now</strong>
+        <span>Official faculty circulars and campus announcements will appear here.</span>
+      </div>
+    `;
+    return;
+  }
+
+  notifCountBadge.textContent = `${count} Active`;
+  notifCountBadge.className = 'badge badge-good';
+  if (notifBellDot && !notifDropdown.classList.contains('show')) {
+    notifBellDot.style.display = 'block';
+  }
+
+  notifList.innerHTML = items.slice(0, 8).map(ann => {
+    let dateStr = 'Recent';
+    if (ann.createdAt?.toDate) {
+      dateStr = ann.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+    let badgeHtml = '<span class="badge badge-purple" style="font-size:10px; padding:1px 6px;">School-wide</span>';
+    if (ann.targetAudience === 'teachers') {
+      badgeHtml = '<span class="badge badge-good" style="font-size:10px; padding:1px 6px;">Staff Only</span>';
+    } else if (ann.targetAudience === 'students_parents') {
+      badgeHtml = '<span class="badge badge-navy" style="font-size:10px; padding:1px 6px;">Students &amp; Parents</span>';
+    } else if (ann.targetAudience === 'students') {
+      badgeHtml = '<span class="badge badge-yellow" style="font-size:10px; padding:1px 6px;">Students Only</span>';
+    }
+
+    const safeTitle = (ann.title || 'Campus Announcement').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+    const safeMsg = (ann.message || '').replace(/[<>&"]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[s]));
+
+    return `
+      <div class="notif-item" data-id="${ann.id}" title="Click to view in Announcements">
+        <div class="notif-item-header">
+          <span class="notif-item-title">${safeTitle}</span>
+          <span class="notif-item-time">${dateStr}</span>
+        </div>
+        <div class="notif-item-msg">${safeMsg}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+          ${badgeHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  notifList.querySelectorAll('.notif-item').forEach(item => {
+    item.addEventListener('click', () => {
+      closeNotificationDropdown();
+      switchTab('announcements');
+    });
+  });
+}
+
+// Staff Topbar Search Listener
+const topSearch = document.getElementById('topSearchInput');
+if (topSearch) {
+  topSearch.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    // Live filter on current panel
+    document.querySelectorAll('.main section:not([style*="none"]) tbody tr, .main section[style*="block"] tbody tr, .main section:not([style*="none"]) .card').forEach(el => {
+      if (el.closest('.topbar')) return;
+      const txt = el.textContent.toLowerCase();
+      el.style.display = (!term || txt.includes(term)) ? '' : 'none';
+    });
+    // Navigation keywords
+    if (term === 'attendance' || term === 'att') switchTab('attendance');
+    else if (term === 'marks' || term === 'mark' || term === 'grade') switchTab('marks');
+    else if (term === 'exam' || term === 'exams') switchTab('exams');
+    else if (term === 'notes' || term === 'syllabus') switchTab('notes');
+    else if (term === 'homework' || term === 'hw') switchTab('homework');
+    else if (term === 'announcement' || term === 'circular') switchTab('announcements');
+    else if (term === 'student' || term === 'students') switchTab('students');
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'f')) {
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      e.preventDefault();
+      topSearch.focus();
+    }
+  });
+}
 
 // ======================== STAFF ANNOUNCEMENTS & CIRCULARS ========================
 const annAudienceEl = document.getElementById('annAudience');
@@ -2699,6 +3040,7 @@ async function loadStaffAnnouncements() {
     // In staff portal, faculty sees all circulars: faculty notices, students & parents, students only, and school-wide
     cachedStaffAnnouncements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderStaffAnnouncements();
+    renderStaffNotifications(cachedStaffAnnouncements);
 
     // Also update Overview top 3 items (show recent faculty/school notices)
     const overviewList = document.getElementById('overviewAnnList');
