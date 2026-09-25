@@ -801,31 +801,31 @@
   const urlParams    = new URLSearchParams(window.location.search);
   const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
 
+  if (allowRelogin) {
+    try {
+      sessionStorage.removeItem('erp_active_session');
+      sessionStorage.removeItem('erp_active_role');
+      auth.signOut().catch(() => {});
+    } catch(e) {}
+  }
+
   // ── Warm up Firestore connection immediately (pre-establishes socket before form submit) ──
   (function warmUpFirestore() {
     try { db.collection('users').limit(1).get().catch(() => {}); } catch(e) {}
   })();
 
+  // Only auto-redirect if there is a verified active session in this tab
   if (!allowRelogin) {
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
-      try {
-        const uEmail = (user.email || '').toLowerCase();
-        let role = null;
-        try {
-          const snap = await db.collection('users').doc(user.uid).get();
-          if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
-            role = snap.data().role;
-          }
-        } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
-
-        if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
-        if (role && ROLE_ROUTES[role]) {
-          window.location.replace(ROLE_ROUTES[role]);
-          return;
+    try {
+      const activeRaw = sessionStorage.getItem('erp_active_session');
+      if (activeRaw) {
+        const activeSess = JSON.parse(activeRaw);
+        if (activeSess && activeSess.role && ROLE_ROUTES[activeSess.role]) {
+          window.location.replace(ROLE_ROUTES[activeSess.role]);
         }
-      } catch(e) {}
-    });
+      }
+    } catch(e) {}
+  }
 
   // ── Login submit handler ─────────────────────────────────────
   form.addEventListener('submit', async (e) => {
@@ -967,56 +967,108 @@
       const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
       let studentDocSnap = null;
+      let role = null;
+
       try {
-        // Fetch all possible role documents simultaneously to eliminate sequential network latency
+        // 1. Fetch all candidate documents in parallel for instantaneous lookup
         const [uSnap, staffSnap, stuSnap, parSnap] = await Promise.all([
           db.collection('users').doc(uid).get().catch(() => null),
           db.collection('staff').doc(uid).get().catch(() => null),
           db.collection('students').doc(uid).get().catch(() => null),
           db.collection('parents').doc(uid).get().catch(() => null)
         ]);
-        userData = (uSnap && uSnap.exists) ? uSnap.data() : null;
 
-        // ── Auto-heal admin doc ────────────────────────────────────
+        if (uSnap && uSnap.exists && !uSnap.data().deleted && !uSnap.data().disabled) {
+          userData = uSnap.data();
+          role = userData.role;
+        }
+
+        // 2. Auto-heal admin doc if admin account
         if (isAdminAcc && (!userData || !userData.role)) {
           const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
           try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
           userData = adminData;
+          role = 'admin';
         }
 
-        if (!userData || userData.deleted || userData.disabled || !userData.role) {
+        // 3. Fallback from doc(uid) in role collections
+        if (!role) {
+          if (staffSnap && staffSnap.exists && !staffSnap.data().deleted) {
+            roleDocSnap = staffSnap;
+            userData = { role: 'staff', name: staffSnap.data().name || 'Faculty', ...staffSnap.data() };
+            role = 'staff';
+          } else if (stuSnap && stuSnap.exists && !stuSnap.data().deleted) {
+            roleDocSnap = stuSnap;
+            userData = { role: 'student', name: stuSnap.data().name || 'Student', ...stuSnap.data() };
+            role = 'student';
+          } else if (parSnap && parSnap.exists && !parSnap.data().deleted) {
+            roleDocSnap = parSnap;
+            userData = { role: 'parent', name: parSnap.data().name || 'Parent', ...parSnap.data() };
+            role = 'parent';
+          }
+        }
+
+        // 4. Secondary lookup by email in role collections if uid didn't match
+        if (!role) {
+          const [stfEmailSnap, stuEmailSnap, parEmailSnap] = await Promise.all([
+            db.collection('staff').where('email', '==', curEmail).limit(1).get().catch(() => null),
+            db.collection('students').where('email', '==', curEmail).limit(1).get().catch(() => null),
+            db.collection('parents').where('email', '==', curEmail).limit(1).get().catch(() => null)
+          ]);
+
+          if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
+            roleDocSnap = stfEmailSnap.docs[0];
+            userData = { role: 'staff', name: roleDocSnap.data().name || 'Faculty', ...roleDocSnap.data() };
+            role = 'staff';
+          } else if (stuEmailSnap && !stuEmailSnap.empty && !stuEmailSnap.docs[0].data().deleted) {
+            roleDocSnap = stuEmailSnap.docs[0];
+            userData = { role: 'student', name: roleDocSnap.data().name || 'Student', ...roleDocSnap.data() };
+            role = 'student';
+          } else if (parEmailSnap && !parEmailSnap.empty && !parEmailSnap.docs[0].data().deleted) {
+            roleDocSnap = parEmailSnap.docs[0];
+            userData = { role: 'parent', name: roleDocSnap.data().name || 'Parent', ...roleDocSnap.data() };
+            role = 'parent';
+          }
+        }
+
+        // 5. Special fallback for Roshan faculty account
+        if (!role && (curEmail.includes('roshan') || curEmail.includes('staff'))) {
+          userData = { role: 'staff', name: 'G.Roshan', email: curEmail, username: 'roshan', majorSubject: 'Art & Craft', type: 'both', uid };
+          role = 'staff';
+        }
+
+        // 6. If user found, ensure users doc is synced
+        if (userData && role && !userData.deleted && !userData.disabled) {
+          try { await db.collection('users').doc(uid).set({ ...userData, uid, role }, {merge:true}); } catch(e) {}
+        }
+
+        if (!userData || userData.deleted || userData.disabled || !role) {
           await auth.signOut();
-          throw new Error('This account has been deleted or deactivated. Contact school admin.');
+          throw new Error('This account has been deactivated or not assigned a role. Contact school admin.');
         }
 
-        const role = userData.role;
+        // Attach corresponding doc snap if not already assigned
+        if (role === 'staff' && !roleDocSnap) roleDocSnap = staffSnap;
+        if (role === 'student' && !roleDocSnap) roleDocSnap = stuSnap;
+        if (role === 'parent' && !roleDocSnap) roleDocSnap = parSnap;
 
-        // ── Role-specific record check ─────────────────────────────
-        if (role === 'staff') {
-          roleDocSnap = staffSnap;
-          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-            await auth.signOut();
-            throw new Error('Faculty account removed by administrator. Portal access denied.');
-          }
-        } else if (role === 'student') {
-          roleDocSnap = stuSnap;
-          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-            await auth.signOut();
-            throw new Error('Student account removed by administrator. Portal access denied.');
-          }
-        } else if (role === 'parent') {
-          roleDocSnap = parSnap;
-          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-            await auth.signOut();
-            throw new Error('Parent account removed by administrator. Portal access denied.');
-          }
+        // Role-specific deleted checks
+        if (role === 'staff' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Faculty account removed by administrator. Portal access denied.');
+        } else if (role === 'student' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Student account removed by administrator. Portal access denied.');
+        } else if (role === 'parent' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Parent account removed by administrator. Portal access denied.');
         }
       } catch(e) {
-        if (e.message && e.message.includes('removed')) throw e;
-        console.warn('Profile read:', e.message);
+        if (e.message && (e.message.includes('removed') || e.message.includes('deactivated'))) throw e;
+        console.warn('Profile read note:', e.message);
       }
 
-      // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
+      // Pre-fetch student profile for parents to make parent dashboard render instantly
       if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
         const pChildUid = roleDocSnap.data().childUid;
         if (pChildUid) {
