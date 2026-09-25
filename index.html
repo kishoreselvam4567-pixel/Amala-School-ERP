@@ -453,7 +453,7 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence, getPortalApp, getAuth
+  setPersistence, browserLocalPersistence, browserSessionPersistence, getPortalApp, getAuth
 } from './js/auth.js';
 
 // 1. ROLE DESTINATIONS
@@ -640,7 +640,7 @@ form.addEventListener('submit', async (e) => {
       }
     }
 
-    await setPersistence(auth, browserLocalPersistence).catch(() => {});
+    await setPersistence(auth, browserSessionPersistence).catch(() => {});
     const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
 
     let userDoc = null;
@@ -719,6 +719,25 @@ form.addEventListener('submit', async (e) => {
     } catch (portalErr) {
       console.warn('Role portal auth sync note:', portalErr);
     }
+
+    // Store active session in role-isolated and tab-isolated storage
+    try {
+      const sessionPayload = {
+        uid: cred.user.uid,
+        email: cred.user.email || authEmail,
+        role: role,
+        name: userData.name || '',
+        profile: userData,
+        timestamp: Date.now()
+      };
+      const payloadStr = JSON.stringify(sessionPayload);
+      sessionStorage.setItem('erp_active_session', payloadStr);
+      sessionStorage.setItem('erp_session_' + role, payloadStr);
+      sessionStorage.setItem('erp_active_role', role);
+      localStorage.setItem('erp_session_' + role, payloadStr);
+      localStorage.setItem('erp_last_active_role', role);
+      localStorage.removeItem('erp_active_session');
+    } catch(e) {}
 
     showBox(okBox, 'Login successful! Redirecting to your dashboard…');
     setTimeout(() => {

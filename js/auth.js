@@ -7,7 +7,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import {
   getAuth, initializeAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut as fbSignOut, onAuthStateChanged, sendPasswordResetEmail,
-  setPersistence, browserLocalPersistence, inMemoryPersistence
+  setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
@@ -41,7 +41,11 @@ const currentRole = getCurrentPortalRole();
 // Role-isolated app and auth so Admin, Staff, Student, and Parent sessions never overwrite each other in the browser
 export const app = getPortalApp(currentRole);
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
+if (currentRole) {
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+} else {
+  setPersistence(auth, browserSessionPersistence).catch(() => {});
+}
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
@@ -67,7 +71,7 @@ export function getSecondaryAuth() {
 export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, fbSignOut,
   onAuthStateChanged, sendPasswordResetEmail,
-  setPersistence, browserLocalPersistence, inMemoryPersistence, initializeAuth, getAuth,
+  setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence, initializeAuth, getAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
   deleteDoc, serverTimestamp, orderBy, onSnapshot,
   ref, uploadBytes, getDownloadURL, deleteObject
@@ -197,9 +201,46 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
   let isAuthorized = false;
   let hasHydratedFromCache = false;
 
-  // 1. INSTANT HYDRATION: Check sessionStorage and localStorage for active session
+  // Helper to remove session keys for this portal/tab
+  const purgePortalSession = () => {
+    try {
+      sessionStorage.removeItem('erp_active_session');
+      sessionStorage.removeItem('erp_active_role');
+      for (const r of allowedRoles) {
+        sessionStorage.removeItem('erp_session_' + r);
+        localStorage.removeItem('erp_session_' + r);
+      }
+    } catch(e) {}
+  };
+
+  // 1. INSTANT HYDRATION: Check role-isolated sessionStorage and localStorage for active session
   try {
-    const rawCache = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+    let rawCache = null;
+    // (a) Check tab-scoped sessionStorage for specific allowed role first
+    for (const r of allowedRoles) {
+      const item = sessionStorage.getItem('erp_session_' + r);
+      if (item) { rawCache = item; break; }
+    }
+    // (b) Check tab-scoped active session if it matches an allowed role
+    if (!rawCache) {
+      const tabActive = sessionStorage.getItem('erp_active_session');
+      if (tabActive) {
+        try {
+          const parsed = JSON.parse(tabActive);
+          if (parsed && parsed.role && allowedRoles.includes(parsed.role)) {
+            rawCache = tabActive;
+          }
+        } catch(e) {}
+      }
+    }
+    // (c) Fallback: check role-isolated localStorage for specific allowed roles ONLY
+    if (!rawCache) {
+      for (const r of allowedRoles) {
+        const item = localStorage.getItem('erp_session_' + r);
+        if (item) { rawCache = item; break; }
+      }
+    }
+
     if (rawCache) {
       const cached = JSON.parse(rawCache);
       // Valid if less than 24 hours old and matches portal role
@@ -207,6 +248,13 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         hasHydratedFromCache = true;
         isAuthorized = true;
         userProfileCache.set(cached.uid, cached.profile || { uid: cached.uid, name: cached.name, role: cached.role });
+
+        // Ensure this tab's sessionStorage has the active session
+        try {
+          sessionStorage.setItem('erp_active_session', rawCache);
+          sessionStorage.setItem('erp_session_' + cached.role, rawCache);
+          sessionStorage.setItem('erp_active_role', cached.role);
+        } catch(e) {}
 
         // Synchronous immediate zero-latency dispatch
         try {
@@ -243,7 +291,13 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         return;
       }
 
-      // Fallback: check if the default app has an active session matching allowed roles
+      // Wait for role auth to finish restoring session before concluding unauthenticated
+      if (typeof auth.authStateReady === 'function') {
+        try { await auth.authStateReady(); } catch(e) {}
+        if (auth.currentUser) return; // Will re-trigger handleAuth with user
+      }
+
+      // Fallback: check if the default app has an active session matching allowed roles in THIS tab
       try {
         const defaultApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
         const defAuth = getAuth(defaultApp);
@@ -254,23 +308,31 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         if (defUser) {
           const defProfile = await getUserProfile(defUser.uid);
           if (defProfile && allowedRoles.includes(defProfile.role)) {
-            // Update session cache
+            // Update session cache for THIS role only
+            let existingRoleData = null;
             try {
+              const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+              if (rawExisting) {
+                try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch(e) {}
+              }
               const payload = JSON.stringify({
                 uid: defUser.uid,
                 email: defUser.email,
                 role: defProfile.role,
                 name: defProfile.name || '',
                 profile: defProfile,
+                roleData: existingRoleData,
                 timestamp: Date.now()
               });
               sessionStorage.setItem('erp_active_session', payload);
-              localStorage.setItem('erp_active_session', payload);
+              sessionStorage.setItem('erp_session_' + defProfile.role, payload);
+              sessionStorage.setItem('erp_active_role', defProfile.role);
+              localStorage.setItem('erp_session_' + defProfile.role, payload);
             } catch(e) {}
 
             if (!hasHydratedFromCache) {
               isAuthorized = true;
-              onReady({ user: defUser, profile: defProfile });
+              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData });
             }
             setTimeout(() => {
               showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
@@ -280,16 +342,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         }
       } catch (e) {}
 
-      // Wait for role auth to finish restoring session before concluding unauthenticated
-      if (typeof auth.authStateReady === 'function') {
-        try { await auth.authStateReady(); } catch(e) {}
-        if (auth.currentUser) return; // Will re-trigger handleAuth with user
-      }
-
       // If neither instance is authenticated and not hydrated from cache, redirect
       if (!hasHydratedFromCache) {
-        sessionStorage.removeItem('erp_active_session');
-        localStorage.removeItem('erp_active_session');
+        purgePortalSession();
         window.location.href = loginPath;
       }
       return;
@@ -299,8 +354,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       let profile = await getUserProfile(user.uid);
       if (!profile) {
         if (!hasHydratedFromCache) {
-          sessionStorage.removeItem('erp_active_session');
-          localStorage.removeItem('erp_active_session');
+          purgePortalSession();
           window.location.href = loginPath;
         }
         return;
@@ -309,8 +363,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       // Only sign out if the user was explicitly deleted or deactivated by the admin
       if (profile.deleted || profile.disabled) {
         alert("This account has been deleted or deactivated by the school administrator.");
-        sessionStorage.removeItem('erp_active_session');
-        localStorage.removeItem('erp_active_session');
+        purgePortalSession();
         await fbSignOut(auth);
         window.location.href = loginPath;
         return;
@@ -319,108 +372,129 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       // Role check: If role is not allowed on this portal, redirect to login for this portal.
       if (!allowedRoles.includes(profile.role)) {
         console.warn(`User role '${profile.role}' is not authorized for portal '${allowedRoles.join(', ')}'.`);
-        sessionStorage.removeItem('erp_active_session');
-        localStorage.removeItem('erp_active_session');
+        purgePortalSession();
         window.location.href = loginPath;
         return;
       }
 
+      // Cache freshness check (skip expensive collection lookups within 1 hour)
+      const cacheAge = Date.now() - (profile.timestamp || 0);
+      const cacheIsFresh = cacheAge < 3600000; // 1 hour
+
       // Role-specific collection check to ensure deleted records are revoked immediately
       if (profile.role === 'staff') {
-        let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-        if (!sSnap || !sSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const cleanUser = userEmail.split('@')[0];
-          const [stfEmailSnap, stfUserSnap] = await Promise.all([
-            getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
-            getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
-          ]);
-          if (stfEmailSnap && !stfEmailSnap.empty) {
-            await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-          } else if (stfUserSnap && !stfUserSnap.empty) {
-            await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-          } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
-            const roshanData = {
-              name: profile.name || 'G.Roshan',
-              email: userEmail,
-              username: cleanUser || 'roshan',
-              role: 'staff',
-              majorSubject: 'Art & Craft',
-              type: 'both',
-              uid: user.uid
-            };
-            await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
-            sSnap = { exists: () => true, data: () => roshanData };
+        if (!cacheIsFresh) {
+          let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+          if (!sSnap || !sSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const cleanUser = userEmail.split('@')[0];
+            const [stfEmailSnap, stfUserSnap] = await Promise.all([
+              getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
+              getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+            ]);
+            if (stfEmailSnap && !stfEmailSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (stfUserSnap && !stfUserSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
+              const roshanData = {
+                name: profile.name || 'G.Roshan',
+                email: userEmail,
+                username: cleanUser || 'roshan',
+                role: 'staff',
+                majorSubject: 'Art & Craft',
+                type: 'both',
+                uid: user.uid
+              };
+              await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
+              sSnap = { exists: () => true, data: () => roshanData };
+            }
           }
-        }
-        if (sSnap && sSnap.exists() && sSnap.data().deleted) {
-          alert("Your faculty account has been removed by the administrator. Access revoked.");
-          sessionStorage.removeItem('erp_active_session');
-          localStorage.removeItem('erp_active_session');
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (sSnap && sSnap.exists() && sSnap.data().deleted) {
+            alert("Your faculty account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
+
         }
       } else if (profile.role === 'student') {
-        let stSnap = await getDoc(doc(db, 'students', user.uid));
-        if (!stSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
-          const sQSnap = await getDocs(sQ);
-          if (!sQSnap.empty) {
-            await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            stSnap = await getDoc(doc(db, 'students', user.uid));
+        if (!cacheIsFresh) {
+          let stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+          if (!stSnap || !stSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
+            const sQSnap = await getDocs(sQ).catch(() => null);
+            if (sQSnap && !sQSnap.empty) {
+              await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+            }
           }
-        }
-        if (!stSnap.exists() || stSnap.data().deleted) {
-          alert("Your student account has been removed by the administrator. Access revoked.");
-          sessionStorage.removeItem('erp_active_session');
-          localStorage.removeItem('erp_active_session');
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (!stSnap || !stSnap.exists() || stSnap.data().deleted) {
+            alert("Your student account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
+
         }
       } else if (profile.role === 'parent') {
-        let pSnap = await getDoc(doc(db, 'parents', user.uid));
-        if (!pSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
-          const pQSnap = await getDocs(pQ);
-          if (!pQSnap.empty) {
-            await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            pSnap = await getDoc(doc(db, 'parents', user.uid));
+        // ⚡ Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
+        if (!cacheIsFresh) {
+          let pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+          if (!pSnap || !pSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+            const pQSnap = await getDocs(pQ).catch(() => null);
+            if (pQSnap && !pQSnap.empty) {
+              await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+            }
           }
-        }
-        if (!pSnap.exists() || pSnap.data().deleted) {
-          alert("Your parent account has been removed by the administrator. Access revoked.");
-          sessionStorage.removeItem('erp_active_session');
-          localStorage.removeItem('erp_active_session');
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (!pSnap || !pSnap.exists() || pSnap.data().deleted) {
+            alert("Your parent account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
         }
       }
 
-      // Update session cache silently in both storages
+      // Update session cache silently in both storages (ROLE-ISOLATED)
+      let existingRoleData = null;
       try {
+        const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+        if (rawExisting) {
+          try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch(e) {}
+        }
         const payload = JSON.stringify({
           uid: user.uid,
           email: user.email,
           role: profile.role,
           name: profile.name || '',
           profile: profile,
+          roleData: existingRoleData,
           timestamp: Date.now()
         });
         sessionStorage.setItem('erp_active_session', payload);
-        localStorage.setItem('erp_active_session', payload);
+        sessionStorage.setItem('erp_session_' + profile.role, payload);
+        sessionStorage.setItem('erp_active_role', profile.role);
+        localStorage.setItem('erp_session_' + profile.role, payload);
+        localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
       } catch(e) {}
 
       // If not previously hydrated from cache, invoke onReady now
       if (!hasHydratedFromCache) {
         isAuthorized = true;
-        onReady({ user, profile });
+        onReady({ user, profile, roleData: existingRoleData });
       }
 
       // Trigger first-time login instructions notification (only once per user)
@@ -678,17 +752,17 @@ export function portalPathForRole(role) {
 }
 
 export function logout(loginPath = "../login.html") {
+  const role = getCurrentPortalRole();
   try {
     sessionStorage.removeItem('erp_active_session');
-    localStorage.removeItem('erp_last_active_role');
+    sessionStorage.removeItem('erp_active_role');
+    if (role) {
+      sessionStorage.removeItem('erp_session_' + role);
+      localStorage.removeItem('erp_session_' + role);
+    }
     userProfileCache.clear();
   } catch(e) {}
   fbSignOut(auth).finally(() => {
-    try {
-      const defApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
-      const defAuth = getAuth(defApp);
-      fbSignOut(defAuth).catch(() => {});
-    } catch(e) {}
     window.location.href = loginPath;
   });
 }

@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parent Portal — Amala Higher Secondary School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
-<script src="../js/site-brand.js"></script>
 </head>
 <body>
 <button class="sidebar-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
@@ -136,9 +137,9 @@
       </div>
     </div>
 
-    <div id="loadingState" class="empty-state" style="display:none;"><span class="loader"></span> Loading your child's data…</div>
+    <div id="loadingState" class="empty-state"><span class="loader"></span> Loading your child's data…</div>
 
-    <div id="content" style="display:block;">
+    <div id="content" style="display:none;">
 
       <!-- 1. OVERVIEW TAB -->
       <section id="panel-overview">
@@ -657,12 +658,6 @@ if (topSearch) {
 let currentChildProfile = null;
 
 requirePortal(['parent'], async ({ user, profile, roleData }) => {
-  // 0ms immediate UI reveal
-  const loadingState = document.getElementById('loadingState');
-  if (loadingState) loadingState.style.display = 'none';
-  const content = document.getElementById('content');
-  if (content) content.style.display = 'block';
-
   const pName = profile.name || 'Parent';
   document.getElementById('uName').textContent = pName;
   document.getElementById('topName').textContent = pName;
@@ -701,6 +696,20 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
   }
 
   if (!childUid) {
+    // Still no childUid: try a secondary email-based lookup
+    try {
+      const userEmail = (user.email || '').toLowerCase();
+      const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+      const pQSnap = await getDocs(pQ);
+      if (!pQSnap.empty) {
+        parentData = pQSnap.docs[0].data();
+        childUid   = parentData.childUid || null;
+      }
+    } catch(e) {}
+  }
+
+  if (!childUid) {
+    const loadingState = document.getElementById('loadingState');
     if (loadingState) {
       loadingState.style.display = 'block';
       loadingState.innerHTML = '<div style="padding:40px; text-align:center;"><h3>No student linked yet</h3><p style="color:var(--ink-soft);">Please contact the school administration to link your student profile.</p></div>';
@@ -749,12 +758,18 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
     const pincode = student.pincode || parentData.childPincode || parentData.pincode || profile.pincode || '—';
     const emergencyPhone = student.emergencyPhone || parentData.childEmergencyPhone || parentData.emergencyPhone || student.fatherPhone || parentData.phone || '—';
 
-    document.getElementById('uClass').textContent = 'Child: ' + className;
-    document.getElementById('heroChildSub').textContent = `Class ${className} • Adm No: ${admNo}`;
-    document.getElementById('tagClass').textContent = `Class: ${className}`;
-    document.getElementById('tagAdmNo').textContent = `Adm No: ${admNo}`;
-    document.getElementById('tagRollNo').textContent = `Roll No: ${rollNo}`;
-    document.getElementById('tagAadhaar').textContent = `Aadhaar: ${aadhaar}`;
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setTxt('overviewChildTitle', childName);
+    setTxt('sideChildName', childName);
+    setTxt('sideChildInit', childInit);
+    setTxt('heroAvatarInit', childInit);
+    setTxt('heroChildName', childName);
+    setTxt('uClass', 'Child: ' + className);
+    setTxt('heroChildSub', `Class ${className} • Adm No: ${admNo}`);
+    setTxt('tagClass', `Class: ${className}`);
+    setTxt('tagAdmNo', `Adm No: ${admNo}`);
+    setTxt('tagRollNo', `Roll No: ${rollNo}`);
+    setTxt('tagAadhaar', `Aadhaar: ${aadhaar}`);
 
     // Populate Detailed Profile Tab
     document.getElementById('p_fullname').textContent = childName;
@@ -793,10 +808,7 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
       motherName,
       motherPhone,
       parentEmail: parentData.email || user.email || '—',
-      emergencyPhone,
-      address,
-      city,
-      pincode
+      emergencyPhone, address, city, pincode
     };
 
     const targetClass = classId || className || student.classId || student.className || '__none__';
@@ -1007,13 +1019,186 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
     console.error("Critical error in parent portal:", err);
   } finally {
     if (loadingState) loadingState.style.display = 'none';
-    if (content) content.style.display = 'block';
-  }
-});
+    if (content)      content.style.display = 'block';
+  };
 
+  // ── ⚡ INSTANT RENDER: If studentProfile is cached in session, render with ZERO delay ──
+  const cachedStudent = parentData.studentProfile || null;
+  if (cachedStudent) {
+    renderStudentInfo(cachedStudent);
+  }
+
+  // ── ⚡ Kick off student doc fetch and collection queries in parallel ──
+  const stSnapPromise = getDoc(doc(db, 'students', childUid)).catch(() => null);
+
+  // Determine classId from cached student if available
+  let classId = (cachedStudent && (cachedStudent.classId || cachedStudent.className)) || null;
+
+  // Collection queries that don't need classId start right away
+  const attSnapPromise   = getDocs(query(collection(db, 'attendance'), where('studentUid', '==', childUid))).catch(() => ({ docs: [] }));
+  const marksSnapPromise = getDocs(query(collection(db, 'marks'),      where('studentUid', '==', childUid))).catch(() => ({ docs: [] }));
+  const annSnapPromise   = getDocs(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'))).catch(() => null);
+
+  // If classId wasn't in cache, wait for student doc before launching class-dependent queries
+  let examsSnapPromise, notesSnapPromise, hwSnapPromise;
+  if (classId) {
+    examsSnapPromise = getDocs(query(collection(db, 'exams'),    where('classId', '==', classId))).catch(() => ({ docs: [] }));
+    notesSnapPromise = getDocs(query(collection(db, 'notes'),    where('classId', '==', classId))).catch(() => ({ docs: [] }));
+    hwSnapPromise    = getDocs(query(collection(db, 'homework'), where('classId', '==', classId))).catch(() => ({ docs: [] }));
+  } else {
+    // Wait for student doc to resolve classId, then fire class queries
+    examsSnapPromise = stSnapPromise.then(snap => {
+      const cid = snap && snap.exists() ? (snap.data().classId || snap.data().className) : null;
+      return cid ? getDocs(query(collection(db, 'exams'), where('classId', '==', cid))).catch(() => ({ docs: [] })) : { docs: [] };
+    });
+    notesSnapPromise = stSnapPromise.then(snap => {
+      const cid = snap && snap.exists() ? (snap.data().classId || snap.data().className) : null;
+      return cid ? getDocs(query(collection(db, 'notes'), where('classId', '==', cid))).catch(() => ({ docs: [] })) : { docs: [] };
+    });
+    hwSnapPromise = stSnapPromise.then(snap => {
+      const cid = snap && snap.exists() ? (snap.data().classId || snap.data().className) : null;
+      return cid ? getDocs(query(collection(db, 'homework'), where('classId', '==', cid))).catch(() => ({ docs: [] })) : { docs: [] };
+    });
+  }
+
+  // Await all parallel queries together
+  const [stSnap, attSnap, marksSnap, examsSnap, notesSnap, hwSnap, annSnap] = await Promise.all([
+    stSnapPromise,
+    attSnapPromise,
+    marksSnapPromise,
+    examsSnapPromise,
+    notesSnapPromise,
+    hwSnapPromise,
+    annSnapPromise
+  ]);
+
+  // Refresh student profile with fresh Firestore data
+  if (stSnap && stSnap.exists()) {
+    renderStudentInfo(stSnap.data());
+  } else if (!cachedStudent) {
+    // Fallback if no student doc found and wasn't cached
+    renderStudentInfo({ name: parentData.childName || 'Child' });
+  }
+
+  // ── ATTENDANCE ──────────────────────────────────────────────────────────
+  const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const present = attRows.filter(r => r.status === 'present').length;
+  const pct     = attRows.length ? Math.round((present / attRows.length) * 100) : null;
+
+  document.getElementById('attPct').textContent        = pct !== null ? pct + '%' : '—';
+  document.getElementById('attSummary').textContent    = attRows.length ? `${present} / ${attRows.length} days present (${pct}%)` : 'No records yet';
+  document.getElementById('attSummaryShort').textContent = attRows.length ? `${present} of ${attRows.length} Days Present` : 'No records yet';
+
+  const attBody = document.querySelector('#attTable tbody');
+  if (attBody) {
+    if (!attRows.length) { document.getElementById('attEmpty').style.display = 'block'; }
+    attRows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${r.date}</strong></td><td>Regular School Day</td><td><span class="badge ${r.status === 'present' ? 'badge-good' : 'badge-bad'}">${(r.status || 'absent').toUpperCase()}</span></td>`;
+      attBody.appendChild(tr);
+    });
+  }
+
+  // ── MARKS ───────────────────────────────────────────────────────────────
+  const marksRows = marksSnap.docs.map(d => d.data());
+  const marksBody = document.querySelector('#marksTable tbody');
+  if (!marksRows.length) { document.getElementById('marksEmpty').style.display = 'block'; }
+  let totalPct = 0;
+  if (marksBody) {
+    marksRows.forEach(r => {
+      const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+      totalPct += p;
+      let grade = p < 40 ? 'F' : p < 60 ? 'C' : p < 75 ? 'B' : p < 90 ? 'A' : 'A+';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
+      marksBody.appendChild(tr);
+    });
+  }
+  document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
+
+  // ── EXAMS ────────────────────────────────────────────────────────────────
+  const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => (a.date > b.date ? 1 : -1));
+  const examsBody = document.querySelector('#examsTable tbody');
+  if (!examsRows.length) { document.getElementById('examsEmpty').style.display = 'block'; }
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcoming = examsRows.find(r => r.date >= todayStr);
+  document.getElementById('nextExam').textContent = upcoming ? `${upcoming.examName} (${upcoming.subject})` : 'None scheduled';
+  if (examsBody) {
+    examsRows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${r.examName}</strong>${r.maxMarks ? ` <span class="badge badge-navy" style="font-size:10.5px;">${r.maxMarks} M</span>` : ''}</td>
+        <td><span class="badge badge-purple">${r.subject}</span></td>
+        <td><span class="badge badge-yellow" style="font-family:var(--font-mono); font-weight:700;">${r.date}</span>${r.time ? `<div style="font-size:11px; color:var(--ink-soft); margin-top:2px;">${r.time}</div>` : ''}</td>
+        <td>${r.syllabus || '—'}</td>`;
+      examsBody.appendChild(tr);
+    });
+  }
+
+  // ── NOTES ────────────────────────────────────────────────────────────────
+  const notesRows = notesSnap.docs.map(d => d.data());
+  const notesGrid = document.getElementById('notesGrid');
+  if (!notesRows.length) { document.getElementById('notesEmpty').style.display = 'block'; }
+  if (notesGrid) {
+    notesRows.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `<div class="pill" style="color:var(--brand-green);">• ${r.subject}</div>
+        <h3 style="font-size:16px;margin:8px 0 14px;">${r.title}</h3>
+        <a href="${r.fileUrl}" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download PDF
+        </a>`;
+      notesGrid.appendChild(div);
+    });
+  }
+
+  // ── HOMEWORK ─────────────────────────────────────────────────────────────
+  const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
+  const hwBody = document.querySelector('#hwTable tbody');
+  if (!hwRows.length) { document.getElementById('hwEmpty').style.display = 'block'; }
+  if (hwBody) {
+    hwRows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${r.subject}</strong></td><td><div><strong>${r.title}</strong></div><div style="color:var(--ink-soft);font-size:12.5px;">${r.description || ''}</div></td><td>${r.dueDate || '—'}</td><td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">Open File</a>` : '—'}</td>`;
+      hwBody.appendChild(tr);
+    });
+  }
+
+  // ── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
+  try {
+    const annList = document.getElementById('announcementsList');
+    if (annList) {
+      annList.innerHTML = '';
+      let count = 0;
+      if (annSnap) {
+        annSnap.docs.forEach(d => {
+          const r = d.data();
+          if (r.targetAudience === 'teachers') return;
+          count++;
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.style.marginBottom = '14px';
+          const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+          div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span class="badge badge-purple">Announcement</span>
+            <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
+          </div>
+          <h3 style="font-size:17px;">${r.title || ''}</h3>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>`;
+          annList.appendChild(div);
+        });
+      }
+      const annEmpty = document.getElementById('annEmpty');
+      if (annEmpty) annEmpty.style.display = count === 0 ? 'block' : 'none';
+    }
+  } catch (e) {
+    const annEmpty = document.getElementById('annEmpty');
+    if (annEmpty) annEmpty.style.display = 'block';
+  }
+});  // end requirePortal
 
 </script>
-<script src="../js/site-brand.js"></script>
+<script src="../js/site-brand.js" defer></script>
 </body>
 </html>
 
