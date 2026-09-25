@@ -453,7 +453,7 @@
 import {
   auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
   query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence
+  setPersistence, browserLocalPersistence, getPortalApp, getAuth
 } from './js/auth.js';
 
 // 1. ROLE DESTINATIONS
@@ -708,6 +708,16 @@ form.addEventListener('submit', async (e) => {
     if (!dest) {
       await fbSignOut(auth);
       throw new Error('User role is unassigned or unrecognized. Contact school IT support.');
+    }
+
+    // Also sign in to the dedicated portal Firebase app so each portal has isolated persistence
+    try {
+      const roleApp = getPortalApp(role);
+      const roleAuth = getAuth(roleApp);
+      await setPersistence(roleAuth, browserLocalPersistence);
+      await signInWithEmailAndPassword(roleAuth, authEmail, pass).catch(() => {});
+    } catch (portalErr) {
+      console.warn('Role portal auth sync note:', portalErr);
     }
 
     showBox(okBox, 'Login successful! Redirecting to your dashboard…');

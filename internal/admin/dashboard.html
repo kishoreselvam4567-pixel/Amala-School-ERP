@@ -11415,7 +11415,8 @@
             <span style="font-size:12px; color:var(--ink-soft);">${date}</span>
           </div>
           <h3 style="font-size:17px; margin:0 0 6px 0;">${r.title}</h3>
-          <p style="color:var(--ink-soft); font-size:14px; margin:0 0 14px 0; line-height:1.6;">${r.message}</p>
+          <p style="color:var(--ink-soft); font-size:14px; margin:0 0 10px 0; line-height:1.6; white-space:pre-line;">${r.message}</p>
+          ${fileHtml}
           <button class="btn btn-danger btn-sm annDelBtn" data-id="${d.id}">Remove Notice</button>
         `;
         div.querySelector('.annDelBtn').addEventListener('click', async () => {

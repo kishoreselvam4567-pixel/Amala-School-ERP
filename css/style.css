@@ -148,7 +148,8 @@ input,select,textarea{font-family:var(--font-body);}
   gap:12px;
   transition:all .18s ease;
 }
-.sidebar nav a svg{width:19px;height:19px;flex-shrink:0;opacity:0.75;transition:all .18s ease;}
+.sidebar a svg,
+.sidebar nav a svg{width:19px;height:19px;max-width:19px;max-height:19px;flex-shrink:0;opacity:0.75;transition:all .18s ease;}
 .sidebar nav a:hover{background:#f1f5f9;color:var(--ink);}
 .sidebar nav a:hover svg{opacity:1;transform:scale(1.05);}
 .sidebar nav a.active{
