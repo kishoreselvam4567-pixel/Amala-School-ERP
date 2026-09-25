@@ -824,9 +824,8 @@
           window.location.replace(ROLE_ROUTES[role]);
           return;
         }
-      }
-    } catch(e) {}
-  });
+      } catch(e) {}
+    });
 
   // ── Login submit handler ─────────────────────────────────────
   form.addEventListener('submit', async (e) => {
@@ -1018,7 +1017,6 @@
       }
 
       // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
-      let studentDocSnap = null;
       if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
         const pChildUid = roleDocSnap.data().childUid;
         if (pChildUid) {
