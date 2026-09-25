@@ -1004,14 +1004,46 @@
         }
       }
 
+      // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
+      let studentDocSnap = null;
+      if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
+        const pChildUid = roleDocSnap.data().childUid;
+        if (pChildUid) {
+          studentDocSnap = await db.collection('students').doc(pChildUid).get().catch(() => null);
+        }
+      }
+
       const dest = ROLE_ROUTES[role];
       if (!dest) {
         await auth.signOut();
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
+      // ── Store rich session payload including roleData (childUid, studentProfile etc.) for instant portal hydration ──
+      try {
+        const baseRoleData = (roleDocSnap && roleDocSnap.exists) ? roleDocSnap.data() : null;
+        const roleData = baseRoleData ? {
+          ...baseRoleData,
+          studentProfile: (studentDocSnap && studentDocSnap.exists) ? studentDocSnap.data() : null
+        } : null;
+
+        const sessionPayload = {
+          uid: cred.user.uid,
+          email: cred.user.email || authEmail,
+          role,
+          name: userData.name || '',
+          profile: userData,
+          roleData: roleData,
+          timestamp: Date.now()
+        };
+        const payloadStr = JSON.stringify(sessionPayload);
+        sessionStorage.setItem('erp_active_session', payloadStr);
+        localStorage.setItem('erp_active_session', payloadStr);
+        localStorage.setItem('erp_last_active_role', role);
+      } catch(e) {}
+
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
-      setTimeout(() => { window.location.replace(dest); }, 100);
+      setTimeout(() => { window.location.replace(dest); }, 80);
 
     } catch (err) {
       generateCaptchaCode();

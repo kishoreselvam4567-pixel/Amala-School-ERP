@@ -1424,6 +1424,55 @@
               <div class="detail-val" id="mp_emergencyPhone">—</div>
             </div>
           </div>
+
+          <!-- Linked Parent Portal Card -->
+          <div id="mp_linkedParentCard" style="margin-top:16px; display:none;">
+            <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-soft); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Linked Parent Portal Account
+            </div>
+            <div style="background:linear-gradient(135deg,#f0fdf4 0%,#eff6ff 100%); border:1.5px solid #bbf7d0; border-radius:12px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+              <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:220px;">
+                <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#059669,#0ea5e9); color:#fff; display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:800; flex-shrink:0;" id="mp_parAvatarInit">P</div>
+                <div>
+                  <div style="font-weight:800; font-size:14.5px; color:var(--ink);" id="mp_parName">—</div>
+                  <div style="font-size:12px; color:var(--ink-soft); margin-top:1px;" id="mp_parEmail">—</div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <div style="text-align:center;">
+                  <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); font-weight:700; margin-bottom:2px;">Phone / Login ID</div>
+                  <div style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--ink);" id="mp_parPhone">—</div>
+                </div>
+                <div style="text-align:center;">
+                  <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); font-weight:700; margin-bottom:2px;">Portal Password</div>
+                  <div style="display:inline-flex; align-items:center; gap:6px;">
+                    <span id="mp_parPass" style="font-family:var(--font-mono); font-size:13px; font-weight:700;">••••••••</span>
+                    <button type="button" id="mp_parPassRevealBtn" style="background:none; border:none; cursor:pointer; padding:0; color:var(--ink-soft); display:inline-flex;" title="Reveal Password">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <button type="button" id="mp_viewParentTabBtn"
+                  style="background:#059669; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;"
+                  title="Open this parent in the Parents tab">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  View in Parents Tab
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- No linked parent notice -->
+          <div id="mp_noParentCard" style="margin-top:16px; display:none;">
+            <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:10px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div>
+                <div style="font-weight:700; font-size:13px; color:#92400e;">No Parent Portal Linked</div>
+                <div style="font-size:12px; color:#b45309; margin-top:2px;">This student has no parent account connected. Use the Admission portal to register a parent.</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Residential Address -->
@@ -7412,6 +7461,69 @@
       document.getElementById('mp_motherPhone').innerHTML = formatPhoneDisplay(s.motherPhone, false);
       document.getElementById('mp_parentEmail').textContent = s.parentEmail || '—';
       document.getElementById('mp_emergencyPhone').innerHTML = formatPhoneDisplay(s.emergencyPhone || s.fatherPhone, false);
+
+      // ── Linked Parent Portal Card ──────────────────────────────────────────
+      const linkedParentCard = document.getElementById('mp_linkedParentCard');
+      const noParentCard     = document.getElementById('mp_noParentCard');
+
+      // Resolve linked parent: match by childUid, then parentEmail, then fatherPhone
+      let linkedPar = null;
+      if (allParentsCache && allParentsCache.length) {
+        linkedPar = allParentsCache.find(p =>
+          (s.parentUid  && p.id === s.parentUid) ||
+          (s.parentEmail && p.email && p.email.toLowerCase() === s.parentEmail.toLowerCase()) ||
+          (s.fatherPhone && p.phone && p.phone === s.fatherPhone)
+        ) || null;
+      }
+
+      if (linkedPar) {
+        const parInit = (linkedPar.name || 'P').charAt(0).toUpperCase();
+        document.getElementById('mp_parAvatarInit').textContent = parInit;
+        document.getElementById('mp_parName').textContent = linkedPar.name || '—';
+        document.getElementById('mp_parEmail').textContent = linkedPar.email || '—';
+        document.getElementById('mp_parPhone').textContent = linkedPar.phone || '—';
+
+        const passSpan = document.getElementById('mp_parPass');
+        const revBtn   = document.getElementById('mp_parPassRevealBtn');
+        const realPass = linkedPar.tempPassword || 'Parent@123';
+        passSpan.textContent = '••••••••';
+        passSpan.style.color = '';
+        passSpan.dataset.realPass = realPass;
+        passSpan.dataset.revealed = 'false';
+        // Re-bind reveal toggle (clone to remove stale listeners)
+        const newRevBtn = revBtn.cloneNode(true);
+        revBtn.parentNode.replaceChild(newRevBtn, revBtn);
+        newRevBtn.addEventListener('click', () => {
+          if (passSpan.dataset.revealed === 'true') {
+            passSpan.textContent = '••••••••';
+            passSpan.style.color = '';
+            passSpan.dataset.revealed = 'false';
+            newRevBtn.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+          } else {
+            passSpan.textContent = realPass;
+            passSpan.style.color = 'var(--brand-green)';
+            passSpan.dataset.revealed = 'true';
+            newRevBtn.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+          }
+        });
+
+        // "View in Parents Tab" button — closes modal and navigates to Parents tab
+        const viewParBtn = document.getElementById('mp_viewParentTabBtn');
+        const newViewBtn = viewParBtn.cloneNode(true);
+        viewParBtn.parentNode.replaceChild(newViewBtn, viewParBtn);
+        newViewBtn.addEventListener('click', () => {
+          studentDetailModal.classList.remove('open');
+          updateBodyModalState();
+          // Switch to Parents tab
+          document.querySelector('a[data-tab="parents"]')?.click();
+        });
+
+        linkedParentCard.style.display = 'block';
+        if (noParentCard) noParentCard.style.display = 'none';
+      } else {
+        if (linkedParentCard) linkedParentCard.style.display = 'none';
+        if (noParentCard)     noParentCard.style.display = 'block';
+      }
 
       // Address
       document.getElementById('mp_address').textContent = s.address || '—';
