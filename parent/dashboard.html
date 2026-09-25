@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parent Portal — Amala Higher Secondary School</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="../css/style.css">
-<script src="../js/site-brand.js"></script>
 </head>
 <body>
 <button class="sidebar-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
@@ -917,7 +918,7 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
 });  // end requirePortal
 
 </script>
-<script src="../js/site-brand.js"></script>
+<script src="../js/site-brand.js" defer></script>
 </body>
 </html>
 

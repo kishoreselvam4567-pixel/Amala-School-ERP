@@ -947,11 +947,14 @@
       const uniquePasswords = [...new Set(candidatePasswords)];
 
       // ── Attempt Firebase Auth sign-in ──────────────────────────
-      let cred = null, authError = null;
+      let cred = null, authError = null, matchedPass = null;
       for (const tryPass of uniquePasswords) {
         try {
           cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
-          if (cred && cred.user) break;
+          if (cred && cred.user) {
+            matchedPass = tryPass;
+            break;
+          }
         } catch(err) { authError = err; }
       }
 
@@ -964,47 +967,54 @@
       const curEmail = (cred.user.email || authEmail).toLowerCase();
       const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
+      let studentDocSnap = null;
       try {
-        // Fetch user profile doc immediately; also pre-fetch role record if we can guess role from email
-        const [uSnap] = await Promise.all([
-          db.collection('users').doc(uid).get().catch(() => null)
+        // Fetch all possible role documents simultaneously to eliminate sequential network latency
+        const [uSnap, staffSnap, stuSnap, parSnap] = await Promise.all([
+          db.collection('users').doc(uid).get().catch(() => null),
+          db.collection('staff').doc(uid).get().catch(() => null),
+          db.collection('students').doc(uid).get().catch(() => null),
+          db.collection('parents').doc(uid).get().catch(() => null)
         ]);
         userData = (uSnap && uSnap.exists) ? uSnap.data() : null;
-      } catch(e) { console.warn('Profile read:', e.message); }
 
-      // ── Auto-heal admin doc ────────────────────────────────────
-      if (isAdminAcc && (!userData || !userData.role)) {
-        const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
-        try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
-        userData = adminData;
-      }
-
-      if (!userData || userData.deleted || userData.disabled || !userData.role) {
-        await auth.signOut();
-        throw new Error('This account has been deleted or deactivated. Contact school admin.');
-      }
-
-      const role = userData.role;
-
-      // ── Role-specific record check ─────────────────────────────
-      if (role === 'staff') {
-        roleDocSnap = await db.collection('staff').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-          await auth.signOut();
-          throw new Error('Faculty account removed by administrator. Portal access denied.');
+        // ── Auto-heal admin doc ────────────────────────────────────
+        if (isAdminAcc && (!userData || !userData.role)) {
+          const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
+          try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
+          userData = adminData;
         }
-      } else if (role === 'student') {
-        roleDocSnap = await db.collection('students').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+
+        if (!userData || userData.deleted || userData.disabled || !userData.role) {
           await auth.signOut();
-          throw new Error('Student account removed by administrator. Portal access denied.');
+          throw new Error('This account has been deleted or deactivated. Contact school admin.');
         }
-      } else if (role === 'parent') {
-        roleDocSnap = await db.collection('parents').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-          await auth.signOut();
-          throw new Error('Parent account removed by administrator. Portal access denied.');
+
+        const role = userData.role;
+
+        // ── Role-specific record check ─────────────────────────────
+        if (role === 'staff') {
+          roleDocSnap = staffSnap;
+          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+            await auth.signOut();
+            throw new Error('Faculty account removed by administrator. Portal access denied.');
+          }
+        } else if (role === 'student') {
+          roleDocSnap = stuSnap;
+          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+            await auth.signOut();
+            throw new Error('Student account removed by administrator. Portal access denied.');
+          }
+        } else if (role === 'parent') {
+          roleDocSnap = parSnap;
+          if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+            await auth.signOut();
+            throw new Error('Parent account removed by administrator. Portal access denied.');
+          }
         }
+      } catch(e) {
+        if (e.message && e.message.includes('removed')) throw e;
+        console.warn('Profile read:', e.message);
       }
 
       // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
@@ -1025,7 +1035,7 @@
       // ── HIGH-SPEED PARALLEL SYNC: Role Portal Auth + Role Record Verification ──
       const roleCollectionName = role === 'staff' ? 'staff' : (role === 'student' ? 'students' : (role === 'parent' ? 'parents' : null));
 
-      const [roleAuthRes, roleSnap] = await Promise.all([
+      const [roleAuthRes] = await Promise.all([
         (async () => {
           try {
             const roleAppName = `amala-${role}-portal`;
@@ -1042,11 +1052,10 @@
           } catch(portalErr) {
             console.warn('Role portal auth sync note:', portalErr);
           }
-        })(),
-        (roleCollectionName && !matchedRecord) ? db.collection(roleCollectionName).doc(cred.user.uid).get().catch(() => null) : Promise.resolve(null)
+        })()
       ]);
 
-      const finalRoleData = matchedRecord || (roleSnap && roleSnap.exists ? roleSnap.data() : null);
+      const finalRoleData = roleDocSnap && roleDocSnap.exists ? roleDocSnap.data() : null;
 
       if (finalRoleData && finalRoleData.deleted) {
         await auth.signOut();

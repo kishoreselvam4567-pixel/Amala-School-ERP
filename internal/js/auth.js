@@ -361,78 +361,89 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         return;
       }
 
+      // Cache freshness check (skip expensive collection lookups within 1 hour)
+      const cacheAge = Date.now() - (profile.timestamp || 0);
+      const cacheIsFresh = cacheAge < 3600000; // 1 hour
+
       // Role-specific collection check to ensure deleted records are revoked immediately
       if (profile.role === 'staff') {
-        let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-        if (!sSnap || !sSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const cleanUser = userEmail.split('@')[0];
-          const [stfEmailSnap, stfUserSnap] = await Promise.all([
-            getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
-            getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
-          ]);
-          if (stfEmailSnap && !stfEmailSnap.empty) {
-            await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-          } else if (stfUserSnap && !stfUserSnap.empty) {
-            await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
-          } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
-            const roshanData = {
-              name: profile.name || 'G.Roshan',
-              email: userEmail,
-              username: cleanUser || 'roshan',
-              role: 'staff',
-              majorSubject: 'Art & Craft',
-              type: 'both',
-              uid: user.uid
-            };
-            await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
-            sSnap = { exists: () => true, data: () => roshanData };
+        if (!cacheIsFresh) {
+          let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+          if (!sSnap || !sSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const cleanUser = userEmail.split('@')[0];
+            const [stfEmailSnap, stfUserSnap] = await Promise.all([
+              getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
+              getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+            ]);
+            if (stfEmailSnap && !stfEmailSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (stfUserSnap && !stfUserSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
+              const roshanData = {
+                name: profile.name || 'G.Roshan',
+                email: userEmail,
+                username: cleanUser || 'roshan',
+                role: 'staff',
+                majorSubject: 'Art & Craft',
+                type: 'both',
+                uid: user.uid
+              };
+              await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
+              sSnap = { exists: () => true, data: () => roshanData };
+            }
           }
-        }
-        if (sSnap && sSnap.exists() && sSnap.data().deleted) {
-          alert("Your faculty account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (sSnap && sSnap.exists() && sSnap.data().deleted) {
+            alert("Your faculty account has been removed by the administrator. Access revoked.");
+            purgePortalSession();
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
         }
       } else if (profile.role === 'student') {
-        let stSnap = await getDoc(doc(db, 'students', user.uid));
-        if (!stSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
-          const sQSnap = await getDocs(sQ);
-          if (!sQSnap.empty) {
-            await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            stSnap = await getDoc(doc(db, 'students', user.uid));
+        if (!cacheIsFresh) {
+          let stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+          if (!stSnap || !stSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
+            const sQSnap = await getDocs(sQ).catch(() => null);
+            if (sQSnap && !sQSnap.empty) {
+              await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+            }
           }
-        }
-        if (!stSnap.exists() || stSnap.data().deleted) {
-          alert("Your student account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (!stSnap || !stSnap.exists() || stSnap.data().deleted) {
+            alert("Your student account has been removed by the administrator. Access revoked.");
+            purgePortalSession();
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
         }
       } else if (profile.role === 'parent') {
-        let pSnap = await getDoc(doc(db, 'parents', user.uid));
-        if (!pSnap.exists()) {
-          const userEmail = (user.email || '').toLowerCase();
-          const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
-          const pQSnap = await getDocs(pQ);
-          if (!pQSnap.empty) {
-            await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
-            pSnap = await getDoc(doc(db, 'parents', user.uid));
+        // Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
+        if (!cacheIsFresh) {
+          let pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+          if (!pSnap || !pSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+            const pQSnap = await getDocs(pQ).catch(() => null);
+            if (pQSnap && !pQSnap.empty) {
+              await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+            }
           }
-        }
-        if (!pSnap.exists() || pSnap.data().deleted) {
-          alert("Your parent account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
+          if (!pSnap || !pSnap.exists() || pSnap.data().deleted) {
+            alert("Your parent account has been removed by the administrator. Access revoked.");
+            purgePortalSession();
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
         }
       }
 
