@@ -635,6 +635,7 @@ requirePortal(['parent'], async ({ user, profile }) => {
   document.getElementById('uName').textContent = pName;
   document.getElementById('topName').textContent = pName;
 
+  // ── Wave 1: Fetch parent doc (fast indexed read) ──────────────────────────
   const parentSnap = await getDoc(doc(db, 'parents', user.uid));
   const parentData = parentSnap.exists() ? parentSnap.data() : {};
   const childUid = parentData.childUid;
@@ -644,12 +645,20 @@ requirePortal(['parent'], async ({ user, profile }) => {
     return;
   }
 
-  const stSnap = await getDoc(doc(db, 'students', childUid));
+  // ── Wave 2: Fetch student doc + ALL collections in PARALLEL ─────────────
+  const classIdPlaceholder = '__none__'; // will be updated after student doc resolves
+  const stSnapPromise = getDoc(doc(db, 'students', childUid));
+
+  // Start all collection fetches immediately (use a placeholder classId; will be refined below)
+  // We kick off student fetch first and wait just for it, then fire the rest
+  const stSnap = await stSnapPromise;
   const student = stSnap.exists() ? stSnap.data() : {};
+  const classId = student.classId || '__none__';
 
   const childName = student.name || parentData.childName || 'Child';
   const childInit = childName.charAt(0).toUpperCase();
 
+  // Populate identity fields immediately — user sees their child's name right away
   document.getElementById('overviewChildTitle').textContent = childName;
   document.getElementById('sideChildName').textContent = childName;
   document.getElementById('sideChildInit').textContent = childInit;
@@ -664,7 +673,6 @@ requirePortal(['parent'], async ({ user, profile }) => {
   const gender = student.gender || '—';
   const blood = student.bloodGroup || '—';
 
-  // Parent & Family
   const fatherName = student.fatherName || parentData.name || '—';
   const fatherPhone = student.fatherPhone || '—';
   const motherName = student.motherName || '—';
@@ -681,7 +689,6 @@ requirePortal(['parent'], async ({ user, profile }) => {
   document.getElementById('tagRollNo').textContent = `Roll No: ${rollNo}`;
   document.getElementById('tagAadhaar').textContent = `Aadhaar: ${aadhaar}`;
 
-  // Populate Detailed Profile Tab
   document.getElementById('p_fullname').textContent = childName;
   document.getElementById('p_admno').textContent = admNo;
   document.getElementById('p_rollno').textContent = rollNo;
@@ -690,46 +697,45 @@ requirePortal(['parent'], async ({ user, profile }) => {
   document.getElementById('p_gender').textContent = gender;
   document.getElementById('p_blood').textContent = blood;
   document.getElementById('p_aadhaar').textContent = aadhaar;
-
   document.getElementById('p_fatherName').textContent = fatherName;
   document.getElementById('p_fatherPhone').textContent = fatherPhone;
   document.getElementById('p_motherName').textContent = motherName;
   document.getElementById('p_motherPhone').textContent = motherPhone;
   document.getElementById('p_parentEmail').textContent = parentData.email || user.email || '—';
-
   document.getElementById('p_address').textContent = address;
   document.getElementById('p_city').textContent = city;
   document.getElementById('p_pincode').textContent = pincode;
   document.getElementById('p_emergencyPhone').textContent = emergencyPhone;
 
   currentChildProfile = {
-    name: childName,
-    admissionNo: admNo,
-    rollNo,
-    className,
-    dob,
-    gender,
-    bloodGroup: blood,
-    aadhaarNo: aadhaar,
-    email: student.email || '—',
-    fatherName,
-    fatherPhone,
-    motherName,
-    motherPhone,
+    name: childName, admissionNo: admNo, rollNo, className, dob, gender,
+    bloodGroup: blood, aadhaarNo: aadhaar, email: student.email || '—',
+    fatherName, fatherPhone, motherName, motherPhone,
     parentEmail: parentData.email || user.email || '—',
-    emergencyPhone,
-    address,
-    city,
-    pincode
+    emergencyPhone, address, city, pincode
   };
 
-  // ---- ATTENDANCE ----
-  const attQ = query(collection(db, 'attendance'), where('studentUid', '==', childUid));
-  const attSnap = await getDocs(attQ);
+  // ── Show dashboard immediately — don't wait for secondary data ──────────
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+
+  // ── Wave 3: Fire ALL 6 collection queries in PARALLEL ───────────────────
+  const [
+    attSnap, marksSnap, examsSnap, notesSnap, hwSnap, annSnap
+  ] = await Promise.all([
+    getDocs(query(collection(db, 'attendance'), where('studentUid', '==', childUid))),
+    getDocs(query(collection(db, 'marks'), where('studentUid', '==', childUid))),
+    getDocs(query(collection(db, 'exams'), where('classId', '==', classId))),
+    getDocs(query(collection(db, 'notes'), where('classId', '==', classId))),
+    getDocs(query(collection(db, 'homework'), where('classId', '==', classId))),
+    getDocs(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'))).catch(() => null)
+  ]);
+
+  // ── ATTENDANCE ──────────────────────────────────────────────────────────
   const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
   const present = attRows.filter(r => r.status === 'present').length;
   const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
-  
+
   document.getElementById('attPct').textContent = pct !== null ? pct + '%' : '—';
   document.getElementById('attSummary').textContent = attRows.length
     ? `${present} / ${attRows.length} days present (${pct}%)` : 'No records yet';
@@ -743,9 +749,7 @@ requirePortal(['parent'], async ({ user, profile }) => {
     attBody.appendChild(tr);
   });
 
-  // ---- MARKS ----
-  const marksQ = query(collection(db, 'marks'), where('studentUid', '==', childUid));
-  const marksSnap = await getDocs(marksQ);
+  // ── MARKS ───────────────────────────────────────────────────────────────
   const marksRows = marksSnap.docs.map(d => d.data());
   const marksBody = document.querySelector('#marksTable tbody');
   if (!marksRows.length) { document.getElementById('marksEmpty').style.display = 'block'; }
@@ -759,16 +763,13 @@ requirePortal(['parent'], async ({ user, profile }) => {
     else if (p < 75) grade = 'B';
     else if (p < 90) grade = 'A';
     else grade = 'A+';
-
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
     marksBody.appendChild(tr);
   });
   document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
 
-  // ---- EXAMS ----
-  const examsQ = query(collection(db, 'exams'), where('classId', '==', student.classId || '__none__'));
-  const examsSnap = await getDocs(examsQ);
+  // ── EXAMS ────────────────────────────────────────────────────────────────
   const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => (a.date > b.date ? 1 : -1));
   const examsBody = document.querySelector('#examsTable tbody');
   if (!examsRows.length) { document.getElementById('examsEmpty').style.display = 'block'; }
@@ -784,16 +785,14 @@ requirePortal(['parent'], async ({ user, profile }) => {
     examsBody.appendChild(tr);
   });
 
-  // ---- NOTES ----
-  const notesQ = query(collection(db, 'notes'), where('classId', '==', student.classId || '__none__'));
-  const notesSnap = await getDocs(notesQ);
+  // ── NOTES ────────────────────────────────────────────────────────────────
   const notesRows = notesSnap.docs.map(d => d.data());
   const notesGrid = document.getElementById('notesGrid');
   if (!notesRows.length) { document.getElementById('notesEmpty').style.display = 'block'; }
   notesRows.forEach(r => {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<div class="pill" style="color:var(--brand-green);">&bull; ${r.subject}</div>
+    div.innerHTML = `<div class="pill" style="color:var(--brand-green);">• ${r.subject}</div>
       <h3 style="font-size:16px;margin:8px 0 14px;">${r.title}</h3>
       <a href="${r.fileUrl}" target="_blank" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -802,9 +801,7 @@ requirePortal(['parent'], async ({ user, profile }) => {
     notesGrid.appendChild(div);
   });
 
-  // ---- HOMEWORK ----
-  const hwQ = query(collection(db, 'homework'), where('classId', '==', student.classId || '__none__'));
-  const hwSnap = await getDocs(hwQ);
+  // ── HOMEWORK ─────────────────────────────────────────────────────────────
   const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => (a.dueDate > b.dueDate ? 1 : -1));
   const hwBody = document.querySelector('#hwTable tbody');
   if (!hwRows.length) { document.getElementById('hwEmpty').style.display = 'block'; }
@@ -814,37 +811,34 @@ requirePortal(['parent'], async ({ user, profile }) => {
     hwBody.appendChild(tr);
   });
 
-  // ---- ANNOUNCEMENTS ----
+  // ── ANNOUNCEMENTS ─────────────────────────────────────────────────────────
   try {
-    const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
-    const annSnap = await getDocs(annQ);
     const annList = document.getElementById('announcementsList');
     annList.innerHTML = '';
     let count = 0;
-    annSnap.docs.forEach(d => {
-      const r = d.data();
-      if (r.targetAudience === 'teachers') return; // Exclude teacher/staff-only notices
-      count++;
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.style.marginBottom = '14px';
-      const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
-      div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="badge badge-purple">Announcement</span>
-        <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
-      </div>
-      <h3 style="font-size:17px;">${r.title || ''}</h3>
-      <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>`;
-      annList.appendChild(div);
-    });
+    if (annSnap) {
+      annSnap.docs.forEach(d => {
+        const r = d.data();
+        if (r.targetAudience === 'teachers') return;
+        count++;
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.style.marginBottom = '14px';
+        const date = r.createdAt?.toDate?.() ? r.createdAt.toDate().toLocaleDateString() : '';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="badge badge-purple">Announcement</span>
+          <span style="font-size:12px;color:var(--ink-soft);">${date}</span>
+        </div>
+        <h3 style="font-size:17px;">${r.title || ''}</h3>
+        <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;line-height:1.6;white-space:pre-line;">${r.message || ''}</p>`;
+        annList.appendChild(div);
+      });
+    }
     if (count === 0) { document.getElementById('annEmpty').style.display = 'block'; }
     else { document.getElementById('annEmpty').style.display = 'none'; }
   } catch (e) {
     document.getElementById('annEmpty').style.display = 'block';
   }
-
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
 });
 
 

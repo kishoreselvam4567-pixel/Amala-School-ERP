@@ -801,6 +801,11 @@
   const urlParams    = new URLSearchParams(window.location.search);
   const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
 
+  // ── Warm up Firestore connection immediately (pre-establishes socket before form submit) ──
+  (function warmUpFirestore() {
+    try { db.collection('users').limit(1).get().catch(() => {}); } catch(e) {}
+  })();
+
   if (!allowRelogin) {
     auth.onAuthStateChanged(async (user) => {
       if (!user) return;
@@ -860,13 +865,43 @@
         const digitsOnly = rawUser.replace(/\D/g, '');
         let resolved = false;
 
-        // 1. Students — exact admissionNo
-        try {
-          const stuSnap = await db.collection('students').where('admissionNo', '==', rawUser).limit(1).get();
-          if (!stuSnap.empty) { authEmail = stuSnap.docs[0].data().email; resolved = true; }
-        } catch(e) { console.warn('Student exact lookup:', e.message); }
+        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+        const phoneVariants = digitsOnly.length >= 7 ? [...new Set([rawUser, digitsOnly, last10,
+          '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10) : [];
 
-        // 2. Students — case-insensitive scan (admissionNo / rollNo)
+        // ── PARALLEL LOOKUP: Student (exact) + Parent (phone) + Staff + Users simultaneously ──
+        const [stuExactSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
+          db.collection('students').where('admissionNo', '==', rawUser).limit(1).get().catch(() => null),
+          phoneVariants.length ? db.collection('parents').where('phone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          phoneVariants.length ? db.collection('parents').where('motherPhone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          db.collection('staff').where('username','==',cleanInput).limit(1).get().catch(() => null),
+          db.collection('users').where('username','==',cleanInput).limit(1).get().catch(() => null)
+        ]);
+
+        // 1. Students — exact admissionNo
+        if (stuExactSnap && !stuExactSnap.empty) {
+          authEmail = stuExactSnap.docs[0].data().email; resolved = true;
+        }
+
+        // 2. Parents — by phone (father or mother)
+        if (!resolved && pPhoneSnap && !pPhoneSnap.empty) {
+          authEmail = pPhoneSnap.docs[0].data().email; resolved = true;
+        }
+        if (!resolved && mPhoneSnap && !mPhoneSnap.empty) {
+          authEmail = mPhoneSnap.docs[0].data().email; resolved = true;
+        }
+
+        // 3. Staff — by username
+        if (!resolved && stfSnap && !stfSnap.empty) {
+          authEmail = stfSnap.docs[0].data().email; resolved = true;
+        }
+
+        // 4. Users — by username
+        if (!resolved && usrSnap && !usrSnap.empty) {
+          authEmail = usrSnap.docs[0].data().email; resolved = true;
+        }
+
+        // 5. Fallback: Student full scan (case-insensitive admissionNo / rollNo)
         if (!resolved) {
           try {
             const allStu = await db.collection('students').get();
@@ -879,54 +914,18 @@
           } catch(e) { console.warn('Student scan:', e.message); }
         }
 
-        // 3. Parents — by phone number
-        if (!resolved && digitsOnly.length >= 7) {
-          const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-          const variants = [...new Set([rawUser, digitsOnly, last10,
-            '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10);
-
-          // Indexed query first
+        // 6. Fallback: Parent full scan
+        if (!resolved && phoneVariants.length) {
           try {
-            const pSnap = await db.collection('parents').where('phone','in',variants).limit(1).get();
-            if (!pSnap.empty) { authEmail = pSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Parent phone query:', e.message); }
-
-          if (!resolved) {
-            try {
-              const mSnap = await db.collection('parents').where('motherPhone','in',variants).limit(1).get();
-              if (!mSnap.empty) { authEmail = mSnap.docs[0].data().email; resolved = true; }
-            } catch(e) {}
-          }
-
-          // Full scan fallback
-          if (!resolved) {
-            try {
-              const allPar = await db.collection('parents').get();
-              const match = allPar.docs.find(d => {
-                const p1 = (d.data().phone       || '').replace(/\D/g,'');
-                const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
-                return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                       (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-              });
-              if (match) { authEmail = match.data().email; resolved = true; }
-            } catch(e) { console.warn('Parent scan:', e.message); }
-          }
-        }
-
-        // 4. Staff — by username
-        if (!resolved) {
-          try {
-            const stfSnap = await db.collection('staff').where('username','==',cleanInput).limit(1).get();
-            if (!stfSnap.empty) { authEmail = stfSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Staff lookup:', e.message); }
-        }
-
-        // 5. Users collection — by username
-        if (!resolved) {
-          try {
-            const usrSnap = await db.collection('users').where('username','==',cleanInput).limit(1).get();
-            if (!usrSnap.empty) { authEmail = usrSnap.docs[0].data().email; resolved = true; }
-          } catch(e) { console.warn('Users username lookup:', e.message); }
+            const allPar = await db.collection('parents').get();
+            const match = allPar.docs.find(d => {
+              const p1 = (d.data().phone       || '').replace(/\D/g,'');
+              const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
+              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
+                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
+            });
+            if (match) { authEmail = match.data().email; resolved = true; }
+          } catch(e) { console.warn('Parent scan:', e.message); }
         }
 
         if (!resolved) {
@@ -955,19 +954,25 @@
 
       if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
 
-      // ── Read user profile ──────────────────────────────────────
+      // ── Read user profile + role-specific record in PARALLEL ──────────────────────────────────────
       let userData = null;
+      let roleDocSnap = null;
+      const uid = cred.user.uid;
+      const curEmail = (cred.user.email || authEmail).toLowerCase();
+      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+
       try {
-        const uSnap = await db.collection('users').doc(cred.user.uid).get();
-        userData = uSnap.exists ? uSnap.data() : null;
+        // Fetch user profile doc immediately; also pre-fetch role record if we can guess role from email
+        const [uSnap] = await Promise.all([
+          db.collection('users').doc(uid).get().catch(() => null)
+        ]);
+        userData = (uSnap && uSnap.exists) ? uSnap.data() : null;
       } catch(e) { console.warn('Profile read:', e.message); }
 
       // ── Auto-heal admin doc ────────────────────────────────────
-      const curEmail   = (cred.user.email || authEmail).toLowerCase();
-      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
       if (isAdminAcc && (!userData || !userData.role)) {
         const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
-        try { await db.collection('users').doc(cred.user.uid).set(adminData, {merge:true}); } catch(e) {}
+        try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
         userData = adminData;
       }
 
@@ -980,20 +985,20 @@
 
       // ── Role-specific record check ─────────────────────────────
       if (role === 'staff') {
-        const s = await db.collection('staff').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
+        roleDocSnap = await db.collection('staff').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
           await auth.signOut();
           throw new Error('Faculty account removed by administrator. Portal access denied.');
         }
       } else if (role === 'student') {
-        const s = await db.collection('students').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
+        roleDocSnap = await db.collection('students').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
           await auth.signOut();
           throw new Error('Student account removed by administrator. Portal access denied.');
         }
       } else if (role === 'parent') {
-        const s = await db.collection('parents').doc(cred.user.uid).get().catch(() => null);
-        if (!s || !s.exists || s.data().deleted) {
+        roleDocSnap = await db.collection('parents').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
           await auth.signOut();
           throw new Error('Parent account removed by administrator. Portal access denied.');
         }
@@ -1006,7 +1011,7 @@
       }
 
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
-      setTimeout(() => { window.location.replace(dest); }, 500);
+      setTimeout(() => { window.location.replace(dest); }, 100);
 
     } catch (err) {
       generateCaptchaCode();
