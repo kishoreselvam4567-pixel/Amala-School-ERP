@@ -561,12 +561,12 @@
                 </button>
               </div>
             </div>
-            <div class="erp-field" style="margin-bottom:0;">
-              <label for="captchaInput">ENTER CAPTCHA</label>
-              <div class="erp-input-wrap">
-                <input type="text" id="captchaInput" required placeholder="TYPE CODE" maxlength="6" style="text-transform:uppercase; font-weight:700; letter-spacing:1.5px;">
+              <div class="erp-field" style="margin-bottom:0;">
+                <label for="captchaInput">ENTER CAPTCHA</label>
+                <div class="erp-input-wrap">
+                  <input type="text" id="captchaInput" required placeholder="Type Code" maxlength="6" style="font-weight:700; letter-spacing:1.5px;">
+                </div>
               </div>
-            </div>
           </div>
 
           <!-- Action Buttons -->
@@ -596,12 +596,27 @@
   window.currentCaptcha = '';
 
   function generateCaptchaCode() {
-    // Generate a 4-character alphanumeric code avoiding ambiguous 0/O, 1/I
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Generate mixed characters: Numbers (2-9), Capital Letters (A-Z), and Small Letters (a-z)
+    const numbers = '23456789';
+    const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const lowercase = 'abcdefghjkmnpqrstuvwxyz';
+    const allChars = numbers + uppercase + lowercase;
+
+    // Guaranteed mixture of at least one number, one uppercase, and one lowercase letter
+    let pool = [
+      numbers.charAt(Math.floor(Math.random() * numbers.length)),
+      uppercase.charAt(Math.floor(Math.random() * uppercase.length)),
+      lowercase.charAt(Math.floor(Math.random() * lowercase.length)),
+      allChars.charAt(Math.floor(Math.random() * allChars.length))
+    ];
+
+    // Shuffle characters randomly
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
     }
+
+    const code = pool.join('');
     window.currentCaptcha = code;
 
     const canvas = document.getElementById('captchaCanvas');
@@ -647,8 +662,8 @@
 
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.font = '800 21px "Outfit", "Inter", sans-serif';
-        ctx.fillStyle = '#f59e0b'; // Signature Amber/Gold
+        ctx.font = '800 22px "Outfit", "Inter", sans-serif';
+        ctx.fillStyle = (i % 2 === 0) ? '#f59e0b' : '#38bdf8'; // Dual-tone gold & sky blue
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 3;
         ctx.shadowOffsetX = 1;
@@ -832,9 +847,9 @@
     e.preventDefault();
     showErrBox('');
 
-    // 1. Captcha check
-    const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
-    const currentCode = (window.currentCaptcha || '').trim().toUpperCase();
+    // 1. Captcha check (exact case matching numbers, small letters, capital letters)
+    const userCaptcha = (document.getElementById('captchaInput').value || '').trim();
+    const currentCode = (window.currentCaptcha || '').trim();
 
     if (!userCaptcha || !currentCode || userCaptcha !== currentCode) {
       showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');
