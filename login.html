@@ -511,9 +511,8 @@
   <!-- 3. MAIN DUAL-PANE BODY -->
   <main class="erp-container">
     <div class="erp-grid">
-      
 
-      <!-- RIGHT PANEL: Authentication Form with Captcha -->
+      <!-- Authentication Form with Captcha -->
       <div class="erp-login-card">
         <div class="login-card-head">
           <h2>Sign In to Portal</h2>
@@ -763,7 +762,63 @@
   };
 
   // Admin email shortcuts
-  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com'];
+  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com','admin@amalaschool.edu.in'];
+
+  // Global Quick Demo Login and Autofill helper
+  window.quickDemoLogin = function(role) {
+    const creds = {
+      admin:   { user: 'amala@123.gmail.com', pass: 'amala@123', label: 'Super Admin' },
+      staff:   { user: 'roshan@amalaschool.edu.in', pass: 'Staff@123', label: 'Staff Faculty' },
+      student: { user: 'student@amalaschool.edu.in', pass: 'Student@123', label: 'Student (saron)' },
+      parent:  { user: 'parent@amalaschool.edu.in', pass: 'Parent@123', label: 'Parent (Joseph S)' }
+    };
+    const c = creds[role];
+    if (!c) return;
+
+    const userInput = document.getElementById('loginUserId');
+    const passInput = document.getElementById('loginPassword');
+    const captchaInput = document.getElementById('captchaInput');
+
+    if (userInput) userInput.value = c.user;
+    if (passInput) passInput.value = c.pass;
+    if (typeof generateCaptchaCode === 'function') generateCaptchaCode();
+    if (captchaInput && window.currentCaptcha) {
+      captchaInput.value = window.currentCaptcha;
+    }
+
+    showOkBox(`⚡ 1-Click login selected for ${c.label}. Authenticating live…`);
+
+    const form = document.getElementById('erpLoginForm');
+    if (form) {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }
+  };
+
+  window.autofillDemoCreds = function(role) {
+    const creds = {
+      admin:   { user: 'amala@123.gmail.com', pass: 'amala@123' },
+      staff:   { user: 'roshan@amalaschool.edu.in', pass: 'Staff@123' },
+      student: { user: 'student@amalaschool.edu.in', pass: 'Student@123' },
+      parent:  { user: 'parent@amalaschool.edu.in', pass: 'Parent@123' }
+    };
+    const c = creds[role];
+    if (!c) return;
+    const userInput = document.getElementById('loginUserId');
+    const passInput = document.getElementById('loginPassword');
+    const captchaInput = document.getElementById('captchaInput');
+
+    if (userInput) userInput.value = c.user;
+    if (passInput) passInput.value = c.pass;
+    if (typeof generateCaptchaCode === 'function') generateCaptchaCode();
+    if (captchaInput && window.currentCaptcha) {
+      captchaInput.value = window.currentCaptcha;
+    }
+    showOkBox(`Credentials filled for ${role.toUpperCase()}. Click 'Login to ERP' or press Enter.`);
+  };
 
   // ── UI helpers ──────────────────────────────────────────────
   const errBox  = document.getElementById('errBox');
@@ -859,12 +914,21 @@
       if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
         authEmail = 'admin@kishore.gmail.com';
         matchedRole = 'admin';
-      } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
+      } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com' || normUser === 'admin@amalaschool.edu.in') {
         authEmail = 'amala@123.gmail.com';
         matchedRole = 'admin';
       } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
         authEmail = 'amala@123.gmail.com';
         matchedRole = 'admin';
+      } else if (normUser === 'roshan' || normUser === 'roshan@amalaschool.edu.in') {
+        authEmail = 'roshan@amalaschool.edu.in';
+        matchedRole = 'staff';
+      } else if (['student', 'saron', 'student@amalaschool.edu.in', 'adm-1001', '1001'].includes(normUser)) {
+        authEmail = 'student@amalaschool.edu.in';
+        matchedRole = 'student';
+      } else if (['parent', 'parent@amalaschool.edu.in', '9840123456'].includes(normUser)) {
+        authEmail = 'parent@amalaschool.edu.in';
+        matchedRole = 'parent';
       } else if (rawUser.includes('@')) {
         // User provided an email → check for matching parent or student record in Firestore
         authEmail = normUser;
@@ -989,7 +1053,7 @@
         const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
         candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
-      candidatePasswords.push('Parent@123', 'Student@123', 'parent@123', 'student@123', 'Amala@123');
+      candidatePasswords.push('amala@123', 'Staff@123', 'Student@123', 'Parent@123', 'roshan123', 'parent@123', 'student@123', 'Amala@123');
       const uniquePasswords = [...new Set(candidatePasswords.filter(Boolean))];
 
       // ── Attempt Firebase Auth sign-in ──────────────────────────
@@ -1383,6 +1447,43 @@
       if (finalRoleData && finalRoleData.deleted) {
         await auth.signOut();
         throw new Error('Account removed by administrator. Portal access denied.');
+      }
+
+      // ── Enrich Parent Session with Full Child Profile ──
+      if (role === 'parent') {
+        const cUid = finalRoleData?.childUid || matchedParentData?.childUid || userData?.childUid;
+        if (cUid) {
+          try {
+            const stuSnap = await db.collection('students').doc(cUid).get().catch(() => null);
+            if (stuSnap && stuSnap.exists) {
+              const sData = stuSnap.data();
+              const mergedChild = {
+                childUid: cUid,
+                childName: sData.name || '',
+                childAdmissionNo: sData.admissionNo || '',
+                childRollNo: String(sData.rollNo || sData.admissionNo || ''),
+                childClassName: sData.className || '',
+                childClassId: sData.classId || '',
+                childDob: sData.dob || '',
+                childGender: sData.gender || '',
+                childBloodGroup: sData.bloodGroup || '',
+                childAadhaar: sData.aadhaarNo || sData.aadhaar || '',
+                childAddress: sData.address || '',
+                childCity: sData.city || '',
+                childPincode: sData.pincode || '',
+                childEmergencyPhone: sData.emergencyPhone || sData.fatherPhone || sData.motherPhone || '',
+                childStudentEmail: sData.email || '',
+                fatherName: sData.fatherName || userData.name || '',
+                fatherPhone: sData.fatherPhone || userData.phone || '',
+                motherName: sData.motherName || '',
+                motherPhone: sData.motherPhone || '',
+                childProfile: sData
+              };
+              userData = { ...mergedChild, ...userData };
+              if (finalRoleData) Object.assign(finalRoleData, mergedChild);
+            }
+          } catch(e) {}
+        }
       }
 
       // ── Store active session in BOTH sessionStorage & localStorage for INSTANT (0ms) portal hydration ──

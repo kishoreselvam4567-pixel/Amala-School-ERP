@@ -14,3 +14,7 @@ school-erp-final/
 
 # Logs
 *.log
+
+# Netlify
+netlify.toml
+.netlify/

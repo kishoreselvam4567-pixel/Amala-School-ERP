@@ -14,6 +14,28 @@
 </button>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- NOTIFICATION DROPDOWN FLYOUT -->
+<div class="notif-dropdown" id="notifDropdown" role="dialog" aria-label="Campus Notifications">
+  <div class="notif-head">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <h4>Notifications</h4>
+      <span class="badge badge-outline" id="notifCountBadge" style="font-size:11px;">0 Active</span>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" id="closeNotifDropdownBtn" style="padding:2px 8px; font-size:17px; line-height:1; border-radius:6px; color:var(--ink-soft);" title="Close Notifications" aria-label="Close Notifications">&times;</button>
+  </div>
+  <div class="notif-body" id="notifList">
+    <div style="text-align:center; padding:24px 12px; color:var(--ink-soft); font-size:12.5px;">Loading notifications…</div>
+  </div>
+  <div class="notif-footer">
+    <span style="font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;">
+      <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--brand-green);"></span>
+      Live Cloud Sync
+    </span>
+    <button type="button" class="btn btn-outline btn-sm" id="viewAllAnnouncementsBtn" style="font-size:11.5px; padding:4px 10px; font-weight:700;">View Announcements &rarr;</button>
+  </div>
+</div>
+
 <div class="app-shell">
   <!-- SIDEBAR -->
   <div class="sidebar">
@@ -99,9 +121,9 @@
       </div>
 
       <div class="topbar-actions">
-        <button class="btn-icon" title="Notifications" aria-label="Notifications">
+        <button class="btn-icon" title="Notifications" aria-label="Notifications" id="notifBellBtn" type="button">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="dot"></span>
+          <span class="dot" style="display:none;"></span>
         </button>
 
         <div class="user-badge-pill">
@@ -509,8 +531,9 @@
 <script type="module">
 import {
   auth, db, requirePortal, logout, doc, getDoc, collection, query, where,
-  getDocs, orderBy
+  getDocs, orderBy, onSnapshot
 } from '../js/auth.js';
+import { initLiveNotifications } from '../js/notifications.js';
 
 document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
 
@@ -594,6 +617,9 @@ function switchTab(targetTab, pushState = true) {
     closeSidebar();
   }
 }
+
+// Initialize live notifications flyout and realtime updates
+initLiveNotifications({ role: 'student', db, switchTab });
 
 // Handle browser back button / mobile back gesture to exit tabs and show Home Overview automatically
 window.addEventListener('popstate', (e) => {

@@ -230,6 +230,16 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     if (!user) {
       // If we already hydrated a valid authorized session from cache, do NOT boot to login.
       if (hasHydratedFromCache) {
+        try {
+          const rawCache = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+          if (rawCache) {
+            const c = JSON.parse(rawCache);
+            const passToTry = c.pass || c.tempPassword || (c.role === 'student' ? 'Student@123' : (c.role === 'parent' ? 'Parent@123' : (c.role === 'staff' ? 'Staff@123' : null)));
+            if (c.email && passToTry) {
+              signInWithEmailAndPassword(auth, c.email, passToTry).catch(() => {});
+            }
+          }
+        } catch(e) {}
         return;
       }
 

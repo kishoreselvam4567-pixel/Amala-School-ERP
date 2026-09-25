@@ -179,18 +179,18 @@
 
     /* Notification Dropdown Flyout */
     .notif-dropdown {
-      position: absolute;
+      position: fixed;
       top: 68px;
-      right: 36px;
+      right: 28px;
       width: 380px;
-      max-width: 90vw;
+      max-width: calc(100vw - 32px);
       background: var(--white);
       border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: 0 14px 38px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
-      z-index: 1000;
+      box-shadow: 0 14px 38px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
+      z-index: 9999;
       display: none;
-      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
       overflow: hidden;
     }
 
@@ -1250,6 +1250,18 @@
           </div>
         </div>
         <div class="pm-header-actions">
+          <button type="button" class="btn btn-sm" id="mp_loginStudentPortalHeaderBtn"
+            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#2563eb; color:#fff; border:none; border-radius:8px; cursor:pointer;"
+            title="Launch and Login to Student Portal for this student in real-time">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Login Student
+          </button>
+          <button type="button" class="btn btn-sm" id="mp_loginParentPortalHeaderBtn"
+            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#7c3aed; color:#fff; border:none; border-radius:8px; cursor:pointer;"
+            title="Launch and Login to Parent Portal for this student in real-time">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Login Parent
+          </button>
           <button type="button" class="btn btn-outline btn-sm" id="editStudentFromDetailBtn"
             style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
             Edit Student
@@ -1329,10 +1341,16 @@
               <div class="detail-val" id="mp_email">—</div>
             </div>
             <div class="detail-item"><label>Student Login Password</label>
-              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span id="mp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
                 <button type="button" class="btn btn-outline btn-sm" id="mp_togglePassBtn"
                   style="font-size:11px; padding:2px 8px; font-weight:700; height:24px; display:inline-flex; align-items:center;">Reveal</button>
+                <button type="button" class="btn btn-sm" id="mp_loginStudentPortalBtn"
+                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;"
+                  title="Direct 1-Click Login to Student Portal">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                  Login Access
+                </button>
               </div>
             </div>
             <div class="detail-item" style="grid-column:1/-1;"><label>Assigned Subjects &amp; Curriculum Stream</label>
@@ -1367,7 +1385,15 @@
               <div class="detail-val" id="mp_motherPhone">—</div>
             </div>
             <div class="detail-item"><label>Parent Portal Login Email</label>
-              <div class="detail-val" id="mp_parentEmail">—</div>
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span id="mp_parentEmail">—</span>
+                <button type="button" class="btn btn-sm" id="mp_loginParentPortalBtn"
+                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#7c3aed; color:#fff; border:none; border-radius:6px; cursor:pointer;"
+                  title="Direct 1-Click Login to Parent Portal">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                  Login Access
+                </button>
+              </div>
             </div>
             <div class="detail-item"><label>Emergency Contact</label>
               <div class="detail-val" id="mp_emergencyPhone">—</div>
@@ -1434,6 +1460,12 @@
           </div>
         </div>
         <div class="pm-header-actions">
+          <button type="button" class="btn btn-sm" id="msp_loginStaffPortalHeaderBtn"
+            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#059669; color:#fff; border:none; border-radius:8px; cursor:pointer;"
+            title="Launch and Login to Staff Portal as this faculty member in real-time">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Login Staff
+          </button>
           <button type="button" class="btn btn-outline btn-sm" id="editStaffFromDetailBtn"
             style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
             Edit Faculty
@@ -1514,11 +1546,17 @@
               <div class="detail-val"><span class="badge badge-good">Teaching Faculty</span></div>
             </div>
             <div class="detail-item"><label>Portal Login Password</label>
-              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span id="msp_pass"
                   style="font-family:var(--font-mono); font-size:14px; letter-spacing:2px; font-weight:700; color:#1e293b;">••••••••</span>
                 <button type="button" class="btn btn-outline btn-sm" id="msp_togglePassBtn"
                   style="font-size:11px; padding:3px 8px; height:auto;">Reveal</button>
+                <button type="button" class="btn btn-sm" id="msp_loginStaffPortalBtn"
+                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;"
+                  title="Direct 1-Click Login to Staff Portal">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                  Login Access
+                </button>
               </div>
             </div>
             <div class="detail-item"><label>Login ID Allowed</label>
@@ -2541,7 +2579,7 @@
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              <span class="dot"></span>
+              <span class="dot" style="display:none;"></span>
             </button>
             <div class="user-badge-pill">
               <div class="pill-avatar" id="topAvatarInit">A</div>
@@ -6406,6 +6444,14 @@
         if (stfBody) stfBody.scrollTop = 0;
       }
 
+      // Modal Staff Direct Login Listener
+      function loginToStaffPortalForModalStaff() {
+        if (!currentModalStaff) return;
+        launchLivePortal('staff', currentModalStaff, '../staff/dashboard.html');
+      }
+      document.getElementById('msp_loginStaffPortalBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
+      document.getElementById('msp_loginStaffPortalHeaderBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
+
       // Modal Password Reveal Listener
       document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
         const passSpan = document.getElementById('msp_pass');
@@ -6597,6 +6643,10 @@
       </td>
       <td style="text-align:right; white-space:nowrap;">
         <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+          <button type="button" class="btn btn-sm stfLoginBtn" data-id="${d.id}" style="padding:4px 9px; font-size:12px; background:#2563eb; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Direct Login to Staff Portal as this faculty member">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Login
+          </button>
           <button type="button" class="btn btn-outline btn-sm stfViewBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="View Full Profile">View</button>
           <button type="button" class="btn btn-sm stfEditBtn" data-id="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Faculty Details">Edit</button>
           <button type="button" class="btn btn-outline btn-sm stfPrintRowBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="Print Official Profile">Print</button>
@@ -6604,6 +6654,12 @@
         </div>
       </td>
     `;
+
+          // Direct Staff Login click
+          tr.querySelector('.stfLoginBtn')?.addEventListener('click', () => {
+            const item = allStaffCache.find(x => x.id === d.id);
+            if (item) launchLivePortal('staff', item, '../staff/dashboard.html');
+          });
 
           // View Details modal click
           tr.querySelector('.stfViewBtn').addEventListener('click', () => {
@@ -7145,13 +7201,32 @@
               const targetParId = matchId || s.parentUid || doc(collection(db, 'parents')).id;
               const cleanEmail = s.parentEmail || '';
               const parData = {
+                role: 'parent',
                 name: s.fatherName || 'Parent',
                 email: cleanEmail,
                 phone: s.fatherPhone || s.phone || '',
                 motherPhone: s.motherPhone || '',
                 childUid: s.uid,
                 childName: s.name,
+                childAdmissionNo: s.admissionNo || '',
+                childRollNo: String(s.rollNo || s.admissionNo || ''),
+                childClassName: s.className || '',
+                childClassId: s.classId || '',
+                childDob: s.dob || '',
+                childGender: s.gender || '',
+                childBloodGroup: s.bloodGroup || '',
+                childAadhaar: s.aadhaarNo || s.aadhaar || '',
+                childAddress: s.address || '',
+                childCity: s.city || '',
+                childPincode: s.pincode || '',
+                childEmergencyPhone: s.emergencyPhone || s.fatherPhone || s.motherPhone || '',
+                childStudentEmail: s.email || '',
+                fatherName: s.fatherName || '',
+                fatherPhone: s.fatherPhone || '',
+                motherName: s.motherName || '',
+                motherPhone: s.motherPhone || '',
                 tempPassword: 'Parent@123',
+                childProfile: s,
                 updatedAt: serverTimestamp()
               };
 
@@ -7668,6 +7743,33 @@
         if (sBody) sBody.scrollTop = 0;
       }
 
+      // Global Helper: Direct Live Portal Launch
+      function launchLivePortal(role, userPayload, targetUrl) {
+        const pass = userPayload.tempPassword || userPayload.password || (role === 'student' ? 'Student@123' : (role === 'parent' ? 'Parent@123' : (role === 'staff' ? 'Staff@123' : '')));
+        const sessionPayload = {
+          uid: userPayload.uid || userPayload.id,
+          email: userPayload.email,
+          role: role,
+          name: userPayload.name || userPayload.studentName || 'User',
+          pass: pass,
+          tempPassword: pass,
+          profile: {
+            uid: userPayload.uid || userPayload.id,
+            name: userPayload.name || userPayload.studentName || 'User',
+            role: role,
+            ...userPayload
+          },
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem('erp_active_session', JSON.stringify(sessionPayload));
+          sessionStorage.setItem('erp_active_session', JSON.stringify(sessionPayload));
+        } catch(e) {
+          console.warn("Storage warning:", e);
+        }
+        window.open(targetUrl, '_blank');
+      }
+
       // Student Profile Modal Password Reveal Listener
       document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
         const passSpan = document.getElementById('mp_pass');
@@ -7685,6 +7787,33 @@
           btn.textContent = 'Hide';
         }
       });
+
+      // Direct Student & Parent Login Handlers from Student Modal
+      function loginToStudentPortalForModalStudent() {
+        if (!currentModalStudent) return;
+        launchLivePortal('student', currentModalStudent, '../../student/dashboard.html');
+      }
+      document.getElementById('mp_loginStudentPortalBtn')?.addEventListener('click', loginToStudentPortalForModalStudent);
+      document.getElementById('mp_loginStudentPortalHeaderBtn')?.addEventListener('click', loginToStudentPortalForModalStudent);
+
+      function loginToParentPortalForModalStudent() {
+        if (!currentModalStudent) return;
+        const parentPayload = {
+          uid: currentModalStudent.parentUid || `par_${currentModalStudent.admissionNo || currentModalStudent.id}`,
+          name: currentModalStudent.fatherName || currentModalStudent.motherName || 'Parent of ' + currentModalStudent.name,
+          email: currentModalStudent.parentEmail || 'parent@amalaschool.edu.in',
+          phone: currentModalStudent.fatherPhone || currentModalStudent.motherPhone || '9840123456',
+          password: currentModalStudent.parentPassword || 'Parent@123',
+          tempPassword: currentModalStudent.parentPassword || 'Parent@123',
+          studentId: currentModalStudent.id || currentModalStudent.uid,
+          studentName: currentModalStudent.name,
+          childAdmNo: currentModalStudent.admissionNo,
+          childClass: currentModalStudent.className
+        };
+        launchLivePortal('parent', parentPayload, '../../parent/dashboard.html');
+      }
+      document.getElementById('mp_loginParentPortalBtn')?.addEventListener('click', loginToParentPortalForModalStudent);
+      document.getElementById('mp_loginParentPortalHeaderBtn')?.addEventListener('click', loginToParentPortalForModalStudent);
 
       // ======================== EDIT STUDENT ========================
       const editStudentModal = document.getElementById('editStudentModal');
@@ -8026,7 +8155,11 @@
             childClassId: entry.childClassId,
             phone: r.phone || '—',
             tempPassword: parentPass,
-            isOrphan
+            isOrphan,
+            studentId: linkedStudent ? (linkedStudent.uid || linkedStudent.id) : (r.childUid || ''),
+            studentName: linkedStudent ? linkedStudent.name : (r.childName || ''),
+            linkedStudent: linkedStudent || null,
+            raw: r
           });
 
           parentEntries.push(entry);
@@ -8234,12 +8367,53 @@
           </td>
           <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
             <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
+              <button type="button" class="btn btn-sm parLoginBtn" data-uid="${docId}" style="padding:4px 9px; font-size:12px; background:#7c3aed; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Direct Login to Parent Portal as this parent">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Login
+              </button>
               <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
               <button type="button" class="btn btn-sm parEditBtn" data-uid="${docId}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
               <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px;">Delete</button>
             </div>
           </td>
         `;
+
+        // Direct Parent Login
+        tr.querySelector('.parLoginBtn')?.addEventListener('click', () => {
+          const item = allParentsCache.find(x => x.id === docId);
+          if (item) {
+            const stu = item.linkedStudent || {};
+            launchLivePortal('parent', {
+              uid: item.id,
+              name: item.name || (item.raw && item.raw.name) || (stu.fatherName || 'Parent'),
+              email: item.email || (item.raw && item.raw.email) || stu.parentEmail,
+              phone: item.phone || (item.raw && item.raw.phone) || stu.fatherPhone,
+              password: parentPass || 'Parent@123',
+              tempPassword: parentPass || 'Parent@123',
+              studentId: item.studentId || (item.raw && item.raw.studentId) || (stu.uid || stu.id) || '',
+              studentName: item.studentName || (item.raw && item.raw.studentName) || stu.name || '',
+              childUid: item.studentId || (stu.uid || stu.id) || (item.raw && item.raw.childUid) || '',
+              childName: item.studentName || stu.name || (item.raw && item.raw.childName) || '',
+              childAdmissionNo: stu.admissionNo || (item.raw && item.raw.childAdmissionNo) || '',
+              childRollNo: stu.rollNo || stu.admissionNo || (item.raw && item.raw.childRollNo) || '',
+              childClassName: item.childClassName || stu.className || (item.raw && item.raw.childClassName) || '',
+              childClassId: item.childClassId || stu.classId || (item.raw && item.raw.childClassId) || '',
+              childDob: stu.dob || (item.raw && item.raw.childDob) || '',
+              childGender: stu.gender || (item.raw && item.raw.childGender) || '',
+              childBloodGroup: stu.bloodGroup || (item.raw && item.raw.childBloodGroup) || '',
+              childAadhaar: stu.aadhaarNo || stu.aadhaar || (item.raw && item.raw.childAadhaar) || '',
+              childAddress: stu.address || (item.raw && item.raw.childAddress) || '',
+              childCity: stu.city || (item.raw && item.raw.childCity) || '',
+              childPincode: stu.pincode || (item.raw && item.raw.childPincode) || '',
+              childEmergencyPhone: stu.emergencyPhone || stu.fatherPhone || item.phone || (item.raw && item.raw.childEmergencyPhone) || '',
+              fatherName: stu.fatherName || item.name || (item.raw && item.raw.fatherName) || '',
+              fatherPhone: stu.fatherPhone || item.phone || (item.raw && item.raw.fatherPhone) || '',
+              motherName: stu.motherName || (item.raw && item.raw.motherName) || '',
+              motherPhone: stu.motherPhone || (item.raw && item.raw.motherPhone) || '',
+              childProfile: stu
+            }, '../../parent/dashboard.html');
+          }
+        });
 
         // Password toggle
         tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
