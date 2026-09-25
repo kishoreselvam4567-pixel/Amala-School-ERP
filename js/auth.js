@@ -298,12 +298,8 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         if (defUser) {
           const defProfile = await getUserProfile(defUser.uid);
           if (defProfile && allowedRoles.includes(defProfile.role)) {
-<<<<<<< HEAD
             // Update session cache for THIS role only
-=======
-            // Update session cache
             let existingRoleData = null;
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
             try {
               const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
               if (rawExisting) {
@@ -414,16 +410,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-<<<<<<< HEAD
-        }
-        if (sSnap && sSnap.exists() && sSnap.data().deleted) {
-          alert("Your faculty account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
-=======
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
+
         }
       } else if (profile.role === 'student') {
         if (!cacheIsFresh) {
@@ -445,16 +432,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-<<<<<<< HEAD
-        }
-        if (!stSnap.exists() || stSnap.data().deleted) {
-          alert("Your student account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
-=======
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
+
         }
       } else if (profile.role === 'parent') {
         // ⚡ Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
@@ -477,25 +455,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-<<<<<<< HEAD
-        }
-        if (!pSnap.exists() || pSnap.data().deleted) {
-          alert("Your parent account has been removed by the administrator. Access revoked.");
-          purgePortalSession();
-          await fbSignOut(auth);
-          window.location.href = loginPath;
-          return;
         }
       }
 
       // Update session cache silently in both storages (ROLE-ISOLATED)
-=======
-        }
-      }
-
-      // Update session cache silently in both storages while preserving roleData
       let existingRoleData = null;
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
       try {
         const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
         if (rawExisting) {
