@@ -751,8 +751,8 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  // Set local persistence so session survives refresh
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+  // Set session persistence so auth on the login page stays isolated to this browser tab
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => {});
 
   // Role → page mapping
   const ROLE_ROUTES = {
@@ -819,8 +819,6 @@
           return;
         }
       }
-      // Clear previous session so user starts with a completely fresh login form
-      auth.signOut().catch(() => {});
     } catch(e) {}
   });
 
@@ -1385,7 +1383,7 @@
         throw new Error('Account removed by administrator. Portal access denied.');
       }
 
-      // ── Store active session in BOTH sessionStorage & localStorage for INSTANT (0ms) portal hydration ──
+      // ── Store active session in role-isolated and tab-isolated storage ──
       try {
         const sessionPayload = {
           uid: cred.user.uid,
@@ -1397,9 +1395,15 @@
           timestamp: Date.now()
         };
         const payloadStr = JSON.stringify(sessionPayload);
+        // Tab-isolated active session
         sessionStorage.setItem('erp_active_session', payloadStr);
-        localStorage.setItem('erp_active_session', payloadStr);
+        sessionStorage.setItem('erp_session_' + role, payloadStr);
+        sessionStorage.setItem('erp_active_role', role);
+
+        // Role-partitioned session in localStorage (never overwrites other roles)
+        localStorage.setItem('erp_session_' + role, payloadStr);
         localStorage.setItem('erp_last_active_role', role);
+        localStorage.removeItem('erp_active_session'); // Clean up ambiguous legacy key
       } catch(e) {}
 
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
