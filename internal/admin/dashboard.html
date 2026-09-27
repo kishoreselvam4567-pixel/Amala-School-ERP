@@ -2631,8 +2631,8 @@
                   <div style="display:flex; align-items:center; gap:10px;">
                     <span style="width:10px; height:10px; border-radius:50%; background:var(--good);"></span>
                     <div>
-                      <strong style="font-size:13px; color:var(--ink);">Firestore DB</strong>
-                      <div style="font-size:11.5px; color:var(--ink-soft);">Connected • Cloud Sync</div>
+                      <strong style="font-size:13px; color:var(--ink);">Supabase DB</strong>
+                      <div style="font-size:11.5px; color:var(--ink-soft);">PostgreSQL • Connected</div>
                     </div>
                   </div>
                   <span class="badge badge-good">Healthy</span>
@@ -2643,7 +2643,7 @@
                   <div style="display:flex; align-items:center; gap:10px;">
                     <span style="width:10px; height:10px; border-radius:50%; background:var(--good);"></span>
                     <div>
-                      <strong style="font-size:13px; color:var(--ink);">Firebase Auth</strong>
+                      <strong style="font-size:13px; color:var(--ink);">Supabase Auth</strong>
                       <div style="font-size:11.5px; color:var(--ink-soft);">Unified Multi-Role</div>
                     </div>
                   </div>
@@ -2655,8 +2655,8 @@
                   <div style="display:flex; align-items:center; gap:10px;">
                     <span style="width:10px; height:10px; border-radius:50%; background:var(--brand-green);"></span>
                     <div>
-                      <strong style="font-size:13px; color:var(--ink);">Storage CDN</strong>
-                      <div style="font-size:11.5px; color:var(--ink-soft);">Notes &amp; PDF attachments</div>
+                      <strong style="font-size:13px; color:var(--ink);">Supabase Storage</strong>
+                      <div style="font-size:11.5px; color:var(--ink-soft);">Bucket: school-files</div>
                     </div>
                   </div>
                   <span class="badge badge-navy">Ready</span>
@@ -3301,7 +3301,7 @@
               <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                 <h2>Campus Attendance Intelligence</h2>
                 <span class="att-live-indicator" id="attLiveSyncBadge"
-                  title="Live real-time sync active with Firestore">
+                  title="Live real-time sync active with Supabase">
                   <span class="att-live-dot"></span>
                   <span id="attLiveSyncText">Live Sync Active</span>
                 </span>
@@ -8695,7 +8695,7 @@
     <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
-    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace; font-weight:700;">Configured via Firebase Auth</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace; font-weight:700;">Configured via Supabase Auth</span></div>
   </div>
 
   <div class="section-title">2. Parent &amp; Family Information</div>
@@ -8887,7 +8887,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Email (${stf.email}) OR Username (@${stf.username})</span></div>
-    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Supabase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Status:</span><span class="field-val" style="color:#059669; font-weight:700;">Verified &amp; Active</span></div>
   </div>
 
@@ -9066,7 +9066,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Phone (${p.phone}) OR Email (${p.email})</span></div>
-    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Supabase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Privileges:</span><span class="field-val" style="color:#059669; font-weight:700;">Attendance, Marks, Circulars, Homework</span></div>
   </div>
 
@@ -9140,7 +9140,7 @@
             <td><strong>${s.name || '—'}</strong></td>
             <td><span class="badge">${s.admissionNo || '—'}</span></td>
             <td><strong>${s.className || '—'}</strong></td>
-            <td><span class="badge badge-navy">Firebase Auth</span></td>
+            <td><span class="badge badge-navy">Supabase Auth</span></td>
             <td>${s.gender || '—'}</td>
             <td>${s.bloodGroup || '—'}</td>
             <td>${s.fatherName || '—'}</td>

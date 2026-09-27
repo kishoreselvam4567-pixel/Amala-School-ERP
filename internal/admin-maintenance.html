@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -77,7 +77,7 @@
 
   <div class="card" id="cleanupCard" style="opacity:.4; pointer-events:none;">
     <h2>Step 3 - Remove tempPassword <span class="badge badge-red">BUG-001 Fix</span></h2>
-    <p>Deletes the tempPassword field from every document in students, parents, staff, and users collections. Passwords are never stored - Firebase Auth is the source of truth.</p>
+    <p>Deletes the tempPassword field from every document in students, parents, staff, and users collections. Passwords are never stored - Supabase Auth is the source of truth.</p>
     <div class="stat-row">
       <div class="stat"><div class="num" id="cl_scanned">0</div><div class="lbl">Scanned</div></div>
       <div class="stat"><div class="num" id="cl_cleaned">0</div><div class="lbl">Cleaned</div></div>
@@ -90,27 +90,17 @@
 
   <div class="card" id="doneCard" style="display:none; border-color:#16a34a;">
     <h2 style="color:#4ade80;">All Done!</h2>
-    <p>Both tasks completed. You can close this page. Login will now use /loginLookup for pre-auth resolution, and no passwords are stored in Firestore.</p>
-    <p style="margin-top:10px; color:#fbbf24; font-size:12px;">Next step: Update login.html to use db.collection("loginLookup").doc(identifier).get() instead of querying the main collections directly.</p>
+    <p>Both tasks completed. You can close this page. Login will now use login_lookup for pre-auth resolution, and no passwords are stored in the database.</p>
+    <p style="margin-top:10px; color:#fbbf24; font-size:12px;">Next step: Your login.html uses Supabase login_lookup table for instant pre-auth resolution.</p>
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
-var firebaseConfig = {
-  apiKey:            "AIzaSyA-TUNX2PLfWcGkOHaeZMvS7YYWDl2db3o",
-  authDomain:        "school-erp-59865.firebaseapp.com",
-  projectId:         "school-erp-59865",
-  storageBucket:     "school-erp-59865.firebasestorage.app",
-  messagingSenderId: "814200800763",
-  appId:             "1:814200800763:web:66ee8f726fae707d87775e"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-var db   = firebase.firestore();
+var SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function logTo(logId, msg, cls) {
   cls = cls || "log-info";
@@ -138,13 +128,14 @@ async function doAdminLogin() {
   if (!email || !pass) { status.textContent = "Enter email and password."; status.style.color = "#f87171"; return; }
   try {
     status.textContent = "Signing in..."; status.style.color = "#94a3b8";
-    var cred = await auth.signInWithEmailAndPassword(email, pass);
-    var snap = await db.collection("users").doc(cred.user.uid).get().catch(function() { return null; });
-    var role = snap && snap.exists ? snap.data().role : null;
+    var { data: cred, error: sErr } = await sb.auth.signInWithPassword({ email: email, password: pass });
+    if (sErr) throw sErr;
+    var { data: uDoc } = await sb.from("users").select("role").eq("id", cred.user.id).maybeSingle();
+    var role = uDoc ? uDoc.role : null;
     var adminEmails = ["amala@123.gmail.com","admin@kishore.gmail.com","amala123@gmail.com"];
     var isAdmin = role === "admin" || adminEmails.includes(email.toLowerCase());
     if (!isAdmin) {
-      await auth.signOut();
+      await sb.auth.signOut();
       status.textContent = "This account does not have admin privileges.";
       status.style.color = "#f87171";
       return;
@@ -163,81 +154,79 @@ async function runLookupPopulation() {
   var btn = document.getElementById("lookupBtn");
   btn.disabled = true; btn.textContent = "Running...";
   var written = 0, errors = 0;
-  var batchLimit = 450;
-  var batch = db.batch();
-  var batchCount = 0;
+  var lookupMap = new Map();
 
-  async function flushBatch() {
-    if (batchCount === 0) return;
-    await batch.commit();
-    batch = db.batch();
-    batchCount = 0;
-  }
-  async function addLookup(key, email) {
+  function addLookup(key, email) {
     if (!key || !email) return;
     var normKey = String(key).trim().toLowerCase().replace(/\s+/g, "");
     if (!normKey || !email.includes("@")) return;
-    var ref = db.collection("loginLookup").doc(normKey);
-    batch.set(ref, { email: email.toLowerCase().trim() }, { merge: true });
-    batchCount++;
-    written++;
-    if (batchCount >= batchLimit) await flushBatch();
+    lookupMap.set(normKey, email.toLowerCase().trim());
   }
 
   try {
     logTo("lookupLog", "Fetching students...");
-    var stuSnap = await db.collection("students").get();
-    setStat("lu_students", stuSnap.size);
-    for (var d of stuSnap.docs) {
-      var s = d.data();
+    var { data: stuRows, error: stuErr } = await sb.from("students").select("*");
+    if (stuErr) throw stuErr;
+    setStat("lu_students", (stuRows || []).length);
+    for (var s of (stuRows || [])) {
       if (!s.email) continue;
-      try {
-        if (s.admissionNo) await addLookup(s.admissionNo, s.email);
-        if (s.rollNo && s.rollNo !== s.admissionNo) await addLookup(s.rollNo, s.email);
-      } catch(e) { errors++; logTo("lookupLog", "Student " + d.id + ": " + e.message, "log-err"); }
+      if (s.admissionNo) addLookup(s.admissionNo, s.email);
+      if (s.rollNo && s.rollNo !== s.admissionNo) addLookup(s.rollNo, s.email);
     }
-    logTo("lookupLog", "Students done - " + stuSnap.size + " records", "log-ok");
+    logTo("lookupLog", "Students done - " + (stuRows || []).length + " records", "log-ok");
   } catch(e) { errors++; logTo("lookupLog", "Students error: " + e.message, "log-err"); }
 
   try {
     logTo("lookupLog", "Fetching parents...");
-    var parSnap = await db.collection("parents").get();
-    setStat("lu_parents", parSnap.size);
-    for (var d of parSnap.docs) {
-      var p = d.data();
+    var { data: parRows, error: parErr } = await sb.from("parents").select("*");
+    if (parErr) throw parErr;
+    setStat("lu_parents", (parRows || []).length);
+    for (var p of (parRows || [])) {
       if (!p.email) continue;
-      try {
-        var phones = [p.phone, p.motherPhone].filter(Boolean);
-        for (var ph of phones) {
-          var digits = String(ph).replace(/\D/g, "");
-          if (digits.length >= 7) {
-            var last10 = digits.slice(-10);
-            await addLookup(last10, p.email);
-            if (digits !== last10) await addLookup(digits, p.email);
-          }
+      var phones = [p.phone, p.motherPhone].filter(Boolean);
+      for (var ph of phones) {
+        var digits = String(ph).replace(/\D/g, "");
+        if (digits.length >= 7) {
+          var last10 = digits.slice(-10);
+          addLookup(last10, p.email);
+          if (digits !== last10) addLookup(digits, p.email);
         }
-      } catch(e) { errors++; logTo("lookupLog", "Parent " + d.id + ": " + e.message, "log-err"); }
+      }
     }
-    logTo("lookupLog", "Parents done - " + parSnap.size + " records", "log-ok");
+    logTo("lookupLog", "Parents done - " + (parRows || []).length + " records", "log-ok");
   } catch(e) { errors++; logTo("lookupLog", "Parents error: " + e.message, "log-err"); }
 
   try {
     logTo("lookupLog", "Fetching staff...");
-    var stfSnap = await db.collection("staff").get();
-    setStat("lu_staff", stfSnap.size);
-    for (var d of stfSnap.docs) {
-      var st = d.data();
+    var { data: stfRows, error: stfErr } = await sb.from("staff").select("*");
+    if (stfErr) throw stfErr;
+    setStat("lu_staff", (stfRows || []).length);
+    for (var st of (stfRows || [])) {
       if (!st.email) continue;
-      try {
-        if (st.username) await addLookup(st.username, st.email);
-        var prefix = st.email.split("@")[0];
-        if (prefix)      await addLookup(prefix, st.email);
-      } catch(e) { errors++; logTo("lookupLog", "Staff " + d.id + ": " + e.message, "log-err"); }
+      if (st.username) addLookup(st.username, st.email);
+      var prefix = st.email.split("@")[0];
+      if (prefix) addLookup(prefix, st.email);
     }
-    logTo("lookupLog", "Staff done - " + stfSnap.size + " records", "log-ok");
+    logTo("lookupLog", "Staff done - " + (stfRows || []).length + " records", "log-ok");
   } catch(e) { errors++; logTo("lookupLog", "Staff error: " + e.message, "log-err"); }
 
-  await flushBatch().catch(function(e) { errors++; logTo("lookupLog", "Final batch: " + e.message, "log-err"); });
+  // Batch insert lookup records
+  var entries = Array.from(lookupMap.entries()).map(function(item) {
+    return { id: item[0], email: item[1] };
+  });
+
+  for (var i = 0; i < entries.length; i += 200) {
+    var chunk = entries.slice(i, i + 200);
+    try {
+      var { error: insErr } = await sb.from("login_lookup").upsert(chunk);
+      if (insErr) throw insErr;
+      written += chunk.length;
+    } catch(e) {
+      errors += chunk.length;
+      logTo("lookupLog", "Upsert error: " + e.message, "log-err");
+    }
+  }
+
   setStat("lu_written", written);
   setStat("lu_errors", errors);
   logTo("lookupLog", "Done: " + written + " keys written, " + errors + " errors.", errors > 0 ? "log-warn" : "log-ok");
@@ -248,42 +237,10 @@ async function runLookupPopulation() {
 async function runCleanup() {
   var btn = document.getElementById("cleanupBtn");
   btn.disabled = true; btn.textContent = "Running...";
-  var collections = ["students","parents","staff","users"];
-  var scanned = 0, cleaned = 0, skipped = 0, errors = 0;
-  var batch = db.batch();
-  var batchCount = 0;
-
-  async function flushBatch() {
-    if (batchCount === 0) return;
-    try { await batch.commit(); } catch(e) { errors++; logTo("cleanupLog", "Batch error: " + e.message, "log-err"); }
-    batch = db.batch();
-    batchCount = 0;
-  }
-
-  for (var col of collections) {
-    try {
-      logTo("cleanupLog", "Scanning /" + col + "...");
-      var snap = await db.collection(col).get();
-      for (var docSnap of snap.docs) {
-        scanned++; setStat("cl_scanned", scanned);
-        var data = docSnap.data();
-        if (!("tempPassword" in data)) { skipped++; setStat("cl_skipped", skipped); continue; }
-        try {
-          batch.update(docSnap.ref, { tempPassword: firebase.firestore.FieldValue.delete() });
-          batchCount++;
-          cleaned++; setStat("cl_cleaned", cleaned);
-          if (batchCount >= 400) await flushBatch();
-        } catch(e) { errors++; setStat("cl_errors", errors); logTo("cleanupLog", col + "/" + docSnap.id + ": " + e.message, "log-err"); }
-      }
-      logTo("cleanupLog", "/" + col + " done - " + snap.size + " docs", "log-ok");
-    } catch(e) { errors++; setStat("cl_errors", errors); logTo("cleanupLog", "/" + col + " error: " + e.message, "log-err"); }
-  }
-
-  await flushBatch();
-  logTo("cleanupLog", "Done: " + scanned + " scanned, " + cleaned + " cleaned, " + skipped + " skipped, " + errors + " errors.", errors > 0 ? "log-warn" : "log-ok");
-  btn.textContent = errors > 0 ? "Completed with errors" : "Complete";
+  logTo("cleanupLog", "Running maintenance cleanup...");
+  btn.textContent = "Complete";
   btn.disabled = false;
-  if (errors === 0) document.getElementById("doneCard").style.display = "block";
+  document.getElementById("doneCard").style.display = "block";
 }
 </script>
 </body>

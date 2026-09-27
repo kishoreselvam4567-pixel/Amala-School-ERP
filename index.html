@@ -750,7 +750,7 @@ form.addEventListener('submit', async (e) => {
     if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
       msg = 'Invalid User ID or Password.';
     } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
-      msg = 'Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
+      msg = 'Database Permission Denied: Your Supabase Row Level Security (RLS) rules denied this operation. Please check user permissions.';
     } else if (err.message) {
       msg = err.message.replace('Firebase: ', '');
     }

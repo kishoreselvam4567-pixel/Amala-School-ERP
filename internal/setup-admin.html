@@ -29,7 +29,7 @@
   <div class="setup-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <span class="pill">Backend Initializer</span>
-      <span class="status-tag status-ready">Firebase Connected</span>
+      <span class="status-tag status-ready">Supabase Connected</span>
     </div>
     
     <h1 style="font-size:24px; margin-bottom:6px;">Initialize First Admin & System</h1>
@@ -115,8 +115,8 @@ document.getElementById('adminForm').addEventListener('submit', async (e) => {
     showBox(okBox, `✅ Admin account "${email}" created successfully with full privileges! You can now log into the Admin portal.`);
   } catch (err) {
     let msg = err.message.replace('Firebase: ', '');
-    if (err.code === 'auth/email-already-in-use') {
-      msg = 'This email already exists in Firebase Auth. If you already created it, you can log in at internal/login.html or promote the user in Firestore.';
+    if (err.code === 'auth/email-already-in-use' || (err.message && err.message.toLowerCase().includes('already registered'))) {
+      msg = 'This email already exists in Supabase Auth. If you already created it, you can log in at login.html.';
     }
     showBox(errBox, msg);
   } finally {

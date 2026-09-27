@@ -741,39 +741,27 @@
   });
 </script>
 
-<!-- Firebase SDK (loaded as regular scripts — no module import issues) -->
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<!-- Supabase SDK (loaded via CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 // ============================================================
-// LOGIN PAGE — Self-contained Firebase auth logic
-// Uses Firebase compat SDK (no ES module imports needed)
+// LOGIN PAGE — Supabase Auth Logic
 // ============================================================
 
 (function() {
   'use strict';
 
-  // Firebase config — same project as auth.js
-  const firebaseConfig = {
-    apiKey: "AIzaSyA-TUNX2PLfWcGkOHaeZMvS7YYWDl2db3o",
-    authDomain: "school-erp-59865.firebaseapp.com",
-    projectId: "school-erp-59865",
-    storageBucket: "school-erp-59865.firebasestorage.app",
-    messagingSenderId: "814200800763",
-    appId: "1:814200800763:web:66ee8f726fae707d87775e"
-  };
+  const SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
 
-  // Initialize Firebase (guard against double-init)
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  const auth = firebase.auth();
-  const db   = firebase.firestore();
-
-  // Set session persistence so auth on the login page stays isolated to this browser tab
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => {});
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      storage: window.sessionStorage,
+      autoRefreshToken: true
+    }
+  });
 
   // Role → page mapping
   const ROLE_ROUTES = {
@@ -822,23 +810,18 @@
   const urlParams    = new URLSearchParams(window.location.search);
   const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
 
-  // ── Warm up Firestore connection immediately (pre-establishes socket before form submit) ──
-  (function warmUpFirestore() {
-    try { db.collection('loginLookup').limit(1).get().catch(() => {}); } catch(e) {}
-  })();
-
   if (!allowRelogin) {
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
+    sb.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session || !session.user) return;
       try {
-        const uEmail = (user.email || '').toLowerCase();
+        const uEmail = (session.user.email || '').toLowerCase();
         let role = null;
         try {
-          const snap = await db.collection('users').doc(user.uid).get();
-          if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
-            role = snap.data().role;
+          const { data: uDoc } = await sb.from('users').select('*').eq('id', session.user.id).maybeSingle();
+          if (uDoc && !uDoc.deleted && !uDoc.disabled) {
+            role = uDoc.role;
           }
-        } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
+        } catch(e) { console.warn('getSession read:', e.message); }
 
         if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
         if (role && ROLE_ROUTES[role]) window.location.replace(ROLE_ROUTES[role]);
@@ -851,7 +834,7 @@
     e.preventDefault();
     showErrBox('');
 
-    // 1. Captcha check (verified via salted hash, BUG-014 fix)
+    // 1. Captcha check
     const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
 
     if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
@@ -874,11 +857,9 @@
       const normUser = rawUser.toLowerCase();
 
       if (!rawUser.includes('@')) {
-        // Not an email → resolve via /loginLookup (O(1) single GET, no collection scan)
         const digitsOnly = rawUser.replace(/\D/g, '');
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
 
-        // Keys to try, in priority order: rawUser, stripped digits (last 10 for phones)
         const lookupKeys = [...new Set([
           normUser,
           digitsOnly.length >= 7 ? last10 : null
@@ -887,9 +868,9 @@
         let resolved = false;
         for (const key of lookupKeys) {
           try {
-            const snap = await db.collection('loginLookup').doc(key).get();
-            if (snap.exists && snap.data().email) {
-              authEmail = snap.data().email;
+            const { data: lData } = await sb.from('login_lookup').select('email').eq('id', key).maybeSingle();
+            if (lData && lData.email) {
+              authEmail = lData.email;
               resolved = true;
               break;
             }
@@ -901,104 +882,103 @@
         }
       }
 
-      // ── Build password candidate list (user-typed password only + DOB format variants) ──
-      // NOTE: Default password fallback removed (BUG-007) — users must know their password.
+      // ── Build password candidate list ──────────────────────────
       const candidatePasswords = [pass];
       const cleanDigits = pass.replace(/\D/g, '');
       if (cleanDigits.length === 8) {
-        // Support DOB typed as DDMMYYYY without separators as password
         const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
         candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
       const uniquePasswords = [...new Set(candidatePasswords)];
 
-      // ── Attempt Firebase Auth sign-in ──────────────────────────
-      let cred = null, authError = null;
+      // ── Attempt Supabase Auth sign-in ─────────────────────────
+      let authUser = null, authError = null;
       for (const tryPass of uniquePasswords) {
         try {
-          cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
-          if (cred && cred.user) break;
+          const { data: sData, error: sErr } = await sb.auth.signInWithPassword({
+            email: authEmail,
+            password: tryPass
+          });
+          if (sData && sData.user) {
+            authUser = sData.user;
+            break;
+          }
+          if (sErr) authError = sErr;
         } catch(err) { authError = err; }
       }
 
-      if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
+      if (!authUser) throw (authError || new Error('Invalid User ID or Password.'));
 
-      // ── Read user profile + role-specific record in PARALLEL ──────────────────────────────────────
-      let userData = null;
-      let roleDocSnap = null;
-      const uid = cred.user.uid;
-      const curEmail = (cred.user.email || authEmail).toLowerCase();
+      // ── Read user profile ──────────────────────────────────────
+      const uid = authUser.id;
+      const curEmail = (authUser.email || authEmail).toLowerCase();
       const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
-      try {
-        // Fetch user profile doc immediately; also pre-fetch role record if we can guess role from email
-        const [uSnap] = await Promise.all([
-          db.collection('users').doc(uid).get().catch(() => null)
-        ]);
-        userData = (uSnap && uSnap.exists) ? uSnap.data() : null;
-      } catch(e) { console.warn('Profile read:', e.message); }
+      let { data: userData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
 
       // ── Auto-heal admin doc ────────────────────────────────────
       if (isAdminAcc && (!userData || !userData.role)) {
-        const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
-        try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
+        const adminData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
+        try { await sb.from('users').upsert(adminData); } catch(e) {}
         userData = adminData;
       }
 
       if (!userData || userData.deleted || userData.disabled || !userData.role) {
-        await auth.signOut();
+        await sb.auth.signOut();
         throw new Error('This account has been deleted or deactivated. Contact school admin.');
       }
 
       const role = userData.role;
 
       // ── Role-specific record check ─────────────────────────────
+      let roleDocData = null;
       if (role === 'staff') {
-        roleDocSnap = await db.collection('staff').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-          await auth.signOut();
+        const { data: stf } = await sb.from('staff').select('*').eq('id', uid).maybeSingle();
+        if (!stf || stf.deleted) {
+          await sb.auth.signOut();
           throw new Error('Faculty account removed by administrator. Portal access denied.');
         }
+        roleDocData = stf;
       } else if (role === 'student') {
-        roleDocSnap = await db.collection('students').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-          await auth.signOut();
+        const { data: stu } = await sb.from('students').select('*').eq('id', uid).maybeSingle();
+        if (!stu || stu.deleted) {
+          await sb.auth.signOut();
           throw new Error('Student account removed by administrator. Portal access denied.');
         }
+        roleDocData = stu;
       } else if (role === 'parent') {
-        roleDocSnap = await db.collection('parents').doc(uid).get().catch(() => null);
-        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
-          await auth.signOut();
+        const { data: par } = await sb.from('parents').select('*').eq('id', uid).maybeSingle();
+        if (!par || par.deleted) {
+          await sb.auth.signOut();
           throw new Error('Parent account removed by administrator. Portal access denied.');
         }
+        roleDocData = par;
       }
 
-      // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
-      let studentDocSnap = null;
-      if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
-        const pChildUid = roleDocSnap.data().childUid;
-        if (pChildUid) {
-          studentDocSnap = await db.collection('students').doc(pChildUid).get().catch(() => null);
-        }
+      // Pre-fetch student profile for parents
+      let studentProfile = null;
+      if (role === 'parent' && roleDocData && roleDocData.childUid) {
+        const { data: childDoc } = await sb.from('students').select('*').eq('id', roleDocData.childUid).maybeSingle();
+        studentProfile = childDoc;
       }
 
       const dest = ROLE_ROUTES[role];
       if (!dest) {
-        await auth.signOut();
+        await sb.auth.signOut();
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
-      // ── Store rich session payload including roleData (childUid, studentProfile etc.) for instant portal hydration ──
+      // ── Store rich session payload ────────────────────────────
       try {
-        const baseRoleData = (roleDocSnap && roleDocSnap.exists) ? roleDocSnap.data() : null;
-        const roleData = baseRoleData ? {
-          ...baseRoleData,
-          studentProfile: (studentDocSnap && studentDocSnap.exists) ? studentDocSnap.data() : null
+        const roleData = roleDocData ? {
+          ...roleDocData,
+          studentProfile: studentProfile || null
         } : null;
 
         const sessionPayload = {
-          uid: cred.user.uid,
-          email: cred.user.email || authEmail,
+          uid: authUser.id,
+          id: authUser.id,
+          email: authUser.email || authEmail,
           role,
           name: userData.name || '',
           profile: userData,
@@ -1006,15 +986,13 @@
           timestamp: Date.now()
         };
         const payloadStr = JSON.stringify(sessionPayload);
-        // Tab-isolated active session
         sessionStorage.setItem('erp_active_session', payloadStr);
         sessionStorage.setItem('erp_session_' + role, payloadStr);
         sessionStorage.setItem('erp_active_role', role);
 
-        // Role-partitioned session in localStorage (never overwrites other roles)
         localStorage.setItem('erp_session_' + role, payloadStr);
         localStorage.setItem('erp_last_active_role', role);
-        localStorage.removeItem('erp_active_session'); // Clean up ambiguous legacy key
+        localStorage.removeItem('erp_active_session');
       } catch(e) {}
 
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
@@ -1025,17 +1003,13 @@
       document.getElementById('captchaInput').value = '';
 
       let msg = 'Authentication failed. Please check your credentials and try again.';
-      const code = err.code || '';
-      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+      const msgLower = (err.message || '').toLowerCase();
+      if (msgLower.includes('invalid login credentials') || msgLower.includes('invalid credentials')) {
         msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
-      } else if (code === 'auth/too-many-requests') {
+      } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
         msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
-      } else if (code === 'auth/network-request-failed') {
-        msg = '🌐 No internet connection. Please check your network and try again.';
-      } else if (err.message && !code) {
-        msg = err.message;
       } else if (err.message) {
-        msg = err.message.replace('Firebase: ','').replace(/\s*\(auth\/[^)]+\)/,'');
+        msg = err.message;
       }
       showErrBox(msg);
     } finally {
