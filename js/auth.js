@@ -1,3 +1,4 @@
+logout
 // ============================================================
 // Shared Supabase Init + Auth/Role Helpers
 // Drop-in compatible with previous Firestore & Auth signatures
@@ -18,6 +19,17 @@ export function getCurrentPortalRole() {
 }
 
 const currentRole = getCurrentPortalRole();
+<<<<<<< HEAD
+=======
+// Role-isolated app and auth so Admin, Staff, Student, and Parent sessions never overwrite each other in the browser
+export const app = getPortalApp(currentRole);
+export const auth = getAuth(app);
+if (currentRole) {
+  setPersistence(auth, browserLocalPersistence).catch(() => { });
+} else {
+  setPersistence(auth, browserSessionPersistence).catch(() => { });
+}
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
 
 // Supabase Client instance (role & tab aware)
 export const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey, {
@@ -473,14 +485,24 @@ export async function getUserProfile(uid) {
       if (pQSnap && !pQSnap.empty && !pQSnap.docs[0].data().deleted) {
         const pData = pQSnap.docs[0].data();
         const profile = { uid, role: 'parent', name: pData.name || 'Parent', email: userEmail, phone: pData.phone || '', ...pData, deleted: false, disabled: false };
+<<<<<<< HEAD
         await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+=======
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => { });
+        await setDoc(doc(db, "parents", uid), { ...pData, uid }, { merge: true }).catch(() => { });
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
         userProfileCache.set(uid, profile);
         return profile;
       }
       if (sQSnap && !sQSnap.empty && !sQSnap.docs[0].data().deleted) {
         const sData = sQSnap.docs[0].data();
         const profile = { uid, role: 'student', name: sData.name || 'Student', email: userEmail, ...sData, deleted: false, disabled: false };
+<<<<<<< HEAD
         await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
+=======
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => { });
+        await setDoc(doc(db, "students", uid), { ...sData, uid }, { merge: true }).catch(() => { });
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
         userProfileCache.set(uid, profile);
         return profile;
       }
@@ -504,7 +526,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         sessionStorage.removeItem('erp_session_' + r);
         localStorage.removeItem('erp_session_' + r);
       }
+<<<<<<< HEAD
     } catch (e) {}
+=======
+    } catch (e) { }
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
   };
 
   // 1. Instant cache hydration
@@ -519,8 +545,15 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       if (tabActive) {
         try {
           const parsed = JSON.parse(tabActive);
+<<<<<<< HEAD
           if (parsed && parsed.role && allowedRoles.includes(parsed.role)) rawCache = tabActive;
         } catch (e) {}
+=======
+          if (parsed && parsed.role && allowedRoles.includes(parsed.role)) {
+            rawCache = tabActive;
+          }
+        } catch (e) { }
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
       }
     }
     if (!rawCache) {
@@ -540,7 +573,15 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           sessionStorage.setItem('erp_active_session', rawCache);
           sessionStorage.setItem('erp_session_' + cached.role, rawCache);
           sessionStorage.setItem('erp_active_role', cached.role);
+<<<<<<< HEAD
         } catch (e) {}
+=======
+        } catch (e) { }
+
+        // BUG-013 FIX: Do NOT call onReady() from the cache path.
+        // Firebase Auth must confirm the session before granting access.
+        // The cache only skips Firestore re-reads on the confirmed auth path below.
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
       }
     }
   } catch (e) {
@@ -551,9 +592,62 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     if (!user) {
       if (hasHydratedFromCache) return;
       if (typeof auth.authStateReady === 'function') {
+<<<<<<< HEAD
         try { await auth.authStateReady(); } catch (e) {}
         if (auth.currentUser) return;
       }
+=======
+        try { await auth.authStateReady(); } catch (e) { }
+        if (auth.currentUser) return; // Will re-trigger handleAuth with user
+      }
+
+      // Fallback: check if the default app has an active session matching allowed roles in THIS tab
+      try {
+        const defaultApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
+        const defAuth = getAuth(defaultApp);
+        if (typeof defAuth.authStateReady === 'function') {
+          await defAuth.authStateReady().catch(() => { });
+        }
+        const defUser = defAuth.currentUser;
+        if (defUser) {
+          const defProfile = await getUserProfile(defUser.uid);
+          if (defProfile && allowedRoles.includes(defProfile.role)) {
+            // Update session cache
+            let existingRoleData = null;
+            try {
+              const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+              if (rawExisting) {
+                try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch (e) { }
+              }
+              const payload = JSON.stringify({
+                uid: defUser.uid,
+                email: defUser.email,
+                role: defProfile.role,
+                name: defProfile.name || '',
+                profile: defProfile,
+                roleData: existingRoleData,
+                timestamp: Date.now()
+              });
+              sessionStorage.setItem('erp_active_session', payload);
+              sessionStorage.setItem('erp_session_' + defProfile.role, payload);
+              sessionStorage.setItem('erp_active_role', defProfile.role);
+              localStorage.setItem('erp_session_' + defProfile.role, payload);
+            } catch (e) { }
+
+            if (!isAuthorized) {
+              isAuthorized = true;
+              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData, isCached: hasHydratedFromCache });
+            }
+            setTimeout(() => {
+              showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
+            }, 300);
+            return;
+          }
+        }
+      } catch (e) { }
+
+      // If neither instance is authenticated and not hydrated from cache, redirect
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
       if (!hasHydratedFromCache) {
         purgePortalSession();
         window.location.href = loginPath;
@@ -593,6 +687,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         if (rawRoleData) roleData = JSON.parse(rawRoleData).roleData || null;
       } catch (e) {}
 
+<<<<<<< HEAD
       if (!roleData && profile.role === 'parent') {
         try {
           const parDoc = await getDoc(doc(db, 'parents', uid));
@@ -602,9 +697,41 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             if (childUid) {
               const stuDoc = await getDoc(doc(db, 'students', childUid));
               if (stuDoc && stuDoc.exists()) stuProfile = stuDoc.data();
+=======
+      // Role-specific collection check to ensure deleted records are revoked immediately
+      if (profile.role === 'staff') {
+        if (!cacheIsFresh) {
+          let sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+          if (!sSnap || !sSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const cleanUser = userEmail.split('@')[0];
+            const [stfEmailSnap, stfUserSnap] = await Promise.all([
+              getDocs(query(collection(db, 'staff'), where('email', '==', userEmail))).catch(() => null),
+              getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
+            ]);
+            if (stfEmailSnap && !stfEmailSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (stfUserSnap && !stfUserSnap.empty) {
+              await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
+              sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
+            } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
+              const roshanData = {
+                name: profile.name || 'G.Roshan',
+                email: userEmail,
+                username: cleanUser || 'roshan',
+                role: 'staff',
+                majorSubject: 'Art & Craft',
+                type: 'both',
+                uid: user.uid
+              };
+              await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => { });
+              sSnap = { exists: () => true, data: () => roshanData };
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
             }
             roleData = { ...parDoc.data(), studentProfile: stuProfile };
           }
+<<<<<<< HEAD
         } catch (e) {}
       }
 
@@ -639,14 +766,106 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         purgePortalSession();
         window.location.href = loginPath;
       }
+=======
+          if (sSnap && sSnap.exists() && sSnap.data().deleted) {
+            alert("Your faculty account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
+        }
+      } else if (profile.role === 'student') {
+        if (!cacheIsFresh) {
+          let stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+          if (!stSnap || !stSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
+            const sQSnap = await getDocs(sQ).catch(() => null);
+            if (sQSnap && !sQSnap.empty) {
+              await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
+              stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
+            }
+          }
+          if (!stSnap || !stSnap.exists() || stSnap.data().deleted) {
+            alert("Your student account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
+        }
+      } else if (profile.role === 'parent') {
+        // ⚡ Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
+        if (!cacheIsFresh) {
+          let pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+          if (!pSnap || !pSnap.exists()) {
+            const userEmail = (user.email || '').toLowerCase();
+            const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
+            const pQSnap = await getDocs(pQ).catch(() => null);
+            if (pQSnap && !pQSnap.empty) {
+              await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
+              pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
+            }
+          }
+          if (!pSnap || !pSnap.exists() || pSnap.data().deleted) {
+            alert("Your parent account has been removed by the administrator. Access revoked.");
+            sessionStorage.removeItem('erp_active_session');
+            localStorage.removeItem('erp_active_session');
+            await fbSignOut(auth);
+            window.location.href = loginPath;
+            return;
+          }
+        }
+      }
+
+  // Update session cache silently in both storages while preserving roleData
+  let existingRoleData = null;
+  try {
+    const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+    if (rawExisting) {
+      try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch (e) { }
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
     }
+    const payload = JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      role: profile.role,
+      name: profile.name || '',
+      profile: profile,
+      roleData: existingRoleData,
+      timestamp: Date.now()
+    });
+    sessionStorage.setItem('erp_active_session', payload);
+    sessionStorage.setItem('erp_session_' + profile.role, payload);
+    sessionStorage.setItem('erp_active_role', profile.role);
+    localStorage.setItem('erp_session_' + profile.role, payload);
+    localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
+  } catch (e) { }
+
+  // Always invoke onReady after Firebase Auth confirms (BUG-013 fix)
+  if (!isAuthorized) {
+    isAuthorized = true;
+    onReady({ user, profile, roleData: existingRoleData, isCached: hasHydratedFromCache });
+  }
+
+  // Trigger first-time login instructions notification (only once per user)
+  setTimeout(() => {
+    showFirstTimeLoginGuide(profile.role, user, profile);
+  }, 300);
+} catch (err) {
+  console.error("Portal authorization check error:", err);
+}
   };
 
-  onAuthStateChanged(auth, handleAuth);
+onAuthStateChanged(auth, handleAuth);
 }
 
 // First time login guide
 export function showFirstTimeLoginGuide(role, user, profile) {
+<<<<<<< HEAD
   if (typeof document === 'undefined') return;
   const uid = user ? (user.uid || user.id) : '';
   const key = 'amala_first_time_login_shown_' + uid;
@@ -654,6 +873,235 @@ export function showFirstTimeLoginGuide(role, user, profile) {
     if (localStorage.getItem(key) === 'true') return;
     localStorage.setItem(key, 'true');
   } catch (e) {}
+=======
+  if (!user || !user.uid) return;
+
+  // 1. Database check: If Firestore profile confirms guide was already shown, exit
+  if (profile && (profile.hasSeenFirstLoginGuide === true || profile.firstLoginDone === true)) {
+    return;
+  }
+
+  const userEmail = (user.email || profile?.email || '').toLowerCase().trim();
+  const keysToCheck = [
+    'amala_first_time_login_shown_' + user.uid,
+    userEmail ? 'amala_first_time_login_shown_' + userEmail : null,
+    role ? 'amala_first_time_login_shown_' + role : null,
+    'amala_first_time_login_shown_admin_' + user.uid,
+    role === 'admin' ? 'amala_first_time_login_shown_admin' : null,
+    'amala_erp_seen_info',
+    'amala_erp_returning_user'
+  ].filter(Boolean);
+
+  // 2. LocalStorage check across all associated identifier keys
+  for (const k of keysToCheck) {
+    try {
+      if (localStorage.getItem(k) === 'true') {
+        return;
+      }
+    } catch (e) { }
+  }
+
+  // 3. Mark as seen both in localStorage and permanently in Firestore
+  const markAsSeen = () => {
+    keysToCheck.forEach(k => {
+      try { localStorage.setItem(k, 'true'); } catch (e) { }
+    });
+    if (user && user.uid) {
+      try {
+        setDoc(doc(db, 'users', user.uid), {
+          hasSeenFirstLoginGuide: true,
+          firstLoginDone: true,
+          firstLoginGuideShownAt: new Date().toISOString()
+        }, { merge: true }).catch(() => { });
+      } catch (e) { }
+    }
+  };
+
+  // Mark immediately upon displaying so repeated logins or refreshes NEVER show it again
+  markAsSeen();
+
+  const roleConfigs = {
+    student: {
+      badge: 'Student Orientation',
+      badgeColor: '#2563eb',
+      title: 'Welcome to Your Student ERP Portal',
+      intro: 'Here is what you need to know on your first login:',
+      tips: [
+        {
+          title: 'Verify Your Profile & ID Card',
+          desc: 'Visit the "My Profile" tab to check your registered Admission Number, Roll Number, Class Section, and Date of Birth.'
+        },
+        {
+          title: 'Track Daily Attendance & Results',
+          desc: 'Check live attendance percentages and subject-wise exam marksheets in "Attendance" and "Marks & Report".'
+        },
+        {
+          title: 'Download Notes & Submit Homework',
+          desc: 'Access curriculum materials and syllabus notes uploaded by faculty members under "Syllabus Notes" and "Homework".'
+        },
+        {
+          title: 'Security & Password Practice',
+          desc: 'Never share your User ID or Date of Birth credentials. Keep your login session secure.'
+        }
+      ]
+    },
+    parent: {
+      badge: 'Parent Portal Orientation',
+      badgeColor: '#059669',
+      title: 'Welcome to Amala Parent Portal',
+      intro: 'Key instructions for monitoring your child\'s academic progress:',
+      tips: [
+        {
+          title: 'Real-Time Academic Progress',
+          desc: 'View your child\'s daily attendance, terminal test marks, and gradecards in real time.'
+        },
+        {
+          title: 'Official School Circulars',
+          desc: 'Stay informed with central notices, upcoming exam timetables, and holiday circulars under "Announcements".'
+        },
+        {
+          title: 'Homework & Assignment Tracking',
+          desc: 'Monitor homework assigned by teachers daily to support your child\'s study schedule.'
+        },
+        {
+          title: 'Convenient 1-Click Login',
+          desc: 'You can log into this portal anytime simply by entering your registered Mobile Number.'
+        }
+      ]
+    },
+    staff: {
+      badge: 'Faculty Portal Guide',
+      badgeColor: '#d97706',
+      title: 'Welcome to Amala Faculty Portal',
+      intro: 'Essential instructions for managing your classes and academic records:',
+      tips: [
+        {
+          title: 'Daily Class Attendance Register',
+          desc: 'Mark and submit period-wise or daily class attendance for your assigned sections.'
+        },
+        {
+          title: 'Marksheet & Grade Entry',
+          desc: 'Enter test marks, project scores, and term examination grades with automatic totals calculation.'
+        },
+        {
+          title: 'Publish Notes & Homework',
+          desc: 'Upload study notes (PDFs/docs) and post homework with deadlines for students in your class.'
+        },
+        {
+          title: 'Student Roster Access',
+          desc: 'View student roll lists and emergency guardian contact details whenever required.'
+        }
+      ]
+    },
+    admin: {
+      badge: 'Admin Console Guide',
+      badgeColor: '#7c3aed',
+      title: 'Welcome to ERP Admin Console',
+      intro: 'Administrator overview and operational controls:',
+      tips: [
+        {
+          title: 'User Admissions & Provisioning',
+          desc: 'Provision student admission numbers, parent accounts, and faculty credentials from the Admissions panel.'
+        },
+        {
+          title: 'Class & Section Management',
+          desc: 'Configure grades, sections, academic calendars, and assign class teachers.'
+        },
+        {
+          title: 'School-Wide Circulars',
+          desc: 'Broadcast high-priority institutional announcements across student, parent, and faculty portals.'
+        },
+        {
+          title: 'System Access & Security',
+          desc: 'Manage account statuses, activate/deactivate portal access, and oversee institutional records.'
+        }
+      ]
+    }
+  };
+
+  const cfg = roleConfigs[role] || roleConfigs.student;
+  const userName = (profile && profile.name) ? profile.name : 'User';
+
+  const modalId = 'amalaFirstLoginModal';
+  if (document.getElementById(modalId)) return;
+
+  const modalHtml = `
+    <div id="${modalId}" style="position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.75); backdrop-filter:blur(6px); padding:16px; font-family:'Inter', sans-serif;">
+      <div style="background:#ffffff; max-width:560px; width:100%; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border:1px solid #e2e8f0; overflow:hidden; position:relative;">
+        <div style="background:linear-gradient(135deg, #0f1e36, #1e3a8a); padding:24px 28px; color:#ffffff; position:relative;">
+          <button id="closeFirstLoginXBtn" type="button" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.15); border:none; color:#ffffff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; font-weight:700; transition:all 0.15s ease;" title="Close guide">✕</button>
+          <div style="display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; padding:3px 10px; border-radius:20px; background:${cfg.badgeColor}; color:#ffffff; margin-bottom:8px;">
+            ${cfg.badge}
+          </div>
+          <h2 style="font-size:20px; font-weight:800; margin:0 0 4px 0; letter-spacing:-0.01em; color:#ffffff;">
+            ${cfg.title}
+          </h2>
+          <p style="font-size:13px; color:#cbd5e1; margin:0; line-height:1.4;">
+            Hello <strong>${escapeHtml(userName)}</strong>! ${cfg.intro}
+          </p>
+        </div>
+        
+        <div style="padding:22px 28px; max-height:60vh; overflow-y:auto;">
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${cfg.tips.map((t, idx) => `
+              <div style="display:flex; align-items:flex-start; gap:12px; background:#f8fafc; padding:12px 14px; border-radius:12px; border:1px solid #e2e8f0;">
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e3a8a; color:#ffffff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                  ${idx + 1}
+                </div>
+                <div>
+                  <div style="font-size:13.5px; font-weight:700; color:#0f172a; margin-bottom:2px;">${t.title}</div>
+                  <div style="font-size:12.5px; color:#475569; line-height:1.45;">${t.desc}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="padding:16px 28px; background:#f1f5f9; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <span style="font-size:11.5px; color:#64748b; font-weight:500;">
+            This guide appears only on your first login.
+          </span>
+          <button id="dismissFirstLoginBtn" style="background:#1e3a8a; color:#ffffff; border:none; padding:10px 20px; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(30,58,138,0.25); transition:all 0.15s ease;">
+            Got it, Let's Get Started &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  const closeModal = () => {
+    markAsSeen();
+    const el = document.getElementById(modalId);
+    if (el) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => el.remove(), 200);
+    }
+  };
+
+  const dismissBtn = document.getElementById('dismissFirstLoginBtn');
+  if (dismissBtn) dismissBtn.addEventListener('click', closeModal);
+
+  const closeXBtn = document.getElementById('closeFirstLoginXBtn');
+  if (closeXBtn) closeXBtn.addEventListener('click', closeModal);
+
+  const modalEl = document.getElementById(modalId);
+  if (modalEl) {
+    modalEl.addEventListener('click', (e) => {
+      if (e.target === modalEl) closeModal();
+    });
+  }
+
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      window.removeEventListener('keydown', handleEsc);
+    }
+  };
+  window.addEventListener('keydown', handleEsc);
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
 }
 
 export function portalPathForRole(role) {
@@ -676,7 +1124,11 @@ export function logout(loginPath = "../login.html") {
       localStorage.removeItem('erp_session_' + role);
     }
     userProfileCache.clear();
+<<<<<<< HEAD
   } catch (e) {}
+=======
+  } catch (e) { }
+>>>>>>> f87b602f5f114504e56ba86e74298a9fe0e340ae
   fbSignOut(auth).finally(() => {
     window.location.href = loginPath;
   });
