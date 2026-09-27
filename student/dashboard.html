@@ -532,7 +532,7 @@
 <script type="module">
 import {
   auth, db, requirePortal, logout, doc, getDoc, collection, query, where,
-  getDocs, orderBy, onSnapshot
+  getDocs, orderBy, onSnapshot, limit
 } from '../js/auth.js';
 import { initLiveNotifications } from '../js/notifications.js';
 
@@ -819,7 +819,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
 
     const loadAttendance = async () => {
       try {
-        const attQ = query(collection(db, 'attendance'), where('studentUid', '==', user.uid));
+        const attQ = query(collection(db, 'attendance'), where('studentUid', '==', user.uid), limit(150));
         const attSnap = await getDocs(attQ);
         const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
         const present = attRows.filter(r => r.status === 'present').length;
@@ -852,7 +852,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
 
     const loadMarks = async () => {
       try {
-        const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid));
+        const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid), limit(100));
         const marksSnap = await getDocs(marksQ);
         const marksRows = marksSnap.docs.map(d => d.data());
         const marksBody = document.querySelector('#marksTable tbody');
@@ -889,7 +889,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
     const loadExams = async (cls) => {
       try {
         if (!cls) return;
-        const examsQ = query(collection(db, 'exams'), where('classId', '==', cls));
+        const examsQ = query(collection(db, 'exams'), where('classId', '==', cls), limit(50));
         const examsSnap = await getDocs(examsQ);
         const examsRows = examsSnap.docs.map(d => d.data()).sort((a, b) => ((a.date || '') > (b.date || '') ? 1 : -1));
         const examsBody = document.querySelector('#examsTable tbody');
@@ -921,7 +921,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
     const loadNotes = async (cls) => {
       try {
         if (!cls) return;
-        const notesQ = query(collection(db, 'notes'), where('classId', '==', cls));
+        const notesQ = query(collection(db, 'notes'), where('classId', '==', cls), limit(50));
         const notesSnap = await getDocs(notesQ);
         const notesRows = notesSnap.docs.map(d => d.data());
         const notesGrid = document.getElementById('notesGrid');
@@ -953,7 +953,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
     const loadHomework = async (cls) => {
       try {
         if (!cls) return;
-        const hwQ = query(collection(db, 'homework'), where('classId', '==', cls));
+        const hwQ = query(collection(db, 'homework'), where('classId', '==', cls), limit(50));
         const hwSnap = await getDocs(hwQ);
         const hwRows = hwSnap.docs.map(d => d.data()).sort((a, b) => ((a.dueDate || '') > (b.dueDate || '') ? 1 : -1));
         const hwBody = document.querySelector('#hwTable tbody');
@@ -978,7 +978,7 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
 
     const loadAnnouncements = async () => {
       try {
-        const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+        const annQ = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(25));
         const annSnap = await getDocs(annQ);
         const annList = document.getElementById('announcementsList');
         if (annList) {

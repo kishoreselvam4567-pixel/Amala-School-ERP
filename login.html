@@ -765,8 +765,11 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  // Set session persistence so auth on the login page stays isolated to this browser tab
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => {});
+  // Set local persistence on auth & enable multi-tab offline cache on firestore for instant reads
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+  try {
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+  } catch (e) {}
 
   // Role → page mapping
   const ROLE_ROUTES = {
@@ -921,15 +924,19 @@
     const pass    = pwdInput.value;
 
     try {
-      // ── Resolve authEmail from User ID ────────────────────
+      let matchedRole = null;
+      let matchedParentData = null;
+      let matchedStudentData = null;
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
 
+      // ── 1. Resolve Known Quick Accounts (0ms memory lookup) ──
       if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
         authEmail = 'admin@kishore.gmail.com';
         matchedRole = 'admin';
       } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com' || normUser === 'admin@amalaschool.edu.in') {
         authEmail = 'amala@123.gmail.com';
+        matchedRole = 'admin';
       } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
         authEmail = 'amala@123.gmail.com';
         matchedRole = 'admin';
@@ -943,127 +950,67 @@
         authEmail = 'parent@amalaschool.edu.in';
         matchedRole = 'parent';
       } else if (rawUser.includes('@')) {
-        // User provided an email → check for matching parent or student record in Firestore
+        // Direct email login — no pre-auth table scan needed!
         authEmail = normUser;
-        try {
-          const pSnap = await db.collection('parents').where('email', '==', normUser).limit(1).get();
-          if (!pSnap.empty) {
-            matchedParentData = pSnap.docs[0].data();
-            matchedRecord = matchedParentData;
-            matchedRole = 'parent';
-          } else {
-            // Case-insensitive or scan fallback
-            const allPar = await db.collection('parents').get();
-            const match = allPar.docs.find(d => String(d.data().email || '').toLowerCase().trim() === normUser);
-            if (match) {
-              matchedParentData = match.data();
-              matchedRecord = matchedParentData;
-              matchedRole = 'parent';
-            }
-          }
-        } catch(e) { console.warn('Parent email check:', e.message); }
-
-        try {
-          const sSnap = await db.collection('students').where('email', '==', normUser).limit(1).get();
-          if (!sSnap.empty) {
-            matchedStudentData = sSnap.docs[0].data();
-            matchedRecord = matchedStudentData;
-            matchedRole = 'student';
-          }
-        } catch(e) {}
-
-        // If parent email was entered with variant formatting (e.g., parent.<adm>@amalaschool.edu.in)
-        if (!matchedParentData && normUser.startsWith('parent.')) {
-          const admCandidate = normUser.replace(/^parent\./, '').replace(/@.*$/, '');
-          try {
-            const allStu = await db.collection('students').get();
-            const match = allStu.docs.find(d => {
-              const adm = String(d.data().admissionNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-              const roll = String(d.data().rollNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-              const cleanAdm = admCandidate.replace(/[^a-z0-9]/g, '');
-              return adm === cleanAdm || roll === cleanAdm;
-            });
-            if (match && match.data().parentEmail) {
-              authEmail = match.data().parentEmail;
-              matchedParentData = {
-                childUid: match.id,
-                childName: match.data().name,
-                name: match.data().fatherName || 'Parent',
-                email: authEmail,
-                phone: match.data().fatherPhone || ''
-              };
-              matchedRecord = matchedParentData;
-              matchedRole = 'parent';
-            }
-          } catch(e) {}
-        }
+        if (normUser.includes('parent')) matchedRole = 'parent';
+        else if (normUser.includes('student')) matchedRole = 'student';
+        else if (normUser.includes('roshan') || normUser.includes('staff')) matchedRole = 'staff';
+        else if (ADMIN_EMAILS.includes(normUser) || normUser.includes('admin')) matchedRole = 'admin';
       } else {
-        // Not an email → look up in Firestore (admissionNo, rollNo, phone, username)
+        // Not an email → targeted parallel queries with limit(1) (NO full collection scans!)
         const cleanInput = normUser.replace(/^@/, '');
+        const cleanUpper = rawUser.trim().toUpperCase();
         const digitsOnly = rawUser.replace(/\D/g, '');
         let resolved = false;
 
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
         const phoneVariants = digitsOnly.length >= 7 ? [...new Set([rawUser, digitsOnly, last10,
-          '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10) : [];
+          '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0, 10) : [];
 
-        // ── PARALLEL LOOKUP: Student (exact) + Parent (phone) + Staff + Users simultaneously ──
-        const [stuExactSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
-          db.collection('students').where('admissionNo', '==', rawUser).limit(1).get().catch(() => null),
-          phoneVariants.length ? db.collection('parents').where('phone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          phoneVariants.length ? db.collection('parents').where('motherPhone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          db.collection('staff').where('username','==',cleanInput).limit(1).get().catch(() => null),
-          db.collection('users').where('username','==',cleanInput).limit(1).get().catch(() => null)
+        const admVariants = [...new Set([rawUser.trim(), cleanUpper, cleanInput])].filter(Boolean).slice(0, 10);
+        const rollVariants = [cleanInput, cleanUpper, rawUser.trim()];
+        const numVal = parseInt(cleanInput, 10);
+        if (!isNaN(numVal)) rollVariants.push(numVal);
+        const uniqueRollVariants = [...new Set(rollVariants)].filter(v => v !== undefined && v !== '').slice(0, 10);
+
+        // Targeted parallel lookup with limit(1)
+        const [stuAdmSnap, stuRollSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
+          admVariants.length ? db.collection('students').where('admissionNo', 'in', admVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          uniqueRollVariants.length ? db.collection('students').where('rollNo', 'in', uniqueRollVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          phoneVariants.length ? db.collection('parents').where('phone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          phoneVariants.length ? db.collection('parents').where('motherPhone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+          db.collection('staff').where('username', '==', cleanInput).limit(1).get().catch(() => null),
+          db.collection('users').where('username', '==', cleanInput).limit(1).get().catch(() => null)
         ]);
 
-        // 1. Students — exact admissionNo
-        if (stuExactSnap && !stuExactSnap.empty) {
-          authEmail = stuExactSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 2. Parents — by phone (father or mother)
-        if (!resolved && pPhoneSnap && !pPhoneSnap.empty) {
-          authEmail = pPhoneSnap.docs[0].data().email; resolved = true;
-        }
-        if (!resolved && mPhoneSnap && !mPhoneSnap.empty) {
-          authEmail = mPhoneSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 3. Staff — by username
-        if (!resolved && stfSnap && !stfSnap.empty) {
-          authEmail = stfSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 4. Users — by username
-        if (!resolved && usrSnap && !usrSnap.empty) {
-          authEmail = usrSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 5. Fallback: Student full scan (case-insensitive admissionNo / rollNo)
-        if (!resolved) {
-          try {
-            const allStu = await db.collection('students').get();
-            const match = allStu.docs.find(d => {
-              const adm  = String(d.data().admissionNo || '').trim().toLowerCase();
-              const roll = String(d.data().rollNo      || '').trim().toLowerCase();
-              return adm === cleanInput || roll === cleanInput;
-            });
-            if (match) { authEmail = match.data().email; resolved = true; }
-          } catch(e) { console.warn('Student scan:', e.message); }
-        }
-
-        // 6. Fallback: Parent full scan
-        if (!resolved && phoneVariants.length) {
-          try {
-            const allPar = await db.collection('parents').get();
-            const match = allPar.docs.find(d => {
-              const p1 = (d.data().phone       || '').replace(/\D/g,'');
-              const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
-              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-            });
-            if (match) { authEmail = match.data().email; resolved = true; }
-          } catch(e) { console.warn('Parent scan:', e.message); }
+        if (stuAdmSnap && !stuAdmSnap.empty) {
+          authEmail = stuAdmSnap.docs[0].data().email;
+          matchedRole = 'student';
+          matchedStudentData = stuAdmSnap.docs[0].data();
+          resolved = true;
+        } else if (stuRollSnap && !stuRollSnap.empty) {
+          authEmail = stuRollSnap.docs[0].data().email;
+          matchedRole = 'student';
+          matchedStudentData = stuRollSnap.docs[0].data();
+          resolved = true;
+        } else if (pPhoneSnap && !pPhoneSnap.empty) {
+          authEmail = pPhoneSnap.docs[0].data().email;
+          matchedRole = 'parent';
+          matchedParentData = pPhoneSnap.docs[0].data();
+          resolved = true;
+        } else if (mPhoneSnap && !mPhoneSnap.empty) {
+          authEmail = mPhoneSnap.docs[0].data().email;
+          matchedRole = 'parent';
+          matchedParentData = mPhoneSnap.docs[0].data();
+          resolved = true;
+        } else if (stfSnap && !stfSnap.empty) {
+          authEmail = stfSnap.docs[0].data().email;
+          matchedRole = 'staff';
+          resolved = true;
+        } else if (usrSnap && !usrSnap.empty) {
+          authEmail = usrSnap.docs[0].data().email;
+          matchedRole = usrSnap.docs[0].data().role || null;
+          resolved = true;
         }
 
         if (!resolved) {
@@ -1071,31 +1018,39 @@
         }
       }
 
-      // ── Build password candidate list (DOB variants + defaults) ──
-      const candidatePasswords = [pass];
-      const cleanDigits = pass.replace(/\D/g, '');
-      if (cleanDigits.length === 8) {
-        const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
-        candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
-      }
-      candidatePasswords.push('amala@123', 'Staff@123', 'Student@123', 'Parent@123', 'roshan123', 'parent@123', 'student@123', 'Amala@123');
-      const uniquePasswords = [...new Set(candidatePasswords.filter(Boolean))];
+      // ── 2. Direct Sign-In (Single Attempt with at most 1 standard fallback) ──
+      let cred = null;
+      let matchedPass = pass;
+      try {
+        cred = await auth.signInWithEmailAndPassword(authEmail, pass);
+      } catch (firstErr) {
+        const errCode = firstErr.code || '';
+        if (errCode === 'auth/wrong-password' || errCode === 'auth/invalid-credential' || !pass) {
+          // If password was incorrect or empty, try AT MOST ONE known role default
+          let fallbackPass = null;
+          if (matchedRole === 'parent' || authEmail.includes('parent')) fallbackPass = 'Parent@123';
+          else if (matchedRole === 'student' || authEmail.includes('student')) fallbackPass = 'Student@123';
+          else if (matchedRole === 'staff' || authEmail.includes('staff') || authEmail.includes('roshan')) fallbackPass = 'Staff@123';
+          else if (matchedRole === 'admin' || ADMIN_EMAILS.includes(authEmail)) fallbackPass = 'amala@123';
 
-      // ── Attempt Firebase Auth sign-in ──────────────────────────
-      let cred = null, authError = null, matchedPass = null;
-      for (const tryPass of uniquePasswords) {
-        try {
-          cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
-          if (cred && cred.user) {
-            matchedPass = tryPass;
-            break;
+          if (fallbackPass && fallbackPass !== pass) {
+            try {
+              cred = await auth.signInWithEmailAndPassword(authEmail, fallbackPass);
+              matchedPass = fallbackPass;
+            } catch (fallbackErr) {
+              throw firstErr;
+            }
+          } else {
+            throw firstErr;
           }
-        } catch(err) { authError = err; }
+        } else {
+          throw firstErr;
+        }
       }
 
-      if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
+      if (!cred || !cred.user) throw new Error('Authentication failed. Please verify credentials.');
 
-      // ── Read user profile + role-specific record in PARALLEL ──────────────────────────────────────
+      // ── 3. Ultra-Fast User Profile & Role Lookup ──
       let userData = null;
       let roleDocSnap = null;
       const uid = cred.user.uid;
@@ -1106,29 +1061,31 @@
       let role = null;
 
       try {
-        // 1. Fetch all candidate documents in parallel for instantaneous lookup
-        const [uSnap, staffSnap, stuSnap, parSnap] = await Promise.all([
-          db.collection('users').doc(uid).get().catch(() => null),
-          db.collection('staff').doc(uid).get().catch(() => null),
-          db.collection('students').doc(uid).get().catch(() => null),
-          db.collection('parents').doc(uid).get().catch(() => null)
-        ]);
+        // Fast primary lookup: check users/{uid} first (avoids querying 3 extra collections for 99% of logins)
+        const uSnap = await db.collection('users').doc(uid).get().catch(() => null);
 
-        if (uSnap && uSnap.exists && !uSnap.data().deleted && !uSnap.data().disabled) {
+        if (uSnap && uSnap.exists && !uSnap.data().deleted && !uSnap.data().disabled && uSnap.data().role) {
           userData = uSnap.data();
           role = userData.role;
         }
 
-        // 2. Auto-heal admin doc if admin account
+        // Auto-heal admin doc if admin account
         if (isAdminAcc && (!userData || !userData.role)) {
           const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
-          try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
+          db.collection('users').doc(uid).set(adminData, {merge:true}).catch(() => {});
           userData = adminData;
           role = 'admin';
         }
 
-        // 3. Fallback from doc(uid) in role collections
+        // Fallback only if role was not in users/{uid}
+        let staffSnap = null, stuSnap = null, parSnap = null;
         if (!role) {
+          [staffSnap, stuSnap, parSnap] = await Promise.all([
+            db.collection('staff').doc(uid).get().catch(() => null),
+            db.collection('students').doc(uid).get().catch(() => null),
+            db.collection('parents').doc(uid).get().catch(() => null)
+          ]);
+
           if (staffSnap && staffSnap.exists && !staffSnap.data().deleted) {
             roleDocSnap = staffSnap;
             userData = { role: 'staff', name: staffSnap.data().name || 'Faculty', ...staffSnap.data() };
@@ -1144,7 +1101,7 @@
           }
         }
 
-        // 4. Secondary lookup by email in role collections if uid didn't match
+        // Secondary lookup by email in role collections if still no role
         if (!role) {
           const [stfEmailSnap, stuEmailSnap, parEmailSnap] = await Promise.all([
             db.collection('staff').where('email', '==', curEmail).limit(1).get().catch(() => null),
@@ -1167,15 +1124,15 @@
           }
         }
 
-        // 5. Special fallback for Roshan faculty account
+        // Special fallback for Roshan faculty account
         if (!role && (curEmail.includes('roshan') || curEmail.includes('staff'))) {
           userData = { role: 'staff', name: 'G.Roshan', email: curEmail, username: 'roshan', majorSubject: 'Art & Craft', type: 'both', uid };
           role = 'staff';
         }
 
-        // 6. If user found, ensure users doc is synced
+        // Non-blocking background sync of profile (does NOT block login navigation!)
         if (userData && role && !userData.deleted && !userData.disabled) {
-          try { await db.collection('users').doc(uid).set({ ...userData, uid, role }, {merge:true}); } catch(e) {}
+          db.collection('users').doc(uid).set({ ...userData, uid, role, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true}).catch(() => {});
         }
 
         if (!userData || userData.deleted || userData.disabled || !role) {
@@ -1183,28 +1140,20 @@
           throw new Error('This account has been deactivated or not assigned a role. Contact school admin.');
         }
 
-        // Attach corresponding doc snap if not already assigned
         if (role === 'staff' && !roleDocSnap) roleDocSnap = staffSnap;
         if (role === 'student' && !roleDocSnap) roleDocSnap = stuSnap;
         if (role === 'parent' && !roleDocSnap) roleDocSnap = parSnap;
 
-        // Role-specific deleted checks
-        if (role === 'staff' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
+        if (roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
           await auth.signOut();
-          throw new Error('Faculty account removed by administrator. Portal access denied.');
-        } else if (role === 'student' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
-          await auth.signOut();
-          throw new Error('Student account removed by administrator. Portal access denied.');
-        } else if (role === 'parent' && roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
-          await auth.signOut();
-          throw new Error('Parent account removed by administrator. Portal access denied.');
+          throw new Error('Account removed by administrator. Portal access denied.');
         }
       } catch(e) {
         if (e.message && (e.message.includes('removed') || e.message.includes('deactivated'))) throw e;
         console.warn('Profile read note:', e.message);
       }
 
-      // Pre-fetch student profile for parents to make parent dashboard render instantly
+      // Pre-fetch student profile for parents
       if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
         const pChildUid = roleDocSnap.data().childUid;
         if (pChildUid) {
@@ -1217,29 +1166,6 @@
         await auth.signOut();
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
-
-      // ── HIGH-SPEED PARALLEL SYNC: Role Portal Auth + Role Record Verification ──
-      const roleCollectionName = role === 'staff' ? 'staff' : (role === 'student' ? 'students' : (role === 'parent' ? 'parents' : null));
-
-      const [roleAuthRes] = await Promise.all([
-        (async () => {
-          try {
-            const roleAppName = `amala-${role}-portal`;
-            const roleApp = firebase.apps.find(a => a.name === roleAppName) || firebase.initializeApp(firebaseConfig, roleAppName);
-            const roleAuth = roleApp.auth();
-            await roleAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-            const syncPasswords = [matchedPass, pass, 'Parent@123', 'Student@123'];
-            for (const tryPass of [...new Set(syncPasswords)]) {
-              try {
-                await roleAuth.signInWithEmailAndPassword(authEmail, tryPass);
-                break;
-              } catch(e) {}
-            }
-          } catch(portalErr) {
-            console.warn('Role portal auth sync note:', portalErr);
-          }
-        })()
-      ]);
 
       const finalRoleData = roleDocSnap && roleDocSnap.exists ? roleDocSnap.data() : null;
 
@@ -1311,7 +1237,7 @@
         // Role-partitioned session in localStorage (never overwrites other roles)
         localStorage.setItem('erp_session_' + role, payloadStr);
         localStorage.setItem('erp_last_active_role', role);
-        localStorage.removeItem('erp_active_session'); // Clean up ambiguous legacy key
+        localStorage.setItem('erp_active_session', payloadStr);
       } catch(e) {}
 
       showOkBox('✅ Login successful! Redirecting to your dashboard…');

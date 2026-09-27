@@ -5881,6 +5881,12 @@
     }
 
     requirePortal(['admin'], async ({ user, profile }) => {
+      // 0ms immediate UI reveal
+      const loadEl = document.getElementById('loadingState');
+      const contentEl = document.getElementById('content');
+      if (loadEl) loadEl.style.display = 'none';
+      if (contentEl) contentEl.style.display = 'block';
+
       try {
         const adminName = profile.name || 'Administrator';
         document.getElementById('uName').textContent = adminName;
@@ -5894,16 +5900,17 @@
         const dateEl = document.getElementById('todayDateStr');
         if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
-        await loadClasses();
-        await loadOverview();
-        preloadAllDataForSearch();
+        // Parallel background loads without blocking screen
+        Promise.allSettled([
+          loadClasses(),
+          loadOverview(),
+          loadAnnouncements()
+        ]).then(() => {
+          preloadAllDataForSearch();
+        });
       } catch (err) {
         console.error('Portal init error:', err);
       } finally {
-        const loadEl = document.getElementById('loadingState');
-        const contentEl = document.getElementById('content');
-        if (loadEl) loadEl.style.display = 'none';
-        if (contentEl) contentEl.style.display = 'block';
         purgeSearchAutofill();
       }
     });
@@ -6032,7 +6039,15 @@
     });
 
     async function loadClasses() {
-      const snap = await getDocs(collection(db, 'classes'));
+      const [snap, staffSnap] = await Promise.all([
+        getDocs(collection(db, 'classes')),
+        getDocs(collection(db, 'staff')).catch(() => ({ docs: [] }))
+      ]);
+      const staffMap = new Map();
+      if (staffSnap && staffSnap.docs) {
+        staffSnap.docs.forEach(d => { staffMap.set(d.id, d.data().name || '—'); });
+      }
+
       const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       allClasses = sortClassList(rawClasses);
       const body = document.querySelector('#clsTable tbody');
@@ -6040,11 +6055,7 @@
       const selOptions = [];
 
       for (const r of allClasses) {
-        let teacherName = '—';
-        if (r.classTeacherUid) {
-          const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
-          if (t.exists()) teacherName = t.data().name;
-        }
+        const teacherName = (r.classTeacherUid && staffMap.has(r.classTeacherUid)) ? staffMap.get(r.classTeacherUid) : '—';
         const tr = document.createElement('tr');
         tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -6244,28 +6255,19 @@
         subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
       }
 
-      // Modal Staff Direct Login Listener
-      function loginToStaffPortalForModalStaff() {
-        if (!currentModalStaff) return;
-        launchLivePortal('staff', currentModalStaff, '../staff/dashboard.html');
-      }
-      document.getElementById('msp_loginStaffPortalBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
-      document.getElementById('msp_loginStaffPortalHeaderBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
+      staffDetailModal.classList.add('open');
+      updateBodyModalState();
+      const stfBody = staffDetailModal.querySelector('.profile-modal-body');
+      if (stfBody) stfBody.scrollTop = 0;
+    }
 
-      // Modal Password Reveal Listener
-      document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
-        const passSpan = document.getElementById('msp_pass');
-        const btn = document.getElementById('msp_togglePassBtn');
-        if (passSpan.dataset.revealed === 'true') {
-          passSpan.textContent = '••••••••';
-          passSpan.dataset.revealed = 'false';
-          btn.textContent = 'Reveal';
-        } else {
-          passSpan.textContent = passSpan.dataset.realPass || 'Welcome@123';
-          passSpan.dataset.revealed = 'true';
-          btn.textContent = 'Hide';
-        }
-      });
+    // Modal Staff Direct Login Listener
+    function loginToStaffPortalForModalStaff() {
+      if (!currentModalStaff) return;
+      launchLivePortal('staff', currentModalStaff, '../staff/dashboard.html');
+    }
+    document.getElementById('msp_loginStaffPortalBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
+    document.getElementById('msp_loginStaffPortalHeaderBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
 
     // Modal Password Reveal Listener
     document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
@@ -6379,7 +6381,17 @@
     });
 
     async function loadStaff() {
-      const snap = await getDocs(collection(db, 'staff'));
+      const [snap, classesSnap] = await Promise.all([
+        getDocs(collection(db, 'staff')),
+        (allClasses && allClasses.length) ? Promise.resolve(null) : getDocs(collection(db, 'classes')).catch(() => null)
+      ]);
+      const classMap = new Map();
+      if (allClasses && allClasses.length) {
+        allClasses.forEach(c => classMap.set(c.id, c.name));
+      } else if (classesSnap && classesSnap.docs) {
+        classesSnap.docs.forEach(d => classMap.set(d.id, d.data().name));
+      }
+
       const body = document.querySelector('#stfTable tbody');
       body.innerHTML = '';
       const selOptions = [];
@@ -6391,8 +6403,7 @@
         let ctNamePlain = '—';
         let ctName = '—';
         if (r.classTeacherOf) {
-          const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
-          const cName = c.exists() ? c.data().name : 'Assigned Class';
+          const cName = classMap.get(r.classTeacherOf) || 'Assigned Class';
           ctNamePlain = cName;
           ctName = `<span class="badge badge-good" style="display:inline-flex; align-items:center; gap:6px; padding:3px 8px;">
         <span>${cName}</span>
@@ -6863,64 +6874,18 @@
         // 1. Create or resolve Student Auth User
         let stuUid = null;
         try {
-          const initialParentDocs = await getDocs(collection(db, 'parents'));
-          const existingParSet = new Set(initialParentDocs.docs.map(d => d.id));
-          const existingParEmails = new Set(initialParentDocs.docs.map(d => (d.data().email || '').toLowerCase()).filter(Boolean));
-          const existingParPhones = new Set(initialParentDocs.docs.map(d => d.data().phone).filter(Boolean));
-
-          for (const s of allStudentsCache) {
-            const hasParentInfo = !!(s.fatherName || s.fatherPhone || s.parentEmail);
-            const isLinkedToExisting = s.parentUid && existingParSet.has(s.parentUid);
-
-            if (hasParentInfo && !isLinkedToExisting) {
-              let matchId = null;
-              if (s.parentEmail && existingParEmails.has(s.parentEmail.toLowerCase())) {
-                const found = initialParentDocs.docs.find(d => (d.data().email || '').toLowerCase() === s.parentEmail.toLowerCase());
-                if (found) matchId = found.id;
-              }
-              if (!matchId && s.fatherPhone && existingParPhones.has(s.fatherPhone)) {
-                const found = initialParentDocs.docs.find(d => d.data().phone === s.fatherPhone);
-                if (found) matchId = found.id;
-              }
-
-              const targetParId = matchId || s.parentUid || doc(collection(db, 'parents')).id;
-              const cleanEmail = s.parentEmail || '';
-              const parData = {
-                role: 'parent',
-                name: s.fatherName || 'Parent',
-                email: cleanEmail,
-                phone: s.fatherPhone || s.phone || '',
-                motherPhone: s.motherPhone || '',
-                childUid: s.uid,
-                childName: s.name,
-                childAdmissionNo: s.admissionNo || '',
-                childRollNo: String(s.rollNo || s.admissionNo || ''),
-                childClassName: s.className || '',
-                childClassId: s.classId || '',
-                childDob: s.dob || '',
-                childGender: s.gender || '',
-                childBloodGroup: s.bloodGroup || '',
-                childAadhaar: s.aadhaarNo || s.aadhaar || '',
-                childAddress: s.address || '',
-                childCity: s.city || '',
-                childPincode: s.pincode || '',
-                childEmergencyPhone: s.emergencyPhone || s.fatherPhone || s.motherPhone || '',
-                childStudentEmail: s.email || '',
-                fatherName: s.fatherName || '',
-                fatherPhone: s.fatherPhone || '',
-                motherName: s.motherName || '',
-                motherPhone: s.motherPhone || '',
-                tempPassword: 'Parent@123',
-                childProfile: s,
-                updatedAt: serverTimestamp()
-              };
-
-              await setDoc(doc(db, 'parents', targetParId), parData, { merge: true }).catch(() => { });
-              await setDoc(doc(db, 'users', targetParId), { role: 'parent', ...parData }, { merge: true }).catch(() => { });
-              await updateDoc(doc(db, 'students', s.uid), { parentUid: targetParId }).catch(() => { });
-              s.parentUid = targetParId;
-              existingParSet.add(targetParId);
-              newlySynced = true;
+          const stuCred = await createUserWithEmailAndPassword(secAuth, stuEmail, stuPass);
+          stuUid = stuCred.user.uid;
+        } catch (sErr) {
+          if (sErr.code === 'auth/email-already-in-use') {
+            const uQ = query(collection(db, 'users'), where('email', '==', stuEmail));
+            const uSnap = await getDocs(uQ);
+            if (!uSnap.empty) {
+              stuUid = uSnap.docs[0].id;
+            } else {
+              const stQ = query(collection(db, 'students'), where('email', '==', stuEmail));
+              const stSnap = await getDocs(stQ);
+              if (!stSnap.empty) stuUid = stSnap.docs[0].id;
             }
           }
           if (!stuUid) {
@@ -8065,7 +8030,11 @@
           childClassId: entry.childClassId,
           phone: r.phone || '—',
           tempPassword: parentPass,
-          isOrphan
+          isOrphan,
+          studentId: linkedStudent ? (linkedStudent.uid || linkedStudent.id) : (r.childUid || ''),
+          studentName: linkedStudent ? linkedStudent.name : (r.childName || ''),
+          linkedStudent: linkedStudent || null,
+          raw: r
         });
 
         parentEntries.push(entry);
@@ -8135,141 +8104,8 @@
         section.id = `parGroup_${classId}`;
         section.style.cssText = `margin-bottom:20px; border:1.5px solid ${color.border}; border-radius:12px; overflow:hidden; background:var(--white);`;
 
-        // Load classes for sorting
-        const classesSnap = await getDocs(collection(db, 'classes'));
-        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
-        const sortedClasses = sortClassList(rawClasses);
-        const classNameMap = new Map();
-        sortedClasses.forEach(c => classNameMap.set(c.id, c.name));
-
-        const container = document.getElementById('parClassGroupContainer');
-        container.innerHTML = '';
-        allParentsCache = [];
-
-        const snap = await getDocs(collection(db, 'parents'));
-        let orphanCount = 0;
-
-        if (snap.empty) {
-          container.innerHTML = '<div style="text-align:center; padding:40px 16px; color:var(--ink-soft); font-size:13px;">No parent accounts registered yet.</div>';
-          updateOrphanCleanupBtn(0);
-          return;
-        }
-
-        // Build parent entries with linked student info
-        const parentEntries = [];
-        snap.docs.forEach(d => {
-          const r = d.data();
-          const parentPass = r.tempPassword || 'Parent@123';
-
-          let linkedStudent = null;
-          if (r.childUid && stuMap.has(r.childUid)) {
-            linkedStudent = stuMap.get(r.childUid);
-          } else {
-            linkedStudent = allStudentsCache.find(s =>
-              s.parentUid === d.id ||
-              (r.email && s.parentEmail && s.parentEmail.toLowerCase() === r.email.toLowerCase()) ||
-              (r.phone && s.fatherPhone && s.fatherPhone === r.phone)
-            );
-          }
-
-          const isOrphan = !linkedStudent;
-          if (isOrphan) orphanCount++;
-
-          const entry = {
-            docId: d.id,
-            raw: r,
-            linkedStudent,
-            isOrphan,
-            parentPass,
-            childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
-            childClassName: linkedStudent ? (linkedStudent.className || '') : '',
-          };
-
-          allParentsCache.push({
-            id: d.id,
-            name: r.name || 'Parent',
-            email: r.email || '—',
-            childName: linkedStudent ? linkedStudent.name : 'Deleted Student',
-            childClassName: entry.childClassName,
-            childClassId: entry.childClassId,
-            phone: r.phone || '—',
-            tempPassword: parentPass,
-            isOrphan,
-            studentId: linkedStudent ? (linkedStudent.uid || linkedStudent.id) : (r.childUid || ''),
-            studentName: linkedStudent ? linkedStudent.name : (r.childName || ''),
-            linkedStudent: linkedStudent || null,
-            raw: r
-          });
-
-          parentEntries.push(entry);
-        });
-
-        // Group parents by classId
-        const classGroups = new Map();
-        const orphanEntries = [];
-
-        parentEntries.forEach(entry => {
-          if (entry.isOrphan) {
-            orphanEntries.push(entry);
-          } else {
-            const classId = entry.childClassId || 'unknown';
-            if (!classGroups.has(classId)) {
-              classGroups.set(classId, []);
-            }
-            classGroups.get(classId).push(entry);
-          }
-        });
-
-        // Sort class groups by natural academic order
-        const orderedClassIds = sortedClasses.map(c => c.id).filter(id => classGroups.has(id));
-        // Add any classIds that exist in data but not in classes collection
-        classGroups.forEach((_, classId) => {
-          if (!orderedClassIds.includes(classId)) orderedClassIds.push(classId);
-        });
-
-        // Color palette for class headers
-        const classColors = [
-          { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534', badge: '#dcfce7' },
-          { bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af', badge: '#dbeafe' },
-          { bg: '#fdf4ff', border: '#e9d5ff', text: '#7c3aed', badge: '#f3e8ff' },
-          { bg: '#fff7ed', border: '#fed7aa', text: '#c2410c', badge: '#ffedd5' },
-          { bg: '#fdf2f8', border: '#fbcfe8', text: '#be185d', badge: '#fce7f3' },
-          { bg: '#f0fdfa', border: '#99f6e4', text: '#0f766e', badge: '#ccfbf1' },
-          { bg: '#fefce8', border: '#fde68a', text: '#a16207', badge: '#fef9c3' },
-          { bg: '#f1f5f9', border: '#cbd5e1', text: '#334155', badge: '#e2e8f0' },
-        ];
-
-        // Populate the Filter Class dropdown with dynamic counts
-        const parTblF = document.getElementById('parTableClassFilter');
-        if (parTblF) {
-          const currentFilter = parTblF.value;
-          let filterOpts = `<option value="">All Classes (Show All)</option>`;
-          orderedClassIds.forEach(classId => {
-            const cName = classNameMap.get(classId) || classId;
-            const count = classGroups.get(classId)?.length || 0;
-            filterOpts += `<option value="${classId}">${cName} (${count})</option>`;
-          });
-          if (orphanEntries.length > 0) {
-            filterOpts += `<option value="orphan">Unlinked / Orphaned (${orphanEntries.length})</option>`;
-          }
-          parTblF.innerHTML = filterOpts;
-          if (currentFilter) {
-            parTblF.value = currentFilter;
-          }
-        }
-
-        // Render each class group
-        orderedClassIds.forEach((classId, idx) => {
-          const entries = classGroups.get(classId);
-          const cName = classNameMap.get(classId) || classId;
-          const color = classColors[idx % classColors.length];
-
-          const section = document.createElement('div');
-          section.id = `parGroup_${classId}`;
-          section.style.cssText = `margin-bottom:20px; border:1.5px solid ${color.border}; border-radius:12px; overflow:hidden; background:var(--white);`;
-
-          // Class header
-          const header = document.createElement('div');
+        // Class header
+        const header = document.createElement('div');
           header.style.cssText = `display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:${color.bg}; border-bottom:1px solid ${color.border}; cursor:pointer; user-select:none; transition: background 0.15s ease;`;
           header.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px;">
@@ -8475,43 +8311,6 @@
             }
           });
         });
-
-        // Print
-        tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
-          const item = allParentsCache.find(x => x.id === docId);
-          if (item) printSingleParentProfile(item);
-        });
-
-        // Edit
-        tr.querySelector('.parEditBtn').addEventListener('click', () => {
-          openEditParentModal({ id: docId, ...r });
-        });
-
-        // Delete
-        tr.querySelector('.parDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete parent "${r.name || 'Parent'}" and permanently revoke login access?`)) {
-            try {
-              if (r.childUid) {
-                await updateDoc(doc(db, 'students', r.childUid), { parentUid: null }).catch(() => { });
-              }
-              await setDoc(doc(db, 'users', docId), {
-                role: null,
-                disabled: true,
-                deleted: true,
-                revokedAt: serverTimestamp()
-              }, { merge: true }).catch(() => { });
-              await deleteDoc(doc(db, 'users', docId)).catch(() => { });
-              await deleteDoc(doc(db, 'parents', docId));
-              showToast(`Parent "${r.name || 'Parent'}" removed and login access permanently revoked.`);
-              await loadParents();
-              await loadStudents();
-              await loadOverview();
-            } catch (err) {
-              alert('Error removing parent: ' + err.message);
-            }
-          }
-        });
-      });
 
       // Print
       tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {

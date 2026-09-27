@@ -2329,7 +2329,7 @@
 import {
   auth, db, storage, requirePortal, logout, doc, getDoc, setDoc, collection,
   query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp, orderBy, onSnapshot,
-  ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
+  limit, ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
 } from '../../js/auth.js';
 import { initLiveNotifications } from '../../js/notifications.js';
 
@@ -2989,7 +2989,7 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
       try {
         const attTargetClassId = classTeacherClass ? classTeacherClass.id : (subjectAssignments[0] ? subjectAssignments[0].classId : null);
         if (attTargetClassId) {
-          const attCheckQ = query(collection(db, 'attendance'), where('classId', '==', attTargetClassId), where('date', '==', todayStr));
+          const attCheckQ = query(collection(db, 'attendance'), where('classId', '==', attTargetClassId), where('date', '==', todayStr), limit(1));
           const attCheckSnap = await getDocs(attCheckQ);
           if (!attCheckSnap.empty) isAttRecorded = true;
         }
@@ -3485,7 +3485,7 @@ function renderStaffAnnouncements() {
 
 async function loadStaffAnnouncements() {
   try {
-    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(25));
     const snap = await getDocs(q);
     
     // In staff portal, faculty sees all circulars: faculty notices, students & parents, students only, and school-wide
@@ -6355,9 +6355,11 @@ document.getElementById('notesUploadBtn').addEventListener('click', async () => 
 async function loadNotesList() {
   const body = document.querySelector('#notesListTable tbody');
   body.innerHTML = '';
-  for (const a of subjectAssignments) {
-    const q = query(collection(db, 'notes'), where('classId', '==', a.classId), where('subject', '==', a.subject));
-    const snap = await getDocs(q);
+  if (!subjectAssignments.length) return;
+  const noteSnaps = await Promise.all(
+    subjectAssignments.map(a => getDocs(query(collection(db, 'notes'), where('classId', '==', a.classId), where('subject', '==', a.subject), limit(30))).catch(() => ({ docs: [] })))
+  );
+  noteSnaps.forEach(snap => {
     snap.docs.forEach(d => {
       const r = d.data();
       const tr = document.createElement('tr');
@@ -6367,7 +6369,7 @@ async function loadNotesList() {
       tr.querySelector('.btn-danger').addEventListener('click', async () => { await deleteDoc(doc(db, 'notes', d.id)); loadNotesList(); });
       body.appendChild(tr);
     });
-  }
+  });
 }
 
 // ---------------- HOMEWORK ----------------
@@ -6401,9 +6403,11 @@ document.getElementById('hwAddBtn').addEventListener('click', async () => {
 async function loadHwList() {
   const body = document.querySelector('#hwListTable tbody');
   body.innerHTML = '';
-  for (const a of subjectAssignments) {
-    const q = query(collection(db, 'homework'), where('classId', '==', a.classId), where('subject', '==', a.subject));
-    const snap = await getDocs(q);
+  if (!subjectAssignments.length) return;
+  const hwSnaps = await Promise.all(
+    subjectAssignments.map(a => getDocs(query(collection(db, 'homework'), where('classId', '==', a.classId), where('subject', '==', a.subject), limit(30))).catch(() => ({ docs: [] })))
+  );
+  hwSnaps.forEach(snap => {
     snap.docs.forEach(d => {
       const r = d.data();
       const tr = document.createElement('tr');
@@ -6412,7 +6416,7 @@ async function loadHwList() {
       tr.querySelector('button').addEventListener('click', async () => { await deleteDoc(doc(db, 'homework', d.id)); loadHwList(); });
       body.appendChild(tr);
     });
-  }
+  });
 }
 
 
@@ -6758,7 +6762,7 @@ document.getElementById('startStaffStuImportBtn')?.addEventListener('click', asy
         stuUid = stuCred.user.uid;
       } catch (sErr) {
         if (sErr.code === 'auth/email-already-in-use') {
-          const uQ = query(collection(db, 'users'), where('email', '==', s.stuEmail));
+          const uQ = query(collection(db, 'users'), where('email', '==', s.stuEmail), limit(1));
           const uSnap = await getDocs(uQ);
           if (!uSnap.empty) stuUid = uSnap.docs[0].id;
         }
@@ -6773,7 +6777,7 @@ document.getElementById('startStaffStuImportBtn')?.addEventListener('click', asy
           parUid = parCred.user.uid;
         } catch (pErr) {
           if (pErr.code === 'auth/email-already-in-use') {
-            const uQ = query(collection(db, 'users'), where('email', '==', s.parEmail));
+            const uQ = query(collection(db, 'users'), where('email', '==', s.parEmail), limit(1));
             const uSnap = await getDocs(uQ);
             if (!uSnap.empty) parUid = uSnap.docs[0].id;
           }

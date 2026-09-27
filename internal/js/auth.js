@@ -10,8 +10,9 @@ import {
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
-  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot
+  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
@@ -47,7 +48,15 @@ if (currentRole) {
   setPersistence(auth, browserSessionPersistence).catch(() => {});
 }
 
-export const db = getFirestore(app);
+let dbInstance;
+try {
+  dbInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
+} catch (e) {
+  dbInstance = getFirestore(app);
+}
+export const db = dbInstance;
 export const storage = getStorage(app);
 
 // A SECOND, completely isolated Firebase worker auth instance with pure in-memory persistence.
@@ -73,7 +82,7 @@ export {
   onAuthStateChanged, sendPasswordResetEmail,
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence, initializeAuth, getAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
-  deleteDoc, serverTimestamp, orderBy, onSnapshot,
+  deleteDoc, serverTimestamp, orderBy, onSnapshot, limit,
   ref, uploadBytes, getDownloadURL, deleteObject
 };
 

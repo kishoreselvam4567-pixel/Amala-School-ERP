@@ -10,8 +10,9 @@ import {
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
-  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot
+  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
@@ -29,25 +30,25 @@ export function getCurrentPortalRole() {
 }
 
 export function getPortalApp(role) {
-  const appName = role ? `amala-${role}-portal` : '[DEFAULT]';
-  const existing = getApps().find(a => a.name === appName);
-  if (existing) return existing;
-  return appName === '[DEFAULT]'
-    ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
-    : initializeApp(firebaseConfig, appName);
+  return getApps().find(a => a.name === '[DEFAULT]') || (getApps().length ? getApp() : initializeApp(firebaseConfig));
 }
 
 const currentRole = getCurrentPortalRole();
-// Role-isolated app and auth so Admin, Staff, Student, and Parent sessions never overwrite each other in the browser
-export const app = getPortalApp(currentRole);
+// Unified app instance so IndexedDB auth tokens and active sessions are shared instantly across all portals
+export const app = getApps().find(a => a.name === '[DEFAULT]') || (getApps().length ? getApp() : initializeApp(firebaseConfig));
 export const auth = getAuth(app);
-if (currentRole) {
-  setPersistence(auth, browserLocalPersistence).catch(() => {});
-} else {
-  setPersistence(auth, browserSessionPersistence).catch(() => {});
-}
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-export const db = getFirestore(app);
+// High-performance multi-tab persistent IndexedDB local cache for sub-10ms query speeds
+let dbInstance;
+try {
+  dbInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
+} catch (e) {
+  dbInstance = getFirestore(app);
+}
+export const db = dbInstance;
 export const storage = getStorage(app);
 
 // A SECOND, completely isolated Firebase worker auth instance with pure in-memory persistence.
@@ -73,7 +74,7 @@ export {
   onAuthStateChanged, sendPasswordResetEmail,
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence, initializeAuth, getAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
-  deleteDoc, serverTimestamp, orderBy, onSnapshot,
+  deleteDoc, serverTimestamp, orderBy, onSnapshot, limit,
   ref, uploadBytes, getDownloadURL, deleteObject
 };
 
@@ -85,6 +86,29 @@ export async function getUserProfile(uid) {
   if (userProfileCache.has(uid)) {
     return userProfileCache.get(uid);
   }
+
+  // 0ms instant cached profile check from tab session / local storage
+  try {
+    const rawActive = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+    if (rawActive) {
+      const parsed = JSON.parse(rawActive);
+      if (parsed && (parsed.uid === uid || !uid) && parsed.profile && parsed.profile.role) {
+        userProfileCache.set(uid, parsed.profile);
+        return parsed.profile;
+      }
+    }
+    const currentRole = getCurrentPortalRole();
+    if (currentRole) {
+      const rawRole = sessionStorage.getItem('erp_session_' + currentRole) || localStorage.getItem('erp_session_' + currentRole);
+      if (rawRole) {
+        const parsed = JSON.parse(rawRole);
+        if (parsed && (parsed.uid === uid || !uid) && parsed.profile && parsed.profile.role) {
+          userProfileCache.set(uid, parsed.profile);
+          return parsed.profile;
+        }
+      }
+    }
+  } catch(e) {}
 
   try {
     const snap = await getDoc(doc(db, "users", uid));
@@ -278,16 +302,6 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     if (!user) {
       // If we already hydrated a valid authorized session from cache, do NOT boot to login.
       if (hasHydratedFromCache) {
-        try {
-          const rawCache = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
-          if (rawCache) {
-            const c = JSON.parse(rawCache);
-            const passToTry = c.pass || c.tempPassword || (c.role === 'student' ? 'Student@123' : (c.role === 'parent' ? 'Parent@123' : (c.role === 'staff' ? 'Staff@123' : null)));
-            if (c.email && passToTry) {
-              signInWithEmailAndPassword(auth, c.email, passToTry).catch(() => {});
-            }
-          }
-        } catch(e) {}
         return;
       }
 

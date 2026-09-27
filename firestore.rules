@@ -27,8 +27,8 @@ service cloud.firestore {
     // users collection: allow unauthenticated read of email/phone for login lookup only
     match /users/{uid} {
       allow read: if true; // needed for email lookup during login before auth
-      allow create: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow update, delete: if isAdmin();
+      allow create, update: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
     }
     match /classes/{classId} {
       allow read: if signedIn();

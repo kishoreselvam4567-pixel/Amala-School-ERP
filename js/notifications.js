@@ -3,7 +3,7 @@
 // Provides realtime notification synchronization from Firestore
 // for Student, Parent, Staff, and Admin portals.
 // ============================================================
-import { collection, query, orderBy, onSnapshot } from './auth.js';
+import { collection, query, orderBy, onSnapshot, limit } from './auth.js';
 
 export function initLiveNotifications({ role = 'student', db, switchTab }) {
   const notifBellBtn = document.getElementById('notifBellBtn');
@@ -157,16 +157,17 @@ export function initLiveNotifications({ role = 'student', db, switchTab }) {
     });
   }
 
-  // Realtime Firestore listener for live notifications
+  // Realtime Firestore listener for live notifications (capped to 15 items to prevent 100+ user websocket overload)
   try {
     const annCol = collection(db, 'announcements');
-    const q = query(annCol, orderBy('createdAt', 'desc'));
+    const q = query(annCol, orderBy('createdAt', 'desc'), limit(15));
     onSnapshot(q, (snap) => {
       const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderLiveNotifications(items);
     }, (err) => {
       console.warn('Ordered announcements onSnapshot notice, falling back to unordered listener:', err);
-      onSnapshot(annCol, (fallbackSnap) => {
+      const fallbackQ = query(annCol, limit(15));
+      onSnapshot(fallbackQ, (fallbackSnap) => {
         const fallbackItems = fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         fallbackItems.sort((a, b) => {
           const ta = a.createdAt?.seconds || 0;
