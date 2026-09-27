@@ -246,7 +246,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       // Valid if less than 24 hours old and matches portal role
       if (cached && cached.uid && allowedRoles.includes(cached.role) && (Date.now() - (cached.timestamp || 0)) < 86400000) {
         hasHydratedFromCache = true;
-        isAuthorized = true;
+        // Pre-populate in-memory cache so Firebase Auth confirmation path skips Firestore reads
         userProfileCache.set(cached.uid, cached.profile || { uid: cached.uid, name: cached.name, role: cached.role });
 
         // Ensure this tab's sessionStorage has the active session
@@ -256,17 +256,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           sessionStorage.setItem('erp_active_role', cached.role);
         } catch(e) {}
 
-        // Synchronous immediate zero-latency dispatch
-        try {
-          onReady({
-            user: { uid: cached.uid, email: cached.email },
-            profile: cached.profile || { uid: cached.uid, name: cached.name, role: cached.role },
-            roleData: cached.roleData || null,
-            isCached: true
-          });
-        } catch(onReadyErr) {
-          console.warn("Immediate cache hydration dispatch warning:", onReadyErr);
-        }
+        // BUG-013 FIX: Do NOT call onReady() from the cache path.
+        // Firebase Auth must confirm the session before granting access.
+        // The cache only skips Firestore re-reads on the confirmed auth path below.
       }
     }
   } catch (e) {
@@ -320,9 +312,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
               localStorage.setItem('erp_session_' + defProfile.role, payload);
             } catch(e) {}
 
-            if (!hasHydratedFromCache) {
+            if (!isAuthorized) {
               isAuthorized = true;
-              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData });
+              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData, isCached: hasHydratedFromCache });
             }
             setTimeout(() => {
               showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
@@ -481,10 +473,10 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
       } catch(e) {}
 
-      // If not previously hydrated from cache, invoke onReady now
-      if (!hasHydratedFromCache) {
+      // Always invoke onReady after Firebase Auth confirms (BUG-013 fix)
+      if (!isAuthorized) {
         isAuthorized = true;
-        onReady({ user, profile, roleData: existingRoleData });
+        onReady({ user, profile, roleData: existingRoleData, isCached: hasHydratedFromCache });
       }
 
       // Trigger first-time login instructions notification (only once per user)
