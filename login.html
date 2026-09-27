@@ -803,7 +803,7 @@
 
   // ── Warm up Firestore connection immediately (pre-establishes socket before form submit) ──
   (function warmUpFirestore() {
-    try { db.collection('users').limit(1).get().catch(() => {}); } catch(e) {}
+    try { db.collection('loginLookup').limit(1).get().catch(() => {}); } catch(e) {}
   })();
 
   if (!allowRelogin) {
@@ -853,94 +853,43 @@
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
 
-      if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
-        authEmail = 'admin@kishore.gmail.com';
-      } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
-        authEmail = 'amala@123.gmail.com';
-      } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
-        authEmail = 'amala@123.gmail.com';
       } else if (!rawUser.includes('@')) {
-        // Not an email → look up in Firestore
-        const cleanInput = normUser.replace(/^@/, '');
+        // Not an email → resolve via /loginLookup (O(1) single GET, no collection scan)
         const digitsOnly = rawUser.replace(/\D/g, '');
-        let resolved = false;
-
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-        const phoneVariants = digitsOnly.length >= 7 ? [...new Set([rawUser, digitsOnly, last10,
-          '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0,10) : [];
 
-        // ── PARALLEL LOOKUP: Student (exact) + Parent (phone) + Staff + Users simultaneously ──
-        const [stuExactSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
-          db.collection('students').where('admissionNo', '==', rawUser).limit(1).get().catch(() => null),
-          phoneVariants.length ? db.collection('parents').where('phone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          phoneVariants.length ? db.collection('parents').where('motherPhone','in',phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          db.collection('staff').where('username','==',cleanInput).limit(1).get().catch(() => null),
-          db.collection('users').where('username','==',cleanInput).limit(1).get().catch(() => null)
-        ]);
+        // Keys to try, in priority order: rawUser, stripped digits (last 10 for phones)
+        const lookupKeys = [...new Set([
+          normUser,
+          digitsOnly.length >= 7 ? last10 : null
+        ].filter(Boolean))];
 
-        // 1. Students — exact admissionNo
-        if (stuExactSnap && !stuExactSnap.empty) {
-          authEmail = stuExactSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 2. Parents — by phone (father or mother)
-        if (!resolved && pPhoneSnap && !pPhoneSnap.empty) {
-          authEmail = pPhoneSnap.docs[0].data().email; resolved = true;
-        }
-        if (!resolved && mPhoneSnap && !mPhoneSnap.empty) {
-          authEmail = mPhoneSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 3. Staff — by username
-        if (!resolved && stfSnap && !stfSnap.empty) {
-          authEmail = stfSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 4. Users — by username
-        if (!resolved && usrSnap && !usrSnap.empty) {
-          authEmail = usrSnap.docs[0].data().email; resolved = true;
-        }
-
-        // 5. Fallback: Student full scan (case-insensitive admissionNo / rollNo)
-        if (!resolved) {
+        let resolved = false;
+        for (const key of lookupKeys) {
           try {
-            const allStu = await db.collection('students').get();
-            const match = allStu.docs.find(d => {
-              const adm  = String(d.data().admissionNo || '').trim().toLowerCase();
-              const roll = String(d.data().rollNo      || '').trim().toLowerCase();
-              return adm === cleanInput || roll === cleanInput;
-            });
-            if (match) { authEmail = match.data().email; resolved = true; }
-          } catch(e) { console.warn('Student scan:', e.message); }
-        }
-
-        // 6. Fallback: Parent full scan
-        if (!resolved && phoneVariants.length) {
-          try {
-            const allPar = await db.collection('parents').get();
-            const match = allPar.docs.find(d => {
-              const p1 = (d.data().phone       || '').replace(/\D/g,'');
-              const p2 = (d.data().motherPhone  || '').replace(/\D/g,'');
-              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-            });
-            if (match) { authEmail = match.data().email; resolved = true; }
-          } catch(e) { console.warn('Parent scan:', e.message); }
+            const snap = await db.collection('loginLookup').doc(key).get();
+            if (snap.exists && snap.data().email) {
+              authEmail = snap.data().email;
+              resolved = true;
+              break;
+            }
+          } catch(e) { console.warn('loginLookup:', e.message); }
         }
 
         if (!resolved) {
-          throw new Error(`No account found for "${rawUser}". Please check your User ID and try again.`);
+          throw new Error('Invalid User ID or password. Please check your credentials and try again.');
         }
       }
 
-      // ── Build password candidate list (DOB variants + defaults) ──
+      // ── Build password candidate list (user-typed password only + DOB format variants) ──
+      // NOTE: Default password fallback removed (BUG-007) — users must know their password.
       const candidatePasswords = [pass];
       const cleanDigits = pass.replace(/\D/g, '');
       if (cleanDigits.length === 8) {
+        // Support DOB typed as DDMMYYYY without separators as password
         const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
         candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
       }
-      candidatePasswords.push('Student@123', 'Parent@123');
       const uniquePasswords = [...new Set(candidatePasswords)];
 
       // ── Attempt Firebase Auth sign-in ──────────────────────────
