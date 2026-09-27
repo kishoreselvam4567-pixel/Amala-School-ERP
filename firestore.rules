@@ -1,9 +1,9 @@
-rules_version = '2';
+﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
-    
+
     function isAdminEmail() {
       return signedIn() && (
         request.auth.token.email == 'amala@123.gmail.com' ||
@@ -11,52 +11,68 @@ service cloud.firestore {
         request.auth.token.email == 'amala123@gmail.com'
       );
     }
-    
+
     function hasUserDoc() {
       return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
-    
-    function myRole() { 
-      return hasUserDoc() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : ''; 
+
+    function myRole() {
+      return hasUserDoc() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : '';
     }
-    
+
     function isAdmin() { return isAdminEmail() || (signedIn() && myRole() == 'admin'); }
     function isStaff() { return signedIn() && myRole() == 'staff'; }
     function isAdminOrStaff() { return isAdmin() || isStaff(); }
 
-    // users collection: allow unauthenticated read of email/phone for login lookup only
+    // loginLookup: safe pre-auth resolution — only { email } field, no PII
+    // Unauthenticated clients may GET by document ID only (no list).
+    match /loginLookup/{lookupId} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isAdmin();
+    }
+
+    // users: requires auth; users read own doc, admin reads all
     match /users/{uid} {
-      allow read: if true; // needed for email lookup during login before auth
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow update, delete: if isAdmin();
     }
+
     match /classes/{classId} {
       allow read: if signedIn();
       allow write: if isAdmin();
     }
-    // students: allow unauthenticated list/read for admission number → email lookup at login
+
+    // students: own-record get for students; list only for admin/staff
     match /students/{studentUid} {
-      allow read, list: if true; // login page needs to resolve admissionNo → email before signing in
+      allow get:    if signedIn() && (request.auth.uid == studentUid || isAdminOrStaff());
+      allow list:   if isAdminOrStaff();
       allow create: if signedIn() && (request.auth.uid == studentUid || isAdmin());
       allow update: if isAdminOrStaff() || (signedIn() && request.auth.uid == studentUid);
       allow delete: if isAdmin();
     }
-    // staff: allow unauthenticated read for username → email lookup at login
+
+    // staff: own-record get; admin lists and writes
     match /staff/{staffUid} {
-      allow read, list: if true; // login page needs to resolve username → email before signing in
+      allow get:    if signedIn() && (request.auth.uid == staffUid || isAdmin());
+      allow list:   if isAdmin();
       allow create, update, delete: if isAdmin();
     }
-    // parents: allow unauthenticated read for phone → email lookup at login
+
+    // parents: own-record get; admin lists and writes
     match /parents/{parentUid} {
-      allow read, list: if true; // login page needs to resolve phone → email before signing in
+      allow get:    if signedIn() && (request.auth.uid == parentUid || isAdmin());
+      allow list:   if isAdmin();
       allow create: if signedIn() && (request.auth.uid == parentUid || isAdmin());
       allow update, delete: if isAdmin();
     }
-    match /attendance/{docId} { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
-    match /marks/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
-    match /exams/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
-    match /notes/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
-    match /homework/{docId}   { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+
+    match /attendance/{docId}    { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /marks/{docId}         { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /exams/{docId}         { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /notes/{docId}         { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
+    match /homework/{docId}      { allow read: if signedIn(); allow write: if isAdminOrStaff(); }
     match /announcements/{docId} { allow read: if signedIn(); allow write: if isAdmin(); }
   }
 }

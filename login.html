@@ -820,20 +820,10 @@
         } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
 
         if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
-<<<<<<< HEAD
-        if (role && ROLE_ROUTES[role]) {
-          window.location.replace(ROLE_ROUTES[role]);
-          return;
-        }
-      }
-    } catch(e) {}
-  });
-=======
         if (role && ROLE_ROUTES[role]) window.location.replace(ROLE_ROUTES[role]);
       } catch(e) {}
     });
   }
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
 
   // ── Login submit handler ─────────────────────────────────────
   form.addEventListener('submit', async (e) => {
@@ -1029,42 +1019,7 @@
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
-<<<<<<< HEAD
-      // ── HIGH-SPEED PARALLEL SYNC: Role Portal Auth + Role Record Verification ──
-      const roleCollectionName = role === 'staff' ? 'staff' : (role === 'student' ? 'students' : (role === 'parent' ? 'parents' : null));
-
-      const [roleAuthRes, roleSnap] = await Promise.all([
-        (async () => {
-          try {
-            const roleAppName = `amala-${role}-portal`;
-            const roleApp = firebase.apps.find(a => a.name === roleAppName) || firebase.initializeApp(firebaseConfig, roleAppName);
-            const roleAuth = roleApp.auth();
-            await roleAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-            const syncPasswords = [matchedPass, pass, 'Parent@123', 'Student@123'];
-            for (const tryPass of [...new Set(syncPasswords)]) {
-              try {
-                await roleAuth.signInWithEmailAndPassword(authEmail, tryPass);
-                break;
-              } catch(e) {}
-            }
-          } catch(portalErr) {
-            console.warn('Role portal auth sync note:', portalErr);
-          }
-        })(),
-        (roleCollectionName && !matchedRecord) ? db.collection(roleCollectionName).doc(cred.user.uid).get().catch(() => null) : Promise.resolve(null)
-      ]);
-
-      const finalRoleData = matchedRecord || (roleSnap && roleSnap.exists ? roleSnap.data() : null);
-
-      if (finalRoleData && finalRoleData.deleted) {
-        await auth.signOut();
-        throw new Error('Account removed by administrator. Portal access denied.');
-      }
-
-      // ── Store active session in role-isolated and tab-isolated storage ──
-=======
       // ── Store rich session payload including roleData (childUid, studentProfile etc.) for instant portal hydration ──
->>>>>>> 486277a67dc156b4e25b6d7e0bc0437c5049db28
       try {
         const baseRoleData = (roleDocSnap && roleDocSnap.exists) ? roleDocSnap.data() : null;
         const roleData = baseRoleData ? {
