@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student & Staff ERP Portal — Amala Higher Secondary School</title>
+<title>Amala ERP Portal — Student, Parent, Staff & Admin Login</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
@@ -593,7 +593,28 @@
 
 <!-- Immediate Synchronous Captcha Script (Runs instantly without waiting for network/modules) -->
 <script>
-  window.currentCaptcha = '';
+  // BUG-014 fix: Salted hash verification closure — CAPTCHA code is never exposed on window object
+  let _captchaHash = '';
+  const _captchaSalt = Math.random().toString(36).substring(2);
+
+  function _hashCaptcha(str) {
+    let hash = 0x811c9dc5;
+    const combined = _captchaSalt + String(str || '').trim().toUpperCase();
+    for (let i = 0; i < combined.length; i++) {
+      hash ^= combined.charCodeAt(i);
+      hash = (hash * 0x01000193) >>> 0;
+    }
+    return hash.toString(16);
+  }
+
+  function verifyCaptcha(candidate) {
+    if (!candidate || !_captchaHash) return false;
+    return _hashCaptcha(candidate) === _captchaHash;
+  }
+
+  function hasCaptcha() {
+    return !!_captchaHash;
+  }
 
   function generateCaptchaCode() {
     // Generate a 4-character alphanumeric code avoiding ambiguous 0/O, 1/I
@@ -602,7 +623,7 @@
     for (let i = 0; i < 4; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    window.currentCaptcha = code;
+    _captchaHash = _hashCaptcha(code);
 
     const canvas = document.getElementById('captchaCanvas');
     if (canvas && canvas.getContext) {
@@ -716,7 +737,7 @@
 
   // Initial draw fallback
   window.addEventListener('load', () => {
-    if (!window.currentCaptcha) generateCaptchaCode();
+    if (!hasCaptcha()) generateCaptchaCode();
   });
 </script>
 
@@ -830,11 +851,10 @@
     e.preventDefault();
     showErrBox('');
 
-    // 1. Captcha check
+    // 1. Captcha check (verified via salted hash, BUG-014 fix)
     const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
-    const currentCode = (window.currentCaptcha || '').trim().toUpperCase();
 
-    if (!userCaptcha || !currentCode || userCaptcha !== currentCode) {
+    if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
       showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');
       generateCaptchaCode();
       const inp = document.getElementById('captchaInput');
@@ -853,7 +873,7 @@
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
 
-      } else if (!rawUser.includes('@')) {
+      if (!rawUser.includes('@')) {
         // Not an email → resolve via /loginLookup (O(1) single GET, no collection scan)
         const digitsOnly = rawUser.replace(/\D/g, '');
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;

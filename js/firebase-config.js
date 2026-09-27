@@ -11,7 +11,7 @@ export const firebaseConfig = {
 export const SCHOOL = {
   name: "Amala Higher Secondary School",
   tagline: "Be a creative learner",
-  address: "School address here",
-  phone: "+91 00000 00000",
-  email: "info@yourschool.edu.in"
+  address: "Amala Higher Secondary School Campus, Tamil Nadu, India",
+  phone: "+91 431 2000000",
+  email: "contact@amalahss.edu"
 };

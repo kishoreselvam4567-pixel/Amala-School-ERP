@@ -2687,15 +2687,14 @@ function openStudentProfileModal(s) {
   document.getElementById('mp_email').textContent = s.email || '—';
   const stuPassSpan = document.getElementById('mp_pass');
   const stuToggleBtn = document.getElementById('mp_togglePassBtn');
-  const realStuPass = s.tempPassword || 'Student@123';
   if (stuPassSpan) {
-    stuPassSpan.textContent = '••••••••';
-    stuPassSpan.dataset.realPass = realStuPass;
+    stuPassSpan.textContent = 'Protected (Auth)';
+    stuPassSpan.dataset.realPass = '';
     stuPassSpan.dataset.revealed = 'false';
     stuPassSpan.style.color = '';
   }
   if (stuToggleBtn) {
-    stuToggleBtn.textContent = 'Reveal';
+    stuToggleBtn.style.display = 'none';
   }
 
   // Family details

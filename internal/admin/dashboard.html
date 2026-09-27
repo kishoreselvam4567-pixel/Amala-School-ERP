@@ -4152,6 +4152,18 @@
       getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
     } from '../../js/auth.js';
 
+    // Helper: synchronize identifiers into /loginLookup for safe, O(1) unauthenticated login resolution
+    async function syncLoginLookup(key, email) {
+      if (!key || !email || !email.includes('@')) return;
+      const normKey = String(key).trim().toLowerCase().replace(/\s+/g, '');
+      if (!normKey) return;
+      try {
+        await setDoc(doc(db, 'loginLookup', normKey), { email: email.toLowerCase().trim() }, { merge: true });
+      } catch (err) {
+        console.warn('syncLoginLookup failed for', normKey, err);
+      }
+    }
+
     // Mobile sidebar toggle with background scroll lock
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -6135,12 +6147,19 @@
           phone,
           majorSubject,
           gender,
-          tempPassword: pass,
           type: 'subject',
           classTeacherOf: null,
           subjects: [],
           createdAt: serverTimestamp()
         }, { merge: true });
+
+        // Synchronize identifiers to /loginLookup
+        if (username) await syncLoginLookup(username, email);
+        if (email && email.includes('@')) await syncLoginLookup(email.split('@')[0], email);
+        if (phone) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         await fbSignOut(secAuth);
         document.getElementById('stfName').value = '';
@@ -6183,11 +6202,11 @@
       // Login Credentials
       document.getElementById('msp_email').textContent = stf.email || '—';
       const passSpan = document.getElementById('msp_pass');
-      passSpan.textContent = '••••••••';
-      passSpan.dataset.realPass = stf.tempPassword || 'Welcome@123';
+      passSpan.textContent = 'Protected (Auth)';
+      passSpan.dataset.realPass = '';
       passSpan.dataset.revealed = 'false';
       const toggleBtn = document.getElementById('msp_togglePassBtn');
-      if (toggleBtn) toggleBtn.textContent = 'Reveal';
+      if (toggleBtn) toggleBtn.style.display = 'none';
 
       // Teaching Allocations
       document.getElementById('msp_classTeacher').innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
@@ -6248,7 +6267,7 @@
       document.getElementById('editStfPhone').value = stf.phone || '';
       document.getElementById('editStfMajorSubject').value = stf.majorSubject || '';
       document.getElementById('editStfEmail').value = stf.email || '';
-      document.getElementById('editStfPass').value = stf.tempPassword || '';
+      document.getElementById('editStfPass').value = '';
       editStaffModal.classList.add('open');
     }
 
@@ -6282,9 +6301,6 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (pass) {
-          updateData.tempPassword = pass;
-        }
 
         // 1. Update staff doc
         await updateDoc(doc(db, 'staff', id), updateData);
@@ -6300,6 +6316,14 @@
           email,
           updatedAt: serverTimestamp()
         }, { merge: true });
+
+        // Synchronize identifiers to /loginLookup
+        if (username) await syncLoginLookup(username, email);
+        if (email && email.includes('@')) await syncLoginLookup(email.split('@')[0], email);
+        if (phone) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         showToast(`Faculty "${name}" updated successfully!`);
         editStaffModal.classList.remove('open');
@@ -6352,7 +6376,6 @@
     `).join('') || '—';
 
         const facultyUsername = r.username || (r.email ? r.email.split('@')[0] : 'staff');
-        const facultyPass = r.tempPassword || 'Welcome@123';
         const facultyGender = r.gender || '—';
         const facultyPhone = r.phone || '—';
         const facultyMajor = r.majorSubject || '—';
@@ -6365,7 +6388,6 @@
           phone: facultyPhone,
           majorSubject: facultyMajor,
           email: r.email || '—',
-          tempPassword: facultyPass,
           classTeacherOf: r.classTeacherOf || null,
           classTeacherName: ctNamePlain,
           subjects: r.subjects || [],
@@ -6840,7 +6862,7 @@
 
         // 3. Save Student Record in Firestore
         await setDoc(doc(db, 'users', stuUid), {
-          role: 'student', name, email: stuEmail, tempPassword: stuPass, createdAt: serverTimestamp()
+          role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
         }, { merge: true });
 
         const assignedSubjects = currentAdmissionSubjects && currentAdmissionSubjects.length
@@ -6857,20 +6879,31 @@
           address, city, pincode, parentUid: parUid || null,
           subjects: assignedSubjects,
           stream: assignedStream,
-          tempPassword: stuPass,
           createdAt: serverTimestamp()
         }, { merge: true });
 
         // 4. Save Parent Record & Link
         if (parUid) {
           await setDoc(doc(db, 'users', parUid), {
-            role: 'parent', name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass, createdAt: serverTimestamp()
+            role: 'parent', name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, createdAt: serverTimestamp()
           }, { merge: true });
 
           await setDoc(doc(db, 'parents', parUid), {
-            name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass,
+            name: fatherName, email: parEmail, phone: fatherPhone, motherPhone,
             childUid: stuUid, childName: name, createdAt: serverTimestamp()
           }, { merge: true });
+        }
+
+        // Synchronize student and parent identifiers to /loginLookup
+        if (admNo) await syncLoginLookup(admNo, stuEmail);
+        if (rollNo && rollNo !== admNo) await syncLoginLookup(rollNo, stuEmail);
+        if (fatherPhone && parEmail) {
+          const digits = String(fatherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), parEmail);
+        }
+        if (motherPhone && parEmail) {
+          const digits = String(motherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), parEmail);
         }
 
         await fbSignOut(secAuth);
@@ -6956,7 +6989,6 @@
               motherPhone: s.motherPhone || '',
               childUid: s.uid,
               childName: s.name,
-              tempPassword: 'Parent@123',
               updatedAt: serverTimestamp()
             };
 
@@ -7051,7 +7083,6 @@
       sortedList.forEach(r => {
         const tr = document.createElement('tr');
         const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
-        const studentPass = r.tempPassword || 'Student@123';
 
         tr.innerHTML = `
       <td style="text-align:left; padding-left:14px;">
@@ -7075,9 +7106,8 @@
         <span class="badge badge-purple" style="font-weight:700; font-size:11.5px; padding:4px 9px; white-space:nowrap;">${r.className || '—'}</span>
       </td>
       <td style="text-align:center; white-space:nowrap;">
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:3px 8px; white-space:nowrap;">
-          <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; padding:3px 8px; white-space:nowrap;">
+          Auth Protected
         </span>
       </td>
       <td style="text-align:left;">
@@ -7436,15 +7466,14 @@
       document.getElementById('mp_email').textContent = s.email || '—';
       const stuPassSpan = document.getElementById('mp_pass');
       const stuToggleBtn = document.getElementById('mp_togglePassBtn');
-      const realStuPass = s.tempPassword || 'Student@123';
       if (stuPassSpan) {
-        stuPassSpan.textContent = '••••••••';
-        stuPassSpan.dataset.realPass = realStuPass;
+        stuPassSpan.textContent = 'Protected (Auth)';
+        stuPassSpan.dataset.realPass = '';
         stuPassSpan.dataset.revealed = 'false';
         stuPassSpan.style.color = '';
       }
       if (stuToggleBtn) {
-        stuToggleBtn.textContent = 'Reveal';
+        stuToggleBtn.style.display = 'none';
       }
 
       // Assigned subjects & stream
@@ -7485,14 +7514,13 @@
 
         const passSpan = document.getElementById('mp_parPass');
         const revBtn   = document.getElementById('mp_parPassRevealBtn');
-        const realPass = linkedPar.tempPassword || 'Parent@123';
-        passSpan.textContent = '••••••••';
-        passSpan.style.color = '';
-        passSpan.dataset.realPass = realPass;
-        passSpan.dataset.revealed = 'false';
-        // Re-bind reveal toggle (clone to remove stale listeners)
-        const newRevBtn = revBtn.cloneNode(true);
-        revBtn.parentNode.replaceChild(newRevBtn, revBtn);
+        if (passSpan) {
+          passSpan.textContent = 'Protected (Auth)';
+          passSpan.style.color = '';
+          passSpan.dataset.realPass = '';
+          passSpan.dataset.revealed = 'false';
+        }
+        if (revBtn) revBtn.style.display = 'none';
         newRevBtn.addEventListener('click', () => {
           if (passSpan.dataset.revealed === 'true') {
             passSpan.textContent = '••••••••';
@@ -7617,7 +7645,7 @@
       document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
       document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
       document.getElementById('editStuEmail').value = s.email || '';
-      document.getElementById('editStuPass').value = s.tempPassword || 'Student@123';
+      document.getElementById('editStuPass').value = '';
 
       document.getElementById('editStuFatherName').value = s.fatherName || '';
       document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
@@ -7725,11 +7753,6 @@
           updatedAt: serverTimestamp()
         };
 
-        const passVal = document.getElementById('editStuPass')?.value.trim();
-        if (passVal) {
-          studentUpdate.tempPassword = passVal;
-        }
-
         if (isHigherSecondaryClass(className)) {
           const streamVal = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
           studentUpdate.stream = streamVal;
@@ -7745,8 +7768,11 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (passVal) userDocUpdate.tempPassword = passVal;
         await setDoc(doc(db, 'users', uid), userDocUpdate, { merge: true });
+
+        // Synchronize student identifiers to /loginLookup
+        if (admNo) await syncLoginLookup(admNo, email);
+        if (rollNo && rollNo !== admNo) await syncLoginLookup(rollNo, email);
 
         // 3. Update or create linked parent account
         const currentStudent = allStudentsCache.find(x => x.uid === uid);
@@ -7781,7 +7807,6 @@
             motherPhone: motherPhone || '',
             childUid: uid,
             childName: name,
-            tempPassword: 'Parent@123',
             updatedAt: serverTimestamp()
           };
 
@@ -7859,7 +7884,6 @@
       const parentEntries = [];
       snap.docs.forEach(d => {
         const r = d.data();
-        const parentPass = r.tempPassword || 'Parent@123';
 
         let linkedStudent = null;
         if (r.childUid && stuMap.has(r.childUid)) {
@@ -7880,7 +7904,6 @@
           raw: r,
           linkedStudent,
           isOrphan,
-          parentPass,
           childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
           childClassName: linkedStudent ? (linkedStudent.className || '') : '',
         };
@@ -7893,7 +7916,6 @@
           childClassName: entry.childClassName,
           childClassId: entry.childClassId,
           phone: r.phone || '—',
-          tempPassword: parentPass,
           isOrphan
         });
 
@@ -7998,7 +8020,7 @@
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Login Email</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Linked Child</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Contact Phone</th>
-            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Auth</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line); text-align:right;">Actions</th>
           </tr></thead>`;
         const tbody = document.createElement('tbody');
@@ -8073,7 +8095,7 @@
 
     // Render a single parent row inside a tbody
     function renderParentRow(tbody, entry) {
-      const { docId, raw: r, linkedStudent, isOrphan, parentPass } = entry;
+      const { docId, raw: r, linkedStudent, isOrphan } = entry;
 
       const childBadgeHtml = linkedStudent
         ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name}</span>`
@@ -8095,9 +8117,8 @@
             <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
           </td>
           <td style="padding:10px 14px;">
-            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
-              <span class="pass-val">••••••••</span>
-              <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; padding:3px 8px;">
+              Auth Protected
             </span>
           </td>
           <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
@@ -8109,27 +8130,7 @@
           </td>
         `;
 
-      // Password toggle
-      tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const span = btn.previousElementSibling;
-          const pass = btn.dataset.pass || 'Parent@123';
-          if (span.textContent === '••••••••') {
-            span.textContent = pass;
-            span.style.color = 'var(--brand-green)';
-            span.style.fontWeight = '700';
-            btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-            btn.title = 'Hide Password';
-          } else {
-            span.textContent = '••••••••';
-            span.style.color = '';
-            span.style.fontWeight = '';
-            btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-            btn.title = 'Show Password';
-          }
-        });
-      });
+      tbody.appendChild(tr);
 
       // Print
       tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
@@ -8264,7 +8265,7 @@
       document.getElementById('editParPhone').value = p.phone || '';
       document.getElementById('editParMotherPhone').value = p.motherPhone || '';
       document.getElementById('editParEmail').value = p.email || '';
-      document.getElementById('editParPass').value = p.tempPassword || '';
+      document.getElementById('editParPass').value = '';
 
       const sel = document.getElementById('editParChildSel');
       sel.innerHTML = '<option value="">— Unlinked / No Student —</option>';
@@ -8328,9 +8329,6 @@
           childName: childName || null,
           updatedAt: serverTimestamp()
         };
-        if (pass) {
-          updateData.tempPassword = pass;
-        }
 
         // 1. Update parent doc
         await updateDoc(doc(db, 'parents', uid), updateData);
@@ -8344,8 +8342,17 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (pass) userUpdate.tempPassword = pass;
         await setDoc(doc(db, 'users', uid), userUpdate, { merge: true });
+
+        // Synchronize parent identifiers to /loginLookup
+        if (phone && email) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
+        if (motherPhone && email) {
+          const digits = String(motherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         // 3. Update student link
         if (childUid) {
@@ -8688,7 +8695,7 @@
     <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
-    <div class="field-item"><span class="field-lbl">Student Password:</span><span class="field-val" style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace; font-weight:700;">Configured via Firebase Auth</span></div>
   </div>
 
   <div class="section-title">2. Parent &amp; Family Information</div>
@@ -8880,7 +8887,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Email (${stf.email}) OR Username (@${stf.username})</span></div>
-    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${stf.tempPassword || 'Welcome@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Status:</span><span class="field-val" style="color:#059669; font-weight:700;">Verified &amp; Active</span></div>
   </div>
 
@@ -9059,7 +9066,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Phone (${p.phone}) OR Email (${p.email})</span></div>
-    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${p.tempPassword || 'Parent@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Privileges:</span><span class="field-val" style="color:#059669; font-weight:700;">Attendance, Marks, Circulars, Homework</span></div>
   </div>
 
@@ -9133,7 +9140,7 @@
             <td><strong>${s.name || '—'}</strong></td>
             <td><span class="badge">${s.admissionNo || '—'}</span></td>
             <td><strong>${s.className || '—'}</strong></td>
-            <td><code style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</code></td>
+            <td><span class="badge badge-navy">Firebase Auth</span></td>
             <td>${s.gender || '—'}</td>
             <td>${s.bloodGroup || '—'}</td>
             <td>${s.fatherName || '—'}</td>

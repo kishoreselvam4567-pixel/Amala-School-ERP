@@ -656,7 +656,7 @@ export function showFirstTimeLoginGuide(role, user, profile) {
             ${cfg.title}
           </h2>
           <p style="font-size:13px; color:#cbd5e1; margin:0; line-height:1.4;">
-            Hello <strong>${userName}</strong>! ${cfg.intro}
+            Hello <strong>${escapeHtml(userName)}</strong>! ${cfg.intro}
           </p>
         </div>
         
@@ -752,4 +752,19 @@ export function logout(loginPath = "../login.html") {
 export function showBox(el, msg) {
   el.textContent = msg;
   el.style.display = msg ? "block" : "none";
+}
+
+// BUG-009: Centralized HTML escaping to prevent XSS from Firestore inputs
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+if (typeof window !== 'undefined') {
+  window.escapeHtml = escapeHtml;
 }
