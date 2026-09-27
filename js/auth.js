@@ -1,3 +1,4 @@
+logout
 // ============================================================
 // Shared Firebase init + auth/role helpers
 // Imported by every page as a module: <script type="module" src="/js/auth.js">
@@ -42,9 +43,9 @@ const currentRole = getCurrentPortalRole();
 export const app = getPortalApp(currentRole);
 export const auth = getAuth(app);
 if (currentRole) {
-  setPersistence(auth, browserLocalPersistence).catch(() => {});
+  setPersistence(auth, browserLocalPersistence).catch(() => { });
 } else {
-  setPersistence(auth, browserSessionPersistence).catch(() => {});
+  setPersistence(auth, browserSessionPersistence).catch(() => { });
 }
 
 export const db = getFirestore(app);
@@ -160,16 +161,16 @@ export async function getUserProfile(uid) {
       if (pQSnap && !pQSnap.empty && !pQSnap.docs[0].data().deleted) {
         const pData = pQSnap.docs[0].data();
         const profile = { uid, role: 'parent', name: pData.name || 'Parent', email: userEmail, phone: pData.phone || '', ...pData, deleted: false, disabled: false };
-        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
-        await setDoc(doc(db, "parents", uid), { ...pData, uid }, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => { });
+        await setDoc(doc(db, "parents", uid), { ...pData, uid }, { merge: true }).catch(() => { });
         userProfileCache.set(uid, profile);
         return profile;
       }
       if (sQSnap && !sQSnap.empty && !sQSnap.docs[0].data().deleted) {
         const sData = sQSnap.docs[0].data();
         const profile = { uid, role: 'student', name: sData.name || 'Student', email: userEmail, ...sData, deleted: false, disabled: false };
-        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => {});
-        await setDoc(doc(db, "students", uid), { ...sData, uid }, { merge: true }).catch(() => {});
+        await setDoc(doc(db, "users", uid), profile, { merge: true }).catch(() => { });
+        await setDoc(doc(db, "students", uid), { ...sData, uid }, { merge: true }).catch(() => { });
         userProfileCache.set(uid, profile);
         return profile;
       }
@@ -210,7 +211,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         sessionStorage.removeItem('erp_session_' + r);
         localStorage.removeItem('erp_session_' + r);
       }
-    } catch(e) {}
+    } catch (e) { }
   };
 
   // 1. INSTANT HYDRATION: Check role-isolated sessionStorage and localStorage for active session
@@ -230,7 +231,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           if (parsed && parsed.role && allowedRoles.includes(parsed.role)) {
             rawCache = tabActive;
           }
-        } catch(e) {}
+        } catch (e) { }
       }
     }
     // (c) Fallback: check role-isolated localStorage for specific allowed roles ONLY
@@ -254,7 +255,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           sessionStorage.setItem('erp_active_session', rawCache);
           sessionStorage.setItem('erp_session_' + cached.role, rawCache);
           sessionStorage.setItem('erp_active_role', cached.role);
-        } catch(e) {}
+        } catch (e) { }
 
         // BUG-013 FIX: Do NOT call onReady() from the cache path.
         // Firebase Auth must confirm the session before granting access.
@@ -275,7 +276,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 
       // Wait for role auth to finish restoring session before concluding unauthenticated
       if (typeof auth.authStateReady === 'function') {
-        try { await auth.authStateReady(); } catch(e) {}
+        try { await auth.authStateReady(); } catch (e) { }
         if (auth.currentUser) return; // Will re-trigger handleAuth with user
       }
 
@@ -284,7 +285,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         const defaultApp = getApps().find(a => a.name === '[DEFAULT]') || getApp();
         const defAuth = getAuth(defaultApp);
         if (typeof defAuth.authStateReady === 'function') {
-          await defAuth.authStateReady().catch(() => {});
+          await defAuth.authStateReady().catch(() => { });
         }
         const defUser = defAuth.currentUser;
         if (defUser) {
@@ -295,7 +296,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             try {
               const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
               if (rawExisting) {
-                try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch(e) {}
+                try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch (e) { }
               }
               const payload = JSON.stringify({
                 uid: defUser.uid,
@@ -310,7 +311,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
               sessionStorage.setItem('erp_session_' + defProfile.role, payload);
               sessionStorage.setItem('erp_active_role', defProfile.role);
               localStorage.setItem('erp_session_' + defProfile.role, payload);
-            } catch(e) {}
+            } catch (e) { }
 
             if (!isAuthorized) {
               isAuthorized = true;
@@ -322,7 +323,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             return;
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       // If neither instance is authenticated and not hydrated from cache, redirect
       if (!hasHydratedFromCache) {
@@ -375,10 +376,10 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
               getDocs(query(collection(db, 'staff'), where('username', '==', cleanUser))).catch(() => null)
             ]);
             if (stfEmailSnap && !stfEmailSnap.empty) {
-              await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              await setDoc(doc(db, 'staff', user.uid), { ...stfEmailSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
               sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
             } else if (stfUserSnap && !stfUserSnap.empty) {
-              await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              await setDoc(doc(db, 'staff', user.uid), { ...stfUserSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
               sSnap = await getDoc(doc(db, 'staff', user.uid)).catch(() => null);
             } else if (userEmail.includes('roshan') || userEmail.includes('staff')) {
               const roshanData = {
@@ -390,7 +391,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
                 type: 'both',
                 uid: user.uid
               };
-              await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => {});
+              await setDoc(doc(db, 'staff', user.uid), roshanData, { merge: true }).catch(() => { });
               sSnap = { exists: () => true, data: () => roshanData };
             }
           }
@@ -411,7 +412,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             const sQ = query(collection(db, 'students'), where('email', '==', userEmail));
             const sQSnap = await getDocs(sQ).catch(() => null);
             if (sQSnap && !sQSnap.empty) {
-              await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              await setDoc(doc(db, 'students', user.uid), { ...sQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
               stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
             }
           }
@@ -433,7 +434,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             const pQ = query(collection(db, 'parents'), where('email', '==', userEmail));
             const pQSnap = await getDocs(pQ).catch(() => null);
             if (pQSnap && !pQSnap.empty) {
-              await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => {});
+              await setDoc(doc(db, 'parents', user.uid), { ...pQSnap.docs[0].data(), uid: user.uid }, { merge: true }).catch(() => { });
               pSnap = await getDoc(doc(db, 'parents', user.uid)).catch(() => null);
             }
           }
@@ -448,45 +449,45 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         }
       }
 
-      // Update session cache silently in both storages while preserving roleData
-      let existingRoleData = null;
-      try {
-        const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
-        if (rawExisting) {
-          try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch(e) {}
-        }
-        const payload = JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          role: profile.role,
-          name: profile.name || '',
-          profile: profile,
-          roleData: existingRoleData,
-          timestamp: Date.now()
-        });
-        sessionStorage.setItem('erp_active_session', payload);
-        sessionStorage.setItem('erp_session_' + profile.role, payload);
-        sessionStorage.setItem('erp_active_role', profile.role);
-        localStorage.setItem('erp_session_' + profile.role, payload);
-        localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
-      } catch(e) {}
-
-      // Always invoke onReady after Firebase Auth confirms (BUG-013 fix)
-      if (!isAuthorized) {
-        isAuthorized = true;
-        onReady({ user, profile, roleData: existingRoleData, isCached: hasHydratedFromCache });
-      }
-
-      // Trigger first-time login instructions notification (only once per user)
-      setTimeout(() => {
-        showFirstTimeLoginGuide(profile.role, user, profile);
-      }, 300);
-    } catch (err) {
-      console.error("Portal authorization check error:", err);
+  // Update session cache silently in both storages while preserving roleData
+  let existingRoleData = null;
+  try {
+    const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
+    if (rawExisting) {
+      try { existingRoleData = JSON.parse(rawExisting).roleData || null; } catch (e) { }
     }
+    const payload = JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      role: profile.role,
+      name: profile.name || '',
+      profile: profile,
+      roleData: existingRoleData,
+      timestamp: Date.now()
+    });
+    sessionStorage.setItem('erp_active_session', payload);
+    sessionStorage.setItem('erp_session_' + profile.role, payload);
+    sessionStorage.setItem('erp_active_role', profile.role);
+    localStorage.setItem('erp_session_' + profile.role, payload);
+    localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
+  } catch (e) { }
+
+  // Always invoke onReady after Firebase Auth confirms (BUG-013 fix)
+  if (!isAuthorized) {
+    isAuthorized = true;
+    onReady({ user, profile, roleData: existingRoleData, isCached: hasHydratedFromCache });
+  }
+
+  // Trigger first-time login instructions notification (only once per user)
+  setTimeout(() => {
+    showFirstTimeLoginGuide(profile.role, user, profile);
+  }, 300);
+} catch (err) {
+  console.error("Portal authorization check error:", err);
+}
   };
 
-  onAuthStateChanged(auth, handleAuth);
+onAuthStateChanged(auth, handleAuth);
 }
 
 // ---------- First-Time Login Instructions Helper ----------
@@ -515,13 +516,13 @@ export function showFirstTimeLoginGuide(role, user, profile) {
       if (localStorage.getItem(k) === 'true') {
         return;
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 3. Mark as seen both in localStorage and permanently in Firestore
   const markAsSeen = () => {
     keysToCheck.forEach(k => {
-      try { localStorage.setItem(k, 'true'); } catch (e) {}
+      try { localStorage.setItem(k, 'true'); } catch (e) { }
     });
     if (user && user.uid) {
       try {
@@ -529,8 +530,8 @@ export function showFirstTimeLoginGuide(role, user, profile) {
           hasSeenFirstLoginGuide: true,
           firstLoginDone: true,
           firstLoginGuideShownAt: new Date().toISOString()
-        }, { merge: true }).catch(() => {});
-      } catch (e) {}
+        }, { merge: true }).catch(() => { });
+      } catch (e) { }
     }
   };
 
@@ -741,7 +742,7 @@ export function logout(loginPath = "../login.html") {
       localStorage.removeItem('erp_session_' + role);
     }
     userProfileCache.clear();
-  } catch(e) {}
+  } catch (e) { }
   fbSignOut(auth).finally(() => {
     window.location.href = loginPath;
   });
