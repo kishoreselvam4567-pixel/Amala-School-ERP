@@ -7,11 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administrator Portal — Amala Higher Secondary School</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/site-brand.js"></script>
   <style>
     .master-control-grid {
       display: grid;
@@ -179,18 +179,18 @@
 
     /* Notification Dropdown Flyout */
     .notif-dropdown {
-      position: fixed;
+      position: absolute;
       top: 68px;
-      right: 28px;
+      right: 36px;
       width: 380px;
-      max-width: calc(100vw - 32px);
+      max-width: 90vw;
       background: var(--white);
       border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: 0 14px 38px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
-      z-index: 9999;
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+      z-index: 1000;
       display: none;
-      animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
       overflow: hidden;
     }
 
@@ -1301,18 +1301,6 @@
           </div>
         </div>
         <div class="pm-header-actions">
-          <button type="button" class="btn btn-sm" id="mp_loginStudentPortalHeaderBtn"
-            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#2563eb; color:#fff; border:none; border-radius:8px; cursor:pointer;"
-            title="Launch and Login to Student Portal for this student in real-time">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Login Student
-          </button>
-          <button type="button" class="btn btn-sm" id="mp_loginParentPortalHeaderBtn"
-            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#7c3aed; color:#fff; border:none; border-radius:8px; cursor:pointer;"
-            title="Launch and Login to Parent Portal for this student in real-time">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Login Parent
-          </button>
           <button type="button" class="btn btn-outline btn-sm" id="editStudentFromDetailBtn"
             style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
             Edit Student
@@ -1392,16 +1380,10 @@
               <div class="detail-val" id="mp_email">—</div>
             </div>
             <div class="detail-item"><label>Student Login Password</label>
-              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
                 <span id="mp_pass" style="font-family:var(--font-mono); font-weight:700;">••••••••</span>
                 <button type="button" class="btn btn-outline btn-sm" id="mp_togglePassBtn"
                   style="font-size:11px; padding:2px 8px; font-weight:700; height:24px; display:inline-flex; align-items:center;">Reveal</button>
-                <button type="button" class="btn btn-sm" id="mp_loginStudentPortalBtn"
-                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;"
-                  title="Direct 1-Click Login to Student Portal">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                  Login Access
-                </button>
               </div>
             </div>
             <div class="detail-item" style="grid-column:1/-1;"><label>Assigned Subjects &amp; Curriculum Stream</label>
@@ -1436,15 +1418,7 @@
               <div class="detail-val" id="mp_motherPhone">—</div>
             </div>
             <div class="detail-item"><label>Parent Portal Login Email</label>
-              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span id="mp_parentEmail">—</span>
-                <button type="button" class="btn btn-sm" id="mp_loginParentPortalBtn"
-                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#7c3aed; color:#fff; border:none; border-radius:6px; cursor:pointer;"
-                  title="Direct 1-Click Login to Parent Portal">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                  Login Access
-                </button>
-              </div>
+              <div class="detail-val" id="mp_parentEmail">—</div>
             </div>
             <div class="detail-item"><label>Emergency Contact</label>
               <div class="detail-val" id="mp_emergencyPhone">—</div>
@@ -1560,12 +1534,6 @@
           </div>
         </div>
         <div class="pm-header-actions">
-          <button type="button" class="btn btn-sm" id="msp_loginStaffPortalHeaderBtn"
-            style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:#059669; color:#fff; border:none; border-radius:8px; cursor:pointer;"
-            title="Launch and Login to Staff Portal as this faculty member in real-time">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Login Staff
-          </button>
           <button type="button" class="btn btn-outline btn-sm" id="editStaffFromDetailBtn"
             style="font-size:12px; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; font-weight:700; background:var(--white); border:1.5px solid var(--brand-green); color:var(--brand-green);">
             Edit Faculty
@@ -1646,17 +1614,11 @@
               <div class="detail-val"><span class="badge badge-good">Teaching Faculty</span></div>
             </div>
             <div class="detail-item"><label>Portal Login Password</label>
-              <div class="detail-val" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <div class="detail-val" style="display:flex; align-items:center; gap:8px;">
                 <span id="msp_pass"
                   style="font-family:var(--font-mono); font-size:14px; letter-spacing:2px; font-weight:700; color:#1e293b;">••••••••</span>
                 <button type="button" class="btn btn-outline btn-sm" id="msp_togglePassBtn"
                   style="font-size:11px; padding:3px 8px; height:auto;">Reveal</button>
-                <button type="button" class="btn btn-sm" id="msp_loginStaffPortalBtn"
-                  style="font-size:11px; padding:3px 10px; font-weight:700; height:24px; display:inline-flex; align-items:center; gap:4px; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;"
-                  title="Direct 1-Click Login to Staff Portal">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                  Login Access
-                </button>
               </div>
             </div>
             <div class="detail-item"><label>Login ID Allowed</label>
@@ -2446,19 +2408,18 @@
           <div id="globalSearchResults" class="global-search-dropdown" style="display:none;"></div>
         </div>
 
-          <div class="topbar-actions">
-            <button class="btn-icon" title="Notifications" id="notifBellBtn" type="button">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              <span class="dot" style="display:none;"></span>
-            </button>
-            <div class="user-badge-pill">
-              <div class="pill-avatar" id="topAvatarInit">A</div>
-              <div class="pill-info">
-                <div class="pill-name" id="topAdminName">Admin</div>
-                <div class="pill-role">Campus Management</div>
-              </div>
+        <div class="topbar-actions">
+          <button class="btn-icon" title="Notifications" id="notifBellBtn" type="button">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="dot"></span>
+          </button>
+          <div class="user-badge-pill">
+            <div class="pill-avatar" id="topAvatarInit">A</div>
+            <div class="pill-info">
+              <div class="pill-name" id="topAdminName">Admin</div>
+              <div class="pill-role">Campus Management</div>
             </div>
           </div>
         </div>
@@ -4191,6 +4152,18 @@
       getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
     } from '../../js/auth.js';
 
+    // Helper: synchronize identifiers into /loginLookup for safe, O(1) unauthenticated login resolution
+    async function syncLoginLookup(key, email) {
+      if (!key || !email || !email.includes('@')) return;
+      const normKey = String(key).trim().toLowerCase().replace(/\s+/g, '');
+      if (!normKey) return;
+      try {
+        await setDoc(doc(db, 'loginLookup', normKey), { email: email.toLowerCase().trim() }, { merge: true });
+      } catch (err) {
+        console.warn('syncLoginLookup failed for', normKey, err);
+      }
+    }
+
     // Mobile sidebar toggle with background scroll lock
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -5881,12 +5854,6 @@
     }
 
     requirePortal(['admin'], async ({ user, profile }) => {
-      // 0ms immediate UI reveal
-      const loadEl = document.getElementById('loadingState');
-      const contentEl = document.getElementById('content');
-      if (loadEl) loadEl.style.display = 'none';
-      if (contentEl) contentEl.style.display = 'block';
-
       try {
         const adminName = profile.name || 'Administrator';
         document.getElementById('uName').textContent = adminName;
@@ -5900,17 +5867,16 @@
         const dateEl = document.getElementById('todayDateStr');
         if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
-        // Parallel background loads without blocking screen
-        Promise.allSettled([
-          loadClasses(),
-          loadOverview(),
-          loadAnnouncements()
-        ]).then(() => {
-          preloadAllDataForSearch();
-        });
+        await loadClasses();
+        await loadOverview();
+        preloadAllDataForSearch();
       } catch (err) {
         console.error('Portal init error:', err);
       } finally {
+        const loadEl = document.getElementById('loadingState');
+        const contentEl = document.getElementById('content');
+        if (loadEl) loadEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
         purgeSearchAutofill();
       }
     });
@@ -6039,15 +6005,7 @@
     });
 
     async function loadClasses() {
-      const [snap, staffSnap] = await Promise.all([
-        getDocs(collection(db, 'classes')),
-        getDocs(collection(db, 'staff')).catch(() => ({ docs: [] }))
-      ]);
-      const staffMap = new Map();
-      if (staffSnap && staffSnap.docs) {
-        staffSnap.docs.forEach(d => { staffMap.set(d.id, d.data().name || '—'); });
-      }
-
+      const snap = await getDocs(collection(db, 'classes'));
       const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       allClasses = sortClassList(rawClasses);
       const body = document.querySelector('#clsTable tbody');
@@ -6055,7 +6013,11 @@
       const selOptions = [];
 
       for (const r of allClasses) {
-        const teacherName = (r.classTeacherUid && staffMap.has(r.classTeacherUid)) ? staffMap.get(r.classTeacherUid) : '—';
+        let teacherName = '—';
+        if (r.classTeacherUid) {
+          const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
+          if (t.exists()) teacherName = t.data().name;
+        }
         const tr = document.createElement('tr');
         tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -6185,12 +6147,19 @@
           phone,
           majorSubject,
           gender,
-          tempPassword: pass,
           type: 'subject',
           classTeacherOf: null,
           subjects: [],
           createdAt: serverTimestamp()
         }, { merge: true });
+
+        // Synchronize identifiers to /loginLookup
+        if (username) await syncLoginLookup(username, email);
+        if (email && email.includes('@')) await syncLoginLookup(email.split('@')[0], email);
+        if (phone) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         await fbSignOut(secAuth);
         document.getElementById('stfName').value = '';
@@ -6233,11 +6202,11 @@
       // Login Credentials
       document.getElementById('msp_email').textContent = stf.email || '—';
       const passSpan = document.getElementById('msp_pass');
-      passSpan.textContent = '••••••••';
-      passSpan.dataset.realPass = stf.tempPassword || 'Welcome@123';
+      passSpan.textContent = 'Protected (Auth)';
+      passSpan.dataset.realPass = '';
       passSpan.dataset.revealed = 'false';
       const toggleBtn = document.getElementById('msp_togglePassBtn');
-      if (toggleBtn) toggleBtn.textContent = 'Reveal';
+      if (toggleBtn) toggleBtn.style.display = 'none';
 
       // Teaching Allocations
       document.getElementById('msp_classTeacher').innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
@@ -6260,14 +6229,6 @@
       const stfBody = staffDetailModal.querySelector('.profile-modal-body');
       if (stfBody) stfBody.scrollTop = 0;
     }
-
-    // Modal Staff Direct Login Listener
-    function loginToStaffPortalForModalStaff() {
-      if (!currentModalStaff) return;
-      launchLivePortal('staff', currentModalStaff, '../staff/dashboard.html');
-    }
-    document.getElementById('msp_loginStaffPortalBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
-    document.getElementById('msp_loginStaffPortalHeaderBtn')?.addEventListener('click', loginToStaffPortalForModalStaff);
 
     // Modal Password Reveal Listener
     document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
@@ -6306,7 +6267,7 @@
       document.getElementById('editStfPhone').value = stf.phone || '';
       document.getElementById('editStfMajorSubject').value = stf.majorSubject || '';
       document.getElementById('editStfEmail').value = stf.email || '';
-      document.getElementById('editStfPass').value = stf.tempPassword || '';
+      document.getElementById('editStfPass').value = '';
       editStaffModal.classList.add('open');
     }
 
@@ -6340,9 +6301,6 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (pass) {
-          updateData.tempPassword = pass;
-        }
 
         // 1. Update staff doc
         await updateDoc(doc(db, 'staff', id), updateData);
@@ -6358,6 +6316,14 @@
           email,
           updatedAt: serverTimestamp()
         }, { merge: true });
+
+        // Synchronize identifiers to /loginLookup
+        if (username) await syncLoginLookup(username, email);
+        if (email && email.includes('@')) await syncLoginLookup(email.split('@')[0], email);
+        if (phone) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         showToast(`Faculty "${name}" updated successfully!`);
         editStaffModal.classList.remove('open');
@@ -6381,17 +6347,7 @@
     });
 
     async function loadStaff() {
-      const [snap, classesSnap] = await Promise.all([
-        getDocs(collection(db, 'staff')),
-        (allClasses && allClasses.length) ? Promise.resolve(null) : getDocs(collection(db, 'classes')).catch(() => null)
-      ]);
-      const classMap = new Map();
-      if (allClasses && allClasses.length) {
-        allClasses.forEach(c => classMap.set(c.id, c.name));
-      } else if (classesSnap && classesSnap.docs) {
-        classesSnap.docs.forEach(d => classMap.set(d.id, d.data().name));
-      }
-
+      const snap = await getDocs(collection(db, 'staff'));
       const body = document.querySelector('#stfTable tbody');
       body.innerHTML = '';
       const selOptions = [];
@@ -6403,7 +6359,8 @@
         let ctNamePlain = '—';
         let ctName = '—';
         if (r.classTeacherOf) {
-          const cName = classMap.get(r.classTeacherOf) || 'Assigned Class';
+          const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
+          const cName = c.exists() ? c.data().name : 'Assigned Class';
           ctNamePlain = cName;
           ctName = `<span class="badge badge-good" style="display:inline-flex; align-items:center; gap:6px; padding:3px 8px;">
         <span>${cName}</span>
@@ -6419,7 +6376,6 @@
     `).join('') || '—';
 
         const facultyUsername = r.username || (r.email ? r.email.split('@')[0] : 'staff');
-        const facultyPass = r.tempPassword || 'Welcome@123';
         const facultyGender = r.gender || '—';
         const facultyPhone = r.phone || '—';
         const facultyMajor = r.majorSubject || '—';
@@ -6432,7 +6388,6 @@
           phone: facultyPhone,
           majorSubject: facultyMajor,
           email: r.email || '—',
-          tempPassword: facultyPass,
           classTeacherOf: r.classTeacherOf || null,
           classTeacherName: ctNamePlain,
           subjects: r.subjects || [],
@@ -6469,10 +6424,6 @@
       </td>
       <td style="text-align:right; white-space:nowrap;">
         <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-          <button type="button" class="btn btn-sm stfLoginBtn" data-id="${d.id}" style="padding:4px 9px; font-size:12px; background:#2563eb; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Direct Login to Staff Portal as this faculty member">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Login
-          </button>
           <button type="button" class="btn btn-outline btn-sm stfViewBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="View Full Profile">View</button>
           <button type="button" class="btn btn-sm stfEditBtn" data-id="${d.id}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Faculty Details">Edit</button>
           <button type="button" class="btn btn-outline btn-sm stfPrintRowBtn" data-id="${d.id}" style="padding:4px 8px; font-size:12px;" title="Print Official Profile">Print</button>
@@ -6481,17 +6432,11 @@
       </td>
     `;
 
-          // Direct Staff Login click
-          tr.querySelector('.stfLoginBtn')?.addEventListener('click', () => {
-            const item = allStaffCache.find(x => x.id === d.id);
-            if (item) launchLivePortal('staff', item, '../staff/dashboard.html');
-          });
-
-          // View Details modal click
-          tr.querySelector('.stfViewBtn').addEventListener('click', () => {
-            const item = allStaffCache.find(x => x.id === d.id);
-            if (item) openStaffDetailModal(item);
-          });
+        // View Details modal click
+        tr.querySelector('.stfViewBtn').addEventListener('click', () => {
+          const item = allStaffCache.find(x => x.id === d.id);
+          if (item) openStaffDetailModal(item);
+        });
 
         // Edit Details modal click
         tr.querySelector('.stfEditBtn').addEventListener('click', () => {
@@ -6917,7 +6862,7 @@
 
         // 3. Save Student Record in Firestore
         await setDoc(doc(db, 'users', stuUid), {
-          role: 'student', name, email: stuEmail, tempPassword: stuPass, createdAt: serverTimestamp()
+          role: 'student', name, email: stuEmail, createdAt: serverTimestamp()
         }, { merge: true });
 
         const assignedSubjects = currentAdmissionSubjects && currentAdmissionSubjects.length
@@ -6934,20 +6879,31 @@
           address, city, pincode, parentUid: parUid || null,
           subjects: assignedSubjects,
           stream: assignedStream,
-          tempPassword: stuPass,
           createdAt: serverTimestamp()
         }, { merge: true });
 
         // 4. Save Parent Record & Link
         if (parUid) {
           await setDoc(doc(db, 'users', parUid), {
-            role: 'parent', name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass, createdAt: serverTimestamp()
+            role: 'parent', name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, createdAt: serverTimestamp()
           }, { merge: true });
 
           await setDoc(doc(db, 'parents', parUid), {
-            name: fatherName, email: parEmail, phone: fatherPhone, motherPhone, tempPassword: parPass,
+            name: fatherName, email: parEmail, phone: fatherPhone, motherPhone,
             childUid: stuUid, childName: name, createdAt: serverTimestamp()
           }, { merge: true });
+        }
+
+        // Synchronize student and parent identifiers to /loginLookup
+        if (admNo) await syncLoginLookup(admNo, stuEmail);
+        if (rollNo && rollNo !== admNo) await syncLoginLookup(rollNo, stuEmail);
+        if (fatherPhone && parEmail) {
+          const digits = String(fatherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), parEmail);
+        }
+        if (motherPhone && parEmail) {
+          const digits = String(motherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), parEmail);
         }
 
         await fbSignOut(secAuth);
@@ -7033,7 +6989,6 @@
               motherPhone: s.motherPhone || '',
               childUid: s.uid,
               childName: s.name,
-              tempPassword: 'Parent@123',
               updatedAt: serverTimestamp()
             };
 
@@ -7128,7 +7083,6 @@
       sortedList.forEach(r => {
         const tr = document.createElement('tr');
         const selHtml = classOptions.map(c => `<option value="${c.id}" ${c.id === r.classId ? 'selected' : ''}>${c.name}</option>`).join('');
-        const studentPass = r.tempPassword || 'Student@123';
 
         tr.innerHTML = `
       <td style="text-align:left; padding-left:14px;">
@@ -7152,9 +7106,8 @@
         <span class="badge badge-purple" style="font-weight:700; font-size:11.5px; padding:4px 9px; white-space:nowrap;">${r.className || '—'}</span>
       </td>
       <td style="text-align:center; white-space:nowrap;">
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:3px 8px; white-space:nowrap;">
-          <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${studentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; padding:3px 8px; white-space:nowrap;">
+          Auth Protected
         </span>
       </td>
       <td style="text-align:left;">
@@ -7501,94 +7454,34 @@
         }
       }
 
-      // Global Helper: Direct Live Portal Launch
-      function launchLivePortal(role, userPayload, targetUrl) {
-        const pass = userPayload.tempPassword || userPayload.password || (role === 'student' ? 'Student@123' : (role === 'parent' ? 'Parent@123' : (role === 'staff' ? 'Staff@123' : '')));
-        const sessionPayload = {
-          uid: userPayload.uid || userPayload.id,
-          email: userPayload.email,
-          role: role,
-          name: userPayload.name || userPayload.studentName || 'User',
-          pass: pass,
-          tempPassword: pass,
-          profile: {
-            uid: userPayload.uid || userPayload.id,
-            name: userPayload.name || userPayload.studentName || 'User',
-            role: role,
-            ...userPayload
-          },
-          timestamp: Date.now()
-        };
-        try {
-          localStorage.setItem('erp_active_session', JSON.stringify(sessionPayload));
-          sessionStorage.setItem('erp_active_session', JSON.stringify(sessionPayload));
-        } catch(e) {
-          console.warn("Storage warning:", e);
-        }
-        window.open(targetUrl, '_blank');
+      // Populate Personal Details
+      document.getElementById('mp_name').textContent = s.name || '—';
+      document.getElementById('mp_admNo').textContent = s.admissionNo || '—';
+      document.getElementById('mp_rollNo').textContent = s.rollNo || s.admissionNo || '—';
+      document.getElementById('mp_class').textContent = s.className || '—';
+      document.getElementById('mp_dob').textContent = s.dob || '—';
+      document.getElementById('mp_gender').textContent = s.gender || '—';
+      document.getElementById('mp_blood').textContent = s.bloodGroup || '—';
+      document.getElementById('mp_aadhaar').innerHTML = formatAadhaarDisplay(s.aadhaarNo);
+      document.getElementById('mp_email').textContent = s.email || '—';
+      const stuPassSpan = document.getElementById('mp_pass');
+      const stuToggleBtn = document.getElementById('mp_togglePassBtn');
+      if (stuPassSpan) {
+        stuPassSpan.textContent = 'Protected (Auth)';
+        stuPassSpan.dataset.realPass = '';
+        stuPassSpan.dataset.revealed = 'false';
+        stuPassSpan.style.color = '';
+      }
+      if (stuToggleBtn) {
+        stuToggleBtn.style.display = 'none';
       }
 
-      // Student Profile Modal Password Reveal Listener
-      document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
-        const passSpan = document.getElementById('mp_pass');
-        const btn = document.getElementById('mp_togglePassBtn');
-        if (!passSpan || !btn) return;
-        if (passSpan.dataset.revealed === 'true') {
-          passSpan.textContent = '••••••••';
-          passSpan.dataset.revealed = 'false';
-          passSpan.style.color = '';
-          btn.textContent = 'Reveal';
-        } else {
-          passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
-          passSpan.dataset.revealed = 'true';
-          passSpan.style.color = 'var(--brand-green)';
-          btn.textContent = 'Hide';
-        }
-      });
-
-      // Direct Student & Parent Login Handlers from Student Modal
-      function loginToStudentPortalForModalStudent() {
-        if (!currentModalStudent) return;
-        launchLivePortal('student', currentModalStudent, '../../student/dashboard.html');
+      // Assigned subjects & stream
+      const sSubs = getStudentSubjects(s);
+      const subsEl = document.getElementById('mp_subjects');
+      if (subsEl) {
+        subsEl.innerHTML = sSubs.map((sub, i) => `<span class="badge badge-purple" style="font-size:11px; padding:3px 8px; font-weight:700;">${i + 1}. ${sub}</span>`).join(' ') + (s.stream ? ` <span class="badge badge-navy" style="font-size:11px; padding:3px 8px; font-weight:700;">Stream: ${s.stream}</span>` : '');
       }
-      document.getElementById('mp_loginStudentPortalBtn')?.addEventListener('click', loginToStudentPortalForModalStudent);
-      document.getElementById('mp_loginStudentPortalHeaderBtn')?.addEventListener('click', loginToStudentPortalForModalStudent);
-
-      function loginToParentPortalForModalStudent() {
-        if (!currentModalStudent) return;
-        const parentPayload = {
-          uid: currentModalStudent.parentUid || `par_${currentModalStudent.admissionNo || currentModalStudent.id}`,
-          name: currentModalStudent.fatherName || currentModalStudent.motherName || 'Parent of ' + currentModalStudent.name,
-          email: currentModalStudent.parentEmail || 'parent@amalaschool.edu.in',
-          phone: currentModalStudent.fatherPhone || currentModalStudent.motherPhone || '9840123456',
-          password: currentModalStudent.parentPassword || 'Parent@123',
-          tempPassword: currentModalStudent.parentPassword || 'Parent@123',
-          studentId: currentModalStudent.id || currentModalStudent.uid,
-          studentName: currentModalStudent.name,
-          childAdmNo: currentModalStudent.admissionNo,
-          childClass: currentModalStudent.className
-        };
-        launchLivePortal('parent', parentPayload, '../../parent/dashboard.html');
-      }
-      document.getElementById('mp_loginParentPortalBtn')?.addEventListener('click', loginToParentPortalForModalStudent);
-      document.getElementById('mp_loginParentPortalHeaderBtn')?.addEventListener('click', loginToParentPortalForModalStudent);
-
-      // ======================== EDIT STUDENT ========================
-      const editStudentModal = document.getElementById('editStudentModal');
-      document.getElementById('closeEditStudentModal')?.addEventListener('click', () => {
-        editStudentModal.classList.remove('open');
-        updateBodyModalState();
-      });
-      document.getElementById('cancelEditStudentBtn')?.addEventListener('click', () => {
-        editStudentModal.classList.remove('open');
-        updateBodyModalState();
-      });
-      editStudentModal?.addEventListener('click', (e) => {
-        if (e.target === editStudentModal) {
-          editStudentModal.classList.remove('open');
-          updateBodyModalState();
-        }
-      });
 
       // Family details
       document.getElementById('mp_fatherName').textContent = s.fatherName || '—';
@@ -7621,14 +7514,13 @@
 
         const passSpan = document.getElementById('mp_parPass');
         const revBtn   = document.getElementById('mp_parPassRevealBtn');
-        const realPass = linkedPar.tempPassword || 'Parent@123';
-        passSpan.textContent = '••••••••';
-        passSpan.style.color = '';
-        passSpan.dataset.realPass = realPass;
-        passSpan.dataset.revealed = 'false';
-        // Re-bind reveal toggle (clone to remove stale listeners)
-        const newRevBtn = revBtn.cloneNode(true);
-        revBtn.parentNode.replaceChild(newRevBtn, revBtn);
+        if (passSpan) {
+          passSpan.textContent = 'Protected (Auth)';
+          passSpan.style.color = '';
+          passSpan.dataset.realPass = '';
+          passSpan.dataset.revealed = 'false';
+        }
+        if (revBtn) revBtn.style.display = 'none';
         newRevBtn.addEventListener('click', () => {
           if (passSpan.dataset.revealed === 'true') {
             passSpan.textContent = '••••••••';
@@ -7753,7 +7645,7 @@
       document.getElementById('editStuBlood').value = s.bloodGroup || 'O+';
       document.getElementById('editStuAadhaar').value = s.aadhaarNo || '';
       document.getElementById('editStuEmail').value = s.email || '';
-      document.getElementById('editStuPass').value = s.tempPassword || 'Student@123';
+      document.getElementById('editStuPass').value = '';
 
       document.getElementById('editStuFatherName').value = s.fatherName || '';
       document.getElementById('editStuFatherPhone').value = s.fatherPhone || '';
@@ -7861,11 +7753,6 @@
           updatedAt: serverTimestamp()
         };
 
-        const passVal = document.getElementById('editStuPass')?.value.trim();
-        if (passVal) {
-          studentUpdate.tempPassword = passVal;
-        }
-
         if (isHigherSecondaryClass(className)) {
           const streamVal = document.getElementById('editStuStreamSelect')?.value || 'bio_maths';
           studentUpdate.stream = streamVal;
@@ -7881,8 +7768,11 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (passVal) userDocUpdate.tempPassword = passVal;
         await setDoc(doc(db, 'users', uid), userDocUpdate, { merge: true });
+
+        // Synchronize student identifiers to /loginLookup
+        if (admNo) await syncLoginLookup(admNo, email);
+        if (rollNo && rollNo !== admNo) await syncLoginLookup(rollNo, email);
 
         // 3. Update or create linked parent account
         const currentStudent = allStudentsCache.find(x => x.uid === uid);
@@ -7917,7 +7807,6 @@
             motherPhone: motherPhone || '',
             childUid: uid,
             childName: name,
-            tempPassword: 'Parent@123',
             updatedAt: serverTimestamp()
           };
 
@@ -7995,7 +7884,6 @@
       const parentEntries = [];
       snap.docs.forEach(d => {
         const r = d.data();
-        const parentPass = r.tempPassword || 'Parent@123';
 
         let linkedStudent = null;
         if (r.childUid && stuMap.has(r.childUid)) {
@@ -8016,7 +7904,6 @@
           raw: r,
           linkedStudent,
           isOrphan,
-          parentPass,
           childClassId: linkedStudent ? (linkedStudent.classId || '') : '',
           childClassName: linkedStudent ? (linkedStudent.className || '') : '',
         };
@@ -8029,12 +7916,7 @@
           childClassName: entry.childClassName,
           childClassId: entry.childClassId,
           phone: r.phone || '—',
-          tempPassword: parentPass,
-          isOrphan,
-          studentId: linkedStudent ? (linkedStudent.uid || linkedStudent.id) : (r.childUid || ''),
-          studentName: linkedStudent ? linkedStudent.name : (r.childName || ''),
-          linkedStudent: linkedStudent || null,
-          raw: r
+          isOrphan
         });
 
         parentEntries.push(entry);
@@ -8106,8 +7988,8 @@
 
         // Class header
         const header = document.createElement('div');
-          header.style.cssText = `display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:${color.bg}; border-bottom:1px solid ${color.border}; cursor:pointer; user-select:none; transition: background 0.15s ease;`;
-          header.innerHTML = `
+        header.style.cssText = `display:flex; align-items:center; justify-content:space-between; padding:12px 18px; background:${color.bg}; border-bottom:1px solid ${color.border}; cursor:pointer; user-select:none; transition: background 0.15s ease;`;
+        header.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px;">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${color.text}" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
               <span style="font-size:15px; font-weight:800; color:${color.text};">${cName}</span>
@@ -8138,7 +8020,7 @@
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Login Email</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Linked Child</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Contact Phone</th>
-            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Password</th>
+            <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line);">Auth</th>
             <th style="padding:10px 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); background:#fafbfc; border-bottom:1px solid var(--line); text-align:right;">Actions</th>
           </tr></thead>`;
         const tbody = document.createElement('tbody');
@@ -8213,7 +8095,7 @@
 
     // Render a single parent row inside a tbody
     function renderParentRow(tbody, entry) {
-      const { docId, raw: r, linkedStudent, isOrphan, parentPass } = entry;
+      const { docId, raw: r, linkedStudent, isOrphan } = entry;
 
       const childBadgeHtml = linkedStudent
         ? `<span class="badge badge-purple" style="font-weight:600;">${linkedStudent.name}</span>`
@@ -8235,17 +8117,12 @@
             <div style="font-size:10.5px; color:var(--brand-green); font-weight:700;">Login ID (Mobile)</div>
           </td>
           <td style="padding:10px 14px;">
-            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 6px;">
-              <span class="pass-val">••••••••</span>
-              <button type="button" class="pass-reveal-btn" data-pass="${parentPass}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1;" title="Show Password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; padding:3px 8px;">
+              Auth Protected
             </span>
           </td>
           <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
             <div style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
-              <button type="button" class="btn btn-sm parLoginBtn" data-uid="${docId}" style="padding:4px 9px; font-size:12px; background:#7c3aed; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Direct Login to Parent Portal as this parent">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                Login
-              </button>
               <button type="button" class="btn btn-outline btn-sm parPrintRowBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Print Official Parent Profile">Print</button>
               <button type="button" class="btn btn-sm parEditBtn" data-uid="${docId}" style="padding:4px 10px; font-size:12px; background:#059669; color:#ffffff; border:none; font-weight:700; border-radius:6px; cursor:pointer;" title="Edit Parent Profile">Edit</button>
               <button type="button" class="btn btn-danger btn-sm parDelBtn" data-uid="${docId}" style="padding:4px 8px; font-size:12px;">Delete</button>
@@ -8253,64 +8130,7 @@
           </td>
         `;
 
-        // Direct Parent Login
-        tr.querySelector('.parLoginBtn')?.addEventListener('click', () => {
-          const item = allParentsCache.find(x => x.id === docId);
-          if (item) {
-            const stu = item.linkedStudent || {};
-            launchLivePortal('parent', {
-              uid: item.id,
-              name: item.name || (item.raw && item.raw.name) || (stu.fatherName || 'Parent'),
-              email: item.email || (item.raw && item.raw.email) || stu.parentEmail,
-              phone: item.phone || (item.raw && item.raw.phone) || stu.fatherPhone,
-              password: parentPass || 'Parent@123',
-              tempPassword: parentPass || 'Parent@123',
-              studentId: item.studentId || (item.raw && item.raw.studentId) || (stu.uid || stu.id) || '',
-              studentName: item.studentName || (item.raw && item.raw.studentName) || stu.name || '',
-              childUid: item.studentId || (stu.uid || stu.id) || (item.raw && item.raw.childUid) || '',
-              childName: item.studentName || stu.name || (item.raw && item.raw.childName) || '',
-              childAdmissionNo: stu.admissionNo || (item.raw && item.raw.childAdmissionNo) || '',
-              childRollNo: stu.rollNo || stu.admissionNo || (item.raw && item.raw.childRollNo) || '',
-              childClassName: item.childClassName || stu.className || (item.raw && item.raw.childClassName) || '',
-              childClassId: item.childClassId || stu.classId || (item.raw && item.raw.childClassId) || '',
-              childDob: stu.dob || (item.raw && item.raw.childDob) || '',
-              childGender: stu.gender || (item.raw && item.raw.childGender) || '',
-              childBloodGroup: stu.bloodGroup || (item.raw && item.raw.childBloodGroup) || '',
-              childAadhaar: stu.aadhaarNo || stu.aadhaar || (item.raw && item.raw.childAadhaar) || '',
-              childAddress: stu.address || (item.raw && item.raw.childAddress) || '',
-              childCity: stu.city || (item.raw && item.raw.childCity) || '',
-              childPincode: stu.pincode || (item.raw && item.raw.childPincode) || '',
-              childEmergencyPhone: stu.emergencyPhone || stu.fatherPhone || item.phone || (item.raw && item.raw.childEmergencyPhone) || '',
-              fatherName: stu.fatherName || item.name || (item.raw && item.raw.fatherName) || '',
-              fatherPhone: stu.fatherPhone || item.phone || (item.raw && item.raw.fatherPhone) || '',
-              motherName: stu.motherName || (item.raw && item.raw.motherName) || '',
-              motherPhone: stu.motherPhone || (item.raw && item.raw.motherPhone) || '',
-              childProfile: stu
-            }, '../../parent/dashboard.html');
-          }
-        });
-
-        // Password toggle
-        tr.querySelectorAll('.pass-reveal-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const span = btn.previousElementSibling;
-            const pass = btn.dataset.pass || 'Parent@123';
-            if (span.textContent === '••••••••') {
-              span.textContent = pass;
-              span.style.color = 'var(--brand-green)';
-              span.style.fontWeight = '700';
-              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-              btn.title = 'Hide Password';
-            } else {
-              span.textContent = '••••••••';
-              span.style.color = '';
-              span.style.fontWeight = '';
-              btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-              btn.title = 'Show Password';
-            }
-          });
-        });
+      tbody.appendChild(tr);
 
       // Print
       tr.querySelector('.parPrintRowBtn')?.addEventListener('click', () => {
@@ -8445,7 +8265,7 @@
       document.getElementById('editParPhone').value = p.phone || '';
       document.getElementById('editParMotherPhone').value = p.motherPhone || '';
       document.getElementById('editParEmail').value = p.email || '';
-      document.getElementById('editParPass').value = p.tempPassword || '';
+      document.getElementById('editParPass').value = '';
 
       const sel = document.getElementById('editParChildSel');
       sel.innerHTML = '<option value="">— Unlinked / No Student —</option>';
@@ -8509,9 +8329,6 @@
           childName: childName || null,
           updatedAt: serverTimestamp()
         };
-        if (pass) {
-          updateData.tempPassword = pass;
-        }
 
         // 1. Update parent doc
         await updateDoc(doc(db, 'parents', uid), updateData);
@@ -8525,8 +8342,17 @@
           email,
           updatedAt: serverTimestamp()
         };
-        if (pass) userUpdate.tempPassword = pass;
         await setDoc(doc(db, 'users', uid), userUpdate, { merge: true });
+
+        // Synchronize parent identifiers to /loginLookup
+        if (phone && email) {
+          const digits = String(phone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
+        if (motherPhone && email) {
+          const digits = String(motherPhone).replace(/\D/g, '');
+          if (digits.length >= 7) await syncLoginLookup(digits.slice(-10), email);
+        }
 
         // 3. Update student link
         if (childUid) {
@@ -8869,7 +8695,7 @@
     <div class="field-item"><span class="field-lbl">Blood Group:</span><span class="field-val">${s.bloodGroup || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Aadhaar Number:</span><span class="field-val">${s.aadhaarNo || '—'}</span></div>
     <div class="field-item"><span class="field-lbl">Student Login Email:</span><span class="field-val">${s.email || '—'}</span></div>
-    <div class="field-item"><span class="field-lbl">Student Password:</span><span class="field-val" style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace; font-weight:700;">Configured via Firebase Auth</span></div>
   </div>
 
   <div class="section-title">2. Parent &amp; Family Information</div>
@@ -9061,7 +8887,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Email (${stf.email}) OR Username (@${stf.username})</span></div>
-    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${stf.tempPassword || 'Welcome@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Status:</span><span class="field-val" style="color:#059669; font-weight:700;">Verified &amp; Active</span></div>
   </div>
 
@@ -9240,7 +9066,7 @@
   <div class="grid-2">
     <div class="field-item"><span class="field-lbl">Portal Access URL:</span><span class="field-val">/login.html</span></div>
     <div class="field-item"><span class="field-lbl">Allowed Login IDs:</span><span class="field-val">Phone (${p.phone}) OR Email (${p.email})</span></div>
-    <div class="field-item"><span class="field-lbl">Initial Password:</span><span class="field-val" style="font-family:monospace;">${p.tempPassword || 'Parent@123'}</span></div>
+    <div class="field-item"><span class="field-lbl">Authentication:</span><span class="field-val" style="font-family:monospace;">Configured via Firebase Auth</span></div>
     <div class="field-item"><span class="field-lbl">Account Privileges:</span><span class="field-val" style="color:#059669; font-weight:700;">Attendance, Marks, Circulars, Homework</span></div>
   </div>
 
@@ -9314,7 +9140,7 @@
             <td><strong>${s.name || '—'}</strong></td>
             <td><span class="badge">${s.admissionNo || '—'}</span></td>
             <td><strong>${s.className || '—'}</strong></td>
-            <td><code style="font-family:monospace; font-weight:700;">${s.tempPassword || 'Student@123'}</code></td>
+            <td><span class="badge badge-navy">Firebase Auth</span></td>
             <td>${s.gender || '—'}</td>
             <td>${s.bloodGroup || '—'}</td>
             <td>${s.fatherName || '—'}</td>
@@ -11750,5 +11576,5 @@
       });
     });
   </script>
-  <script src="../../js/site-brand.js" defer></script>
+  <script src="../../js/site-brand.js"></script>
 </body>

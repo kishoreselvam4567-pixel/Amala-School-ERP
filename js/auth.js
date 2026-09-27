@@ -10,9 +10,8 @@ import {
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
-  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot, limit
+  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
@@ -30,25 +29,25 @@ export function getCurrentPortalRole() {
 }
 
 export function getPortalApp(role) {
-  return getApps().find(a => a.name === '[DEFAULT]') || (getApps().length ? getApp() : initializeApp(firebaseConfig));
+  const appName = role ? `amala-${role}-portal` : '[DEFAULT]';
+  const existing = getApps().find(a => a.name === appName);
+  if (existing) return existing;
+  return appName === '[DEFAULT]'
+    ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
+    : initializeApp(firebaseConfig, appName);
 }
 
 const currentRole = getCurrentPortalRole();
-// Unified app instance so IndexedDB auth tokens and active sessions are shared instantly across all portals
-export const app = getApps().find(a => a.name === '[DEFAULT]') || (getApps().length ? getApp() : initializeApp(firebaseConfig));
+// Role-isolated app and auth so Admin, Staff, Student, and Parent sessions never overwrite each other in the browser
+export const app = getPortalApp(currentRole);
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
-
-// High-performance multi-tab persistent IndexedDB local cache for sub-10ms query speeds
-let dbInstance;
-try {
-  dbInstance = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-  });
-} catch (e) {
-  dbInstance = getFirestore(app);
+if (currentRole) {
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+} else {
+  setPersistence(auth, browserSessionPersistence).catch(() => {});
 }
-export const db = dbInstance;
+
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // A SECOND, completely isolated Firebase worker auth instance with pure in-memory persistence.
@@ -74,7 +73,7 @@ export {
   onAuthStateChanged, sendPasswordResetEmail,
   setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence, initializeAuth, getAuth,
   doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
-  deleteDoc, serverTimestamp, orderBy, onSnapshot, limit,
+  deleteDoc, serverTimestamp, orderBy, onSnapshot,
   ref, uploadBytes, getDownloadURL, deleteObject
 };
 
@@ -86,29 +85,6 @@ export async function getUserProfile(uid) {
   if (userProfileCache.has(uid)) {
     return userProfileCache.get(uid);
   }
-
-  // 0ms instant cached profile check from tab session / local storage
-  try {
-    const rawActive = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
-    if (rawActive) {
-      const parsed = JSON.parse(rawActive);
-      if (parsed && (parsed.uid === uid || !uid) && parsed.profile && parsed.profile.role) {
-        userProfileCache.set(uid, parsed.profile);
-        return parsed.profile;
-      }
-    }
-    const currentRole = getCurrentPortalRole();
-    if (currentRole) {
-      const rawRole = sessionStorage.getItem('erp_session_' + currentRole) || localStorage.getItem('erp_session_' + currentRole);
-      if (rawRole) {
-        const parsed = JSON.parse(rawRole);
-        if (parsed && (parsed.uid === uid || !uid) && parsed.profile && parsed.profile.role) {
-          userProfileCache.set(uid, parsed.profile);
-          return parsed.profile;
-        }
-      }
-    }
-  } catch(e) {}
 
   try {
     const snap = await getDoc(doc(db, "users", uid));
@@ -270,7 +246,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
       // Valid if less than 24 hours old and matches portal role
       if (cached && cached.uid && allowedRoles.includes(cached.role) && (Date.now() - (cached.timestamp || 0)) < 86400000) {
         hasHydratedFromCache = true;
-        isAuthorized = true;
+        // Pre-populate in-memory cache so Firebase Auth confirmation path skips Firestore reads
         userProfileCache.set(cached.uid, cached.profile || { uid: cached.uid, name: cached.name, role: cached.role });
 
         // Ensure this tab's sessionStorage has the active session
@@ -280,17 +256,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           sessionStorage.setItem('erp_active_role', cached.role);
         } catch(e) {}
 
-        // Synchronous immediate zero-latency dispatch
-        try {
-          onReady({
-            user: { uid: cached.uid, email: cached.email },
-            profile: cached.profile || { uid: cached.uid, name: cached.name, role: cached.role },
-            roleData: cached.roleData || null,
-            isCached: true
-          });
-        } catch(onReadyErr) {
-          console.warn("Immediate cache hydration dispatch warning:", onReadyErr);
-        }
+        // BUG-013 FIX: Do NOT call onReady() from the cache path.
+        // Firebase Auth must confirm the session before granting access.
+        // The cache only skips Firestore re-reads on the confirmed auth path below.
       }
     }
   } catch (e) {
@@ -322,7 +290,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         if (defUser) {
           const defProfile = await getUserProfile(defUser.uid);
           if (defProfile && allowedRoles.includes(defProfile.role)) {
-            // Update session cache for THIS role only
+            // Update session cache
             let existingRoleData = null;
             try {
               const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
@@ -344,9 +312,9 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
               localStorage.setItem('erp_session_' + defProfile.role, payload);
             } catch(e) {}
 
-            if (!hasHydratedFromCache) {
+            if (!isAuthorized) {
               isAuthorized = true;
-              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData });
+              onReady({ user: defUser, profile: defProfile, roleData: existingRoleData, isCached: hasHydratedFromCache });
             }
             setTimeout(() => {
               showFirstTimeLoginGuide(defProfile.role, defUser, defProfile);
@@ -434,7 +402,6 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-
         }
       } else if (profile.role === 'student') {
         if (!cacheIsFresh) {
@@ -456,7 +423,6 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-
         }
       } else if (profile.role === 'parent') {
         // ⚡ Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
@@ -482,7 +448,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         }
       }
 
-      // Update session cache silently in both storages (ROLE-ISOLATED)
+      // Update session cache silently in both storages while preserving roleData
       let existingRoleData = null;
       try {
         const rawExisting = sessionStorage.getItem('erp_active_session') || localStorage.getItem('erp_active_session');
@@ -505,10 +471,10 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         localStorage.removeItem('erp_active_session'); // Purge ambiguous legacy key
       } catch(e) {}
 
-      // If not previously hydrated from cache, invoke onReady now
-      if (!hasHydratedFromCache) {
+      // Always invoke onReady after Firebase Auth confirms (BUG-013 fix)
+      if (!isAuthorized) {
         isAuthorized = true;
-        onReady({ user, profile, roleData: existingRoleData });
+        onReady({ user, profile, roleData: existingRoleData, isCached: hasHydratedFromCache });
       }
 
       // Trigger first-time login instructions notification (only once per user)
@@ -688,7 +654,7 @@ export function showFirstTimeLoginGuide(role, user, profile) {
             ${cfg.title}
           </h2>
           <p style="font-size:13px; color:#cbd5e1; margin:0; line-height:1.4;">
-            Hello <strong>${userName}</strong>! ${cfg.intro}
+            Hello <strong>${escapeHtml(userName)}</strong>! ${cfg.intro}
           </p>
         </div>
         
@@ -784,4 +750,19 @@ export function logout(loginPath = "../login.html") {
 export function showBox(el, msg) {
   el.textContent = msg;
   el.style.display = msg ? "block" : "none";
+}
+
+// BUG-009: Centralized HTML escaping to prevent XSS from Firestore inputs
+export function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+if (typeof window !== 'undefined') {
+  window.escapeHtml = escapeHtml;
 }

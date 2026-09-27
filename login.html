@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student & Staff ERP Portal — Amala Higher Secondary School</title>
+<title>Amala ERP Portal — Student, Parent, Staff & Admin Login</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
@@ -511,8 +511,9 @@
   <!-- 3. MAIN DUAL-PANE BODY -->
   <main class="erp-container">
     <div class="erp-grid">
+      
 
-      <!-- Authentication Form with Captcha -->
+      <!-- RIGHT PANEL: Authentication Form with Captcha -->
       <div class="erp-login-card">
         <div class="login-card-head">
           <h2>Sign In to Portal</h2>
@@ -560,12 +561,12 @@
                 </button>
               </div>
             </div>
-              <div class="erp-field" style="margin-bottom:0;">
-                <label for="captchaInput">ENTER CAPTCHA</label>
-                <div class="erp-input-wrap">
-                  <input type="text" id="captchaInput" required placeholder="Type Code" maxlength="6" style="font-weight:700; letter-spacing:1.5px;">
-                </div>
+            <div class="erp-field" style="margin-bottom:0;">
+              <label for="captchaInput">ENTER CAPTCHA</label>
+              <div class="erp-input-wrap">
+                <input type="text" id="captchaInput" required placeholder="TYPE CODE" maxlength="6" style="text-transform:uppercase; font-weight:700; letter-spacing:1.5px;">
               </div>
+            </div>
           </div>
 
           <!-- Action Buttons -->
@@ -592,31 +593,37 @@
 
 <!-- Immediate Synchronous Captcha Script (Runs instantly without waiting for network/modules) -->
 <script>
-  window.currentCaptcha = '';
+  // BUG-014 fix: Salted hash verification closure — CAPTCHA code is never exposed on window object
+  let _captchaHash = '';
+  const _captchaSalt = Math.random().toString(36).substring(2);
+
+  function _hashCaptcha(str) {
+    let hash = 0x811c9dc5;
+    const combined = _captchaSalt + String(str || '').trim().toUpperCase();
+    for (let i = 0; i < combined.length; i++) {
+      hash ^= combined.charCodeAt(i);
+      hash = (hash * 0x01000193) >>> 0;
+    }
+    return hash.toString(16);
+  }
+
+  function verifyCaptcha(candidate) {
+    if (!candidate || !_captchaHash) return false;
+    return _hashCaptcha(candidate) === _captchaHash;
+  }
+
+  function hasCaptcha() {
+    return !!_captchaHash;
+  }
 
   function generateCaptchaCode() {
-    // Generate mixed characters: Numbers (2-9), Capital Letters (A-Z), and Small Letters (a-z)
-    const numbers = '23456789';
-    const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lowercase = 'abcdefghjkmnpqrstuvwxyz';
-    const allChars = numbers + uppercase + lowercase;
-
-    // Guaranteed mixture of at least one number, one uppercase, and one lowercase letter
-    let pool = [
-      numbers.charAt(Math.floor(Math.random() * numbers.length)),
-      uppercase.charAt(Math.floor(Math.random() * uppercase.length)),
-      lowercase.charAt(Math.floor(Math.random() * lowercase.length)),
-      allChars.charAt(Math.floor(Math.random() * allChars.length))
-    ];
-
-    // Shuffle characters randomly
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
+    // Generate a 4-character alphanumeric code avoiding ambiguous 0/O, 1/I
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-
-    const code = pool.join('');
-    window.currentCaptcha = code;
+    _captchaHash = _hashCaptcha(code);
 
     const canvas = document.getElementById('captchaCanvas');
     if (canvas && canvas.getContext) {
@@ -661,8 +668,8 @@
 
         ctx.translate(x, y);
         ctx.rotate(angle);
-        ctx.font = '800 22px "Outfit", "Inter", sans-serif';
-        ctx.fillStyle = (i % 2 === 0) ? '#f59e0b' : '#38bdf8'; // Dual-tone gold & sky blue
+        ctx.font = '800 21px "Outfit", "Inter", sans-serif';
+        ctx.fillStyle = '#f59e0b'; // Signature Amber/Gold
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 3;
         ctx.shadowOffsetX = 1;
@@ -730,7 +737,7 @@
 
   // Initial draw fallback
   window.addEventListener('load', () => {
-    if (!window.currentCaptcha) generateCaptchaCode();
+    if (!hasCaptcha()) generateCaptchaCode();
   });
 </script>
 
@@ -765,11 +772,8 @@
   const auth = firebase.auth();
   const db   = firebase.firestore();
 
-  // Set local persistence on auth & enable multi-tab offline cache on firestore for instant reads
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
-  try {
-    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
-  } catch (e) {}
+  // Set session persistence so auth on the login page stays isolated to this browser tab
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => {});
 
   // Role → page mapping
   const ROLE_ROUTES = {
@@ -780,63 +784,7 @@
   };
 
   // Admin email shortcuts
-  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com','admin@amalaschool.edu.in'];
-
-  // Global Quick Demo Login and Autofill helper
-  window.quickDemoLogin = function(role) {
-    const creds = {
-      admin:   { user: 'amala@123.gmail.com', pass: 'amala@123', label: 'Super Admin' },
-      staff:   { user: 'roshan@amalaschool.edu.in', pass: 'Staff@123', label: 'Staff Faculty' },
-      student: { user: 'student@amalaschool.edu.in', pass: 'Student@123', label: 'Student (saron)' },
-      parent:  { user: 'parent@amalaschool.edu.in', pass: 'Parent@123', label: 'Parent (Joseph S)' }
-    };
-    const c = creds[role];
-    if (!c) return;
-
-    const userInput = document.getElementById('loginUserId');
-    const passInput = document.getElementById('loginPassword');
-    const captchaInput = document.getElementById('captchaInput');
-
-    if (userInput) userInput.value = c.user;
-    if (passInput) passInput.value = c.pass;
-    if (typeof generateCaptchaCode === 'function') generateCaptchaCode();
-    if (captchaInput && window.currentCaptcha) {
-      captchaInput.value = window.currentCaptcha;
-    }
-
-    showOkBox(`⚡ 1-Click login selected for ${c.label}. Authenticating live…`);
-
-    const form = document.getElementById('erpLoginForm');
-    if (form) {
-      if (typeof form.requestSubmit === 'function') {
-        form.requestSubmit();
-      } else {
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      }
-    }
-  };
-
-  window.autofillDemoCreds = function(role) {
-    const creds = {
-      admin:   { user: 'amala@123.gmail.com', pass: 'amala@123' },
-      staff:   { user: 'roshan@amalaschool.edu.in', pass: 'Staff@123' },
-      student: { user: 'student@amalaschool.edu.in', pass: 'Student@123' },
-      parent:  { user: 'parent@amalaschool.edu.in', pass: 'Parent@123' }
-    };
-    const c = creds[role];
-    if (!c) return;
-    const userInput = document.getElementById('loginUserId');
-    const passInput = document.getElementById('loginPassword');
-    const captchaInput = document.getElementById('captchaInput');
-
-    if (userInput) userInput.value = c.user;
-    if (passInput) passInput.value = c.pass;
-    if (typeof generateCaptchaCode === 'function') generateCaptchaCode();
-    if (captchaInput && window.currentCaptcha) {
-      captchaInput.value = window.currentCaptcha;
-    }
-    showOkBox(`Credentials filled for ${role.toUpperCase()}. Click 'Login to ERP' or press Enter.`);
-  };
+  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com'];
 
   // ── UI helpers ──────────────────────────────────────────────
   const errBox  = document.getElementById('errBox');
@@ -874,30 +822,28 @@
   const urlParams    = new URLSearchParams(window.location.search);
   const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
 
-  if (allowRelogin) {
-    try {
-      sessionStorage.removeItem('erp_active_session');
-      sessionStorage.removeItem('erp_active_role');
-      auth.signOut().catch(() => {});
-    } catch(e) {}
-  }
-
   // ── Warm up Firestore connection immediately (pre-establishes socket before form submit) ──
   (function warmUpFirestore() {
-    try { db.collection('users').limit(1).get().catch(() => {}); } catch(e) {}
+    try { db.collection('loginLookup').limit(1).get().catch(() => {}); } catch(e) {}
   })();
 
-  // Only auto-redirect if there is a verified active session in this tab
   if (!allowRelogin) {
-    try {
-      const activeRaw = sessionStorage.getItem('erp_active_session');
-      if (activeRaw) {
-        const activeSess = JSON.parse(activeRaw);
-        if (activeSess && activeSess.role && ROLE_ROUTES[activeSess.role]) {
-          window.location.replace(ROLE_ROUTES[activeSess.role]);
-        }
-      }
-    } catch(e) {}
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
+      try {
+        const uEmail = (user.email || '').toLowerCase();
+        let role = null;
+        try {
+          const snap = await db.collection('users').doc(user.uid).get();
+          if (snap.exists && !snap.data().deleted && !snap.data().disabled) {
+            role = snap.data().role;
+          }
+        } catch(e) { console.warn('onAuthStateChanged read:', e.message); }
+
+        if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
+        if (role && ROLE_ROUTES[role]) window.location.replace(ROLE_ROUTES[role]);
+      } catch(e) {}
+    });
   }
 
   // ── Login submit handler ─────────────────────────────────────
@@ -905,11 +851,10 @@
     e.preventDefault();
     showErrBox('');
 
-    // 1. Captcha check (exact case matching numbers, small letters, capital letters)
-    const userCaptcha = (document.getElementById('captchaInput').value || '').trim();
-    const currentCode = (window.currentCaptcha || '').trim();
+    // 1. Captcha check (verified via salted hash, BUG-014 fix)
+    const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
 
-    if (!userCaptcha || !currentCode || userCaptcha !== currentCode) {
+    if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
       showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');
       generateCaptchaCode();
       const inp = document.getElementById('captchaInput');
@@ -924,236 +869,112 @@
     const pass    = pwdInput.value;
 
     try {
-      let matchedRole = null;
-      let matchedParentData = null;
-      let matchedStudentData = null;
+      // ── Resolve authEmail from User ID ────────────────────
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
 
-      // ── 1. Resolve Known Quick Accounts (0ms memory lookup) ──
-      if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
-        authEmail = 'admin@kishore.gmail.com';
-        matchedRole = 'admin';
-      } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com' || normUser === 'admin@amalaschool.edu.in') {
-        authEmail = 'amala@123.gmail.com';
-        matchedRole = 'admin';
-      } else if (['admin','amala','amala123','kishore'].includes(normUser)) {
-        authEmail = 'amala@123.gmail.com';
-        matchedRole = 'admin';
-      } else if (normUser === 'roshan' || normUser === 'roshan@amalaschool.edu.in') {
-        authEmail = 'roshan@amalaschool.edu.in';
-        matchedRole = 'staff';
-      } else if (['student', 'saron', 'student@amalaschool.edu.in', 'adm-1001', '1001'].includes(normUser)) {
-        authEmail = 'student@amalaschool.edu.in';
-        matchedRole = 'student';
-      } else if (['parent', 'parent@amalaschool.edu.in', '9840123456'].includes(normUser)) {
-        authEmail = 'parent@amalaschool.edu.in';
-        matchedRole = 'parent';
-      } else if (rawUser.includes('@')) {
-        // Direct email login — no pre-auth table scan needed!
-        authEmail = normUser;
-        if (normUser.includes('parent')) matchedRole = 'parent';
-        else if (normUser.includes('student')) matchedRole = 'student';
-        else if (normUser.includes('roshan') || normUser.includes('staff')) matchedRole = 'staff';
-        else if (ADMIN_EMAILS.includes(normUser) || normUser.includes('admin')) matchedRole = 'admin';
-      } else {
-        // Not an email → targeted parallel queries with limit(1) (NO full collection scans!)
-        const cleanInput = normUser.replace(/^@/, '');
-        const cleanUpper = rawUser.trim().toUpperCase();
+      if (!rawUser.includes('@')) {
+        // Not an email → resolve via /loginLookup (O(1) single GET, no collection scan)
         const digitsOnly = rawUser.replace(/\D/g, '');
-        let resolved = false;
-
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-        const phoneVariants = digitsOnly.length >= 7 ? [...new Set([rawUser, digitsOnly, last10,
-          '+91 '+last10, '+91'+last10, '+91-'+last10, '0'+last10])].slice(0, 10) : [];
 
-        const admVariants = [...new Set([rawUser.trim(), cleanUpper, cleanInput])].filter(Boolean).slice(0, 10);
-        const rollVariants = [cleanInput, cleanUpper, rawUser.trim()];
-        const numVal = parseInt(cleanInput, 10);
-        if (!isNaN(numVal)) rollVariants.push(numVal);
-        const uniqueRollVariants = [...new Set(rollVariants)].filter(v => v !== undefined && v !== '').slice(0, 10);
+        // Keys to try, in priority order: rawUser, stripped digits (last 10 for phones)
+        const lookupKeys = [...new Set([
+          normUser,
+          digitsOnly.length >= 7 ? last10 : null
+        ].filter(Boolean))];
 
-        // Targeted parallel lookup with limit(1)
-        const [stuAdmSnap, stuRollSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
-          admVariants.length ? db.collection('students').where('admissionNo', 'in', admVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          uniqueRollVariants.length ? db.collection('students').where('rollNo', 'in', uniqueRollVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          phoneVariants.length ? db.collection('parents').where('phone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          phoneVariants.length ? db.collection('parents').where('motherPhone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
-          db.collection('staff').where('username', '==', cleanInput).limit(1).get().catch(() => null),
-          db.collection('users').where('username', '==', cleanInput).limit(1).get().catch(() => null)
-        ]);
-
-        if (stuAdmSnap && !stuAdmSnap.empty) {
-          authEmail = stuAdmSnap.docs[0].data().email;
-          matchedRole = 'student';
-          matchedStudentData = stuAdmSnap.docs[0].data();
-          resolved = true;
-        } else if (stuRollSnap && !stuRollSnap.empty) {
-          authEmail = stuRollSnap.docs[0].data().email;
-          matchedRole = 'student';
-          matchedStudentData = stuRollSnap.docs[0].data();
-          resolved = true;
-        } else if (pPhoneSnap && !pPhoneSnap.empty) {
-          authEmail = pPhoneSnap.docs[0].data().email;
-          matchedRole = 'parent';
-          matchedParentData = pPhoneSnap.docs[0].data();
-          resolved = true;
-        } else if (mPhoneSnap && !mPhoneSnap.empty) {
-          authEmail = mPhoneSnap.docs[0].data().email;
-          matchedRole = 'parent';
-          matchedParentData = mPhoneSnap.docs[0].data();
-          resolved = true;
-        } else if (stfSnap && !stfSnap.empty) {
-          authEmail = stfSnap.docs[0].data().email;
-          matchedRole = 'staff';
-          resolved = true;
-        } else if (usrSnap && !usrSnap.empty) {
-          authEmail = usrSnap.docs[0].data().email;
-          matchedRole = usrSnap.docs[0].data().role || null;
-          resolved = true;
+        let resolved = false;
+        for (const key of lookupKeys) {
+          try {
+            const snap = await db.collection('loginLookup').doc(key).get();
+            if (snap.exists && snap.data().email) {
+              authEmail = snap.data().email;
+              resolved = true;
+              break;
+            }
+          } catch(e) { console.warn('loginLookup:', e.message); }
         }
 
         if (!resolved) {
-          throw new Error(`No account found for "${rawUser}". Please check your User ID and try again.`);
+          throw new Error('Invalid User ID or password. Please check your credentials and try again.');
         }
       }
 
-      // ── 2. Direct Sign-In (Single Attempt with at most 1 standard fallback) ──
-      let cred = null;
-      let matchedPass = pass;
-      try {
-        cred = await auth.signInWithEmailAndPassword(authEmail, pass);
-      } catch (firstErr) {
-        const errCode = firstErr.code || '';
-        if (errCode === 'auth/wrong-password' || errCode === 'auth/invalid-credential' || !pass) {
-          // If password was incorrect or empty, try AT MOST ONE known role default
-          let fallbackPass = null;
-          if (matchedRole === 'parent' || authEmail.includes('parent')) fallbackPass = 'Parent@123';
-          else if (matchedRole === 'student' || authEmail.includes('student')) fallbackPass = 'Student@123';
-          else if (matchedRole === 'staff' || authEmail.includes('staff') || authEmail.includes('roshan')) fallbackPass = 'Staff@123';
-          else if (matchedRole === 'admin' || ADMIN_EMAILS.includes(authEmail)) fallbackPass = 'amala@123';
+      // ── Build password candidate list (user-typed password only + DOB format variants) ──
+      // NOTE: Default password fallback removed (BUG-007) — users must know their password.
+      const candidatePasswords = [pass];
+      const cleanDigits = pass.replace(/\D/g, '');
+      if (cleanDigits.length === 8) {
+        // Support DOB typed as DDMMYYYY without separators as password
+        const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
+        candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
+      }
+      const uniquePasswords = [...new Set(candidatePasswords)];
 
-          if (fallbackPass && fallbackPass !== pass) {
-            try {
-              cred = await auth.signInWithEmailAndPassword(authEmail, fallbackPass);
-              matchedPass = fallbackPass;
-            } catch (fallbackErr) {
-              throw firstErr;
-            }
-          } else {
-            throw firstErr;
-          }
-        } else {
-          throw firstErr;
-        }
+      // ── Attempt Firebase Auth sign-in ──────────────────────────
+      let cred = null, authError = null;
+      for (const tryPass of uniquePasswords) {
+        try {
+          cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
+          if (cred && cred.user) break;
+        } catch(err) { authError = err; }
       }
 
-      if (!cred || !cred.user) throw new Error('Authentication failed. Please verify credentials.');
+      if (!cred || !cred.user) throw (authError || new Error('Invalid credentials'));
 
-      // ── 3. Ultra-Fast User Profile & Role Lookup ──
+      // ── Read user profile + role-specific record in PARALLEL ──────────────────────────────────────
       let userData = null;
       let roleDocSnap = null;
       const uid = cred.user.uid;
       const curEmail = (cred.user.email || authEmail).toLowerCase();
       const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
-      let studentDocSnap = null;
-      let role = null;
-
       try {
-        // Fast primary lookup: check users/{uid} first (avoids querying 3 extra collections for 99% of logins)
-        const uSnap = await db.collection('users').doc(uid).get().catch(() => null);
+        // Fetch user profile doc immediately; also pre-fetch role record if we can guess role from email
+        const [uSnap] = await Promise.all([
+          db.collection('users').doc(uid).get().catch(() => null)
+        ]);
+        userData = (uSnap && uSnap.exists) ? uSnap.data() : null;
+      } catch(e) { console.warn('Profile read:', e.message); }
 
-        if (uSnap && uSnap.exists && !uSnap.data().deleted && !uSnap.data().disabled && uSnap.data().role) {
-          userData = uSnap.data();
-          role = userData.role;
-        }
-
-        // Auto-heal admin doc if admin account
-        if (isAdminAcc && (!userData || !userData.role)) {
-          const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
-          db.collection('users').doc(uid).set(adminData, {merge:true}).catch(() => {});
-          userData = adminData;
-          role = 'admin';
-        }
-
-        // Fallback only if role was not in users/{uid}
-        let staffSnap = null, stuSnap = null, parSnap = null;
-        if (!role) {
-          [staffSnap, stuSnap, parSnap] = await Promise.all([
-            db.collection('staff').doc(uid).get().catch(() => null),
-            db.collection('students').doc(uid).get().catch(() => null),
-            db.collection('parents').doc(uid).get().catch(() => null)
-          ]);
-
-          if (staffSnap && staffSnap.exists && !staffSnap.data().deleted) {
-            roleDocSnap = staffSnap;
-            userData = { role: 'staff', name: staffSnap.data().name || 'Faculty', ...staffSnap.data() };
-            role = 'staff';
-          } else if (stuSnap && stuSnap.exists && !stuSnap.data().deleted) {
-            roleDocSnap = stuSnap;
-            userData = { role: 'student', name: stuSnap.data().name || 'Student', ...stuSnap.data() };
-            role = 'student';
-          } else if (parSnap && parSnap.exists && !parSnap.data().deleted) {
-            roleDocSnap = parSnap;
-            userData = { role: 'parent', name: parSnap.data().name || 'Parent', ...parSnap.data() };
-            role = 'parent';
-          }
-        }
-
-        // Secondary lookup by email in role collections if still no role
-        if (!role) {
-          const [stfEmailSnap, stuEmailSnap, parEmailSnap] = await Promise.all([
-            db.collection('staff').where('email', '==', curEmail).limit(1).get().catch(() => null),
-            db.collection('students').where('email', '==', curEmail).limit(1).get().catch(() => null),
-            db.collection('parents').where('email', '==', curEmail).limit(1).get().catch(() => null)
-          ]);
-
-          if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
-            roleDocSnap = stfEmailSnap.docs[0];
-            userData = { role: 'staff', name: roleDocSnap.data().name || 'Faculty', ...roleDocSnap.data() };
-            role = 'staff';
-          } else if (stuEmailSnap && !stuEmailSnap.empty && !stuEmailSnap.docs[0].data().deleted) {
-            roleDocSnap = stuEmailSnap.docs[0];
-            userData = { role: 'student', name: roleDocSnap.data().name || 'Student', ...roleDocSnap.data() };
-            role = 'student';
-          } else if (parEmailSnap && !parEmailSnap.empty && !parEmailSnap.docs[0].data().deleted) {
-            roleDocSnap = parEmailSnap.docs[0];
-            userData = { role: 'parent', name: roleDocSnap.data().name || 'Parent', ...roleDocSnap.data() };
-            role = 'parent';
-          }
-        }
-
-        // Special fallback for Roshan faculty account
-        if (!role && (curEmail.includes('roshan') || curEmail.includes('staff'))) {
-          userData = { role: 'staff', name: 'G.Roshan', email: curEmail, username: 'roshan', majorSubject: 'Art & Craft', type: 'both', uid };
-          role = 'staff';
-        }
-
-        // Non-blocking background sync of profile (does NOT block login navigation!)
-        if (userData && role && !userData.deleted && !userData.disabled) {
-          db.collection('users').doc(uid).set({ ...userData, uid, role, lastLogin: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true}).catch(() => {});
-        }
-
-        if (!userData || userData.deleted || userData.disabled || !role) {
-          await auth.signOut();
-          throw new Error('This account has been deactivated or not assigned a role. Contact school admin.');
-        }
-
-        if (role === 'staff' && !roleDocSnap) roleDocSnap = staffSnap;
-        if (role === 'student' && !roleDocSnap) roleDocSnap = stuSnap;
-        if (role === 'parent' && !roleDocSnap) roleDocSnap = parSnap;
-
-        if (roleDocSnap && roleDocSnap.exists && roleDocSnap.data().deleted) {
-          await auth.signOut();
-          throw new Error('Account removed by administrator. Portal access denied.');
-        }
-      } catch(e) {
-        if (e.message && (e.message.includes('removed') || e.message.includes('deactivated'))) throw e;
-        console.warn('Profile read note:', e.message);
+      // ── Auto-heal admin doc ────────────────────────────────────
+      if (isAdminAcc && (!userData || !userData.role)) {
+        const adminData = { role:'admin', name:'School Administrator', email: cred.user.email || authEmail };
+        try { await db.collection('users').doc(uid).set(adminData, {merge:true}); } catch(e) {}
+        userData = adminData;
       }
 
-      // Pre-fetch student profile for parents
+      if (!userData || userData.deleted || userData.disabled || !userData.role) {
+        await auth.signOut();
+        throw new Error('This account has been deleted or deactivated. Contact school admin.');
+      }
+
+      const role = userData.role;
+
+      // ── Role-specific record check ─────────────────────────────
+      if (role === 'staff') {
+        roleDocSnap = await db.collection('staff').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Faculty account removed by administrator. Portal access denied.');
+        }
+      } else if (role === 'student') {
+        roleDocSnap = await db.collection('students').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Student account removed by administrator. Portal access denied.');
+        }
+      } else if (role === 'parent') {
+        roleDocSnap = await db.collection('parents').doc(uid).get().catch(() => null);
+        if (!roleDocSnap || !roleDocSnap.exists || roleDocSnap.data().deleted) {
+          await auth.signOut();
+          throw new Error('Parent account removed by administrator. Portal access denied.');
+        }
+      }
+
+      // Pre-fetch student profile for parents to make parent dashboard render instantly with 0ms delay
+      let studentDocSnap = null;
       if (role === 'parent' && roleDocSnap && roleDocSnap.exists) {
         const pChildUid = roleDocSnap.data().childUid;
         if (pChildUid) {
@@ -1167,51 +988,7 @@
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
-      const finalRoleData = roleDocSnap && roleDocSnap.exists ? roleDocSnap.data() : null;
-
-      if (finalRoleData && finalRoleData.deleted) {
-        await auth.signOut();
-        throw new Error('Account removed by administrator. Portal access denied.');
-      }
-
-      // ── Enrich Parent Session with Full Child Profile ──
-      if (role === 'parent') {
-        const cUid = finalRoleData?.childUid || matchedParentData?.childUid || userData?.childUid;
-        if (cUid) {
-          try {
-            const stuSnap = await db.collection('students').doc(cUid).get().catch(() => null);
-            if (stuSnap && stuSnap.exists) {
-              const sData = stuSnap.data();
-              const mergedChild = {
-                childUid: cUid,
-                childName: sData.name || '',
-                childAdmissionNo: sData.admissionNo || '',
-                childRollNo: String(sData.rollNo || sData.admissionNo || ''),
-                childClassName: sData.className || '',
-                childClassId: sData.classId || '',
-                childDob: sData.dob || '',
-                childGender: sData.gender || '',
-                childBloodGroup: sData.bloodGroup || '',
-                childAadhaar: sData.aadhaarNo || sData.aadhaar || '',
-                childAddress: sData.address || '',
-                childCity: sData.city || '',
-                childPincode: sData.pincode || '',
-                childEmergencyPhone: sData.emergencyPhone || sData.fatherPhone || sData.motherPhone || '',
-                childStudentEmail: sData.email || '',
-                fatherName: sData.fatherName || userData.name || '',
-                fatherPhone: sData.fatherPhone || userData.phone || '',
-                motherName: sData.motherName || '',
-                motherPhone: sData.motherPhone || '',
-                childProfile: sData
-              };
-              userData = { ...mergedChild, ...userData };
-              if (finalRoleData) Object.assign(finalRoleData, mergedChild);
-            }
-          } catch(e) {}
-        }
-      }
-
-      // ── Store active session in BOTH sessionStorage & localStorage for INSTANT (0ms) portal hydration ──
+      // ── Store rich session payload including roleData (childUid, studentProfile etc.) for instant portal hydration ──
       try {
         const baseRoleData = (roleDocSnap && roleDocSnap.exists) ? roleDocSnap.data() : null;
         const roleData = baseRoleData ? {
@@ -1237,7 +1014,7 @@
         // Role-partitioned session in localStorage (never overwrites other roles)
         localStorage.setItem('erp_session_' + role, payloadStr);
         localStorage.setItem('erp_last_active_role', role);
-        localStorage.setItem('erp_active_session', payloadStr);
+        localStorage.removeItem('erp_active_session'); // Clean up ambiguous legacy key
       } catch(e) {}
 
       showOkBox('✅ Login successful! Redirecting to your dashboard…');
