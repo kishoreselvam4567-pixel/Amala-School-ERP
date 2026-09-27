@@ -758,7 +758,7 @@
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
-      storage: window.sessionStorage,
+      storage: window.localStorage,
       autoRefreshToken: true
     }
   });
@@ -855,8 +855,9 @@
       // ── Resolve authEmail from User ID ────────────────────
       let authEmail = rawUser;
       const normUser = rawUser.toLowerCase();
+      const isFullEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser);
 
-      if (!rawUser.includes('@')) {
+      if (!isFullEmail) {
         const digitsOnly = rawUser.replace(/\D/g, '');
         const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
 

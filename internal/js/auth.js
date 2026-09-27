@@ -23,7 +23,7 @@ const currentRole = getCurrentPortalRole();
 export const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey, {
   auth: {
     persistSession: true,
-    storage: (typeof window !== 'undefined' && currentRole) ? window.localStorage : (typeof window !== 'undefined' ? window.sessionStorage : undefined),
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     autoRefreshToken: true,
     detectSessionInUrl: true
   }
