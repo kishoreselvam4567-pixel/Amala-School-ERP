@@ -403,7 +403,6 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             return;
           }
         }
-        }
       } else if (profile.role === 'student') {
         if (!cacheIsFresh) {
           let stSnap = await getDoc(doc(db, 'students', user.uid)).catch(() => null);
@@ -424,7 +423,6 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
             window.location.href = loginPath;
             return;
           }
-        }
         }
       } else if (profile.role === 'parent') {
         // ⚡ Skip re-verification when session cache is < 1 hour old (avoids a blocking Firestore read)
