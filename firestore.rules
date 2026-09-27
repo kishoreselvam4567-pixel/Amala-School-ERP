@@ -34,9 +34,15 @@ service cloud.firestore {
 
     // users: requires auth; users read own doc, admin reads all
     match /users/{uid} {
+<<<<<<< HEAD
+      allow read: if true; // needed for email lookup during login before auth
+      allow create, update: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+=======
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow update, delete: if isAdmin();
+>>>>>>> 54da8b8e9790e7949dc926c95f860079fe6fb544
     }
 
     match /classes/{classId} {
