@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase → Supabase Data Migration Tool | Amala School ERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b1329;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    p.sub {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .card {
+      background: #131e3a;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    input {
+      background: #0a0f1d;
+      border: 1px solid #334155;
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #38bdf8;
+    }
+    .btn {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-green {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+    .status-pill {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+    .status-pill.idle { background: #334155; color: #cbd5e1; }
+    .status-pill.running { background: #854d0e; color: #fde047; }
+    .status-pill.success { background: #065f46; color: #6ee7b7; }
+    .status-pill.error { background: #991b1b; color: #fca5a5; }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .col-item {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      padding: 12px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .col-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .col-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .log-box {
+      background: #050914;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px;
+      height: 250px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+    .log-entry { margin-bottom: 4px; }
+    .log-entry.info { color: #94a3b8; }
+    .log-entry.success { color: #4ade80; }
+    .log-entry.warn { color: #facc15; }
+    .log-entry.error { color: #f87171; }
+    .progress-bar-bg {
+      background: #1e293b;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+  <!-- Firebase SDKs for reading old data -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <!-- Supabase SDK for writing into new DB -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">Automatic Migration</span>
+      <h1>Firebase &rarr; Supabase Data Transfer</h1>
+      <p class="sub">Exports all Firestore collections and imports them into your PostgreSQL database with exact IDs and structures.</p>
+    </div>
+
+    <!-- Step 1: Firebase Auth -->
+    <div class="card" id="step1Card">
+      <div class="card-title">
+        <span>1. Authenticate with Firebase Admin Account</span>
+        <span class="status-pill idle" id="authStatusPill">Not Connected</span>
+      </div>
+      <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;">
+        To read your protected Firestore data, please sign in with your school Firebase admin account:
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Admin Email</label>
+          <input type="email" id="fbEmail" value="admin@kishore.gmail.com" placeholder="admin email">
+        </div>
+        <div class="form-group">
+          <label>Admin Password</label>
+          <input type="password" id="fbPass" placeholder="Enter admin password">
+        </div>
+      </div>
+      <button class="btn" id="fbLoginBtn">
+        Connect & Check Firebase Data &rarr;
+      </button>
+    </div>
+
+    <!-- Step 2: Migration Control -->
+    <div class="card" id="step2Card" style="display: none;">
+      <div class="card-title">
+        <span>2. Ready to Transfer Collections</span>
+        <span class="status-pill idle" id="migStatusPill">Ready</span>
+      </div>
+
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+
+      <div class="collection-grid" id="colGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+        <button class="btn btn-green" id="startMigBtn">
+          🚀 Start One-Click Migration to Supabase
+        </button>
+      </div>
+
+      <div class="log-box" id="logBox">
+        <div class="log-entry info">[System] Ready to start migration...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configs
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-TUNX2PLfWcGkOHaeZMvS7YYWDl2db3o",
+      authDomain: "school-erp-59865.firebaseapp.com",
+      projectId: "school-erp-59865",
+      storageBucket: "school-erp-59865.firebasestorage.app",
+      messagingSenderId: "814200800763",
+      appId: "1:814200800763:web:66ee8f726fae707d87775e"
+    };
+
+    const SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
+    // Using Anon key or secret key
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const fbAuth = firebase.auth();
+    const fbDb   = firebase.firestore();
+    const sb     = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const COLLECTIONS = [
+      'users', 'students', 'parents', 'staff', 'classes',
+      'attendance', 'marks', 'exams', 'notes', 'homework',
+      'announcements', 'loginLookup'
+    ];
+
+    const logBox = document.getElementById('logBox');
+    function log(msg, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logBox.appendChild(entry);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function cleanData(data) {
+      if (!data || typeof data !== 'object') return data;
+      const clean = {};
+      for (const [k, v] of Object.entries(data)) {
+        if (v === undefined) continue;
+        if (v && typeof v.toDate === 'function') {
+          clean[k] = v.toDate().toISOString();
+        } else if (Array.isArray(v)) {
+          clean[k] = v.map(cleanData);
+        } else if (v && typeof v === 'object' && v.constructor === Object) {
+          clean[k] = cleanData(v);
+        } else {
+          clean[k] = v;
+        }
+      }
+      return clean;
+    }
+
+    // Connect & Login
+    document.getElementById('fbLoginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('fbEmail').value.trim();
+      const pass  = document.getElementById('fbPass').value;
+      const btn = document.getElementById('fbLoginBtn');
+      const pill = document.getElementById('authStatusPill');
+
+      if (!email || !pass) {
+        alert('Please enter your Firebase admin email and password.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Connecting...';
+      pill.className = 'status-pill running';
+      pill.textContent = 'Authenticating...';
+
+      try {
+        const cred = await fbAuth.signInWithEmailAndPassword(email, pass);
+        pill.className = 'status-pill success';
+        pill.textContent = `Connected (${cred.user.email})`;
+        btn.textContent = 'Connected ✅';
+
+        document.getElementById('step2Card').style.display = 'block';
+        log(`Authenticated as ${cred.user.email}. Scanning collections...`, 'success');
+
+        // Render collection badges and fetch counts
+        const colGrid = document.getElementById('colGrid');
+        colGrid.innerHTML = '';
+        for (const col of COLLECTIONS) {
+          const item = document.createElement('div');
+          item.className = 'col-item';
+          item.innerHTML = `
+            <span class="col-name">${col}</span>
+            <span class="col-count" id="count_${col}">...</span>
+          `;
+          colGrid.appendChild(item);
+        }
+
+        // Fetch counts
+        for (const col of COLLECTIONS) {
+          try {
+            const snap = await fbDb.collection(col).get();
+            document.getElementById(`count_${col}`).textContent = snap.size + ' docs';
+            log(`Found ${snap.size} documents in /${col}`, snap.size > 0 ? 'success' : 'info');
+          } catch(e) {
+            document.getElementById(`count_${col}`).textContent = '0 docs';
+            log(`Collection /${col}: ${e.message}`, 'warn');
+          }
+        }
+      } catch(err) {
+        pill.className = 'status-pill error';
+        pill.textContent = 'Login Failed';
+        btn.disabled = false;
+        btn.textContent = 'Connect & Check Firebase Data →';
+        alert('Firebase login failed: ' + err.message);
+      }
+    });
+
+    // Start Migration
+    document.getElementById('startMigBtn').addEventListener('click', async () => {
+      const startBtn = document.getElementById('startMigBtn');
+      const pill = document.getElementById('migStatusPill');
+      const progressBar = document.getElementById('progressBar');
+
+      startBtn.disabled = true;
+      startBtn.textContent = 'Transferring Data...';
+      pill.className = 'status-pill running';
+      pill.textContent = 'In Progress';
+
+      let totalTransferred = 0;
+      let totalCollections = COLLECTIONS.length;
+      let completedCols = 0;
+
+      for (const col of COLLECTIONS) {
+        log(`Transferring /${col} to Supabase...`, 'info');
+        const targetTable = col === 'loginLookup' ? 'login_lookup' : col;
+
+        try {
+          const snap = await fbDb.collection(col).get();
+          const docs = snap.docs;
+
+          if (docs.length === 0) {
+            log(`/${col} has 0 records, skipping.`, 'info');
+            completedCols++;
+            progressBar.style.width = Math.round((completedCols / totalCollections) * 100) + '%';
+            continue;
+          }
+
+          const records = [];
+          for (const d of docs) {
+            const raw = d.data();
+            const cleaned = cleanData(raw);
+            records.push({
+              id: d.id,
+              ...cleaned
+            });
+          }
+
+          // Chunk upload in batches of 50
+          for (let i = 0; i < records.length; i += 50) {
+            const chunk = records.slice(i, i + 50);
+            const { error } = await sb.from(targetTable).upsert(chunk);
+            if (error) {
+              log(`Error upserting into ${targetTable}: ${error.message}`, 'error');
+            } else {
+              totalTransferred += chunk.length;
+            }
+          }
+
+          log(`✅ Migrated ${records.length} records into public.${targetTable}`, 'success');
+        } catch(err) {
+          log(`Failed to migrate ${col}: ${err.message}`, 'error');
+        }
+
+        completedCols++;
+        progressBar.style.width = Math.round((completedCols / totalCollections) * 100) + '%';
+      }
+
+      pill.className = 'status-pill success';
+      pill.textContent = 'Completed';
+      startBtn.textContent = 'Migration Complete! ✅';
+      log(`🎉 Data Migration Complete! Transferred ${totalTransferred} total records into Supabase.`, 'success');
+      alert(`Success! Transferred ${totalTransferred} records into your Supabase database.`);
+    });
+  </script>
+</body>
+</html>
