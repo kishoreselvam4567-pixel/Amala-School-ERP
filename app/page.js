@@ -137,39 +137,7 @@ export default function LoginPage() {
     updateClock();
     const interval = setInterval(updateClock, 1000);
 
-    // Auto-redirect if already signed in
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
-
-      if (!allowRelogin) {
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (!session || !session.user) return;
-          try {
-            const uEmail = (session.user.email || '').toLowerCase();
-            let role = null;
-            try {
-              const { data: uDoc } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle();
-              if (uDoc && !uDoc.deleted && !uDoc.disabled) {
-                role = uDoc.role;
-              }
-            } catch (e) {
-              console.warn('getSession read:', e.message);
-            }
-
-            if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
-            if (role && ROLE_ROUTES[role]) {
-              window.location.replace(ROLE_ROUTES[role]);
-            }
-          } catch (e) {}
-        });
-      }
-    }
-
+    // Auto-redirect disabled: User must always manually enter credentials to sign in
     return () => clearInterval(interval);
   }, [generateCaptcha]);
 

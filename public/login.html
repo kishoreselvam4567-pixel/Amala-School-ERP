@@ -812,28 +812,7 @@
     document.getElementById('loginUserId').focus();
   });
 
-  // ── Auto-redirect if already signed in ───────────────────────
-  const urlParams    = new URLSearchParams(window.location.search);
-  const allowRelogin = urlParams.has('relogin') || urlParams.has('logout');
-
-  if (!allowRelogin) {
-    sb.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session || !session.user) return;
-      try {
-        const uEmail = (session.user.email || '').toLowerCase();
-        let role = null;
-        try {
-          const { data: uDoc } = await sb.from('users').select('*').eq('id', session.user.id).maybeSingle();
-          if (uDoc && !uDoc.deleted && !uDoc.disabled) {
-            role = uDoc.role;
-          }
-        } catch(e) { console.warn('getSession read:', e.message); }
-
-        if (!role && ADMIN_EMAILS.includes(uEmail)) role = 'admin';
-        if (role && ROLE_ROUTES[role]) window.location.replace(ROLE_ROUTES[role]);
-      } catch(e) {}
-    });
-  }
+  // Auto-redirect disabled: User must always enter User ID and Password manually to sign in
 
   // ── Login submit handler ─────────────────────────────────────
   form.addEventListener('submit', async (e) => {
