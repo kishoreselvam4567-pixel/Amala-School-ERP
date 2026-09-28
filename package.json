@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Amala Higher Secondary School ERP System",
   "scripts": {
-    "dev": "node node_modules/next/dist/bin/next dev -p 3000",
-    "build": "node node_modules/next/dist/bin/next build",
-    "start": "node node_modules/next/dist/bin/next start -p 3000",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
     "serve-static": "npx serve . -p 3000"
   },
   "dependencies": {

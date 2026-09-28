@@ -1,13 +1,18 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/login", "destination": "/" },
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/login.html", "destination": "/index.html" },
+    { "source": "/register", "destination": "/register.html" },
+    { "source": "/migrate-data", "destination": "/migrate-data.html" },
     { "source": "/admin", "destination": "/internal/admin/dashboard.html" },
     { "source": "/staff", "destination": "/internal/staff/dashboard.html" },
     { "source": "/student", "destination": "/student/dashboard.html" },
     { "source": "/parent", "destination": "/parent/dashboard.html" },
     { "source": "/internal/admin/dashboard", "destination": "/internal/admin/dashboard.html" },
-    { "source": "/internal/staff/dashboard", "destination": "/internal/staff/dashboard.html" }
+    { "source": "/internal/staff/dashboard", "destination": "/internal/staff/dashboard.html" },
+    { "source": "/student/dashboard", "destination": "/student/dashboard.html" },
+    { "source": "/parent/dashboard", "destination": "/parent/dashboard.html" }
   ],
   "headers": [
     {
