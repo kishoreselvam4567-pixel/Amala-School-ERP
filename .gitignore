@@ -2,15 +2,19 @@
 node_modules/
 package-lock.json
 
+# Next.js
+.next/
+out/
+
 # IDE & Editor
 .vscode/
 .idea/
 .DS_Store
 
 # Temporary subfolders
-School-erp/
+./School-erp/
 amalahss/
-school-erp-final/
+./school-erp-final/
 
 # Logs
 *.log

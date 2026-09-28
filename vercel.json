@@ -1,12 +1,13 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/register", "destination": "/register.html" },
+    { "source": "/login", "destination": "/" },
     { "source": "/admin", "destination": "/internal/admin/dashboard.html" },
     { "source": "/staff", "destination": "/internal/staff/dashboard.html" },
     { "source": "/student", "destination": "/student/dashboard.html" },
-    { "source": "/parent", "destination": "/parent/dashboard.html" }
+    { "source": "/parent", "destination": "/parent/dashboard.html" },
+    { "source": "/internal/admin/dashboard", "destination": "/internal/admin/dashboard.html" },
+    { "source": "/internal/staff/dashboard", "destination": "/internal/staff/dashboard.html" }
   ],
   "headers": [
     {
