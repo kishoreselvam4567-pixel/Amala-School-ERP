@@ -1,9 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/login", "destination": "/index.html" },
-    { "source": "/login.html", "destination": "/index.html" },
+    { "source": "/login", "destination": "/" },
+    { "source": "/login.html", "destination": "/" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/migrate-data", "destination": "/migrate-data.html" },
     { "source": "/admin", "destination": "/internal/admin/dashboard.html" },
