@@ -189,6 +189,54 @@ export function orderBy(field, dir = 'asc') {
   return { _type: 'orderBy', field, dir };
 }
 
+// ---- Session freshness -----------------------------------------------
+// Guards against the classic expired-token race: after a reload the stored
+// session may hold an access token that already expired, and the client's
+// background refresh may not have finished before the first data queries
+// run. Those queries then get a 401 and (by RLS) look like empty tables.
+// Call this before the portal's first data load; getDocs/getDoc also use it
+// for a one-time retry when a query fails with an auth error.
+let sessionRefreshPromise = null;
+export async function ensureFreshSession() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const expiresAtMs = (session.expires_at || 0) * 1000;
+    if (expiresAtMs - Date.now() < 60000) {
+      if (!sessionRefreshPromise) {
+        sessionRefreshPromise = supabase.auth.refreshSession()
+          .then(({ data }) => (data && data.session) || null)
+          .catch(() => null)
+          .finally(() => { sessionRefreshPromise = null; });
+      }
+      return await sessionRefreshPromise;
+    }
+    return session;
+  } catch (e) {
+    return null;
+  }
+}
+
+function isAuthError(error) {
+  if (!error) return false;
+  const code = String(error.code || '');
+  const status = error.status;
+  const msg = String(error.message || '').toLowerCase();
+  return code === 'PGRST301' || status === 401 ||
+    (msg.includes('jwt') && (msg.includes('expired') || msg.includes('invalid'))) ||
+    msg.includes('unauthorized');
+}
+
+function notifyDataError(col, error) {
+  try {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('erp:data-error', {
+        detail: { col, message: String((error && error.message) || error || 'unknown error') }
+      }));
+    }
+  } catch (e) {}
+}
+
 export function limit(n) {
   return { _type: 'limit', count: n };
 }
@@ -202,7 +250,11 @@ export function query(target, ...constraints) {
 export async function getDoc(docRef) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
-  const { data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle();
+  let { data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle();
+  if (error && isAuthError(error)) {
+    await ensureFreshSession();
+    ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
+  }
   if (error && error.code !== 'PGRST116') {
     console.warn(`getDoc(${col}/${id}) warning:`, error.message);
   }
@@ -221,29 +273,39 @@ export async function getDoc(docRef) {
 
 export async function getDocs(qRef) {
   const col = normalizeCol(qRef.col);
-  let builder = supabase.from(col).select('*');
   const constraints = qRef.constraints || [];
 
-  for (const c of constraints) {
-    if (c._type === 'where') {
-      if (c.op === '==' || c.op === '===') builder = builder.eq(c.field, c.val);
-      else if (c.op === '!=') builder = builder.neq(c.field, c.val);
-      else if (c.op === '>') builder = builder.gt(c.field, c.val);
-      else if (c.op === '>=') builder = builder.gte(c.field, c.val);
-      else if (c.op === '<') builder = builder.lt(c.field, c.val);
-      else if (c.op === '<=') builder = builder.lte(c.field, c.val);
-      else if (c.op === 'in') builder = builder.in(c.field, Array.isArray(c.val) ? c.val : [c.val]);
-    } else if (c._type === 'orderBy') {
-      builder = builder.order(c.field, { ascending: c.dir !== 'desc' });
-    } else if (c._type === 'limit') {
-      builder = builder.limit(c.count);
+  const runQuery = () => {
+    let builder = supabase.from(col).select('*');
+    for (const c of constraints) {
+      if (c._type === 'where') {
+        if (c.op === '==' || c.op === '===') builder = builder.eq(c.field, c.val);
+        else if (c.op === '!=') builder = builder.neq(c.field, c.val);
+        else if (c.op === '>') builder = builder.gt(c.field, c.val);
+        else if (c.op === '>=') builder = builder.gte(c.field, c.val);
+        else if (c.op === '<') builder = builder.lt(c.field, c.val);
+        else if (c.op === '<=') builder = builder.lte(c.field, c.val);
+        else if (c.op === 'in') builder = builder.in(c.field, Array.isArray(c.val) ? c.val : [c.val]);
+      } else if (c._type === 'orderBy') {
+        builder = builder.order(c.field, { ascending: c.dir !== 'desc' });
+      } else if (c._type === 'limit') {
+        builder = builder.limit(c.count);
+      }
     }
-  }
+    return builder;
+  };
 
-  const { data, error } = await builder;
+  let { data, error } = await runQuery();
+  if (error && isAuthError(error)) {
+    // Access token probably expired between session restore and this query.
+    // Refresh once and retry instead of showing an empty table.
+    await ensureFreshSession();
+    ({ data, error } = await runQuery());
+  }
   if (error) {
     console.warn(`getDocs(${col}) warning:`, error.message);
-    return { empty: true, size: 0, docs: [], forEach: () => {} };
+    notifyDataError(col, error);
+    return { empty: true, size: 0, docs: [], forEach: () => {}, error };
   }
 
   const docs = (data || []).map(row => {

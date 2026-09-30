@@ -2499,7 +2499,7 @@
                 <div class="metric-trend trend-up">Active Codes</div>
               </div>
               <div class="metric-footer">
-                <span>Standard 9th &amp; 10th Sections</span>
+                <span>All grades &middot; LKG &ndash; 12</span>
                 <a href="#" class="metric-link" data-go-tab="classes">Configure &rarr;</a>
               </div>
             </div>
@@ -4149,7 +4149,7 @@
     import {
       auth, db, storage, ref, uploadBytes, getDownloadURL, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
       collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot,
-      getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
+      getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut, ensureFreshSession
     } from '../../js/auth.js';
 
     // Helper: synchronize identifiers into /loginLookup for safe, O(1) unauthenticated login resolution
@@ -4500,6 +4500,7 @@
         }
       }
 
+      if (tabName === 'overview') loadOverview();
       if (tabName === 'classes') loadClasses();
       if (tabName === 'staff') { loadStaff(); loadClasses(); }
       if (tabName === 'students') { loadStudents(); loadClasses(); }
@@ -4544,6 +4545,30 @@
 
     document.getElementById('sideQuickAddBtn')?.addEventListener('click', () => switchTab('students'));
     document.getElementById('overviewAnnBtn')?.addEventListener('click', () => switchTab('announcements'));
+
+    // Visible data-error banner: queries used to fail silently and render
+    // empty tables. Any data-layer error now shows here with the reason.
+    window.addEventListener('erp:data-error', (e) => {
+      const d = (e && e.detail) || {};
+      let bar = document.getElementById('erpDataErrorBar');
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'erpDataErrorBar';
+        bar.style.cssText = 'position:sticky;top:0;z-index:9999;background:#fef2f2;color:#991b1b;border-bottom:2px solid #fca5a5;padding:10px 16px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:space-between;';
+        const msg = document.createElement('span');
+        msg.id = 'erpDataErrorMsg';
+        const btn = document.createElement('button');
+        btn.textContent = 'Dismiss';
+        btn.style.cssText = 'background:#991b1b;color:#fff;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:700;';
+        btn.onclick = () => { bar.style.display = 'none'; };
+        bar.appendChild(msg);
+        bar.appendChild(btn);
+        document.body.prepend(bar);
+      }
+      bar.style.display = 'flex';
+      document.getElementById('erpDataErrorMsg').textContent =
+        `Couldn't load "${d.col || 'data'}": ${d.message || 'unknown error'}. Try reloading the page.`;
+    });
 
     // Initialize tab state from hash or default to overview
     const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'overview';
@@ -5867,6 +5892,9 @@
         const dateEl = document.getElementById('todayDateStr');
         if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
+        // Make sure the access token is fresh before the first data load —
+        // otherwise an expired token makes every table render empty.
+        await ensureFreshSession();
         await loadClasses();
         await loadOverview();
         preloadAllDataForSearch();
@@ -9426,6 +9454,9 @@
             const stfSnap = await getDoc(doc(db, 'staff', attSelectedClassObj.classTeacherUid));
             if (stfSnap.exists()) tName = stfSnap.data().name || tName;
           } catch (e) { }
+        }
+        if (tName === 'Not Assigned' && attSelectedClassObj.classTeacherName) {
+          tName = attSelectedClassObj.classTeacherName;
         }
         teacherNameTxt.textContent = tName;
       }
