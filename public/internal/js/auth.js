@@ -122,9 +122,12 @@ export function onAuthStateChanged(authInst, callback) {
       currentActiveUser = session.user;
       callback(session.user);
     } else {
-      callback(auth.currentUser);
+      // No genuine Supabase session. Never synthesize a user from the
+      // erp_session_* cache here: without a real session every RLS-gated
+      // query returns [] and the portal would render empty tables.
+      callback(null);
     }
-  }).catch(() => callback(auth.currentUser));
+  }).catch(() => callback(null));
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
@@ -612,16 +615,23 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
 
   const handleAuth = async (user) => {
     if (!user) {
-      if (hasHydratedFromCache) return;
-      if (typeof auth.authStateReady === 'function') {
-        try { await auth.authStateReady(); } catch (e) {}
-        if (auth.currentUser) return;
-      }
-      if (!hasHydratedFromCache) {
+      // Re-check with a fresh session read in case the client's storage
+      // was still initializing when onAuthStateChanged ran.
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          session.user.uid = session.user.id;
+          currentActiveUser = session.user;
+          user = session.user;
+        }
+      } catch (e) {}
+      if (!user) {
+        // No genuine session: a cached identity alone cannot satisfy RLS,
+        // so staying would render an empty portal. Force a fresh login.
         purgePortalSession();
         window.location.href = loginPath;
+        return;
       }
-      return;
     }
 
     try {
