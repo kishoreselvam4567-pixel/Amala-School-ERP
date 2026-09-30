@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amala ERP Portal — Student, Parent, Staff & Admin Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  :root {
+    --erp-navy: #0f1e36;
+    --erp-blue: #1e3a8a;
+    --erp-accent: #2563eb;
+    --erp-gold: #d97706;
+    --erp-bg: #f1f5f9;
+    --erp-card: #ffffff;
+    --erp-border: #cbd5e1;
+  }
+
+  body {
+    min-height: 100vh;
+    background: #e2e8f0 linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    font-family: var(--font-body);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Top Institutional Header */
+  .erp-header {
+    background: #ffffff;
+    border-bottom: 3px solid #1e3a8a;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    padding: 12px 24px;
+  }
+  .erp-header-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .erp-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .erp-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .erp-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .erp-school-info h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f1e36;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .erp-school-info p {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 2px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .erp-portal-badge {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: right;
+  }
+  .erp-portal-badge .title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e3a8a;
+  }
+  .erp-portal-badge .sub {
+    font-size: 11px;
+    color: #64748b;
+  }
+
+  /* Marquee Alert Bar */
+  .erp-ticker {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 8px 0;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-label {
+    background: #d97706;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    border-radius: 4px;
+    margin: 0 14px 0 24px;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .ticker-content {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  /* Main Container */
+  .erp-container {
+    max-width: 490px;
+    width: 100%;
+    margin: 36px auto;
+    padding: 0 20px;
+    flex: 1;
+  }
+  .erp-grid {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .erp-login-card {
+    width: 100%;
+  }
+
+  /* Left Panel: Instructions & Helpdesk */
+  .erp-info-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .instruction-box {
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .instruction-box h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0 0 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .instruction-box p {
+    font-size: 13px;
+    color: #475569;
+    margin: 0;
+    line-height: 1.55;
+  }
+  .notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .notice-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.45;
+  }
+  .notice-item svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #10b981;
+  }
+
+  .helpdesk-box {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 18px;
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .helpdesk-info h4 {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 2px 0;
+  }
+  .helpdesk-info p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f1e36;
+    margin: 0;
+  }
+
+  /* Right Panel: Login Card */
+  .erp-login-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 15px 35px -5px rgba(0,0,0,0.08);
+    padding: 32px 28px;
+    position: relative;
+  }
+  .login-card-head {
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .login-card-head h2 {
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f1e36;
+    margin: 0;
+  }
+  .role-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .role-pill-item {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  /* Input fields */
+  .erp-field {
+    margin-bottom: 16px;
+  }
+  .erp-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .erp-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .erp-input-wrap input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+  }
+  .erp-input-wrap input:focus {
+    outline: none;
+    background: #fff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  .toggle-pwd-btn {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Captcha Box (VELS ERP Style) */
+  .captcha-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+  .captcha-display-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .captcha-canvas-wrap {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 1.5px solid #334155;
+    border-radius: 8px;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    cursor: pointer;
+    flex: 1;
+    height: 44px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.15s ease;
+  }
+  .captcha-canvas-wrap:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2), inset 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .btn-refresh-captcha {
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+  }
+  .btn-refresh-captcha:hover {
+    background: #e2e8f0;
+    color: #1e3a8a;
+    border-color: #94a3b8;
+    transform: rotate(180deg);
+  }
+  .btn-refresh-captcha.spinning {
+    transform: rotate(360deg);
+  }
+
+  /* Alert Boxes */
+  .error-box {
+    background: #fef2f2;
+    border: 1.5px solid #f87171;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.45;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.08);
+    animation: alertShake 0.4s ease-out;
+  }
+  .success-box {
+    background: #f0fdf4;
+    border: 1.5px solid #4ade80;
+    color: #166534;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.45;
+    box-shadow: 0 2px 6px rgba(34,197,94,0.08);
+    animation: alertSlide 0.3s ease-out;
+  }
+  @keyframes alertShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes alertSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Action Buttons */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .btn-erp-login {
+    background: #1e3a8a;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-shadow: 0 4px 10px rgba(30,58,138,0.25);
+  }
+  .btn-erp-login:hover {
+    background: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(30,58,138,0.3);
+  }
+  .btn-erp-reset {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-erp-reset:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .login-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 12.5px;
+  }
+  .login-card-footer a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .login-card-footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Bottom Institutional Footer */
+  .erp-footer {
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 18px 24px;
+    font-size: 12px;
+    border-top: 1px solid #1e293b;
+  }
+  .erp-footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  @media (max-width: 860px) {
+    .erp-grid { grid-template-columns: 1fr; }
+    .erp-portal-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 1. INSTITUTIONAL HEADER -->
+  <header class="erp-header">
+    <div class="erp-header-inner">
+      <div class="erp-brand">
+        <div class="erp-logo">
+          <img src="image/school logo.jpg" alt="Amala HSS Logo">
+        </div>
+        <div class="erp-school-info">
+          <h1>AMALA HIGHER SECONDARY SCHOOL</h1>
+          <p>Campus Management &amp; Student Information System</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. ANNOUNCEMENT TICKER -->
+  <div class="erp-ticker">
+    <div class="ticker-label">Notice</div>
+    <div class="ticker-content">
+      Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam Schedule, Notes &amp; Circulars online 24/7.
+    </div>
+  </div>
+
+  <!-- 3. MAIN DUAL-PANE BODY -->
+  <main class="erp-container">
+    <div class="erp-grid">
+      
+
+      <!-- RIGHT PANEL: Authentication Form with Captcha -->
+      <div class="erp-login-card">
+        <div class="login-card-head">
+          <h2>Sign In to Portal</h2>
+          <div class="role-pills">
+            <span class="role-pill-item">Student</span>
+            <span class="role-pill-item">Parent</span>
+            <span class="role-pill-item">Staff</span>
+            <span class="role-pill-item">Admin</span>
+          </div>
+        </div>
+
+        <div class="error-box" id="errBox"></div>
+        <div class="success-box" id="okBox"></div>
+
+        <form id="erpLoginForm">
+          <!-- User ID -->
+          <div class="erp-field">
+            <label for="loginUserId">USER ID</label>
+            <div class="erp-input-wrap">
+              <input type="text" id="loginUserId" required autocomplete="username" placeholder="Enter User ID">
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="erp-field">
+            <label for="loginPassword">PASSWORD / DATE OF BIRTH</label>
+            <div class="erp-input-wrap">
+              <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
+              <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Show/Hide Password" aria-label="Toggle password visibility">
+                <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Captcha Row (Instant Interactive Component) -->
+          <div class="captcha-row">
+            <div>
+              <label style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">SECURITY CAPTCHA</label>
+              <div class="captcha-display-box">
+                <div class="captcha-canvas-wrap" id="captchaDisplayBox" title="Click to regenerate new security code" onclick="if(window.generateCaptchaCode)window.generateCaptchaCode();" style="cursor:pointer;">
+                  <canvas id="captchaCanvas" width="128" height="40" style="display:block; border-radius:6px;"></canvas>
+                </div>
+                <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn" title="Change Captcha Code" aria-label="Change Captcha Code" onclick="if(window.generateCaptchaCode)window.generateCaptchaCode();">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="erp-field" style="margin-bottom:0;">
+              <label for="captchaInput">ENTER CAPTCHA</label>
+              <div class="erp-input-wrap">
+                <input type="text" id="captchaInput" required placeholder="TYPE CODE" maxlength="6" style="text-transform:uppercase; font-weight:700; letter-spacing:1.5px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="btn-row">
+            <button type="submit" class="btn-erp-login" id="loginBtn">Login to ERP</button>
+            <button type="button" class="btn-erp-reset" id="resetBtn">Clear</button>
+          </div>
+        </form>
+
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 4. FOOTER & SERVER INFO -->
+  <footer class="erp-footer">
+    <div class="erp-footer-inner">
+      <div>&copy; 2025–2026 Amala Higher Secondary School. All rights reserved.</div>
+      <div id="serverClock" style="font-family:monospace; color:#cbd5e1;">System Time: Loading…</div>
+      <div>Amala HSS ERP Portal</div>
+    </div>
+  </footer>
+
+<!-- Immediate Synchronous Captcha Script (Runs instantly without waiting for network/modules) -->
+<script>
+  let _captchaHash = '';
+  const _captchaSalt = Math.random().toString(36).substring(2);
+
+  function _hashCaptcha(str) {
+    let hash = 0x811c9dc5;
+    // Strip all whitespaces and normalize to uppercase
+    const cleanStr = String(str || '').replace(/\s+/g, '').trim().toUpperCase();
+    const combined = _captchaSalt + cleanStr;
+    for (let i = 0; i < combined.length; i++) {
+      hash ^= combined.charCodeAt(i);
+      hash = (hash * 0x01000193) >>> 0;
+    }
+    return hash.toString(16);
+  }
+
+  function verifyCaptcha(candidate) {
+    if (!candidate || !_captchaHash) return false;
+    return _hashCaptcha(candidate) === _captchaHash;
+  }
+
+  function hasCaptcha() {
+    return !!_captchaHash;
+  }
+
+  function generateCaptchaCode() {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    _captchaHash = _hashCaptcha(code);
+
+    const canvas = document.getElementById('captchaCanvas');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      for (let i = 0; i < 20; i++) {
+        ctx.fillStyle = (i % 2 === 0) ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.25)';
+        ctx.beginPath();
+        ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (let i = 0; i < 2; i++) {
+        ctx.strokeStyle = i === 0 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(56, 189, 248, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * 20, Math.random() * h);
+        ctx.bezierCurveTo(w * 0.3, Math.random() * h, w * 0.7, Math.random() * h, w - Math.random() * 10, Math.random() * h);
+        ctx.stroke();
+      }
+
+      const charW = w / (code.length + 1);
+      for (let i = 0; i < code.length; i++) {
+        ctx.save();
+        const char = code[i];
+        const angle = (Math.random() - 0.5) * 0.25;
+        const x = (i + 1) * charW - 4;
+        const y = h * 0.72;
+
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.font = '800 21px "Outfit", "Inter", sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    const inp = document.getElementById('captchaInput');
+    if (inp) inp.value = '';
+
+    const refreshBtn = document.getElementById('refreshCaptchaBtn');
+    if (refreshBtn) {
+      refreshBtn.classList.add('spinning');
+      setTimeout(() => refreshBtn.classList.remove('spinning'), 300);
+    }
+  }
+
+  // Expose globally
+  window.generateCaptchaCode = generateCaptchaCode;
+  window.verifyCaptcha = verifyCaptcha;
+  window.hasCaptcha = hasCaptcha;
+
+  function initPageHelpers() {
+    generateCaptchaCode();
+
+    const refreshBtn = document.getElementById('refreshCaptchaBtn');
+    if (refreshBtn) {
+      refreshBtn.onclick = (e) => {
+        if (e) e.preventDefault();
+        generateCaptchaCode();
+        const inp = document.getElementById('captchaInput');
+        if (inp) inp.focus();
+      };
+    }
+
+    const canvasBox = document.getElementById('captchaDisplayBox');
+    if (canvasBox) {
+      canvasBox.onclick = () => {
+        generateCaptchaCode();
+        const inp = document.getElementById('captchaInput');
+        if (inp) inp.focus();
+      };
+    }
+
+    const toggleBtn = document.getElementById('togglePwdBtn');
+    const pwdInput = document.getElementById('loginPassword');
+    if (toggleBtn && pwdInput) {
+      toggleBtn.onclick = () => {
+        const isPwd = pwdInput.type === 'password';
+        pwdInput.type = isPwd ? 'text' : 'password';
+        const eye = document.getElementById('eyeIcon');
+        if (eye) {
+          eye.innerHTML = isPwd
+            ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        }
+      };
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
+      const clockEl = document.getElementById('serverClock');
+      if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPageHelpers);
+  } else {
+    initPageHelpers();
+  }
+
+  window.addEventListener('load', () => {
+    if (!hasCaptcha()) generateCaptchaCode();
+  });
+</script>
+
+<!-- Supabase SDK (loaded via CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ============================================================
+// LOGIN PAGE — Supabase Auth Logic
+// ============================================================
+
+(function() {
+  'use strict';
+
+  const SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      storage: window.localStorage,
+      autoRefreshToken: true
+    }
+  });
+
+  // Role → page mapping
+  const ROLE_ROUTES = {
+    student : 'student/dashboard.html',
+    parent  : 'parent/dashboard.html',
+    staff   : 'internal/staff/dashboard.html',
+    admin   : 'internal/admin/dashboard.html'
+  };
+
+  // Admin email shortcuts
+  const ADMIN_EMAILS = ['amala@123.gmail.com','admin@kishore.gmail.com','amala123@gmail.com'];
+
+  // ── UI helpers ──────────────────────────────────────────────
+  const errBox  = document.getElementById('errBox');
+  const okBox   = document.getElementById('okBox');
+  const loginBtn = document.getElementById('loginBtn');
+  const form     = document.getElementById('erpLoginForm');
+  const pwdInput = document.getElementById('loginPassword');
+
+  function showErrBox(msg) {
+    okBox.style.display = 'none';
+    if (!msg) { errBox.style.display = 'none'; errBox.textContent = ''; return; }
+    errBox.style.display = 'none';
+    errBox.textContent = msg;
+    void errBox.offsetWidth; // force reflow → replay CSS animation
+    errBox.style.display = 'block';
+  }
+  function showOkBox(msg) {
+    errBox.style.display = 'none';
+    if (!msg) { okBox.style.display = 'none'; okBox.textContent = ''; return; }
+    okBox.style.display = 'none';
+    okBox.textContent = msg;
+    void okBox.offsetWidth;
+    okBox.style.display = 'block';
+  }
+
+  // ── Clear button ─────────────────────────────────────────────
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    form.reset();
+    generateCaptchaCode();
+    showErrBox('');
+    document.getElementById('loginUserId').focus();
+  });
+
+  // Auto-redirect disabled: User must always enter User ID and Password manually to sign in
+
+  // ── Login submit handler ─────────────────────────────────────
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showErrBox('');
+
+    // 1. Captcha check
+    const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+
+    if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
+      showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');
+      generateCaptchaCode();
+      const inp = document.getElementById('captchaInput');
+      if (inp) { inp.value = ''; inp.focus(); }
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Authenticating…';
+
+    const rawUser = document.getElementById('loginUserId').value.trim();
+    const pass    = pwdInput.value;
+
+    try {
+      // ── Resolve authEmail from User ID ────────────────────
+      let authEmail = rawUser;
+      const normUser = rawUser.toLowerCase();
+      const isFullEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser);
+
+      if (!isFullEmail) {
+        const digitsOnly = rawUser.replace(/\D/g, '');
+        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+
+        const lookupKeys = [...new Set([
+          normUser,
+          digitsOnly.length >= 7 ? last10 : null
+        ].filter(Boolean))];
+
+        let resolved = false;
+        for (const key of lookupKeys) {
+          try {
+            const { data: lData } = await sb.from('login_lookup').select('email').eq('id', key).maybeSingle();
+            if (lData && lData.email) {
+              authEmail = lData.email;
+              resolved = true;
+              break;
+            }
+          } catch(e) { console.warn('loginLookup:', e.message); }
+        }
+
+        if (!resolved) {
+          throw new Error('Invalid User ID or password. Please check your credentials and try again.');
+        }
+      }
+
+      // ── Build password candidate list ──────────────────────────
+      const candidatePasswords = [pass];
+      const cleanDigits = pass.replace(/\D/g, '');
+      if (cleanDigits.length === 8) {
+        const dd = cleanDigits.slice(0,2), mm = cleanDigits.slice(2,4), yyyy = cleanDigits.slice(4,8);
+        candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
+      }
+      const uniquePasswords = [...new Set(candidatePasswords)];
+
+      // ── Attempt Supabase Auth sign-in ─────────────────────────
+      let authUser = null, authError = null;
+      for (const tryPass of uniquePasswords) {
+        try {
+          const { data: sData, error: sErr } = await sb.auth.signInWithPassword({
+            email: authEmail,
+            password: tryPass
+          });
+          if (sData && sData.user) {
+            authUser = sData.user;
+            break;
+          }
+          if (sErr) authError = sErr;
+        } catch(err) { authError = err; }
+      }
+
+      if (!authUser) throw (authError || new Error('Invalid User ID or Password.'));
+
+      // ── Read user profile ──────────────────────────────────────
+      const uid = authUser.id;
+      const curEmail = (authUser.email || authEmail).toLowerCase();
+      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+
+      let { data: userData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
+
+      // ── Auto-heal admin doc ────────────────────────────────────
+      if (isAdminAcc && (!userData || !userData.role)) {
+        const adminData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
+        try { await sb.from('users').upsert(adminData); } catch(e) {}
+        userData = adminData;
+      }
+
+      if (!userData || userData.deleted || userData.disabled || !userData.role) {
+        await sb.auth.signOut();
+        throw new Error('This account has been deleted or deactivated. Contact school admin.');
+      }
+
+      const role = userData.role;
+
+      // ── Role-specific record check ─────────────────────────────
+      let roleDocData = null;
+      if (role === 'staff') {
+        const { data: stf } = await sb.from('staff').select('*').eq('id', uid).maybeSingle();
+        if (!stf || stf.deleted) {
+          await sb.auth.signOut();
+          throw new Error('Faculty account removed by administrator. Portal access denied.');
+        }
+        roleDocData = stf;
+      } else if (role === 'student') {
+        const { data: stu } = await sb.from('students').select('*').eq('id', uid).maybeSingle();
+        if (!stu || stu.deleted) {
+          await sb.auth.signOut();
+          throw new Error('Student account removed by administrator. Portal access denied.');
+        }
+        roleDocData = stu;
+      } else if (role === 'parent') {
+        const { data: par } = await sb.from('parents').select('*').eq('id', uid).maybeSingle();
+        if (!par || par.deleted) {
+          await sb.auth.signOut();
+          throw new Error('Parent account removed by administrator. Portal access denied.');
+        }
+        roleDocData = par;
+      }
+
+      // Pre-fetch student profile for parents
+      let studentProfile = null;
+      if (role === 'parent' && roleDocData && roleDocData.childUid) {
+        const { data: childDoc } = await sb.from('students').select('*').eq('id', roleDocData.childUid).maybeSingle();
+        studentProfile = childDoc;
+      }
+
+      const dest = ROLE_ROUTES[role];
+      if (!dest) {
+        await sb.auth.signOut();
+        throw new Error('Unrecognized user role. Contact school IT support.');
+      }
+
+      // ── Store rich session payload ────────────────────────────
+      try {
+        const roleData = roleDocData ? {
+          ...roleDocData,
+          studentProfile: studentProfile || null
+        } : null;
+
+        const sessionPayload = {
+          uid: authUser.id,
+          id: authUser.id,
+          email: authUser.email || authEmail,
+          role,
+          name: userData.name || '',
+          profile: userData,
+          roleData: roleData,
+          timestamp: Date.now()
+        };
+        const payloadStr = JSON.stringify(sessionPayload);
+        sessionStorage.setItem('erp_active_session', payloadStr);
+        sessionStorage.setItem('erp_session_' + role, payloadStr);
+        sessionStorage.setItem('erp_active_role', role);
+
+        localStorage.setItem('erp_session_' + role, payloadStr);
+        localStorage.setItem('erp_last_active_role', role);
+        localStorage.removeItem('erp_active_session');
+      } catch(e) {}
+
+      showOkBox('✅ Login successful! Redirecting to your dashboard…');
+      setTimeout(() => { window.location.replace(dest); }, 80);
+
+    } catch (err) {
+      generateCaptchaCode();
+      document.getElementById('captchaInput').value = '';
+
+      let msg = 'Authentication failed. Please check your credentials and try again.';
+      const msgLower = (err.message || '').toLowerCase();
+      if (msgLower.includes('invalid login credentials') || msgLower.includes('invalid credentials')) {
+        msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
+      } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
+        msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
+      } else if (err.message) {
+        msg = err.message;
+      }
+      showErrBox(msg);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login to ERP';
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
