@@ -14,6 +14,11 @@ const nextConfig = {
         permanent: false,
       },
       {
+        source: '/index.html',
+        destination: '/',
+        permanent: false,
+      },
+      {
         source: '/internal/admin/dashboard',
         destination: '/internal/admin/dashboard.html',
         permanent: false,

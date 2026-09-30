@@ -104,7 +104,7 @@ export default function LoginPage() {
     }
   }, []);
 
-  const generateCaptcha = useCallback(() => {
+  const generateCaptcha = useCallback((clearInput = false) => {
     const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
     let code = '';
     for (let i = 0; i < 4; i++) {
@@ -113,6 +113,10 @@ export default function LoginPage() {
     captchaHashRef.current = hashCaptcha(code);
     setCaptchaCode(code);
     drawCaptcha(code);
+
+    if (clearInput) {
+      setCaptchaInput('');
+    }
 
     setIsSpinning(true);
     setTimeout(() => setIsSpinning(false), 300);
@@ -147,7 +151,11 @@ export default function LoginPage() {
     setCaptchaInput('');
     setErrorMsg('');
     setSuccessMsg('');
-    generateCaptcha();
+    generateCaptcha(true);
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('loginUserId');
+      if (el) el.focus();
+    }
   };
 
   const handleLogin = async (e) => {
@@ -416,10 +424,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {errorMsg && <div className="error-box" style={{ display: 'block' }}>{errorMsg}</div>}
-            {successMsg && <div className="success-box" style={{ display: 'block' }}>{successMsg}</div>}
+            {errorMsg && <div className="error-box" id="errBox" style={{ display: 'block' }}>{errorMsg}</div>}
+            {successMsg && <div className="success-box" id="okBox" style={{ display: 'block' }}>{successMsg}</div>}
 
-            <form onSubmit={handleLogin}>
+            <form id="erpLoginForm" onSubmit={handleLogin}>
               {/* User ID */}
               <div className="erp-field">
                 <label htmlFor="loginUserId">USER ID</label>
@@ -452,17 +460,18 @@ export default function LoginPage() {
                   <button
                     type="button"
                     className="toggle-pwd-btn"
+                    id="togglePwdBtn"
                     title="Show/Hide Password"
                     aria-label="Toggle password visibility"
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
                     {showPassword ? (
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                         <line x1="1" y1="1" x2="23" y2="23" />
                       </svg>
                     ) : (
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
@@ -490,12 +499,14 @@ export default function LoginPage() {
                   <div className="captcha-display-box">
                     <div
                       className="captcha-canvas-wrap"
+                      id="captchaDisplayBox"
                       title="Click to regenerate new security code"
-                      onClick={generateCaptcha}
+                      onClick={() => generateCaptcha(true)}
                       style={{ cursor: 'pointer' }}
                     >
                       <canvas
                         ref={canvasRef}
+                        id="captchaCanvas"
                         width={128}
                         height={40}
                         style={{ display: 'block', borderRadius: '6px' }}
@@ -504,9 +515,10 @@ export default function LoginPage() {
                     <button
                       type="button"
                       className={`btn-refresh-captcha ${isSpinning ? 'spinning' : ''}`}
+                      id="refreshCaptchaBtn"
                       title="Change Captcha Code"
                       aria-label="Change Captcha Code"
-                      onClick={generateCaptcha}
+                      onClick={() => generateCaptcha(true)}
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -545,12 +557,13 @@ export default function LoginPage() {
 
               {/* Action Buttons */}
               <div className="btn-row">
-                <button type="submit" className="btn-erp-login" disabled={loading}>
+                <button type="submit" className="btn-erp-login" id="loginBtn" disabled={loading}>
                   {loading ? 'Authenticating…' : 'Login to ERP'}
                 </button>
                 <button
                   type="button"
                   className="btn-erp-reset"
+                  id="resetBtn"
                   onClick={handleReset}
                 >
                   Clear
@@ -565,7 +578,7 @@ export default function LoginPage() {
       <footer className="erp-footer">
         <div className="erp-footer-inner">
           <div>&copy; 2025–2026 Amala Higher Secondary School. All rights reserved.</div>
-          <div style={{ fontFamily: 'monospace', color: '#cbd5e1' }}>
+          <div id="serverClock" style={{ fontFamily: 'monospace', color: '#cbd5e1' }}>
             System Time: {systemTime || 'Loading…'}
           </div>
           <div>Amala HSS ERP Portal</div>

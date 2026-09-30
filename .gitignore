@@ -22,3 +22,7 @@ amalahss/
 # Netlify
 netlify.toml
 .netlify/
+
+# Legacy backups
+*.legacy
+
