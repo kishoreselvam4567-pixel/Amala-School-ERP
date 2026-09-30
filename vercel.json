@@ -6,11 +6,13 @@
     { "source": "/login.html", "destination": "/index.html" },
     { "source": "/index.html", "destination": "/index.html" },
     { "source": "/register", "destination": "/register.html" },
-    { "source": "/migrate-data", "destination": "/migrate-data.html" },
-    { "source": "/admin", "destination": "/internal/admin/dashboard" },
-    { "source": "/staff", "destination": "/internal/staff/dashboard" },
-    { "source": "/student", "destination": "/student/dashboard" },
-    { "source": "/parent", "destination": "/parent/dashboard" }
+    { "source": "/migrate-data", "destination": "/migrate-data.html" }
+  ],
+  "redirects": [
+    { "source": "/admin", "destination": "/internal/admin/dashboard", "permanent": false },
+    { "source": "/staff", "destination": "/internal/staff/dashboard", "permanent": false },
+    { "source": "/student", "destination": "/student/dashboard", "permanent": false },
+    { "source": "/parent", "destination": "/parent/dashboard", "permanent": false }
   ],
   "headers": [
     {
