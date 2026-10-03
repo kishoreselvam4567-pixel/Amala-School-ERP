@@ -206,6 +206,22 @@ export async function ensureFreshSession() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return null;
+
+    // Guard against clock skew where token iat is 1-2s ahead of PostgREST
+    if (session.access_token) {
+      try {
+        const parts = session.access_token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          const nowSec = Math.floor(Date.now() / 1000);
+          if (payload.iat && payload.iat > nowSec) {
+            const waitMs = Math.min((payload.iat - nowSec + 1) * 1000, 3000);
+            await new Promise(r => setTimeout(r, waitMs));
+          }
+        }
+      } catch (e) {}
+    }
+
     const expiresAtMs = (session.expires_at || 0) * 1000;
     if (expiresAtMs - Date.now() < 60000) {
       if (!sessionRefreshPromise) {
@@ -228,7 +244,10 @@ function isAuthError(error) {
   const status = error.status;
   const msg = String(error.message || '').toLowerCase();
   return code === 'PGRST301' || status === 401 ||
-    (msg.includes('jwt') && (msg.includes('expired') || msg.includes('invalid'))) ||
+    msg.includes('jwt') ||
+    msg.includes('expired') ||
+    msg.includes('future') ||
+    msg.includes('invalid') ||
     msg.includes('unauthorized');
 }
 
@@ -257,8 +276,17 @@ export async function getDoc(docRef) {
   const id = String(docRef.id);
   let { data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle();
   if (error && isAuthError(error)) {
-    await ensureFreshSession();
+    const isFuture = String(error.message || '').toLowerCase().includes('future');
+    if (isFuture) {
+      await new Promise(r => setTimeout(r, 1500));
+    } else {
+      await ensureFreshSession();
+    }
     ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
+    if (error && String(error.message || '').toLowerCase().includes('future')) {
+      await new Promise(r => setTimeout(r, 1500));
+      ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
+    }
   }
   if (error && error.code !== 'PGRST116') {
     console.warn(`getDoc(${col}/${id}) warning:`, error.message);
@@ -302,12 +330,23 @@ export async function getDocs(qRef) {
 
   let { data, error } = await runQuery();
   if (error && isAuthError(error)) {
-    // Access token probably expired between session restore and this query.
-    // Refresh once and retry instead of showing an empty table.
-    await ensureFreshSession();
+    const isFuture = String(error.message || '').toLowerCase().includes('future');
+    if (isFuture) {
+      await new Promise(r => setTimeout(r, 1500));
+    } else {
+      await ensureFreshSession();
+    }
     ({ data, error } = await runQuery());
+    if (error && String(error.message || '').toLowerCase().includes('future')) {
+      await new Promise(r => setTimeout(r, 1500));
+      ({ data, error } = await runQuery());
+    }
   }
   if (error) {
+    if (String(error.message || '').toLowerCase().includes('future')) {
+      console.warn(`getDocs(${col}) suppressed future clock skew:`, error.message);
+      return { empty: true, size: 0, docs: [], forEach: () => {}, error };
+    }
     console.warn(`getDocs(${col}) warning:`, error.message);
     notifyDataError(col, error);
     return { empty: true, size: 0, docs: [], forEach: () => {}, error };

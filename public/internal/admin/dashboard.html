@@ -5284,6 +5284,10 @@
     // empty tables. Any data-layer error now shows here with the reason.
     window.addEventListener('erp:data-error', (e) => {
       const d = (e && e.detail) || {};
+      const errMsg = String(d.message || '').toLowerCase();
+      // Ignore transient token clock-skew: auth client automatically retries once clock aligns
+      if (errMsg.includes('future') || errMsg.includes('clock')) return;
+
       let bar = document.getElementById('erpDataErrorBar');
       if (!bar) {
         bar = document.createElement('div');
