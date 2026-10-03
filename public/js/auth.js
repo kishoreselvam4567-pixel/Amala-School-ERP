@@ -557,7 +557,7 @@ export async function getUserProfile(uid) {
   return null;
 }
 
-export function requirePortal(allowedRoles, onReady, loginPath = "../login.html") {
+export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") {
   let isAuthorized = false;
   let hasHydratedFromCache = false;
 

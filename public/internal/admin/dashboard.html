@@ -2287,6 +2287,13 @@
         </div>
 
         <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" id="cancelAdminAssignHwBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitAdminAssignHwBtn" style="font-weight:700;">Assign Homework</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= 1. BULK STUDENT IMPORT MODAL ================= -->
   <div class="profile-modal-overlay" id="bulkStudentImportModal">
     <div class="profile-modal-card" style="max-width:760px;">
@@ -6607,12 +6614,22 @@
 
     requirePortal(['admin'], async ({ user, profile }) => {
       try {
-        const adminName = profile.name || 'Administrator';
-        document.getElementById('uName').textContent = adminName;
-        document.getElementById('topAdminName').textContent = adminName;
+        // Immediate UI reveal
+        const loadInit = document.getElementById('loadingState');
+        const contentInit = document.getElementById('content');
+        if (loadInit) loadInit.style.display = 'none';
+        if (contentInit) contentInit.style.display = 'block';
+
+        const adminName = profile?.name || 'Administrator';
+        const uNameEl = document.getElementById('uName');
+        if (uNameEl) uNameEl.textContent = adminName;
+        const topAdminEl = document.getElementById('topAdminName');
+        if (topAdminEl) topAdminEl.textContent = adminName;
         const initial = adminName.charAt(0).toUpperCase();
-        document.getElementById('uAvatarInitial').textContent = initial;
-        document.getElementById('topAvatarInit').textContent = initial;
+        const uAvatarEl = document.getElementById('uAvatarInitial');
+        if (uAvatarEl) uAvatarEl.textContent = initial;
+        const topAvatarEl = document.getElementById('topAvatarInit');
+        if (topAvatarEl) topAvatarEl.textContent = initial;
 
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -6634,7 +6651,7 @@
         if (contentEl) contentEl.style.display = 'block';
         purgeSearchAutofill();
       }
-    });
+    }, '/index.html');
 
     // Helper: Natural Academic School Sorting (Pre-KG, LKG, UKG, 1st, 2nd ... 10th, 11th, 12th)
     function getClassSortKey(className = '') {
