@@ -634,8 +634,22 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
     }
 
     try {
-      const uid = user.uid || user.id;
-      let profile = await getUserProfile(uid);
+      let rawCacheData = null;
+      try {
+        const raw = sessionStorage.getItem('erp_active_session') ||
+          (currentRole ? localStorage.getItem('erp_session_' + currentRole) : null);
+        if (raw) rawCacheData = JSON.parse(raw);
+      } catch (e) {}
+
+      const effectiveUid = (rawCacheData && (rawCacheData.uid || rawCacheData.id) && allowedRoles.includes(rawCacheData.role))
+        ? (rawCacheData.uid || rawCacheData.id)
+        : (user.uid || user.id);
+
+      let profile = await getUserProfile(effectiveUid);
+      if (!profile && rawCacheData && rawCacheData.profile && allowedRoles.includes(rawCacheData.role)) {
+        profile = rawCacheData.profile;
+      }
+
       if (!profile) {
         if (!hasHydratedFromCache) {
           purgePortalSession();
@@ -667,7 +681,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
 
       if (!roleData && profile.role === 'parent') {
         try {
-          const parDoc = await getDoc(doc(db, 'parents', uid));
+          const parDoc = await getDoc(doc(db, 'parents', effectiveUid));
           if (parDoc && parDoc.exists()) {
             const childUid = parDoc.data().childUid;
             let stuProfile = null;
@@ -680,9 +694,16 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
         } catch (e) {}
       }
 
+      const effectiveUser = {
+        uid: effectiveUid,
+        id: effectiveUid,
+        email: profile.email || (rawCacheData && rawCacheData.email) || user.email
+      };
+      currentActiveUser = effectiveUser;
+
       const sessionPayload = JSON.stringify({
-        uid,
-        email: user.email,
+        uid: effectiveUid,
+        email: effectiveUser.email,
         role: profile.role,
         name: profile.name || '',
         profile,
@@ -698,7 +719,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
 
       if (!isAuthorized) {
         isAuthorized = true;
-        onReady({ user, profile, roleData, isCached: hasHydratedFromCache });
+        onReady({ user: effectiveUser, profile, roleData, isCached: hasHydratedFromCache });
       }
 
       setTimeout(() => {
