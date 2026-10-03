@@ -6781,19 +6781,25 @@
     });
 
     async function loadClasses() {
-      const snap = await getDocs(collection(db, 'classes'));
+      const [snap, staffSnap] = await Promise.all([
+        getDocs(collection(db, 'classes')),
+        allStaffCache.length ? Promise.resolve(null) : getDocs(collection(db, 'staff'))
+      ]);
       const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       allClasses = sortClassList(rawClasses);
       const body = document.querySelector('#clsTable tbody');
       body.innerHTML = '';
       const selOptions = [];
 
+      const staffMap = new Map();
+      if (allStaffCache.length) {
+        allStaffCache.forEach(s => staffMap.set(s.id, s.name));
+      } else if (staffSnap && staffSnap.docs) {
+        staffSnap.docs.forEach(d => staffMap.set(d.id, d.data().name));
+      }
+
       for (const r of allClasses) {
-        let teacherName = '—';
-        if (r.classTeacherUid) {
-          const t = await getDoc(doc(db, 'staff', r.classTeacherUid));
-          if (t.exists()) teacherName = t.data().name;
-        }
+        const teacherName = r.classTeacherName || staffMap.get(r.classTeacherUid) || '—';
         const tr = document.createElement('tr');
         tr.innerHTML = `
       <td><strong>${r.name}</strong></td>
@@ -7123,11 +7129,21 @@
     });
 
     async function loadStaff() {
-      const snap = await getDocs(collection(db, 'staff'));
+      const [snap, clsSnap] = await Promise.all([
+        getDocs(collection(db, 'staff')),
+        allClasses.length ? Promise.resolve(null) : getDocs(collection(db, 'classes'))
+      ]);
       const body = document.querySelector('#stfTable tbody');
       body.innerHTML = '';
       const selOptions = [];
       allStaffCache = [];
+
+      const classMap = new Map();
+      if (allClasses.length) {
+        allClasses.forEach(c => classMap.set(c.id, c.name));
+      } else if (clsSnap && clsSnap.docs) {
+        clsSnap.docs.forEach(d => classMap.set(d.id, d.data().name));
+      }
 
       for (const d of snap.docs) {
         const r = d.data();
@@ -7135,8 +7151,7 @@
         let ctNamePlain = '—';
         let ctName = '—';
         if (r.classTeacherOf) {
-          const c = await getDoc(doc(db, 'classes', r.classTeacherOf));
-          const cName = c.exists() ? c.data().name : 'Assigned Class';
+          const cName = classMap.get(r.classTeacherOf) || (r.data && r.data.classTeacherOfName) || 'Assigned Class';
           ctNamePlain = cName;
           ctName = `<span class="badge badge-good" style="display:inline-flex; align-items:center; gap:6px; padding:3px 8px;">
         <span>${cName}</span>
@@ -7824,15 +7839,16 @@
     }
 
     async function loadStudents() {
-      const snap = await getDocs(collection(db, 'students'));
+      const [snap, classesSnap] = await Promise.all([
+        getDocs(collection(db, 'students')),
+        allClasses.length ? Promise.resolve(null) : getDocs(collection(db, 'classes'))
+      ]);
       const rawStudents = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
       allStudentsCache = sortStudentsByRollNo(rawStudents);
 
-      // Auto-sync any student whose parent document is missing
-      await syncUnlinkedParents();
-
-      const classesSnap = await getDocs(collection(db, 'classes'));
-      const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      const rawClasses = allClasses.length
+        ? allClasses
+        : (classesSnap && classesSnap.docs ? classesSnap.docs.map(d => ({ id: d.id, name: d.data().name })) : []);
       const classOptions = sortClassList(rawClasses);
 
       const filterEl = document.getElementById('stuTableClassFilter');
@@ -7840,6 +7856,7 @@
       const listToRender = selectedClassId ? allStudentsCache.filter(s => s.classId === selectedClassId) : allStudentsCache;
 
       renderStudentTable(listToRender, classOptions);
+      setTimeout(() => syncUnlinkedParents(), 300);
     }
 
     function renderStudentTable(studentsList, classOptions) {
@@ -8631,15 +8648,17 @@
     }
 
     async function loadParents() {
-      // Ensure students cache is populated and unlinked parents are provisioned
-      await syncUnlinkedParents();
+      const [snap, classesSnap] = await Promise.all([
+        getDocs(collection(db, 'parents')),
+        allClasses.length ? Promise.resolve(null) : getDocs(collection(db, 'classes'))
+      ]);
 
       const stuMap = new Map();
       allStudentsCache.forEach(s => stuMap.set(s.uid, s));
 
-      // Load classes for sorting
-      const classesSnap = await getDocs(collection(db, 'classes'));
-      const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      const rawClasses = allClasses.length
+        ? allClasses
+        : (classesSnap && classesSnap.docs ? classesSnap.docs.map(d => ({ id: d.id, name: d.data().name })) : []);
       const sortedClasses = sortClassList(rawClasses);
       const classNameMap = new Map();
       sortedClasses.forEach(c => classNameMap.set(c.id, c.name));
@@ -8648,7 +8667,6 @@
       container.innerHTML = '';
       allParentsCache = [];
 
-      const snap = await getDocs(collection(db, 'parents'));
       let orphanCount = 0;
 
       if (snap.empty) {

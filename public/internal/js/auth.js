@@ -207,21 +207,6 @@ export async function ensureFreshSession() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return null;
 
-    // Guard against clock skew where token iat is 1-2s ahead of PostgREST
-    if (session.access_token) {
-      try {
-        const parts = session.access_token.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(atob(parts[1]));
-          const nowSec = Math.floor(Date.now() / 1000);
-          if (payload.iat && payload.iat > nowSec) {
-            const waitMs = Math.min((payload.iat - nowSec + 1) * 1000, 3000);
-            await new Promise(r => setTimeout(r, waitMs));
-          }
-        }
-      } catch (e) {}
-    }
-
     const expiresAtMs = (session.expires_at || 0) * 1000;
     if (expiresAtMs - Date.now() < 60000) {
       if (!sessionRefreshPromise) {
@@ -278,13 +263,13 @@ export async function getDoc(docRef) {
   if (error && isAuthError(error)) {
     const isFuture = String(error.message || '').toLowerCase().includes('future');
     if (isFuture) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 400));
     } else {
       await ensureFreshSession();
     }
     ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
     if (error && String(error.message || '').toLowerCase().includes('future')) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 600));
       ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
     }
   }
@@ -304,9 +289,28 @@ export async function getDoc(docRef) {
   };
 }
 
+const queryCache = new Map();
+export function clearQueryCache(col) {
+  if (col) {
+    const prefix = normalizeCol(col) + ':';
+    for (const k of queryCache.keys()) {
+      if (k.startsWith(prefix)) queryCache.delete(k);
+    }
+  } else {
+    queryCache.clear();
+  }
+}
+
 export async function getDocs(qRef) {
   const col = normalizeCol(qRef.col);
   const constraints = qRef.constraints || [];
+  const cacheKey = col + ':' + JSON.stringify(constraints);
+
+  // Return cached result if fresh (< 12 seconds)
+  const cached = queryCache.get(cacheKey);
+  if (cached && (Date.now() - cached.time) < 12000) {
+    return cached.result;
+  }
 
   const runQuery = () => {
     let builder = supabase.from(col).select('*');
@@ -332,13 +336,13 @@ export async function getDocs(qRef) {
   if (error && isAuthError(error)) {
     const isFuture = String(error.message || '').toLowerCase().includes('future');
     if (isFuture) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 400));
     } else {
       await ensureFreshSession();
     }
     ({ data, error } = await runQuery());
     if (error && String(error.message || '').toLowerCase().includes('future')) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 600));
       ({ data, error } = await runQuery());
     }
   }
@@ -363,12 +367,15 @@ export async function getDocs(qRef) {
     };
   });
 
-  return {
+  const result = {
     empty: docs.length === 0,
     size: docs.length,
     docs,
     forEach: (cb) => docs.forEach(cb)
   };
+
+  queryCache.set(cacheKey, { time: Date.now(), result });
+  return result;
 }
 
 export async function setDoc(docRef, data, options = {}) {
@@ -383,6 +390,7 @@ export async function setDoc(docRef, data, options = {}) {
     console.error(`setDoc(${col}/${id}) error:`, error);
     throw error;
   }
+  clearQueryCache(col);
 }
 
 export async function addDoc(colRef, data) {
@@ -397,6 +405,7 @@ export async function addDoc(colRef, data) {
     console.error(`addDoc(${col}) error:`, error);
     throw error;
   }
+  clearQueryCache(col);
   return { id, col };
 }
 
@@ -412,6 +421,7 @@ export async function updateDoc(docRef, data) {
     console.error(`updateDoc(${col}/${id}) error:`, error);
     throw error;
   }
+  clearQueryCache(col);
 }
 
 export async function deleteDoc(docRef) {
@@ -422,6 +432,7 @@ export async function deleteDoc(docRef) {
     console.error(`deleteDoc(${col}/${id}) error:`, error);
     throw error;
   }
+  clearQueryCache(col);
 }
 
 export function serverTimestamp() {
