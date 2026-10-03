@@ -632,6 +632,8 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         window.location.href = loginPath;
         return;
       }
+    }
+
     try {
       let rawCacheData = null;
       try {
