@@ -12,7 +12,58 @@
     rel="stylesheet">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/site-brand.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="../../js/bulk-import-export.js"></script>
   <style>
+    /* Bulk Import & Export Modals Styling */
+    .bulk-dropzone {
+      border: 2px dashed #93c5fd;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 16px;
+    }
+    .bulk-dropzone:hover, .bulk-dropzone.dragover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .bulk-template-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .bulk-preview-wrap {
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 12.5px;
+    }
+    .bulk-progress-bar-bg {
+      background: #e2e8f0;
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 8px;
+      width: 100%;
+    }
+    .bulk-progress-bar-fill {
+      background: linear-gradient(90deg, #10b981, #059669);
+      height: 100%;
+      width: 0%;
+      transition: width 0.15s ease;
+    }
     .master-control-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -2236,11 +2287,480 @@
         </div>
 
         <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:10px;">
-          <button type="button" class="btn btn-outline" id="cancelAdminAssignHwBtn">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="submitAdminAssignHwBtn"
-            style="min-width:140px; font-weight:700;">Publish Homework</button>
+  <!-- ================= 1. BULK STUDENT IMPORT MODAL ================= -->
+  <div class="profile-modal-overlay" id="bulkStudentImportModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeBulkStudentImportModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(37,99,235,0.12); color:#2563eb; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <polyline points="16 11 18 13 22 9"/>
+          </svg>
         </div>
-      </form>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Student Admissions Import</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload Excel sheet (.xlsx, .xls) or CSV to enroll students and auto-provision parent logins.</p>
+        </div>
+      </div>
+
+      <!-- Template download bar -->
+      <div class="bulk-template-bar">
+        <div>
+          <strong style="font-size:13px; color:#1e293b; display:block;">Download Sample Roster Templates:</strong>
+          <span style="font-size:11.5px; color:var(--ink-soft);">Use this standardized column layout for error-free bulk upload.</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStudentCsvTpl" style="font-size:12px; font-weight:700;">
+            📥 Sample CSV
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStudentExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+            📊 Sample Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- File upload dropzone -->
+      <div class="bulk-dropzone" id="studentDropzone" onclick="document.getElementById('studentBulkFileInput').click()">
+        <input type="file" id="studentBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#3b82f6" stroke-width="1.8" style="margin-bottom:8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div style="font-size:14px; font-weight:700; color:var(--ink);" id="studentDropzoneText">Click or Drag &amp; Drop Excel / CSV File Here</div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Supported: .xlsx, .xls, .csv &bull; Max 2,000 students per batch</div>
+      </div>
+
+      <!-- Target class selection (optional fallback) -->
+      <div class="field" style="margin-bottom:14px;">
+        <label style="font-size:12px; font-weight:700;">Default Target Class (Used if "Class Section" column is empty in file):</label>
+        <select id="bulkStudentDefaultClassSel" style="font-size:13px; padding:8px 12px;"></select>
+      </div>
+
+      <!-- Live preview table -->
+      <div id="studentPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#1e293b;">Data Preview: <span id="studentPreviewCountBadge" class="badge badge-navy">0 Students Detected</span></span>
+          <span style="font-size:11px; color:var(--ink-soft);">Showing first 10 entries</span>
+        </div>
+        <div class="bulk-preview-wrap">
+          <table id="studentPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:6px 10px;">#</th>
+                <th style="padding:6px 10px;">Name</th>
+                <th style="padding:6px 10px;">Adm No</th>
+                <th style="padding:6px 10px;">Roll No</th>
+                <th style="padding:6px 10px;">Class</th>
+                <th style="padding:6px 10px;">Gender</th>
+                <th style="padding:6px 10px;">Parent Contact</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div id="studentProgressWrap" style="display:none; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;">
+          <span id="studentProgressText">Importing students...</span>
+          <span id="studentProgressPct">0%</span>
+        </div>
+        <div class="bulk-progress-bar-bg">
+          <div class="bulk-progress-bar-fill" id="studentProgressBar"></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelBulkStudentImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="startBulkStudentImportBtn" disabled style="min-width:160px; font-weight:700;">
+          Start Bulk Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. BULK STAFF IMPORT MODAL ================= -->
+  <div class="profile-modal-overlay" id="bulkStaffImportModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeBulkStaffImportModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(217,119,6,0.12); color:#d97706; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Faculty &amp; Staff Import</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload Excel sheet (.xlsx, .xls) or CSV to provision teachers and staff user credentials.</p>
+        </div>
+      </div>
+
+      <div class="bulk-template-bar">
+        <div>
+          <strong style="font-size:13px; color:#1e293b; display:block;">Download Faculty Templates:</strong>
+          <span style="font-size:11.5px; color:var(--ink-soft);">Standard columns: Full Name, Staff ID/Username, Gender, Contact, Major Subject, Login Email.</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStaffCsvTpl" style="font-size:12px; font-weight:700;">
+            📥 Sample CSV
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStaffExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+            📊 Sample Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-dropzone" id="staffDropzone" onclick="document.getElementById('staffBulkFileInput').click()">
+        <input type="file" id="staffBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#d97706" stroke-width="1.8" style="margin-bottom:8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div style="font-size:14px; font-weight:700; color:var(--ink);" id="staffDropzoneText">Click or Drag &amp; Drop Faculty File (.xlsx, .csv)</div>
+        <div style="font-size:12px; color:var(--ink-soft); margin-top:4px;">Auto-creates Staff Auth logins, role privileges, and lookup keys</div>
+      </div>
+
+      <div id="staffPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#1e293b;">Data Preview: <span id="staffPreviewCountBadge" class="badge badge-navy">0 Faculty Detected</span></span>
+          <span style="font-size:11px; color:var(--ink-soft);">Showing first 10 entries</span>
+        </div>
+        <div class="bulk-preview-wrap">
+          <table id="staffPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:6px 10px;">#</th>
+                <th style="padding:6px 10px;">Name</th>
+                <th style="padding:6px 10px;">Username / Staff ID</th>
+                <th style="padding:6px 10px;">Contact</th>
+                <th style="padding:6px 10px;">Major Subject</th>
+                <th style="padding:6px 10px;">Login Email</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="staffProgressWrap" style="display:none; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;">
+          <span id="staffProgressText">Provisioning faculty accounts...</span>
+          <span id="staffProgressPct">0%</span>
+        </div>
+        <div class="bulk-progress-bar-bg">
+          <div class="bulk-progress-bar-fill" id="staffProgressBar"></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelBulkStaffImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="startBulkStaffImportBtn" disabled style="min-width:160px; font-weight:700;">
+          Start Faculty Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 3. BULK NOTES IMPORT MODAL ================= -->
+  <div class="profile-modal-overlay" id="bulkNotesImportModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeBulkNotesImportModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(37,99,235,0.12); color:#2563eb; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Study Materials &amp; Notes Import</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload bulk syllabus notes index (.xlsx, .csv) with cloud links or study material references.</p>
+        </div>
+      </div>
+
+      <div class="bulk-template-bar">
+        <div>
+          <strong style="font-size:13px; color:#1e293b; display:block;">Download Notes Template:</strong>
+          <span style="font-size:11.5px; color:var(--ink-soft);">Columns: Class Section, Subject, Note Title, Description, Document Link / PDF URL.</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadNotesCsvTpl" style="font-size:12px; font-weight:700;">
+            📥 Sample CSV
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadNotesExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+            📊 Sample Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-dropzone" id="notesDropzone" onclick="document.getElementById('notesBulkFileInput').click()">
+        <input type="file" id="notesBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#2563eb" stroke-width="1.8" style="margin-bottom:8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div style="font-size:14px; font-weight:700; color:var(--ink);" id="notesDropzoneText">Click or Drag &amp; Drop Notes File (.xlsx, .csv)</div>
+      </div>
+
+      <div id="notesPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#1e293b;">Data Preview: <span id="notesPreviewCountBadge" class="badge badge-navy">0 Notes Detected</span></span>
+          <span style="font-size:11px; color:var(--ink-soft);">Showing first 10 entries</span>
+        </div>
+        <div class="bulk-preview-wrap">
+          <table id="notesPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:6px 10px;">#</th>
+                <th style="padding:6px 10px;">Class</th>
+                <th style="padding:6px 10px;">Subject</th>
+                <th style="padding:6px 10px;">Title</th>
+                <th style="padding:6px 10px;">Document Link</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="notesProgressWrap" style="display:none; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;">
+          <span id="notesProgressText">Publishing notes...</span>
+          <span id="notesProgressPct">0%</span>
+        </div>
+        <div class="bulk-progress-bar-bg">
+          <div class="bulk-progress-bar-fill" id="notesProgressBar"></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelBulkNotesImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="startBulkNotesImportBtn" disabled style="min-width:160px; font-weight:700;">
+          Start Notes Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. BULK ATTENDANCE IMPORT MODAL ================= -->
+  <div class="profile-modal-overlay" id="bulkAttendanceImportModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeBulkAttImportModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(5,150,105,0.12); color:#059669; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Import Class Attendance Sheet</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload day-wise or session attendance records via Excel (.xlsx) or CSV.</p>
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field" style="flex:1.2;">
+          <label>Target Class Section *</label>
+          <select id="bulkAttClassSel" class="form-select"></select>
+        </div>
+        <div class="field">
+          <label>Attendance Date *</label>
+          <input type="date" id="bulkAttDateInput">
+        </div>
+      </div>
+
+      <div class="bulk-template-bar">
+        <div>
+          <strong style="font-size:13px; color:#1e293b; display:block;">Download Attendance Format:</strong>
+          <span style="font-size:11.5px; color:var(--ink-soft);">Columns: Admission No, Roll No, Student Name, Status (Present/Absent/Late), Remarks.</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadAttCsvTpl" style="font-size:12px; font-weight:700;">
+            📥 Sample CSV
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadAttExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+            📊 Sample Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-dropzone" id="attDropzone" onclick="document.getElementById('attBulkFileInput').click()">
+        <input type="file" id="attBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#059669" stroke-width="1.8" style="margin-bottom:8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div style="font-size:14px; font-weight:700; color:var(--ink);" id="attDropzoneText">Click or Drag &amp; Drop Attendance File</div>
+      </div>
+
+      <div id="attPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#1e293b;">Attendance Rows: <span id="attPreviewCountBadge" class="badge badge-navy">0 Rows</span></span>
+        </div>
+        <div class="bulk-preview-wrap">
+          <table id="attPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:6px 10px;">#</th>
+                <th style="padding:6px 10px;">Adm No</th>
+                <th style="padding:6px 10px;">Roll No</th>
+                <th style="padding:6px 10px;">Student Name</th>
+                <th style="padding:6px 10px;">Status</th>
+                <th style="padding:6px 10px;">Remarks</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelBulkAttImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="startBulkAttImportBtn" disabled style="min-width:160px; font-weight:700;">
+          Apply Attendance
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 5. BULK MARKS IMPORT MODAL ================= -->
+  <div class="profile-modal-overlay" id="bulkMarksImportModal">
+    <div class="profile-modal-card" style="max-width:760px;">
+      <button type="button" class="modal-close" id="closeBulkMarksImportModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+        <div style="width:42px; height:42px; border-radius:10px; background:rgba(147,51,234,0.12); color:#9333ea; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Examination Marks Import</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload exam score sheets in bulk by Admission No, Roll No, and Subject.</p>
+        </div>
+      </div>
+
+      <div class="field-row" style="margin-bottom:14px;">
+        <div class="field" style="flex:1.2;">
+          <label>Target Class Section *</label>
+          <select id="bulkMarksClassSel" class="form-select"></select>
+        </div>
+        <div class="field">
+          <label>Examination Name *</label>
+          <input type="text" id="bulkMarksExamName" placeholder="e.g. Mid-Term Examination 2026">
+        </div>
+      </div>
+
+      <div class="bulk-template-bar">
+        <div>
+          <strong style="font-size:13px; color:#1e293b; display:block;">Download Marks Format:</strong>
+          <span style="font-size:11.5px; color:var(--ink-soft);">Columns: Admission No, Roll No, Student Name, Subject, Marks Obtained, Max Marks.</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadMarksCsvTpl" style="font-size:12px; font-weight:700;">
+            📥 Sample CSV
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btnDownloadMarksExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+            📊 Sample Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <div class="bulk-dropzone" id="marksDropzone" onclick="document.getElementById('marksBulkFileInput').click()">
+        <input type="file" id="marksBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#9333ea" stroke-width="1.8" style="margin-bottom:8px;">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <div style="font-size:14px; font-weight:700; color:var(--ink);" id="marksDropzoneText">Click or Drag &amp; Drop Marks Sheet</div>
+      </div>
+
+      <div id="marksPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#1e293b;">Marks Records: <span id="marksPreviewCountBadge" class="badge badge-navy">0 Entries</span></span>
+        </div>
+        <div class="bulk-preview-wrap">
+          <table id="marksPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f1f5f9; text-align:left;">
+                <th style="padding:6px 10px;">#</th>
+                <th style="padding:6px 10px;">Adm No</th>
+                <th style="padding:6px 10px;">Roll No</th>
+                <th style="padding:6px 10px;">Student Name</th>
+                <th style="padding:6px 10px;">Subject</th>
+                <th style="padding:6px 10px;">Marks</th>
+                <th style="padding:6px 10px;">Max</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelBulkMarksImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="startBulkMarksImportBtn" disabled style="min-width:160px; font-weight:700;">
+          Save Examination Marks
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 6. PURGE DEMO DATA MODAL ================= -->
+  <div class="profile-modal-overlay" id="purgeDemoDataModal">
+    <div class="profile-modal-card" style="max-width:580px; border:2px solid #ef4444;">
+      <button type="button" class="modal-close" id="closePurgeDemoDataModal">&times;</button>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; border-bottom:1px solid #fee2e2; padding-bottom:14px;">
+        <div style="width:44px; height:44px; border-radius:12px; background:#fef2f2; color:#dc2626; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:18px; color:#b91c1c;">Reset &amp; Purge All Demo Data</h3>
+          <p style="margin:2px 0 0 0; font-size:12.5px; color:#ef4444; font-weight:600;">Permanent Database Reset Action</p>
+        </div>
+      </div>
+
+      <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:14px 16px; margin-bottom:16px; font-size:13px; color:#9f1239; line-height:1.5;">
+        <p style="margin:0 0 8px 0; font-weight:700;">⚠️ This action will permanently delete all demo/test records from the database:</p>
+        <ul style="margin:0; padding-left:18px; font-size:12.5px;">
+          <li>All student profiles &amp; identity cards</li>
+          <li>All parent accounts &amp; child linkages</li>
+          <li>All faculty &amp; staff records (Class teacher &amp; subject assignments)</li>
+          <li>All attendance audit logs &amp; records</li>
+          <li>All examination marks &amp; scorecards</li>
+          <li>All homework assignments &amp; study notes</li>
+          <li>All login lookup identifier keys</li>
+        </ul>
+        <div style="margin-top:10px; font-weight:700; color:#15803d; font-size:12px;">
+          🛡️ Administrator accounts are completely PROTECTED and will not be touched.
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:16px;">
+        <label style="font-weight:700; font-size:13px; color:var(--ink);">To confirm deletion, please type <code style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:800;">PURGE</code> below:</label>
+        <input type="text" id="purgeConfirmInput" placeholder="Type PURGE here" style="border-color:#fca5a5; font-weight:700; font-family:monospace; font-size:15px; text-transform:uppercase;">
+      </div>
+
+      <div id="purgeProgressBox" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:14px; font-size:12px; color:var(--ink-soft); font-family:monospace;">
+        <div id="purgeStatusText">Initiating purge...</div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid var(--line); padding-top:14px;">
+        <button type="button" class="btn btn-outline" id="cancelPurgeDemoDataBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmPurgeDemoDataBtn" disabled style="min-width:170px; font-weight:700; background:#dc2626; border-color:#dc2626;">
+          Delete All Demo Data
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2324,6 +2844,13 @@
             <path d="M6 14h6" />
           </svg>
           Homework &amp; Assignments
+        </a>
+        <a href="#" data-tab="notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          Study Materials &amp; Notes
         </a>
         <a href="#" data-tab="marks">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2600,6 +3127,30 @@
                   <p>Post School-Wide Circulars Visible Across All Portals</p>
                 </div>
               </div>
+              <div class="master-card" data-go-tab="notes">
+                <div>
+                  <div class="master-card-icon blue" style="background:#eff6ff; color:#2563eb;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                  </div>
+                  <h4>Study Materials &amp; Notes</h4>
+                  <p>Upload, Import &amp; Export Syllabus Notes Across Classes</p>
+                </div>
+              </div>
+
+              <div class="master-card" id="cardPurgeDemoData" style="border-color:#fecaca;">
+                <div>
+                  <div class="master-card-icon red" style="background:#fef2f2; color:#dc2626;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </div>
+                  <h4 style="color:#b91c1c;">Reset / Purge Demo Data</h4>
+                  <p style="color:#ef4444;">Wipe All Demo &amp; Test Records with One-Click Confirmation</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2661,6 +3212,14 @@
                   </div>
                   <span class="badge badge-navy">Ready</span>
                 </div>
+
+                <button type="button" class="btn btn-outline btn-sm" id="openPurgeDataBtn"
+                  style="color:#b91c1c; border-color:#fca5a5; font-weight:700; width:100%; margin-top:6px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  Reset / Purge All Demo Data
+                </button>
               </div>
             </div>
           </div>
@@ -2887,10 +3446,30 @@
                 <h3>Faculty &amp; Staff Directory</h3>
                 <p>All Active Teachers, Login Credentials &amp; Class Assignments</p>
               </div>
-              <button type="button" class="btn btn-outline btn-sm" id="printStaffBtn"
-                style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
-                Print Faculty Roster
-              </button>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline btn-sm" id="exportStaffCsvBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export CSV
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="importStaffBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  Import Bulk (Excel/CSV)
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="printStaffBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  Print Faculty Roster
+                </button>
+              </div>
             </div>
             <table id="stfTable">
               <thead>
@@ -3217,6 +3796,24 @@
                   style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600;">
                   <option value="">All Classes (Show All)</option>
                 </select>
+                <button type="button" class="btn btn-outline btn-sm" id="exportStudentsCsvBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Export CSV
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="importStudentsBtn"
+                  style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  Import Bulk (Excel/CSV)
+                </button>
                 <button type="button" class="btn btn-outline btn-sm" id="printStudentsBtn"
                   style="display:inline-flex; align-items:center; gap:6px; font-weight:700;">
                   Print Student List
@@ -3440,6 +4037,15 @@
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
                     Export CSV
+                  </button>
+                  <button type="button" class="btn btn-primary btn-sm" id="attImportDayCsvBtn"
+                    style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Import Attendance (Excel/CSV)
                   </button>
                 </div>
               </div>
@@ -3793,6 +4399,15 @@
                 </svg>
                 Export CSV
               </button>
+              <button type="button" class="btn btn-primary btn-sm" id="importMarksBtn"
+                style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Import Marks (Excel/CSV)
+              </button>
               <button type="button" class="btn-exit-tab" data-go-tab="overview"
                 title="Exit this tab and return to Home Overview">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -4071,6 +4686,117 @@
           </div>
         </section>
 
+        <!-- ================= 8. SYLLABUS NOTES & STUDY MATERIALS TAB ================= -->
+        <section id="panel-notes" style="display:none;">
+          <div class="main-header">
+            <div>
+              <h2>Syllabus Notes &amp; Study Materials</h2>
+              <p>Upload, Manage, Import &amp; Export Academic Syllabus Study Materials Across All Classes</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="btn btn-outline btn-sm" id="exportNotesCsvBtn"
+                style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="importNotesBtn"
+                style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Import Bulk (Excel/CSV)
+              </button>
+              <button type="button" class="btn-exit-tab" data-go-tab="overview"
+                title="Exit this tab and return to Home Overview">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Exit to Home
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload Note Card -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="form-section-title">Upload New Study Material / Syllabus Note</div>
+            <div class="field-row">
+              <div class="field" style="flex:1.2;">
+                <label>Target Class Section <span style="color:var(--bad);">*</span></label>
+                <select id="adminNotesClassSel" class="form-select"></select>
+              </div>
+              <div class="field" style="flex:1.2;">
+                <label>Subject <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="adminNotesSubject" placeholder="e.g. Mathematics, Science, English…">
+              </div>
+              <div class="field" style="flex:2;">
+                <label>Note / Chapter Title <span style="color:var(--bad);">*</span></label>
+                <input type="text" id="adminNotesTitle" placeholder="e.g. Chapter 1 Real Numbers Revision Guide">
+              </div>
+            </div>
+
+            <div class="field" style="margin-top:12px;">
+              <label>Description &amp; Syllabus Context</label>
+              <textarea id="adminNotesDesc" rows="2" placeholder="Brief outline of notes, covered topics, or formulas…"></textarea>
+            </div>
+
+            <div class="field-row" style="margin-top:12px; align-items:flex-end;">
+              <div class="field" style="flex:1;">
+                <label>Upload PDF Document (Optional)</label>
+                <input type="file" id="adminNotesFile" accept="application/pdf,image/*,.doc,.docx,.ppt,.pptx">
+              </div>
+              <div class="field" style="flex:1.5;">
+                <label>Or Cloud Drive / External Resource Link (Optional)</label>
+                <input type="url" id="adminNotesLink" placeholder="https://drive.google.com/… or https://…">
+              </div>
+              <div style="padding-bottom:2px;">
+                <button type="button" class="btn btn-primary" id="adminNotesUploadBtn" style="min-width:160px; font-weight:700;">
+                  + Publish Material
+                </button>
+              </div>
+            </div>
+            <div id="adminNotesMsg" style="margin-top:8px; font-size:13.5px; font-weight:700;"></div>
+          </div>
+
+          <!-- Notes Directory Table -->
+          <div class="card table-wrap" style="margin-bottom:24px;">
+            <div class="card-header" style="flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+              <div>
+                <h3>Study Materials &amp; Notes Repository</h3>
+                <p>All Uploaded Syllabus Guides, Question Banks &amp; Reference Notes</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <label style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin:0;">Filter Class:</label>
+                <select id="adminNotesClassFilter" style="padding:8px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; font-weight:600;">
+                  <option value="">All Classes (Show All)</option>
+                </select>
+              </div>
+            </div>
+            <table id="adminNotesTable">
+              <thead>
+                <tr>
+                  <th style="min-width:140px;">Class Section</th>
+                  <th style="min-width:130px;">Subject</th>
+                  <th style="min-width:200px;">Note Title</th>
+                  <th style="min-width:220px;">Description</th>
+                  <th style="min-width:120px; text-align:center;">Resource</th>
+                  <th style="min-width:120px;">Published</th>
+                  <th style="text-align:right; min-width:90px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="empty-state" id="adminNotesEmpty" style="display:none; padding:35px 20px; text-align:center;">
+              No study materials uploaded yet. Use the form above or import bulk notes.
+            </div>
+          </div>
+        </section>
+
         <!-- ================= 9. ANNOUNCEMENTS TAB ================= -->
         <section id="panel-announcements" style="display:none;">
           <div class="main-header">
@@ -4147,7 +4873,7 @@
 
   <script type="module">
     import {
-      auth, db, storage, ref, uploadBytes, getDownloadURL, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
+      auth, db, supabase, storage, ref, uploadBytes, getDownloadURL, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
       collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot,
       getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut, ensureFreshSession
     } from '../../js/auth.js';
@@ -4506,6 +5232,7 @@
       if (tabName === 'students') { loadStudents(); loadClasses(); }
       if (tabName === 'parents') { loadStudents().then(() => loadParents()); }
       if (tabName === 'homework') { loadClasses().then(() => loadAdminHomework()); }
+      if (tabName === 'notes') { loadClasses().then(() => loadAdminNotes()); }
       if (tabName === 'attendance') { initAttendancePanel(); }
       else { cleanupAttendanceListeners(); }
       if (tabName === 'exams') loadExamCalendar();
@@ -11606,6 +12333,1192 @@
           }
         }
       });
+    });
+
+    // =========================================================================
+    // 10. SYLLABUS NOTES & STUDY MATERIALS REPOSITORY (ADMIN)
+    // =========================================================================
+    let allAdminNotesCache = [];
+
+    async function loadAdminNotes() {
+      try {
+        const qNotes = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(qNotes);
+        allAdminNotesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Populate class selector dropdowns
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const rawClasses = classesSnap.docs.map(d => ({ id: d.id, name: d.data().name }));
+        const classOptions = sortClassList(rawClasses);
+
+        const selAdd = document.getElementById('adminNotesClassSel');
+        const selFilter = document.getElementById('adminNotesClassFilter');
+        if (selAdd) {
+          selAdd.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+            classOptions.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+        if (selFilter) {
+          const curVal = selFilter.value;
+          selFilter.innerHTML = '<option value="">All Classes (Show All)</option>' +
+            classOptions.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+          if (curVal) selFilter.value = curVal;
+        }
+
+        renderAdminNotes();
+      } catch (err) {
+        console.error('Error loading admin notes:', err);
+      }
+    }
+
+    function renderAdminNotes() {
+      const tbody = document.querySelector('#adminNotesTable tbody');
+      const emptyEl = document.getElementById('adminNotesEmpty');
+      const filterVal = document.getElementById('adminNotesClassFilter')?.value || '';
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let list = allAdminNotesCache;
+      if (filterVal) {
+        list = list.filter(n => n.classId === filterVal);
+      }
+
+      if (!list.length) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+      }
+      if (emptyEl) emptyEl.style.display = 'none';
+
+      list.forEach(n => {
+        const tr = document.createElement('tr');
+        const pubDate = n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString('en-GB') : (n.createdAt ? String(n.createdAt) : 'Just now');
+        const fileBtn = n.fileUrl
+          ? `<a href="${n.fileUrl}" target="_blank" class="btn btn-outline btn-sm" style="font-weight:700; color:#2563eb; display:inline-flex; align-items:center; gap:4px; padding:4px 10px;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              View File
+             </a>`
+          : (n.externalLink
+            ? `<a href="${n.externalLink}" target="_blank" class="btn btn-outline btn-sm" style="font-weight:700; color:#059669; display:inline-flex; align-items:center; gap:4px; padding:4px 10px;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Cloud Link
+               </a>`
+            : '<span style="color:var(--ink-soft); font-size:12px;">Text Only</span>');
+
+        tr.innerHTML = `
+          <td><strong>${n.className || '-'}</strong></td>
+          <td><span class="badge badge-purple" style="font-weight:700;">${n.subject || '-'}</span></td>
+          <td><strong>${n.title || 'Untitled Note'}</strong></td>
+          <td style="color:var(--ink-soft); font-size:12.5px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.description || '-'}</td>
+          <td style="text-align:center;">${fileBtn}</td>
+          <td style="font-size:12px; color:var(--ink-soft);">${pubDate}</td>
+          <td style="text-align:right;">
+            <button type="button" class="btn btn-danger btn-sm noteDelBtn" data-id="${n.id}" style="padding:4px 8px; font-size:11.5px;">Delete</button>
+          </td>
+        `;
+
+        tr.querySelector('.noteDelBtn').addEventListener('click', async () => {
+          if (confirm(`Delete study note "${n.title}"?`)) {
+            await deleteDoc(doc(db, 'notes', n.id));
+            showToast('Study note deleted.');
+            loadAdminNotes();
+          }
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('adminNotesClassFilter')?.addEventListener('change', renderAdminNotes);
+
+    document.getElementById('adminNotesUploadBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('adminNotesClassSel')?.value;
+      const subject = document.getElementById('adminNotesSubject')?.value.trim();
+      const title = document.getElementById('adminNotesTitle')?.value.trim();
+      const desc = document.getElementById('adminNotesDesc')?.value.trim();
+      const file = document.getElementById('adminNotesFile')?.files[0];
+      const link = document.getElementById('adminNotesLink')?.value.trim();
+      const msgEl = document.getElementById('adminNotesMsg');
+      const btn = document.getElementById('adminNotesUploadBtn');
+
+      if (!classId || !subject || !title) {
+        alert('Please fill required fields: Class Section, Subject, and Note Title.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Publishing...';
+      if (msgEl) { msgEl.style.color = '#2563eb'; msgEl.textContent = 'Uploading study material...'; }
+
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', classId));
+        const className = classSnap.exists() ? classSnap.data().name : 'Class Section';
+
+        let fileUrl = null;
+        if (file) {
+          const storageRef = ref(storage, `notes/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`);
+          const snap = await uploadBytes(storageRef, file);
+          fileUrl = await getDownloadURL(snap.ref);
+        }
+
+        await addDoc(collection(db, 'notes'), {
+          classId,
+          className,
+          subject,
+          title,
+          description: desc,
+          fileUrl,
+          externalLink: link || null,
+          uploadedBy: auth.currentUser?.uid || 'admin',
+          uploadedByName: 'Administration',
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('adminNotesTitle').value = '';
+        document.getElementById('adminNotesDesc').value = '';
+        document.getElementById('adminNotesSubject').value = '';
+        document.getElementById('adminNotesLink').value = '';
+        if (document.getElementById('adminNotesFile')) document.getElementById('adminNotesFile').value = '';
+
+        if (msgEl) { msgEl.style.color = 'var(--good)'; msgEl.textContent = '✅ Note published successfully!'; }
+        showToast('Study note published successfully!');
+        loadAdminNotes();
+      } catch (err) {
+        console.error('Note upload error:', err);
+        if (msgEl) { msgEl.style.color = 'var(--bad)'; msgEl.textContent = '❌ Upload failed: ' + err.message; }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '+ Publish Material';
+      }
+    });
+
+    // =========================================================================
+    // 11. BULK EXPORT UTILITIES (STUDENTS, STAFF, NOTES)
+    // =========================================================================
+    document.getElementById('exportStudentsCsvBtn')?.addEventListener('click', () => {
+      const list = (currentStudentListCache && currentStudentListCache.length) ? currentStudentListCache : allStudentsCache;
+      if (!list.length) {
+        alert('No student records available to export.');
+        return;
+      }
+      ERPBulk.exportStudentsToCsv(list, 'Amala_Students_Directory_' + new Date().toISOString().slice(0, 10));
+    });
+
+    document.getElementById('exportStaffCsvBtn')?.addEventListener('click', () => {
+      if (!allStaffCache.length) {
+        alert('No faculty records available to export.');
+        return;
+      }
+      ERPBulk.exportStaffToCsv(allStaffCache, 'Amala_Faculty_Directory_' + new Date().toISOString().slice(0, 10));
+    });
+
+    document.getElementById('exportNotesCsvBtn')?.addEventListener('click', () => {
+      if (!allAdminNotesCache.length) {
+        alert('No syllabus study materials available to export.');
+        return;
+      }
+      ERPBulk.exportNotesToCsv(allAdminNotesCache, 'Amala_Study_Notes_' + new Date().toISOString().slice(0, 10));
+    });
+
+    // =========================================================================
+    // 12. BULK STUDENT IMPORT
+    // =========================================================================
+    let parsedBulkStudents = [];
+
+    const studentModal = document.getElementById('bulkStudentImportModal');
+    document.getElementById('importStudentsBtn')?.addEventListener('click', async () => {
+      // Refresh class select in modal
+      const sel = document.getElementById('bulkStudentDefaultClassSel');
+      if (sel) {
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const clList = sortClassList(classesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
+        sel.innerHTML = '<option value="">-- Choose Class (Optional Fallback) --</option>' +
+          clList.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
+      }
+      parsedBulkStudents = [];
+      document.getElementById('studentPreviewContainer').style.display = 'none';
+      document.getElementById('studentProgressWrap').style.display = 'none';
+      document.getElementById('startBulkStudentImportBtn').disabled = true;
+      document.getElementById('studentDropzoneText').textContent = 'Click or Drag & Drop Excel / CSV File Here';
+      studentModal?.classList.add('open');
+    });
+
+    document.getElementById('closeBulkStudentImportModal')?.addEventListener('click', () => studentModal?.classList.remove('open'));
+    document.getElementById('cancelBulkStudentImportBtn')?.addEventListener('click', () => studentModal?.classList.remove('open'));
+
+    document.getElementById('btnDownloadStudentCsvTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('student', 'csv'));
+    document.getElementById('btnDownloadStudentExcelTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('student', 'xlsx'));
+
+    // Handle student file selection
+    const studentFileInput = document.getElementById('studentBulkFileInput');
+    studentFileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      handleStudentBulkFile(file);
+    });
+
+    const studentDropzone = document.getElementById('studentDropzone');
+    studentDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); studentDropzone.classList.add('dragover'); });
+    studentDropzone?.addEventListener('dragleave', () => studentDropzone.classList.remove('dragover'));
+    studentDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      studentDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files?.length) {
+        handleStudentBulkFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    async function handleStudentBulkFile(file) {
+      document.getElementById('studentDropzoneText').textContent = `📄 Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      try {
+        const { headers, rows } = await ERPBulk.parseFile(file);
+        if (!rows.length) {
+          alert('Selected file contains no data rows.');
+          return;
+        }
+
+        const normH = headers.map(h => h.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+        const idxName = normH.findIndex(h => h.includes('name') && !h.includes('father') && !h.includes('mother') && !h.includes('parent'));
+        const idxAdm = normH.findIndex(h => h.includes('admission') || h.includes('admno') || h.includes('regno') || h.includes('registerno'));
+        const idxRoll = normH.findIndex(h => h.includes('roll') || h.includes('rollno') || h.includes('rollnumber'));
+        const idxClass = normH.findIndex(h => h.includes('class') || h.includes('standard') || h.includes('grade'));
+        const idxGender = normH.findIndex(h => h.includes('gender') || h.includes('sex'));
+        const idxDob = normH.findIndex(h => h.includes('dob') || h.includes('birth'));
+        const idxBlood = normH.findIndex(h => h.includes('blood'));
+        const idxAadhaar = normH.findIndex(h => h.includes('aadhaar') || h.includes('aadhar'));
+        const idxStuEmail = normH.findIndex(h => h.includes('studentemail') || (h.includes('email') && !h.includes('parent')));
+        const idxStuPass = normH.findIndex(h => h.includes('studentpass') || h.includes('studentpassword'));
+        const idxFather = normH.findIndex(h => h.includes('father') && !h.includes('phone'));
+        const idxFatherPhone = normH.findIndex(h => h.includes('fatherphone') || (h.includes('phone') && !h.includes('mother')) || h.includes('contact') || h.includes('mobile'));
+        const idxMother = normH.findIndex(h => h.includes('mother') && !h.includes('phone'));
+        const idxMotherPhone = normH.findIndex(h => h.includes('motherphone'));
+        const idxParEmail = normH.findIndex(h => h.includes('parentemail'));
+        const idxParPass = normH.findIndex(h => h.includes('parentpass'));
+        const idxAddr = normH.findIndex(h => h.includes('address'));
+        const idxCity = normH.findIndex(h => h.includes('city') || h.includes('town'));
+        const idxPin = normH.findIndex(h => h.includes('pin') || h.includes('postal'));
+
+        parsedBulkStudents = [];
+        const tbody = document.querySelector('#studentPreviewTable tbody');
+        tbody.innerHTML = '';
+
+        rows.forEach((r, rowIdx) => {
+          const name = idxName !== -1 ? (r[idxName] || '').trim() : (r[0] || '').trim();
+          if (!name) return;
+          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : `ADM-2026-${String(rowIdx + 1).padStart(3, '0')}`;
+          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : String(rowIdx + 1);
+          const className = idxClass !== -1 ? (r[idxClass] || '').trim() : '';
+          const gender = idxGender !== -1 && r[idxGender] ? r[idxGender].trim() : 'Male';
+          const dob = idxDob !== -1 && r[idxDob] ? r[idxDob].trim() : '';
+          const blood = idxBlood !== -1 && r[idxBlood] ? r[idxBlood].trim() : 'O+';
+          const aadhaar = idxAadhaar !== -1 && r[idxAadhaar] ? r[idxAadhaar].trim() : '';
+          const stuEmail = idxStuEmail !== -1 && r[idxStuEmail] ? r[idxStuEmail].trim() : '';
+          const stuPass = idxStuPass !== -1 && r[idxStuPass] ? r[idxStuPass].trim() : 'Student@123';
+          const fatherName = idxFather !== -1 && r[idxFather] ? r[idxFather].trim() : '';
+          const fatherPhone = idxFatherPhone !== -1 && r[idxFatherPhone] ? String(r[idxFatherPhone]).replace(/\D/g, '') : '';
+          const motherName = idxMother !== -1 && r[idxMother] ? r[idxMother].trim() : '';
+          const motherPhone = idxMotherPhone !== -1 && r[idxMotherPhone] ? String(r[idxMotherPhone]).replace(/\D/g, '') : '';
+          const parEmail = idxParEmail !== -1 && r[idxParEmail] ? r[idxParEmail].trim() : '';
+          const parPass = idxParPass !== -1 && r[idxParPass] ? r[idxParPass].trim() : 'Parent@123';
+          const address = idxAddr !== -1 && r[idxAddr] ? r[idxAddr].trim() : '';
+          const city = idxCity !== -1 && r[idxCity] ? r[idxCity].trim() : '';
+          const pincode = idxPin !== -1 && r[idxPin] ? r[idxPin].trim() : '';
+
+          parsedBulkStudents.push({
+            name, admNo, rollNo, className, gender, dob, bloodGroup: blood,
+            aadhaarNo: aadhaar, stuEmail, stuPass, fatherName, fatherPhone,
+            motherName, motherPhone, parEmail, parPass, address, city, pincode
+          });
+
+          if (parsedBulkStudents.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px;">${parsedBulkStudents.length}</td>
+              <td style="padding:6px 10px;"><strong>${name}</strong></td>
+              <td style="padding:6px 10px;">${admNo}</td>
+              <td style="padding:6px 10px;">${rollNo}</td>
+              <td style="padding:6px 10px;">${className || '<em>Default</em>'}</td>
+              <td style="padding:6px 10px;">${gender}</td>
+              <td style="padding:6px 10px;">${fatherPhone || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById('studentPreviewCountBadge').textContent = `${parsedBulkStudents.length} Students Detected`;
+        document.getElementById('studentPreviewContainer').style.display = 'block';
+        document.getElementById('startBulkStudentImportBtn').disabled = parsedBulkStudents.length === 0;
+      } catch (err) {
+        console.error('Student parse error:', err);
+        alert('Failed to parse file: ' + err.message);
+      }
+    }
+
+    // Execute bulk student creation
+    document.getElementById('startBulkStudentImportBtn')?.addEventListener('click', async () => {
+      if (!parsedBulkStudents.length) return;
+      const btn = document.getElementById('startBulkStudentImportBtn');
+      const cancelBtn = document.getElementById('cancelBulkStudentImportBtn');
+      btn.disabled = true;
+      cancelBtn.disabled = true;
+
+      const progressWrap = document.getElementById('studentProgressWrap');
+      const progressBar = document.getElementById('studentProgressBar');
+      const progressText = document.getElementById('studentProgressText');
+      const progressPct = document.getElementById('studentProgressPct');
+      progressWrap.style.display = 'block';
+
+      const defaultClassSel = document.getElementById('bulkStudentDefaultClassSel');
+      const fallbackClassId = defaultClassSel?.value || '';
+      const fallbackClassName = defaultClassSel?.options[defaultClassSel.selectedIndex]?.dataset.name || '';
+
+      // Load existing classes for auto-resolution
+      const classesSnap = await getDocs(collection(db, 'classes'));
+      const classesList = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const secAuth = getSecondaryAuth();
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < parsedBulkStudents.length; i++) {
+        const s = parsedBulkStudents[i];
+        const pct = Math.round(((i + 1) / parsedBulkStudents.length) * 100);
+        progressBar.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        progressText.textContent = `Enrolling ${s.name} (${i + 1}/${parsedBulkStudents.length})...`;
+
+        try {
+          // Resolve class
+          let targetClassId = fallbackClassId;
+          let targetClassName = fallbackClassName;
+          if (s.className) {
+            const matched = classesList.find(c =>
+              c.name?.toLowerCase().trim() === s.className.toLowerCase().trim() ||
+              c.code?.toLowerCase().trim() === s.className.toLowerCase().trim()
+            );
+            if (matched) {
+              targetClassId = matched.id;
+              targetClassName = matched.name;
+            } else if (!targetClassId) {
+              // Create class section dynamically if doesn't exist
+              const newCls = await addDoc(collection(db, 'classes'), {
+                name: s.className,
+                code: s.className.replace(/\s+/g, '-').toUpperCase(),
+                createdAt: serverTimestamp()
+              });
+              targetClassId = newCls.id;
+              targetClassName = s.className;
+              classesList.push({ id: targetClassId, name: targetClassName });
+            }
+          }
+
+          // Student login credentials
+          const cleanAdm = s.admNo.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const cleanRoll = s.rollNo.replace(/[^a-z0-9]/gi, '');
+          const studentEmail = s.stuEmail || `${cleanAdm || cleanRoll}@student.amalaschool.edu`;
+          const studentPass = s.stuPass || 'Student@123';
+
+          let stuUid = null;
+          try {
+            const cred = await createUserWithEmailAndPassword(secAuth, studentEmail, studentPass);
+            stuUid = cred.user.uid;
+          } catch (e) {
+            if (e.code === 'auth/email-already-in-use') {
+              const uQ = query(collection(db, 'users'), where('email', '==', studentEmail));
+              const uSnap = await getDocs(uQ);
+              if (!uSnap.empty) stuUid = uSnap.docs[0].id;
+            }
+          }
+          if (!stuUid) stuUid = doc(collection(db, 'students')).id;
+
+          // Parent login credentials
+          const parentEmail = s.parEmail || (s.fatherPhone ? `${s.fatherPhone}@parent.amalaschool.edu` : `${cleanAdm || cleanRoll}@parent.amalaschool.edu`);
+          const parentPass = s.parPass || 'Parent@123';
+          let parUid = null;
+          try {
+            const parCred = await createUserWithEmailAndPassword(secAuth, parentEmail, parentPass);
+            parUid = parCred.user.uid;
+          } catch (pE) {
+            if (pE.code === 'auth/email-already-in-use') {
+              const pQ = query(collection(db, 'users'), where('email', '==', parentEmail));
+              const pSnap = await getDocs(pQ);
+              if (!pSnap.empty) parUid = pSnap.docs[0].id;
+            }
+          }
+          if (!parUid && (s.fatherName || s.fatherPhone || parentEmail)) {
+            parUid = doc(collection(db, 'parents')).id;
+          }
+
+          // Write student users & students collection
+          await setDoc(doc(db, 'users', stuUid), {
+            role: 'student', name: s.name, email: studentEmail, createdAt: serverTimestamp()
+          }, { merge: true });
+
+          await setDoc(doc(db, 'students', stuUid), {
+            name: s.name,
+            admissionNo: s.admNo,
+            rollNo: s.rollNo,
+            classId: targetClassId || null,
+            className: targetClassName || null,
+            gender: s.gender,
+            dob: s.dob,
+            bloodGroup: s.bloodGroup,
+            aadhaarNo: s.aadhaarNo,
+            email: studentEmail,
+            fatherName: s.fatherName,
+            fatherPhone: s.fatherPhone,
+            motherName: s.motherName,
+            motherPhone: s.motherPhone,
+            parentEmail,
+            parentUid: parUid || null,
+            address: s.address,
+            city: s.city,
+            pincode: s.pincode,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+
+          // Write parent users & parents collection
+          if (parUid) {
+            await setDoc(doc(db, 'users', parUid), {
+              role: 'parent', name: s.fatherName || `${s.name}'s Parent`, email: parentEmail, phone: s.fatherPhone, createdAt: serverTimestamp()
+            }, { merge: true });
+
+            await setDoc(doc(db, 'parents', parUid), {
+              name: s.fatherName || `${s.name}'s Parent`,
+              email: parentEmail,
+              phone: s.fatherPhone,
+              motherPhone: s.motherPhone,
+              childUid: stuUid,
+              childName: s.name,
+              createdAt: serverTimestamp()
+            }, { merge: true });
+          }
+
+          // Sync login lookup
+          if (s.admNo) await syncLoginLookup(s.admNo, studentEmail);
+          if (s.rollNo) await syncLoginLookup(s.rollNo, studentEmail);
+          if (s.fatherPhone) await syncLoginLookup(s.fatherPhone, parentEmail);
+          if (s.motherPhone) await syncLoginLookup(s.motherPhone, parentEmail);
+
+          importedCount++;
+        } catch (rowErr) {
+          console.error(`Row ${i + 1} (${s.name}) import error:`, rowErr);
+          errorCount++;
+        }
+      }
+
+      progressText.textContent = `Completed! ${importedCount} enrolled, ${errorCount} errors.`;
+      setTimeout(() => {
+        studentModal?.classList.remove('open');
+        btn.disabled = false;
+        cancelBtn.disabled = false;
+        showToast(`✅ Successfully imported ${importedCount} students!`);
+        loadStudents();
+        loadOverview();
+      }, 900);
+    });
+
+    // =========================================================================
+    // 13. BULK STAFF IMPORT
+    // =========================================================================
+    let parsedBulkStaff = [];
+    const staffModal = document.getElementById('bulkStaffImportModal');
+
+    document.getElementById('importStaffBtn')?.addEventListener('click', () => {
+      parsedBulkStaff = [];
+      document.getElementById('staffPreviewContainer').style.display = 'none';
+      document.getElementById('staffProgressWrap').style.display = 'none';
+      document.getElementById('startBulkStaffImportBtn').disabled = true;
+      document.getElementById('staffDropzoneText').textContent = 'Click or Drag & Drop Faculty File (.xlsx, .csv)';
+      staffModal?.classList.add('open');
+    });
+
+    document.getElementById('closeBulkStaffImportModal')?.addEventListener('click', () => staffModal?.classList.remove('open'));
+    document.getElementById('cancelBulkStaffImportBtn')?.addEventListener('click', () => staffModal?.classList.remove('open'));
+
+    document.getElementById('btnDownloadStaffCsvTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('staff', 'csv'));
+    document.getElementById('btnDownloadStaffExcelTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('staff', 'xlsx'));
+
+    const staffFileInput = document.getElementById('staffBulkFileInput');
+    staffFileInput?.addEventListener('change', (e) => {
+      if (e.target.files[0]) handleStaffBulkFile(e.target.files[0]);
+    });
+
+    const staffDropzone = document.getElementById('staffDropzone');
+    staffDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); staffDropzone.classList.add('dragover'); });
+    staffDropzone?.addEventListener('dragleave', () => staffDropzone.classList.remove('dragover'));
+    staffDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      staffDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files?.length) handleStaffBulkFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleStaffBulkFile(file) {
+      document.getElementById('staffDropzoneText').textContent = `📄 Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      try {
+        const { headers, rows } = await ERPBulk.parseFile(file);
+        if (!rows.length) {
+          alert('Selected file contains no data rows.');
+          return;
+        }
+
+        const normH = headers.map(h => h.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+        const idxName = normH.findIndex(h => h.includes('name'));
+        const idxUser = normH.findIndex(h => h.includes('user') || h.includes('staffid') || h.includes('id'));
+        const idxGender = normH.findIndex(h => h.includes('gender') || h.includes('sex'));
+        const idxPhone = normH.findIndex(h => h.includes('contact') || h.includes('phone') || h.includes('mobile'));
+        const idxSub = normH.findIndex(h => h.includes('subject') || h.includes('major') || h.includes('specialization'));
+        const idxEmail = normH.findIndex(h => h.includes('email'));
+        const idxPass = normH.findIndex(h => h.includes('pass'));
+        const idxRole = normH.findIndex(h => h.includes('role'));
+
+        parsedBulkStaff = [];
+        const tbody = document.querySelector('#staffPreviewTable tbody');
+        tbody.innerHTML = '';
+
+        rows.forEach((r, rowIdx) => {
+          const name = idxName !== -1 ? (r[idxName] || '').trim() : (r[0] || '').trim();
+          if (!name) return;
+          let username = idxUser !== -1 ? (r[idxUser] || '').trim() : '';
+          if (!username) {
+            username = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 15);
+          }
+          const gender = idxGender !== -1 && r[idxGender] ? r[idxGender].trim() : 'Male';
+          const phone = idxPhone !== -1 && r[idxPhone] ? String(r[idxPhone]).replace(/\D/g, '') : '';
+          const majorSubject = idxSub !== -1 && r[idxSub] ? r[idxSub].trim() : 'General';
+          const email = idxEmail !== -1 && r[idxEmail] ? r[idxEmail].trim() : `${username}@amalaschool.edu.in`;
+          const pass = idxPass !== -1 && r[idxPass] ? r[idxPass].trim() : 'Faculty@123';
+          const role = idxRole !== -1 && r[idxRole] ? r[idxRole].trim() : 'staff';
+
+          parsedBulkStaff.push({ name, username, gender, phone, majorSubject, email, pass, role });
+
+          if (parsedBulkStaff.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px;">${parsedBulkStaff.length}</td>
+              <td style="padding:6px 10px;"><strong>${name}</strong></td>
+              <td style="padding:6px 10px;">${username}</td>
+              <td style="padding:6px 10px;">${phone || '-'}</td>
+              <td style="padding:6px 10px;">${majorSubject}</td>
+              <td style="padding:6px 10px;">${email}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById('staffPreviewCountBadge').textContent = `${parsedBulkStaff.length} Faculty Detected`;
+        document.getElementById('staffPreviewContainer').style.display = 'block';
+        document.getElementById('startBulkStaffImportBtn').disabled = parsedBulkStaff.length === 0;
+      } catch (err) {
+        console.error('Staff parse error:', err);
+        alert('Failed to parse file: ' + err.message);
+      }
+    }
+
+    document.getElementById('startBulkStaffImportBtn')?.addEventListener('click', async () => {
+      if (!parsedBulkStaff.length) return;
+      const btn = document.getElementById('startBulkStaffImportBtn');
+      const cancelBtn = document.getElementById('cancelBulkStaffImportBtn');
+      btn.disabled = true;
+      cancelBtn.disabled = true;
+
+      const progressWrap = document.getElementById('staffProgressWrap');
+      const progressBar = document.getElementById('staffProgressBar');
+      const progressText = document.getElementById('staffProgressText');
+      const progressPct = document.getElementById('staffProgressPct');
+      progressWrap.style.display = 'block';
+
+      const secAuth = getSecondaryAuth();
+      let importedCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < parsedBulkStaff.length; i++) {
+        const s = parsedBulkStaff[i];
+        const pct = Math.round(((i + 1) / parsedBulkStaff.length) * 100);
+        progressBar.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        progressText.textContent = `Creating ${s.name} (${i + 1}/${parsedBulkStaff.length})...`;
+
+        try {
+          let uid = null;
+          try {
+            const cred = await createUserWithEmailAndPassword(secAuth, s.email, s.pass);
+            uid = cred.user.uid;
+          } catch (e) {
+            if (e.code === 'auth/email-already-in-use') {
+              const uQ = query(collection(db, 'users'), where('email', '==', s.email));
+              const uSnap = await getDocs(uQ);
+              if (!uSnap.empty) uid = uSnap.docs[0].id;
+            }
+          }
+          if (!uid) uid = doc(collection(db, 'staff')).id;
+
+          await setDoc(doc(db, 'users', uid), {
+            role: 'staff',
+            name: s.name,
+            username: s.username,
+            email: s.email,
+            phone: s.phone,
+            majorSubject: s.majorSubject,
+            gender: s.gender,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+
+          await setDoc(doc(db, 'staff', uid), {
+            name: s.name,
+            username: s.username,
+            email: s.email,
+            phone: s.phone,
+            majorSubject: s.majorSubject,
+            gender: s.gender,
+            role: 'staff',
+            type: 'subject',
+            createdAt: serverTimestamp()
+          }, { merge: true });
+
+          if (s.username) await syncLoginLookup(s.username, s.email);
+          if (s.phone) await syncLoginLookup(s.phone, s.email);
+          importedCount++;
+        } catch (err) {
+          console.error(`Error importing staff ${s.name}:`, err);
+          errorCount++;
+        }
+      }
+
+      progressText.textContent = `Completed! ${importedCount} faculty accounts created, ${errorCount} errors.`;
+      setTimeout(() => {
+        staffModal?.classList.remove('open');
+        btn.disabled = false;
+        cancelBtn.disabled = false;
+        showToast(`✅ Successfully imported ${importedCount} faculty members!`);
+        loadStaff();
+        loadOverview();
+      }, 900);
+    });
+
+    // =========================================================================
+    // 14. BULK NOTES IMPORT
+    // =========================================================================
+    let parsedBulkNotes = [];
+    const notesModal = document.getElementById('bulkNotesImportModal');
+
+    document.getElementById('importNotesBtn')?.addEventListener('click', () => {
+      parsedBulkNotes = [];
+      document.getElementById('notesPreviewContainer').style.display = 'none';
+      document.getElementById('notesProgressWrap').style.display = 'none';
+      document.getElementById('startBulkNotesImportBtn').disabled = true;
+      document.getElementById('notesDropzoneText').textContent = 'Click or Drag & Drop Notes File (.xlsx, .csv)';
+      notesModal?.classList.add('open');
+    });
+
+    document.getElementById('closeBulkNotesImportModal')?.addEventListener('click', () => notesModal?.classList.remove('open'));
+    document.getElementById('cancelBulkNotesImportBtn')?.addEventListener('click', () => notesModal?.classList.remove('open'));
+
+    document.getElementById('btnDownloadNotesCsvTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('notes', 'csv'));
+    document.getElementById('btnDownloadNotesExcelTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('notes', 'xlsx'));
+
+    const notesFileInput = document.getElementById('notesBulkFileInput');
+    notesFileInput?.addEventListener('change', (e) => {
+      if (e.target.files[0]) handleNotesBulkFile(e.target.files[0]);
+    });
+
+    const notesDropzone = document.getElementById('notesDropzone');
+    notesDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); notesDropzone.classList.add('dragover'); });
+    notesDropzone?.addEventListener('dragleave', () => notesDropzone.classList.remove('dragover'));
+    notesDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      notesDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files?.length) handleNotesBulkFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleNotesBulkFile(file) {
+      document.getElementById('notesDropzoneText').textContent = `📄 Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+      try {
+        const { headers, rows } = await ERPBulk.parseFile(file);
+        if (!rows.length) {
+          alert('Selected file contains no data rows.');
+          return;
+        }
+
+        const normH = headers.map(h => h.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+        const idxClass = normH.findIndex(h => h.includes('class') || h.includes('standard') || h.includes('section'));
+        const idxSub = normH.findIndex(h => h.includes('subject'));
+        const idxTitle = normH.findIndex(h => h.includes('title') || h.includes('topic') || h.includes('chapter'));
+        const idxDesc = normH.findIndex(h => h.includes('desc') || h.includes('detail') || h.includes('summary'));
+        const idxLink = normH.findIndex(h => h.includes('link') || h.includes('url') || h.includes('file'));
+
+        parsedBulkNotes = [];
+        const tbody = document.querySelector('#notesPreviewTable tbody');
+        tbody.innerHTML = '';
+
+        rows.forEach((r, rowIdx) => {
+          const className = idxClass !== -1 ? (r[idxClass] || '').trim() : '';
+          const subject = idxSub !== -1 ? (r[idxSub] || '').trim() : 'General';
+          const title = idxTitle !== -1 ? (r[idxTitle] || '').trim() : (r[0] || '').trim();
+          if (!title) return;
+          const description = idxDesc !== -1 ? (r[idxDesc] || '').trim() : '';
+          const fileUrl = idxLink !== -1 ? (r[idxLink] || '').trim() : '';
+
+          parsedBulkNotes.push({ className, subject, title, description, fileUrl });
+
+          if (parsedBulkNotes.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px;">${parsedBulkNotes.length}</td>
+              <td style="padding:6px 10px;">${className || '-'}</td>
+              <td style="padding:6px 10px;">${subject}</td>
+              <td style="padding:6px 10px;"><strong>${title}</strong></td>
+              <td style="padding:6px 10px; font-size:11px; max-width:180px; overflow:hidden; text-overflow:ellipsis;">${fileUrl || 'None'}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById('notesPreviewCountBadge').textContent = `${parsedBulkNotes.length} Notes Detected`;
+        document.getElementById('notesPreviewContainer').style.display = 'block';
+        document.getElementById('startBulkNotesImportBtn').disabled = parsedBulkNotes.length === 0;
+      } catch (err) {
+        console.error('Notes parse error:', err);
+        alert('Failed to parse file: ' + err.message);
+      }
+    }
+
+    document.getElementById('startBulkNotesImportBtn')?.addEventListener('click', async () => {
+      if (!parsedBulkNotes.length) return;
+      const btn = document.getElementById('startBulkNotesImportBtn');
+      const cancelBtn = document.getElementById('cancelBulkNotesImportBtn');
+      btn.disabled = true;
+      cancelBtn.disabled = true;
+
+      const progressWrap = document.getElementById('notesProgressWrap');
+      const progressBar = document.getElementById('notesProgressBar');
+      const progressText = document.getElementById('notesProgressText');
+      const progressPct = document.getElementById('notesProgressPct');
+      progressWrap.style.display = 'block';
+
+      // Load classes
+      const classesSnap = await getDocs(collection(db, 'classes'));
+      const clList = classesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      let count = 0;
+      for (let i = 0; i < parsedBulkNotes.length; i++) {
+        const n = parsedBulkNotes[i];
+        const pct = Math.round(((i + 1) / parsedBulkNotes.length) * 100);
+        progressBar.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        progressText.textContent = `Publishing ${n.title}...`;
+
+        const matched = clList.find(c => c.name?.toLowerCase().trim() === n.className.toLowerCase().trim());
+        const classId = matched ? matched.id : null;
+
+        await addDoc(collection(db, 'notes'), {
+          classId,
+          className: n.className || (matched ? matched.name : 'All Classes'),
+          subject: n.subject,
+          title: n.title,
+          description: n.description,
+          fileUrl: n.fileUrl || null,
+          externalLink: n.fileUrl || null,
+          uploadedBy: auth.currentUser?.uid || 'admin',
+          uploadedByName: 'Administration',
+          createdAt: serverTimestamp()
+        });
+        count++;
+      }
+
+      progressText.textContent = `Published ${count} study notes!`;
+      setTimeout(() => {
+        notesModal?.classList.remove('open');
+        btn.disabled = false;
+        cancelBtn.disabled = false;
+        showToast(`✅ Successfully imported ${count} study materials!`);
+        loadAdminNotes();
+      }, 800);
+    });
+
+    // =========================================================================
+    // 15. BULK ATTENDANCE IMPORT
+    // =========================================================================
+    let parsedBulkAttendance = [];
+    const attModal = document.getElementById('bulkAttendanceImportModal');
+
+    document.getElementById('attImportDayCsvBtn')?.addEventListener('click', async () => {
+      const sel = document.getElementById('bulkAttClassSel');
+      if (sel) {
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const clList = sortClassList(classesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
+        sel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+          clList.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
+      }
+      const dInput = document.getElementById('bulkAttDateInput');
+      if (dInput) dInput.value = formatYmd(new Date());
+
+      parsedBulkAttendance = [];
+      document.getElementById('attPreviewContainer').style.display = 'none';
+      document.getElementById('startBulkAttImportBtn').disabled = true;
+      document.getElementById('attDropzoneText').textContent = 'Click or Drag & Drop Attendance File';
+      attModal?.classList.add('open');
+    });
+
+    document.getElementById('closeBulkAttImportModal')?.addEventListener('click', () => attModal?.classList.remove('open'));
+    document.getElementById('cancelBulkAttImportBtn')?.addEventListener('click', () => attModal?.classList.remove('open'));
+
+    document.getElementById('btnDownloadAttCsvTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('attendance', 'csv'));
+    document.getElementById('btnDownloadAttExcelTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('attendance', 'xlsx'));
+
+    const attFileInput = document.getElementById('attBulkFileInput');
+    attFileInput?.addEventListener('change', (e) => {
+      if (e.target.files[0]) handleAttBulkFile(e.target.files[0]);
+    });
+
+    const attDropzone = document.getElementById('attDropzone');
+    attDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); attDropzone.classList.add('dragover'); });
+    attDropzone?.addEventListener('dragleave', () => attDropzone.classList.remove('dragover'));
+    attDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      attDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files?.length) handleAttBulkFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleAttBulkFile(file) {
+      document.getElementById('attDropzoneText').textContent = `📄 Selected: ${file.name}`;
+      try {
+        const { headers, rows } = await ERPBulk.parseFile(file);
+        if (!rows.length) {
+          alert('Selected file contains no data rows.');
+          return;
+        }
+
+        const normH = headers.map(h => h.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+        const idxAdm = normH.findIndex(h => h.includes('admission') || h.includes('admno'));
+        const idxRoll = normH.findIndex(h => h.includes('roll') || h.includes('rollno'));
+        const idxName = normH.findIndex(h => h.includes('name'));
+        const idxStatus = normH.findIndex(h => h.includes('status'));
+        const idxRemarks = normH.findIndex(h => h.includes('remark'));
+
+        parsedBulkAttendance = [];
+        const tbody = document.querySelector('#attPreviewTable tbody');
+        tbody.innerHTML = '';
+
+        rows.forEach((r, rowIdx) => {
+          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
+          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
+          const name = idxName !== -1 ? (r[idxName] || '').trim() : '';
+          let status = idxStatus !== -1 && r[idxStatus] ? r[idxStatus].trim() : 'Present';
+          if (/^p/i.test(status)) status = 'Present';
+          else if (/^a/i.test(status)) status = 'Absent';
+          else if (/^l/i.test(status)) status = 'Late';
+          const remarks = idxRemarks !== -1 && r[idxRemarks] ? r[idxRemarks].trim() : '';
+
+          parsedBulkAttendance.push({ admNo, rollNo, name, status, remarks });
+
+          if (parsedBulkAttendance.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px;">${parsedBulkAttendance.length}</td>
+              <td style="padding:6px 10px;">${admNo || '-'}</td>
+              <td style="padding:6px 10px;">${rollNo || '-'}</td>
+              <td style="padding:6px 10px;"><strong>${name || '-'}</strong></td>
+              <td style="padding:6px 10px;"><span class="badge ${status === 'Present' ? 'badge-good' : (status === 'Absent' ? 'badge-bad' : 'badge-yellow')}">${status}</span></td>
+              <td style="padding:6px 10px;">${remarks || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById('attPreviewCountBadge').textContent = `${parsedBulkAttendance.length} Rows`;
+        document.getElementById('attPreviewContainer').style.display = 'block';
+        document.getElementById('startBulkAttImportBtn').disabled = parsedBulkAttendance.length === 0;
+      } catch (err) {
+        console.error('Attendance parse error:', err);
+        alert('Failed to parse file: ' + err.message);
+      }
+    }
+
+    document.getElementById('startBulkAttImportBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('bulkAttClassSel')?.value;
+      const date = document.getElementById('bulkAttDateInput')?.value;
+      if (!classId || !date) {
+        alert('Please select a target class section and date.');
+        return;
+      }
+
+      const btn = document.getElementById('startBulkAttImportBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', classId));
+        const className = classSnap.exists() ? classSnap.data().name : 'Class Section';
+
+        // Load enrolled students of this class
+        const stuSnap = await getDocs(query(collection(db, 'students'), where('classId', '==', classId)));
+        const classStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const records = {};
+        classStudents.forEach(st => {
+          // Default to present
+          records[st.id] = { status: 'Present', remarks: '' };
+        });
+
+        // Match uploaded rows
+        parsedBulkAttendance.forEach(row => {
+          const match = classStudents.find(st =>
+            (row.admNo && st.admissionNo && st.admissionNo.toLowerCase() === row.admNo.toLowerCase()) ||
+            (row.rollNo && st.rollNo && String(st.rollNo) === String(row.rollNo)) ||
+            (row.name && st.name && st.name.toLowerCase() === row.name.toLowerCase())
+          );
+          if (match) {
+            records[match.id] = { status: row.status, remarks: row.remarks };
+          }
+        });
+
+        const docId = `${classId}_${date}`;
+        await setDoc(doc(db, 'attendance', docId), {
+          classId,
+          className,
+          date,
+          records,
+          markedBy: auth.currentUser?.uid || 'admin',
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        showToast(`✅ Attendance recorded for ${Object.keys(records).length} students!`);
+        attModal?.classList.remove('open');
+        initAttendancePanel();
+      } catch (err) {
+        console.error('Attendance import error:', err);
+        alert('Failed to save attendance: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Apply Attendance';
+      }
+    });
+
+    // =========================================================================
+    // 16. BULK MARKS IMPORT
+    // =========================================================================
+    let parsedBulkMarks = [];
+    const marksModal = document.getElementById('bulkMarksImportModal');
+
+    document.getElementById('importMarksBtn')?.addEventListener('click', async () => {
+      const sel = document.getElementById('bulkMarksClassSel');
+      if (sel) {
+        const classesSnap = await getDocs(collection(db, 'classes'));
+        const clList = sortClassList(classesSnap.docs.map(d => ({ id: d.id, name: d.data().name })));
+        sel.innerHTML = '<option value="">-- Choose Class Section --</option>' +
+          clList.map(c => `<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
+      }
+      const exInput = document.getElementById('bulkMarksExamName');
+      if (exInput) exInput.value = 'Mid-Term Examination 2026';
+
+      parsedBulkMarks = [];
+      document.getElementById('marksPreviewContainer').style.display = 'none';
+      document.getElementById('startBulkMarksImportBtn').disabled = true;
+      document.getElementById('marksDropzoneText').textContent = 'Click or Drag & Drop Marks Sheet';
+      marksModal?.classList.add('open');
+    });
+
+    document.getElementById('closeBulkMarksImportModal')?.addEventListener('click', () => marksModal?.classList.remove('open'));
+    document.getElementById('cancelBulkMarksImportBtn')?.addEventListener('click', () => marksModal?.classList.remove('open'));
+
+    document.getElementById('btnDownloadMarksCsvTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('marks', 'csv'));
+    document.getElementById('btnDownloadMarksExcelTpl')?.addEventListener('click', () => ERPBulk.downloadTemplate('marks', 'xlsx'));
+
+    const marksFileInput = document.getElementById('marksBulkFileInput');
+    marksFileInput?.addEventListener('change', (e) => {
+      if (e.target.files[0]) handleMarksBulkFile(e.target.files[0]);
+    });
+
+    const marksDropzone = document.getElementById('marksDropzone');
+    marksDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); marksDropzone.classList.add('dragover'); });
+    marksDropzone?.addEventListener('dragleave', () => marksDropzone.classList.remove('dragover'));
+    marksDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      marksDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files?.length) handleMarksBulkFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleMarksBulkFile(file) {
+      document.getElementById('marksDropzoneText').textContent = `📄 Selected: ${file.name}`;
+      try {
+        const { headers, rows } = await ERPBulk.parseFile(file);
+        if (!rows.length) {
+          alert('Selected file contains no data rows.');
+          return;
+        }
+
+        const normH = headers.map(h => h.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+        const idxAdm = normH.findIndex(h => h.includes('admission') || h.includes('admno'));
+        const idxRoll = normH.findIndex(h => h.includes('roll') || h.includes('rollno'));
+        const idxName = normH.findIndex(h => h.includes('student') || h.includes('name'));
+        const idxSub = normH.findIndex(h => h.includes('subject'));
+        const idxOb = normH.findIndex(h => h.includes('obtained') || h.includes('mark'));
+        const idxMax = normH.findIndex(h => h.includes('max') || h.includes('total'));
+
+        parsedBulkMarks = [];
+        const tbody = document.querySelector('#marksPreviewTable tbody');
+        tbody.innerHTML = '';
+
+        rows.forEach(r => {
+          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
+          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
+          const name = idxName !== -1 ? (r[idxName] || '').trim() : '';
+          const subject = idxSub !== -1 ? (r[idxSub] || '').trim() : 'General';
+          const marksObtained = idxOb !== -1 ? parseFloat(r[idxOb]) || 0 : 0;
+          const maxMarks = idxMax !== -1 ? parseFloat(r[idxMax]) || 100 : 100;
+
+          parsedBulkMarks.push({ admNo, rollNo, name, subject, marksObtained, maxMarks });
+
+          if (parsedBulkMarks.length <= 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="padding:6px 10px;">${parsedBulkMarks.length}</td>
+              <td style="padding:6px 10px;">${admNo || '-'}</td>
+              <td style="padding:6px 10px;">${rollNo || '-'}</td>
+              <td style="padding:6px 10px;"><strong>${name || '-'}</strong></td>
+              <td style="padding:6px 10px;">${subject}</td>
+              <td style="padding:6px 10px;"><strong>${marksObtained}</strong></td>
+              <td style="padding:6px 10px;">${maxMarks}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById('marksPreviewCountBadge').textContent = `${parsedBulkMarks.length} Entries`;
+        document.getElementById('marksPreviewContainer').style.display = 'block';
+        document.getElementById('startBulkMarksImportBtn').disabled = parsedBulkMarks.length === 0;
+      } catch (err) {
+        console.error('Marks parse error:', err);
+        alert('Failed to parse file: ' + err.message);
+      }
+    }
+
+    document.getElementById('startBulkMarksImportBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('bulkMarksClassSel')?.value;
+      const examName = document.getElementById('bulkMarksExamName')?.value.trim();
+      if (!classId || !examName) {
+        alert('Please select a target class section and enter examination name.');
+        return;
+      }
+
+      const btn = document.getElementById('startBulkMarksImportBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving Marks...';
+
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', classId));
+        const className = classSnap.exists() ? classSnap.data().name : 'Class Section';
+
+        const stuSnap = await getDocs(query(collection(db, 'students'), where('classId', '==', classId)));
+        const classStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        let savedCount = 0;
+        for (const m of parsedBulkMarks) {
+          const match = classStudents.find(st =>
+            (m.admNo && st.admissionNo && st.admissionNo.toLowerCase() === m.admNo.toLowerCase()) ||
+            (m.rollNo && st.rollNo && String(st.rollNo) === String(m.rollNo)) ||
+            (m.name && st.name && st.name.toLowerCase() === m.name.toLowerCase())
+          );
+          if (!match) continue;
+
+          const pct = m.maxMarks > 0 ? Math.round((m.marksObtained / m.maxMarks) * 100) : 0;
+          let grade = 'F';
+          if (pct >= 90) grade = 'A+';
+          else if (pct >= 80) grade = 'A';
+          else if (pct >= 70) grade = 'B';
+          else if (pct >= 60) grade = 'C';
+          else if (pct >= 50) grade = 'D';
+
+          const markDocId = `${classId}_${match.id}_${examName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${m.subject.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+          await setDoc(doc(db, 'marks', markDocId), {
+            classId,
+            className,
+            examName,
+            subject: m.subject,
+            studentUid: match.id,
+            studentName: match.name,
+            admissionNo: match.admissionNo || '',
+            marksObtained: m.marksObtained,
+            maxMarks: m.maxMarks,
+            grade,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+          savedCount++;
+        }
+
+        showToast(`✅ Saved ${savedCount} examination scorecards!`);
+        marksModal?.classList.remove('open');
+      } catch (err) {
+        console.error('Marks import error:', err);
+        alert('Failed to save marks: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Examination Marks';
+      }
+    });
+
+    // =========================================================================
+    // 17. PERMANENT PURGE / RESET ALL DEMO DATA
+    // =========================================================================
+    const purgeModal = document.getElementById('purgeDemoDataModal');
+    const purgeInput = document.getElementById('purgeConfirmInput');
+    const purgeConfirmBtn = document.getElementById('confirmPurgeDemoDataBtn');
+
+    function openPurgeModal() {
+      if (purgeInput) purgeInput.value = '';
+      if (purgeConfirmBtn) purgeConfirmBtn.disabled = true;
+      document.getElementById('purgeProgressBox').style.display = 'none';
+      purgeModal?.classList.add('open');
+    }
+
+    document.getElementById('cardPurgeDemoData')?.addEventListener('click', openPurgeModal);
+    document.getElementById('openPurgeDataBtn')?.addEventListener('click', openPurgeModal);
+    document.getElementById('closePurgeDemoDataModal')?.addEventListener('click', () => purgeModal?.classList.remove('open'));
+    document.getElementById('cancelPurgeDemoDataBtn')?.addEventListener('click', () => purgeModal?.classList.remove('open'));
+
+    purgeInput?.addEventListener('input', (e) => {
+      const val = e.target.value.trim().toUpperCase();
+      purgeConfirmBtn.disabled = val !== 'PURGE';
+    });
+
+    purgeConfirmBtn?.addEventListener('click', async () => {
+      purgeConfirmBtn.disabled = true;
+      const progressBox = document.getElementById('purgeProgressBox');
+      const statusText = document.getElementById('purgeStatusText');
+      progressBox.style.display = 'block';
+
+      try {
+        const report = await ERPBulk.purgeAllDemoData({
+          supabase,
+          progressCb: (step, total, msg) => {
+            statusText.textContent = `[${step}/${total}] ${msg}`;
+          }
+        });
+
+        // Reset all in-memory caches
+        allStudentsCache = [];
+        currentStudentListCache = [];
+        allStaffCache = [];
+        allAdminNotesCache = [];
+        allClasses = [];
+        currentMarksStudents = [];
+        currentMarksRecordsMap = {};
+
+        statusText.textContent = 'Purge completed! Refreshing campus dashboard...';
+
+        setTimeout(() => {
+          purgeModal?.classList.remove('open');
+          showToast('✅ All demo data wiped cleanly! Database is now empty and fresh.');
+          loadOverview();
+          loadClasses();
+          loadStudents();
+          loadStaff();
+          loadAdminNotes();
+        }, 1200);
+      } catch (err) {
+        console.error('Purge error:', err);
+        statusText.textContent = 'Error during purge: ' + err.message;
+        alert('Purge encountered an error: ' + err.message);
+      }
     });
   </script>
   <script src="../../js/site-brand.js"></script>

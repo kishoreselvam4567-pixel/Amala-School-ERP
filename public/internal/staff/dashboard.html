@@ -9,7 +9,60 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../css/style.css">
+<script src="../../js/site-brand.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="../../js/bulk-import-export.js"></script>
 <style>
+  /* Bulk Import & Export Modals Styling */
+  .bulk-dropzone {
+    border: 2px dashed #93c5fd;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 16px;
+  }
+  .bulk-dropzone:hover, .bulk-dropzone.dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+  .bulk-template-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bulk-preview-wrap {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 12.5px;
+  }
+  .bulk-progress-bar-bg {
+    background: #e2e8f0;
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+    width: 100%;
+  }
+  .bulk-progress-bar-fill {
+    background: linear-gradient(90deg, #10b981, #059669);
+    height: 100%;
+    width: 0%;
+    transition: width 0.15s ease;
+  }
+
   /* Body scroll lock when modal is open */
   body.modal-open {
     overflow: hidden !important;
@@ -930,19 +983,24 @@
         <strong style="color:#166534; font-size:13px; display:block;">Download sample roster CSV format:</strong>
         <span style="color:#15803d; font-size:12px;">Formatted for quick batch admission with Roll No, Admission No, Full Name, DOB, Gender, and Parent phone.</span>
       </div>
-      <button type="button" class="btn btn-outline btn-sm" id="staffDownloadStudentTemplateBtn" style="background:#fff; font-weight:700; color:#166534; border-color:#86efac; display:inline-flex; align-items:center; gap:6px;">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Download CSV Template
-      </button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="staffDownloadStudentTemplateBtn" style="background:#fff; font-weight:700; color:#166534; border-color:#86efac; display:inline-flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          CSV Template
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="staffDownloadStudentExcelTplBtn" style="background:#f0fdf4; font-weight:700; color:#166534; border-color:#86efac; display:inline-flex; align-items:center; gap:6px;">
+          📊 Excel Template (.xlsx)
+        </button>
+      </div>
     </div>
 
     <div class="field" style="margin-bottom:16px;">
-      <label>Select CSV Roster File <span style="color:var(--bad);">*</span></label>
-      <input type="file" id="staffStuCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+      <label>Select Student Roster File (.xlsx, .xls, .csv) <span style="color:var(--bad);">*</span></label>
+      <input type="file" id="staffStuCsvFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="padding:8px 10px; cursor:pointer;">
     </div>
 
     <!-- Preview Box -->
@@ -1001,14 +1059,29 @@
         </svg>
       </div>
       <div>
-        <h3 style="margin:0; font-size:18px; color:var(--ink);">Import Class Attendance CSV</h3>
-        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Bulk fill daily class attendance status from a spreadsheet.</p>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Class Attendance Import (Excel / CSV)</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Bulk fill daily class attendance status from a spreadsheet (.xlsx, .csv).</p>
+      </div>
+    </div>
+
+    <div class="bulk-template-bar">
+      <div>
+        <strong style="font-size:13px; color:#1e293b; display:block;">Download Attendance Template:</strong>
+        <span style="font-size:11.5px; color:var(--ink-soft);">Columns: Roll No, Student Name, Admission No, Attendance Status (Present / Absent / Late).</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="downloadStaffAttCsvTemplateBtn" style="font-size:12px; font-weight:700;">
+          📥 Sample CSV
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="downloadStaffAttExcelTemplateBtn" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+          📊 Sample Excel (.xlsx)
+        </button>
       </div>
     </div>
 
     <div class="field" style="margin-bottom:16px;">
-      <label>Select Attendance CSV <span style="color:var(--bad);">*</span></label>
-      <input type="file" id="staffAttCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+      <label>Select Attendance File (.xlsx, .xls, .csv) <span style="color:var(--bad);">*</span></label>
+      <input type="file" id="staffAttCsvFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="padding:8px 10px; cursor:pointer;">
     </div>
 
     <div id="staffAttPreviewBox" style="display:none; margin-bottom:16px;">
@@ -1225,14 +1298,19 @@
         <strong style="color:#92400e; font-size:13px; display:block;">Download Examination Marks Template:</strong>
         <span style="color:#b45309; font-size:12px;">Download current class exam sheet or sample marks template.</span>
       </div>
-      <button type="button" class="btn btn-outline btn-sm" id="downloadMarksTemplateBtn" style="background:#fff; font-weight:700; color:#92400e; border-color:#fcd34d; display:inline-flex; align-items:center; gap:6px;">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-        Download Marks Template
-      </button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="downloadMarksTemplateBtn" style="background:#fff; font-weight:700; color:#92400e; border-color:#fcd34d; display:inline-flex; align-items:center; gap:6px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          CSV Template
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="downloadMarksExcelTemplateBtn" style="background:#f0fdf4; font-weight:700; color:#166534; border-color:#86efac; display:inline-flex; align-items:center; gap:6px;">
+          📊 Excel Template (.xlsx)
+        </button>
+      </div>
     </div>
 
     <div class="field-row" style="margin-bottom:16px;">
@@ -1245,8 +1323,8 @@
         <input type="number" id="bulkMarksMaxInput" value="100" min="1">
       </div>
       <div class="field" style="flex:1.5;">
-        <label>Select Marks CSV <span style="color:var(--bad);">*</span></label>
-        <input type="file" id="bulkMarksCsvFileInput" accept=".csv,text/csv" style="padding:8px 10px; cursor:pointer;">
+        <label>Select Marks File (.xlsx, .xls, .csv) <span style="color:var(--bad);">*</span></label>
+        <input type="file" id="bulkMarksCsvFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="padding:8px 10px; cursor:pointer;">
       </div>
     </div>
 
@@ -1276,6 +1354,91 @@
       <button type="button" class="btn btn-outline" id="cancelBulkMarksImportBtn">Close</button>
       <button type="button" class="btn btn-primary" id="startBulkMarksImportBtn" disabled style="min-width:160px; font-weight:700;">
         Apply Bulk Marks
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAFF BULK NOTES IMPORT MODAL ================= -->
+<div class="profile-modal-overlay" id="staffBulkNotesImportModal">
+  <div class="profile-modal-card" style="max-width:760px;">
+    <button type="button" class="modal-close" id="closeStaffNotesImportModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(37,99,235,0.12); color:#2563eb; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Bulk Study Materials &amp; Notes Import</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">Upload bulk syllabus notes (.xlsx, .csv) with cloud links or study references for your classes.</p>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:14px;">
+      <label>Select Target Assigned Subject *</label>
+      <select id="staffNotesImportAssignSel" class="form-select"></select>
+    </div>
+
+    <div class="bulk-template-bar">
+      <div>
+        <strong style="font-size:13px; color:#1e293b; display:block;">Download Notes Template:</strong>
+        <span style="font-size:11.5px; color:var(--ink-soft);">Columns: Class Section, Subject, Note Title, Description, Document Link / PDF URL.</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStaffNotesCsvTpl" style="font-size:12px; font-weight:700;">
+          📥 Sample CSV
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" id="btnDownloadStaffNotesExcelTpl" style="font-size:12px; font-weight:700; background:#f0fdf4; border-color:#86efac; color:#166534;">
+          📊 Sample Excel (.xlsx)
+        </button>
+      </div>
+    </div>
+
+    <div class="bulk-dropzone" id="staffNotesDropzone" onclick="document.getElementById('staffNotesBulkFileInput').click()">
+      <input type="file" id="staffNotesBulkFileInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display:none;">
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#2563eb" stroke-width="1.8" style="margin-bottom:8px;">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div style="font-size:14px; font-weight:700; color:var(--ink);" id="staffNotesDropzoneText">Click or Drag &amp; Drop Notes File (.xlsx, .csv)</div>
+    </div>
+
+    <div id="staffNotesPreviewContainer" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:12px; font-weight:700; color:#1e293b;">Data Preview: <span id="staffNotesPreviewCountBadge" class="badge badge-navy">0 Notes Detected</span></span>
+      </div>
+      <div class="bulk-preview-wrap">
+        <table id="staffNotesPreviewTable" style="width:100%; margin:0; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f1f5f9; text-align:left;">
+              <th style="padding:6px 10px;">#</th>
+              <th style="padding:6px 10px;">Subject</th>
+              <th style="padding:6px 10px;">Title</th>
+              <th style="padding:6px 10px;">Description</th>
+              <th style="padding:6px 10px;">Document Link</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="staffNotesProgressWrap" style="display:none; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:4px;">
+        <span id="staffNotesProgressText">Publishing notes...</span>
+        <span id="staffNotesProgressPct">0%</span>
+      </div>
+      <div class="bulk-progress-bar-bg">
+        <div class="bulk-progress-bar-fill" id="staffNotesProgressBar"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+      <button type="button" class="btn btn-outline" id="cancelStaffNotesImportBtn">Cancel</button>
+      <button type="button" class="btn btn-primary" id="startStaffNotesImportBtn" disabled style="min-width:160px; font-weight:700;">
+        Start Notes Import
       </button>
     </div>
   </div>
@@ -1764,6 +1927,15 @@
                   </svg>
                   Export CSV
                 </button>
+                <button type="button" class="btn btn-outline btn-sm" id="staffAttImportCsvBtn"
+                  style="font-weight:700; display:inline-flex; align-items:center; gap:6px; border-color:#059669; background:#ecfdf5; color:#059669; cursor:pointer;">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Import Bulk (Excel/CSV)
+                </button>
               </div>
             </div>
           </div>
@@ -2064,7 +2236,7 @@
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
-              Import CSV
+              Import Bulk (Excel/CSV)
             </button>
             <button type="button" class="btn-exit-tab" data-go-tab="overview"
               title="Exit this tab and return to Home Overview">
@@ -2206,12 +2378,32 @@
         <div class="main-header">
           <div>
             <h2>Syllabus Notes</h2>
-            <p style="color:var(--ink-soft);">Upload PDF study materials for your subjects.</p>
+            <p style="color:var(--ink-soft);">Upload, import and export study materials for your subjects.</p>
           </div>
-          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            Exit to Home
-          </button>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" id="exportStaffNotesCsvBtn"
+              style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export CSV
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="importStaffNotesBtn"
+              style="font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              Import Bulk (Excel/CSV)
+            </button>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Exit to Home
+            </button>
+          </div>
         </div>
         <div id="notesNoAccess" class="empty-state" style="display:none;">No subjects assigned to you yet.</div>
         <div id="notesAccess" style="display:none;">
@@ -2299,7 +2491,7 @@
             </button>
             <button class="btn btn-outline" id="staffStuImportCsvBtn" type="button" style="border:1px solid #059669;background:#ecfdf5;color:#059669;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Import CSV
+              Import Bulk (Excel/CSV)
             </button>
           </div>
         </div>
@@ -6168,100 +6360,98 @@ function closeBulkMarksModal() {
 
 document.getElementById('importConsolidatedMarksCsvBtn')?.addEventListener('click', openBulkMarksModal);
 document.getElementById('downloadMarksTemplateBtn')?.addEventListener('click', downloadMarksSampleTemplate);
+document.getElementById('downloadMarksExcelTemplateBtn')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('marks', 'xlsx');
+});
 document.getElementById('closeBulkMarksImportModal')?.addEventListener('click', closeBulkMarksModal);
 document.getElementById('cancelBulkMarksImportBtn')?.addEventListener('click', closeBulkMarksModal);
 
-document.getElementById('bulkMarksCsvFileInput')?.addEventListener('change', (e) => {
+document.getElementById('bulkMarksCsvFileInput')?.addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const text = evt.target.result;
-      const rows = parseCsv(text);
-      if (rows.length < 2) {
-        alert('CSV is empty or missing headers.');
-        return;
-      }
-      const headers = rows[0].map(h => h.trim());
-      const headersLower = headers.map(h => h.toLowerCase());
-      const idxAdm = headersLower.findIndex(h => h.includes('adm') || h.includes('admission'));
-      const idxRoll = headersLower.findIndex(h => h.includes('roll'));
-      const idxName = headersLower.findIndex(h => h.includes('name'));
-      const examName = document.getElementById('bulkMarksExamInput')?.value.trim() || currentMarksExamName || 'General Exam';
-      const defaultMax = parseFloat(document.getElementById('bulkMarksMaxInput')?.value) || 100;
-
-      const nonSubjectCols = new Set(['roll no', 'roll', 'student name', 'name', 'admission no', 'adm no', 'total marks', 'max marks', 'percentage', 'grade', 'result']);
-      const subjectColIndices = [];
-      headers.forEach((h, colIdx) => {
-        if (!nonSubjectCols.has(h.toLowerCase().trim())) {
-          subjectColIndices.push({ subject: h.trim(), idx: colIdx });
-        }
-      });
-
-      parsedBulkMarks = [];
-      const tbody = document.querySelector('#bulkMarksPreviewTable tbody');
-      tbody.innerHTML = '';
-
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || !r.length) continue;
-        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
-        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
-        const nameVal = idxName !== -1 ? r[idxName] : '';
-
-        const matchedStudent = currentMarksStudents.find(s => {
-          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
-          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
-          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
-          return false;
-        });
-
-        if (matchedStudent) {
-          const sUid = matchedStudent.id || matchedStudent.uid;
-          subjectColIndices.forEach(({ subject, idx }) => {
-            const rawMark = r[idx];
-            if (rawMark !== undefined && rawMark !== null && rawMark.trim() !== '') {
-              const markNum = parseFloat(rawMark);
-              if (!isNaN(markNum)) {
-                parsedBulkMarks.push({
-                  studentUid: sUid,
-                  studentName: matchedStudent.name,
-                  admissionNo: matchedStudent.admissionNo,
-                  rollNo: matchedStudent.rollNo,
-                  examName,
-                  subject,
-                  marks: markNum,
-                  maxMarks: defaultMax
-                });
-              }
-            }
-          });
-        }
-      }
-
-      // Populate preview (up to 10 entries)
-      parsedBulkMarks.slice(0, 10).forEach(m => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="padding:6px 10px;"><strong>${m.studentName}</strong></td>
-          <td style="padding:6px 10px; font-family:var(--font-mono);">${m.admissionNo || '—'}</td>
-          <td style="padding:6px 10px;"><span class="badge badge-navy">${m.subject}</span></td>
-          <td style="padding:6px 10px;">${m.examName}</td>
-          <td style="padding:6px 10px; font-weight:700; color:var(--good);">${m.marks}</td>
-          <td style="padding:6px 10px;">${m.maxMarks}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('bulkMarksRowCount').textContent = parsedBulkMarks.length;
-      document.getElementById('bulkMarksPreviewBox').style.display = 'block';
-      document.getElementById('startBulkMarksImportBtn').disabled = parsedBulkMarks.length === 0;
-    } catch (err) {
-      alert('Failed to parse marks CSV: ' + err.message);
+  try {
+    const { headers: rawHeaders, rows } = await ERPBulk.parseFile(file);
+    if (!rows.length) {
+      alert('Marks file is empty or missing data rows.');
+      return;
     }
-  };
-  reader.readAsText(file);
+    const headers = rawHeaders.map(h => String(h || '').trim());
+    const headersLower = headers.map(h => h.toLowerCase());
+    const idxAdm = headersLower.findIndex(h => h.includes('adm') || h.includes('admission'));
+    const idxRoll = headersLower.findIndex(h => h.includes('roll'));
+    const idxName = headersLower.findIndex(h => h.includes('name'));
+    const examName = document.getElementById('bulkMarksExamInput')?.value.trim() || currentMarksExamName || 'General Exam';
+    const defaultMax = parseFloat(document.getElementById('bulkMarksMaxInput')?.value) || 100;
+
+    const nonSubjectCols = new Set(['roll no', 'roll', 'student name', 'name', 'admission no', 'adm no', 'total marks', 'max marks', 'percentage', 'grade', 'result']);
+    const subjectColIndices = [];
+    headers.forEach((h, colIdx) => {
+      if (!nonSubjectCols.has(h.toLowerCase().trim())) {
+        subjectColIndices.push({ subject: h.trim(), idx: colIdx });
+      }
+    });
+
+    parsedBulkMarks = [];
+    const tbody = document.querySelector('#bulkMarksPreviewTable tbody');
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r.length) continue;
+      const admVal = idxAdm !== -1 ? String(r[idxAdm] || '').trim() : '';
+      const rollVal = idxRoll !== -1 ? String(r[idxRoll] || '').trim() : '';
+      const nameVal = idxName !== -1 ? String(r[idxName] || '').trim() : '';
+
+      const matchedStudent = currentMarksStudents.find(s => {
+        if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
+        if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
+        if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
+        return false;
+      });
+
+      if (matchedStudent) {
+        const sUid = matchedStudent.id || matchedStudent.uid;
+        subjectColIndices.forEach(({ subject, idx }) => {
+          const rawMark = r[idx];
+          if (rawMark !== undefined && rawMark !== null && String(rawMark).trim() !== '') {
+            const markNum = parseFloat(rawMark);
+            if (!isNaN(markNum)) {
+              parsedBulkMarks.push({
+                studentUid: sUid,
+                studentName: matchedStudent.name,
+                admissionNo: matchedStudent.admissionNo,
+                rollNo: matchedStudent.rollNo,
+                examName,
+                subject,
+                marks: markNum,
+                maxMarks: defaultMax
+              });
+            }
+          }
+        });
+      }
+    }
+
+    // Populate preview (up to 10 entries)
+    parsedBulkMarks.slice(0, 10).forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding:6px 10px;"><strong>${m.studentName}</strong></td>
+        <td style="padding:6px 10px; font-family:var(--font-mono);">${m.admissionNo || '—'}</td>
+        <td style="padding:6px 10px;"><span class="badge badge-navy">${m.subject}</span></td>
+        <td style="padding:6px 10px;">${m.examName}</td>
+        <td style="padding:6px 10px; font-weight:700; color:var(--good);">${m.marks}</td>
+        <td style="padding:6px 10px;">${m.maxMarks}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('bulkMarksRowCount').textContent = parsedBulkMarks.length;
+    document.getElementById('bulkMarksPreviewBox').style.display = 'block';
+    document.getElementById('startBulkMarksImportBtn').disabled = parsedBulkMarks.length === 0;
+  } catch (err) {
+    alert('Failed to parse marks file: ' + err.message);
+  }
 });
 
 document.getElementById('startBulkMarksImportBtn')?.addEventListener('click', async () => {
@@ -6351,18 +6541,22 @@ document.getElementById('notesUploadBtn').addEventListener('click', async () => 
   showToast('Note uploaded.');
   loadNotesList();
 });
+let allStaffNotes = [];
+
 async function loadNotesList() {
   const body = document.querySelector('#notesListTable tbody');
   body.innerHTML = '';
+  allStaffNotes = [];
   if (!subjectAssignments.length) return;
   const noteSnaps = await Promise.all(
-    subjectAssignments.map(a => getDocs(query(collection(db, 'notes'), where('classId', '==', a.classId), where('subject', '==', a.subject), limit(30))).catch(() => ({ docs: [] })))
+    subjectAssignments.map(a => getDocs(query(collection(db, 'notes'), where('classId', '==', a.classId), where('subject', '==', a.subject), limit(50))).catch(() => ({ docs: [] })))
   );
   noteSnaps.forEach(snap => {
     snap.docs.forEach(d => {
       const r = d.data();
+      allStaffNotes.push({ id: d.id, ...r });
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.className}</td><td>${r.subject}</td><td><strong>${r.title}</strong></td>
+      tr.innerHTML = `<td>${r.className || 'Class'}</td><td>${r.subject}</td><td><strong>${r.title}</strong></td>
         <td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" class="btn btn-outline btn-sm">PDF</a>` : ''} 
         <button class="btn btn-danger btn-sm" data-id="${d.id}">Delete</button></td>`;
       tr.querySelector('.btn-danger').addEventListener('click', async () => { await deleteDoc(doc(db, 'notes', d.id)); loadNotesList(); });
@@ -6370,6 +6564,213 @@ async function loadNotesList() {
     });
   });
 }
+
+// Staff Notes Export CSV
+document.getElementById('exportStaffNotesCsvBtn')?.addEventListener('click', () => {
+  if (!allStaffNotes.length) {
+    ERPBulk.exportNotesToCsv([{
+      className: subjectAssignments[0]?.className || 'Class 10-A',
+      subject: subjectAssignments[0]?.subject || 'Mathematics',
+      title: 'Sample Chapter Notes',
+      description: 'Sample study materials description',
+      fileUrl: 'https://example.com/sample_notes.pdf'
+    }]);
+    return;
+  }
+  ERPBulk.exportNotesToCsv(allStaffNotes);
+});
+
+// Staff Notes Bulk Import Modal
+let parsedStaffNotesList = [];
+
+function openStaffNotesImportModal() {
+  const modal = document.getElementById('staffBulkNotesImportModal');
+  if (!modal) return;
+  const sel = document.getElementById('staffNotesImportAssignSel');
+  if (sel) {
+    sel.innerHTML = '<option value="">-- Apply to Specific Assignment (or match from file) --</option>';
+    subjectAssignments.forEach((a, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${a.className || 'Class'} — ${a.subject}`;
+      sel.appendChild(opt);
+    });
+  }
+  const fileInput = document.getElementById('staffNotesBulkFileInput');
+  if (fileInput) fileInput.value = '';
+  parsedStaffNotesList = [];
+  document.getElementById('staffNotesPreviewContainer').style.display = 'none';
+  document.getElementById('staffNotesProgressWrap').style.display = 'none';
+  document.getElementById('startStaffNotesImportBtn').disabled = true;
+  document.getElementById('staffNotesDropzoneText').textContent = 'Click or Drag & Drop Notes File (.xlsx, .csv)';
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+  updateBodyModalState();
+}
+
+function closeStaffNotesImportModal() {
+  const modal = document.getElementById('staffBulkNotesImportModal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+  updateBodyModalState();
+}
+
+document.getElementById('importStaffNotesBtn')?.addEventListener('click', openStaffNotesImportModal);
+document.getElementById('closeStaffNotesImportModal')?.addEventListener('click', closeStaffNotesImportModal);
+document.getElementById('cancelStaffNotesImportBtn')?.addEventListener('click', closeStaffNotesImportModal);
+
+document.getElementById('btnDownloadStaffNotesCsvTpl')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('notes', 'csv');
+});
+
+document.getElementById('btnDownloadStaffNotesExcelTpl')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('notes', 'xlsx');
+});
+
+// Dropzone drag/drop
+const staffNotesDropzone = document.getElementById('staffNotesDropzone');
+if (staffNotesDropzone) {
+  ['dragenter', 'dragover'].forEach(name => {
+    staffNotesDropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      staffNotesDropzone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(name => {
+    staffNotesDropzone.addEventListener(name, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      staffNotesDropzone.classList.remove('dragover');
+    });
+  });
+  staffNotesDropzone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files.length) {
+      handleStaffNotesFile(files[0]);
+    }
+  });
+}
+
+document.getElementById('staffNotesBulkFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (file) handleStaffNotesFile(file);
+});
+
+async function handleStaffNotesFile(file) {
+  try {
+    document.getElementById('staffNotesDropzoneText').textContent = `📄 Selected: ${file.name}`;
+    const { headers: rawHeaders, rows } = await ERPBulk.parseFile(file);
+    if (!rows.length) {
+      alert('File does not contain any data rows.');
+      return;
+    }
+    const headers = rawHeaders.map(h => String(h || '').trim().toLowerCase());
+    const idxClass = headers.findIndex(h => h.includes('class') || h.includes('grade') || h.includes('section'));
+    const idxSubject = headers.findIndex(h => h.includes('subject'));
+    const idxTitle = headers.findIndex(h => h.includes('title') || h.includes('topic') || h.includes('name'));
+    const idxDesc = headers.findIndex(h => h.includes('desc') || h.includes('syllabus') || h.includes('detail') || h.includes('info'));
+    const idxLink = headers.findIndex(h => h.includes('link') || h.includes('url') || h.includes('file') || h.includes('pdf') || h.includes('doc'));
+
+    parsedStaffNotesList = [];
+    const tbody = document.querySelector('#staffNotesPreviewTable tbody');
+    tbody.innerHTML = '';
+
+    const selectedAssignIdx = document.getElementById('staffNotesImportAssignSel')?.value;
+    const fallbackAssign = (selectedAssignIdx !== '' && selectedAssignIdx !== undefined && subjectAssignments[selectedAssignIdx]) ? subjectAssignments[selectedAssignIdx] : null;
+
+    rows.forEach((r, idx) => {
+      const title = idxTitle !== -1 && r[idxTitle] ? String(r[idxTitle]).trim() : '';
+      if (!title) return;
+
+      const rowClass = idxClass !== -1 && r[idxClass] ? String(r[idxClass]).trim() : (fallbackAssign ? fallbackAssign.className : '');
+      const rowSubject = idxSubject !== -1 && r[idxSubject] ? String(r[idxSubject]).trim() : (fallbackAssign ? fallbackAssign.subject : '');
+      const description = idxDesc !== -1 && r[idxDesc] ? String(r[idxDesc]).trim() : '';
+      const fileUrl = idxLink !== -1 && r[idxLink] ? String(r[idxLink]).trim() : '';
+
+      // Match classId from subjectAssignments or fallback
+      let matchedAssignment = subjectAssignments.find(a => 
+        (rowClass && a.className && a.className.toLowerCase() === rowClass.toLowerCase()) &&
+        (!rowSubject || (a.subject && a.subject.toLowerCase() === rowSubject.toLowerCase()))
+      ) || fallbackAssign || subjectAssignments[0];
+
+      parsedStaffNotesList.push({
+        classId: matchedAssignment ? matchedAssignment.classId : (classTeacherClass ? classTeacherClass.id : 'class-general'),
+        className: rowClass || (matchedAssignment ? matchedAssignment.className : 'Class Section'),
+        subject: rowSubject || (matchedAssignment ? matchedAssignment.subject : 'General'),
+        title,
+        description,
+        fileUrl
+      });
+    });
+
+    parsedStaffNotesList.slice(0, 10).forEach((n, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding:6px 10px; font-weight:700;">${i + 1}</td>
+        <td style="padding:6px 10px;"><span class="badge badge-navy">${n.subject}</span> <small style="color:var(--ink-soft);">(${n.className})</small></td>
+        <td style="padding:6px 10px;"><strong>${n.title}</strong></td>
+        <td style="padding:6px 10px; font-size:12px; color:var(--ink-soft); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.description || '—'}</td>
+        <td style="padding:6px 10px; font-size:11px;">${n.fileUrl ? `<a href="${n.fileUrl}" target="_blank" style="color:var(--brand-green); font-weight:600;">Link ↗</a>` : '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('staffNotesPreviewCountBadge').textContent = `${parsedStaffNotesList.length} Notes Detected`;
+    document.getElementById('staffNotesPreviewContainer').style.display = 'block';
+    document.getElementById('startStaffNotesImportBtn').disabled = parsedStaffNotesList.length === 0;
+  } catch (err) {
+    alert('Failed to parse notes file: ' + err.message);
+  }
+}
+
+document.getElementById('startStaffNotesImportBtn')?.addEventListener('click', async () => {
+  if (!parsedStaffNotesList.length) return;
+  const btn = document.getElementById('startStaffNotesImportBtn');
+  const progressWrap = document.getElementById('staffNotesProgressWrap');
+  const progressBar = document.getElementById('staffNotesProgressBar');
+  const progressText = document.getElementById('staffNotesProgressText');
+  const progressPct = document.getElementById('staffNotesProgressPct');
+
+  btn.disabled = true;
+  btn.textContent = 'Publishing Notes…';
+  progressWrap.style.display = 'block';
+
+  let saved = 0;
+  for (let i = 0; i < parsedStaffNotesList.length; i++) {
+    const item = parsedStaffNotesList[i];
+    try {
+      await addDoc(collection(db, 'notes'), {
+        classId: item.classId,
+        className: item.className,
+        subject: item.subject,
+        title: item.title,
+        description: item.description,
+        fileUrl: item.fileUrl || null,
+        uploadedBy: staffUid,
+        uploadedAt: serverTimestamp()
+      });
+      saved++;
+    } catch (e) {
+      console.warn('Failed to insert note:', item.title, e);
+    }
+    const pct = Math.round(((i + 1) / parsedStaffNotesList.length) * 100);
+    progressBar.style.width = pct + '%';
+    progressPct.textContent = pct + '%';
+    progressText.textContent = `Uploaded ${i + 1} of ${parsedStaffNotesList.length} notes...`;
+  }
+
+  showToast(`✅ Successfully published ${saved} study materials / notes!`);
+  setTimeout(() => {
+    closeStaffNotesImportModal();
+    loadNotesList();
+    btn.disabled = false;
+    btn.textContent = 'Start Bulk Publish';
+  }, 600);
+});
 
 // ---------------- HOMEWORK ----------------
 document.getElementById('hwAddBtn').addEventListener('click', async () => {
@@ -6606,6 +7007,9 @@ function downloadStaffStudentTemplate() {
 }
 
 document.getElementById('staffDownloadStudentTemplateBtn')?.addEventListener('click', downloadStaffStudentTemplate);
+document.getElementById('staffDownloadStudentExcelTplBtn')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('student', 'xlsx');
+});
 
 let parsedStaffStudents = [];
 
@@ -6623,12 +7027,16 @@ function openStaffStuImportModal() {
   document.getElementById('staffStuProgressWrap').style.display = 'none';
   document.getElementById('startStaffStuImportBtn').disabled = true;
   modal.classList.add('open');
+  modal.style.display = 'flex';
   updateBodyModalState();
 }
 
 function closeStaffStuImportModal() {
   const modal = document.getElementById('staffStudentImportModal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
   updateBodyModalState();
 }
 
@@ -6636,98 +7044,93 @@ document.getElementById('staffStuImportCsvBtn')?.addEventListener('click', openS
 document.getElementById('closeStaffStudentImportModal')?.addEventListener('click', closeStaffStuImportModal);
 document.getElementById('cancelStaffStuImportBtn')?.addEventListener('click', closeStaffStuImportModal);
 
-document.getElementById('staffStuCsvFileInput')?.addEventListener('change', (e) => {
+document.getElementById('staffStuCsvFileInput')?.addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt) => {
-    try {
-      const text = evt.target.result;
-      const rows = parseCsv(text);
-      if (rows.length < 2) {
-        alert('CSV file is empty or missing header row.');
-        return;
-      }
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission') || h.includes('register'));
-      const idxRoll = headers.findIndex(h => h.includes('roll'));
-      const idxName = headers.findIndex(h => h.includes('student name') || h.includes('name') || h.includes('full name'));
-      const idxGender = headers.findIndex(h => h.includes('gender') || h.includes('sex'));
-      const idxDob = headers.findIndex(h => h.includes('dob') || h.includes('birth') || h.includes('date of birth'));
-      const idxBlood = headers.findIndex(h => h.includes('blood'));
-      const idxFather = headers.findIndex(h => h.includes('father'));
-      const idxFatherPhone = headers.findIndex(h => h.includes('father phone') || h.includes('parent phone') || h.includes('mobile'));
-      const idxMother = headers.findIndex(h => h.includes('mother'));
-      const idxMotherPhone = headers.findIndex(h => h.includes('mother phone'));
-      const idxParEmail = headers.findIndex(h => h.includes('email') || h.includes('parent email'));
-      const idxAddr = headers.findIndex(h => h.includes('address'));
-      const idxCity = headers.findIndex(h => h.includes('city') || h.includes('town'));
-      const idxPin = headers.findIndex(h => h.includes('pin') || h.includes('postal'));
-
-      parsedStaffStudents = [];
-      const tbody = document.querySelector('#staffStuPreviewTable tbody');
-      tbody.innerHTML = '';
-
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || !r.length) continue;
-        const name = (idxName !== -1 ? r[idxName] : '').trim();
-        if (!name) continue;
-
-        const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
-        const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
-        const gender = (idxGender !== -1 && r[idxGender]) ? r[idxGender].trim() : 'Male';
-        const dob = (idxDob !== -1 && r[idxDob]) ? r[idxDob].trim() : '';
-        const blood = (idxBlood !== -1 && r[idxBlood]) ? r[idxBlood].trim() : 'O+';
-        const fatherName = (idxFather !== -1 && r[idxFather]) ? r[idxFather].trim() : '';
-        const fatherPhone = (idxFatherPhone !== -1 && r[idxFatherPhone]) ? r[idxFatherPhone].replace(/\D/g, '') : '';
-        const motherName = (idxMother !== -1 && r[idxMother]) ? r[idxMother].trim() : '';
-        const motherPhone = (idxMotherPhone !== -1 && r[idxMotherPhone]) ? r[idxMotherPhone].replace(/\D/g, '') : '';
-        const address = (idxAddr !== -1 && r[idxAddr]) ? r[idxAddr].trim() : '';
-        const city = (idxCity !== -1 && r[idxCity]) ? r[idxCity].trim() : '';
-        const pincode = (idxPin !== -1 && r[idxPin]) ? r[idxPin].trim() : '';
-
-        const safeAdm = (admNo || `s${Date.now()}_${i}`).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-        const stuEmail = `${safeAdm}@amalahss.edu`;
-        const stuPass = (dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : 'Student@123';
-
-        const parEmail = (idxParEmail !== -1 && r[idxParEmail] && r[idxParEmail].includes('@'))
-          ? r[idxParEmail].trim().toLowerCase()
-          : (fatherPhone ? `p_${fatherPhone}@amalahss.edu` : `parent_${safeAdm}@amalahss.edu`);
-        const parPass = fatherPhone && fatherPhone.length >= 6 ? fatherPhone : 'Parent@123';
-
-        parsedStaffStudents.push({
-          name, admNo: admNo || `ADM-${Date.now().toString().slice(-4)}-${i}`,
-          rollNo: rollNo || String(i),
-          gender, dob, bloodGroup: blood,
-          fatherName, fatherPhone, motherName, motherPhone,
-          parEmail, parPass, stuEmail, stuPass,
-          address, city, pincode
-        });
-
-        if (parsedStaffStudents.length <= 10) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="padding:6px 10px; font-weight:700;">${parsedStaffStudents.length}</td>
-            <td style="padding:6px 10px;"><strong>${name}</strong></td>
-            <td style="padding:6px 10px; font-family:var(--font-mono);">${admNo || '—'}</td>
-            <td style="padding:6px 10px;">${rollNo || '—'}</td>
-            <td style="padding:6px 10px;">${dob || '—'}</td>
-            <td style="padding:6px 10px;">${fatherName || 'Parent'} ${fatherPhone ? `(${fatherPhone})` : ''}</td>
-          `;
-          tbody.appendChild(tr);
-        }
-      }
-
-      document.getElementById('staffStuRowCount').textContent = parsedStaffStudents.length;
-      document.getElementById('staffStuPreviewBox').style.display = 'block';
-      document.getElementById('startStaffStuImportBtn').disabled = parsedStaffStudents.length === 0;
-    } catch (err) {
-      console.error('Error reading CSV:', err);
-      alert('Failed to parse CSV file: ' + err.message);
+  try {
+    const { headers: rawHeaders, rows } = await ERPBulk.parseFile(file);
+    if (!rows.length) {
+      alert('File is empty or missing data rows.');
+      return;
     }
-  };
-  reader.readAsText(file);
+    const headers = rawHeaders.map(h => String(h || '').trim().toLowerCase());
+    const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission') || h.includes('register'));
+    const idxRoll = headers.findIndex(h => h.includes('roll'));
+    const idxName = headers.findIndex(h => h.includes('student name') || h.includes('name') || h.includes('full name'));
+    const idxGender = headers.findIndex(h => h.includes('gender') || h.includes('sex'));
+    const idxDob = headers.findIndex(h => h.includes('dob') || h.includes('birth') || h.includes('date of birth'));
+    const idxBlood = headers.findIndex(h => h.includes('blood'));
+    const idxFather = headers.findIndex(h => h.includes('father'));
+    const idxFatherPhone = headers.findIndex(h => h.includes('father phone') || h.includes('parent phone') || h.includes('mobile'));
+    const idxMother = headers.findIndex(h => h.includes('mother'));
+    const idxMotherPhone = headers.findIndex(h => h.includes('mother phone'));
+    const idxParEmail = headers.findIndex(h => h.includes('email') || h.includes('parent email'));
+    const idxAddr = headers.findIndex(h => h.includes('address'));
+    const idxCity = headers.findIndex(h => h.includes('city') || h.includes('town'));
+    const idxPin = headers.findIndex(h => h.includes('pin') || h.includes('postal'));
+
+    parsedStaffStudents = [];
+    const tbody = document.querySelector('#staffStuPreviewTable tbody');
+    tbody.innerHTML = '';
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r.length) continue;
+      const name = (idxName !== -1 && r[idxName] ? String(r[idxName]) : '').trim();
+      if (!name) continue;
+
+      const admNo = idxAdm !== -1 && r[idxAdm] ? String(r[idxAdm]).trim() : '';
+      const rollNo = idxRoll !== -1 && r[idxRoll] ? String(r[idxRoll]).trim() : '';
+      const gender = (idxGender !== -1 && r[idxGender]) ? String(r[idxGender]).trim() : 'Male';
+      const dob = (idxDob !== -1 && r[idxDob]) ? String(r[idxDob]).trim() : '';
+      const blood = (idxBlood !== -1 && r[idxBlood]) ? String(r[idxBlood]).trim() : 'O+';
+      const fatherName = (idxFather !== -1 && r[idxFather]) ? String(r[idxFather]).trim() : '';
+      const fatherPhone = (idxFatherPhone !== -1 && r[idxFatherPhone]) ? String(r[idxFatherPhone]).replace(/\D/g, '') : '';
+      const motherName = (idxMother !== -1 && r[idxMother]) ? String(r[idxMother]).trim() : '';
+      const motherPhone = (idxMotherPhone !== -1 && r[idxMotherPhone]) ? String(r[idxMotherPhone]).replace(/\D/g, '') : '';
+      const address = (idxAddr !== -1 && r[idxAddr]) ? String(r[idxAddr]).trim() : '';
+      const city = (idxCity !== -1 && r[idxCity]) ? String(r[idxCity]).trim() : '';
+      const pincode = (idxPin !== -1 && r[idxPin]) ? String(r[idxPin]).trim() : '';
+
+      const safeAdm = (admNo || `s${Date.now()}_${i + 1}`).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const stuEmail = `${safeAdm}@amalahss.edu`;
+      const stuPass = (dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : 'Student@123';
+
+      const parEmail = (idxParEmail !== -1 && r[idxParEmail] && String(r[idxParEmail]).includes('@'))
+        ? String(r[idxParEmail]).trim().toLowerCase()
+        : (fatherPhone ? `p_${fatherPhone}@amalahss.edu` : `parent_${safeAdm}@amalahss.edu`);
+      const parPass = fatherPhone && fatherPhone.length >= 6 ? fatherPhone : 'Parent@123';
+
+      parsedStaffStudents.push({
+        name, admNo: admNo || `ADM-${Date.now().toString().slice(-4)}-${i + 1}`,
+        rollNo: rollNo || String(i + 1),
+        gender, dob, bloodGroup: blood,
+        fatherName, fatherPhone, motherName, motherPhone,
+        parEmail, parPass, stuEmail, stuPass,
+        address, city, pincode
+      });
+
+      if (parsedStaffStudents.length <= 10) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding:6px 10px; font-weight:700;">${parsedStaffStudents.length}</td>
+          <td style="padding:6px 10px;"><strong>${name}</strong></td>
+          <td style="padding:6px 10px; font-family:var(--font-mono);">${admNo || '—'}</td>
+          <td style="padding:6px 10px;">${rollNo || '—'}</td>
+          <td style="padding:6px 10px;">${dob || '—'}</td>
+          <td style="padding:6px 10px;">${fatherName || 'Parent'} ${fatherPhone ? `(${fatherPhone})` : ''}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    document.getElementById('staffStuRowCount').textContent = parsedStaffStudents.length;
+    document.getElementById('staffStuPreviewBox').style.display = 'block';
+    document.getElementById('startStaffStuImportBtn').disabled = parsedStaffStudents.length === 0;
+  } catch (err) {
+    console.error('Error reading student file:', err);
+    alert('Failed to parse student file: ' + err.message);
+  }
 });
 
 document.getElementById('startStaffStuImportBtn')?.addEventListener('click', async () => {
@@ -6903,12 +7306,16 @@ function openStaffAttImportModal() {
   document.getElementById('staffAttPreviewBox').style.display = 'none';
   document.getElementById('startStaffAttImportBtn').disabled = true;
   modal.classList.add('open');
+  modal.style.display = 'flex';
   updateBodyModalState();
 }
 
 function closeStaffAttImportModal() {
   const modal = document.getElementById('staffAttendanceImportModal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
   updateBodyModalState();
 }
 
@@ -6916,79 +7323,82 @@ document.getElementById('staffAttImportCsvBtn')?.addEventListener('click', openS
 document.getElementById('closeStaffAttImportModal')?.addEventListener('click', closeStaffAttImportModal);
 document.getElementById('cancelStaffAttImportBtn')?.addEventListener('click', closeStaffAttImportModal);
 
+document.getElementById('downloadStaffAttCsvTemplateBtn')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('attendance', 'csv');
+});
+
+document.getElementById('downloadStaffAttExcelTemplateBtn')?.addEventListener('click', () => {
+  ERPBulk.downloadTemplate('attendance', 'xlsx');
+});
+
 document.getElementById('staffAttCsvFileInput')?.addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async (evt) => {
-    try {
-      const text = evt.target.result;
-      const rows = parseCsv(text);
-      if (rows.length < 2) {
-        alert('CSV is empty or missing headers.');
-        return;
-      }
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission'));
-      const idxRoll = headers.findIndex(h => h.includes('roll'));
-      const idxName = headers.findIndex(h => h.includes('name'));
-      const idxStatus = headers.findIndex(h => h.includes('status'));
+  try {
+    const { headers: rawHeaders, rows } = await ERPBulk.parseFile(file);
+    if (!rows.length) {
+      alert('Attendance file is empty or missing data rows.');
+      return;
+    }
+    const headers = rawHeaders.map(h => String(h || '').trim().toLowerCase());
+    const idxAdm = headers.findIndex(h => h.includes('adm') || h.includes('admission'));
+    const idxRoll = headers.findIndex(h => h.includes('roll'));
+    const idxName = headers.findIndex(h => h.includes('name'));
+    const idxStatus = headers.findIndex(h => h.includes('status'));
 
-      const classStudents = currentAttStudents.length ? currentAttStudents : await getClassStudents(classTeacherClass.id);
+    const classStudents = currentAttStudents.length ? currentAttStudents : (classTeacherClass ? await getClassStudents(classTeacherClass.id) : []);
 
-      parsedStaffAtt = [];
-      const tbody = document.querySelector('#staffAttPreviewTable tbody');
-      tbody.innerHTML = '';
+    parsedStaffAtt = [];
+    const tbody = document.querySelector('#staffAttPreviewTable tbody');
+    tbody.innerHTML = '';
 
-      for (let i = 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || !r.length) continue;
-        const admVal = idxAdm !== -1 ? r[idxAdm] : '';
-        const rollVal = idxRoll !== -1 ? r[idxRoll] : '';
-        const nameVal = idxName !== -1 ? r[idxName] : '';
-        const statusRaw = (idxStatus !== -1 && r[idxStatus]) ? r[idxStatus].toLowerCase().trim() : 'present';
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r.length) continue;
+      const admVal = idxAdm !== -1 && r[idxAdm] ? String(r[idxAdm]).trim() : '';
+      const rollVal = idxRoll !== -1 && r[idxRoll] ? String(r[idxRoll]).trim() : '';
+      const nameVal = idxName !== -1 && r[idxName] ? String(r[idxName]).trim() : '';
+      const statusRaw = (idxStatus !== -1 && r[idxStatus]) ? String(r[idxStatus]).toLowerCase().trim() : 'present';
 
-        let status = 'present';
-        if (statusRaw.startsWith('a') || statusRaw === 'absent') status = 'absent';
-        else if (statusRaw.startsWith('l') || statusRaw === 'late') status = 'late';
+      let status = 'present';
+      if (statusRaw.startsWith('a') || statusRaw === 'absent') status = 'absent';
+      else if (statusRaw.startsWith('l') || statusRaw === 'late') status = 'late';
 
-        const matchedStudent = classStudents.find(s => {
-          if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
-          if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
-          if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
-          return false;
+      const matchedStudent = classStudents.find(s => {
+        if (admVal && s.admissionNo && s.admissionNo.toLowerCase() === admVal.toLowerCase()) return true;
+        if (rollVal && s.rollNo && String(s.rollNo) === String(rollVal)) return true;
+        if (nameVal && s.name && s.name.toLowerCase() === nameVal.toLowerCase()) return true;
+        return false;
+      });
+
+      if (matchedStudent) {
+        parsedStaffAtt.push({
+          studentUid: matchedStudent.uid || matchedStudent.id,
+          studentName: matchedStudent.name,
+          admissionNo: matchedStudent.admissionNo,
+          rollNo: matchedStudent.rollNo,
+          status
         });
 
-        if (matchedStudent) {
-          parsedStaffAtt.push({
-            studentUid: matchedStudent.uid,
-            studentName: matchedStudent.name,
-            admissionNo: matchedStudent.admissionNo,
-            rollNo: matchedStudent.rollNo,
-            status
-          });
-
-          if (parsedStaffAtt.length <= 10) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td style="padding:6px 10px; font-weight:700;">${matchedStudent.rollNo || '—'}</td>
-              <td style="padding:6px 10px;"><strong>${matchedStudent.name}</strong></td>
-              <td style="padding:6px 10px; font-family:var(--font-mono);">${matchedStudent.admissionNo || '—'}</td>
-              <td style="padding:6px 10px;"><span class="badge ${status === 'present' ? 'badge-good' : (status === 'absent' ? 'badge-bad' : 'badge-yellow')}">${status.toUpperCase()}</span></td>
-            `;
-            tbody.appendChild(tr);
-          }
+        if (parsedStaffAtt.length <= 10) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="padding:6px 10px; font-weight:700;">${matchedStudent.rollNo || '—'}</td>
+            <td style="padding:6px 10px;"><strong>${matchedStudent.name}</strong></td>
+            <td style="padding:6px 10px; font-family:var(--font-mono);">${matchedStudent.admissionNo || '—'}</td>
+            <td style="padding:6px 10px;"><span class="badge ${status === 'present' ? 'badge-good' : (status === 'absent' ? 'badge-bad' : 'badge-yellow')}">${status.toUpperCase()}</span></td>
+          `;
+          tbody.appendChild(tr);
         }
       }
-
-      document.getElementById('staffAttRowCount').textContent = parsedStaffAtt.length;
-      document.getElementById('staffAttPreviewBox').style.display = 'block';
-      document.getElementById('startStaffAttImportBtn').disabled = parsedStaffAtt.length === 0;
-    } catch (err) {
-      alert('Failed to parse attendance CSV: ' + err.message);
     }
-  };
-  reader.readAsText(file);
+
+    document.getElementById('staffAttRowCount').textContent = parsedStaffAtt.length;
+    document.getElementById('staffAttPreviewBox').style.display = 'block';
+    document.getElementById('startStaffAttImportBtn').disabled = parsedStaffAtt.length === 0;
+  } catch (err) {
+    alert('Failed to parse attendance file: ' + err.message);
+  }
 });
 
 document.getElementById('startStaffAttImportBtn')?.addEventListener('click', async () => {
