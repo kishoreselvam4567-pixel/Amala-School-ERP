@@ -1476,6 +1476,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         Exam Schedule
       </a>
+      <a href="#" data-tab="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <path d="m9 16 2 2 4-4" />
+        </svg>
+        Academic Calendar
+      </a>
       <a href="#" data-tab="notes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
         Syllabus Notes
@@ -2513,6 +2523,17 @@
         </div>
       </section>
 
+      <!-- ================= ACADEMIC CALENDAR TAB ================= -->
+      <section id="panel-calendar" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>School Events &amp; Academic Calendar</h2>
+            <p>View upcoming academic schedules, exams, holidays, and campus events (Read Only)</p>
+          </div>
+        </div>
+        <div id="staffCalendarContainer"></div>
+      </section>
+
     </div>
   </div>
 </div>
@@ -2524,6 +2545,7 @@ import {
   limit, ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
 } from '../../js/auth.js';
 import { initLiveNotifications } from '../../js/notifications.js';
+import { initSchoolCalendar } from '../../js/calendar-module.js';
 
 // Mobile sidebar
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -2702,10 +2724,20 @@ function switchTab(tabName, pushState = true) {
   if (tabName === 'notes') loadNotesList();
   if (tabName === 'homework') loadHwList();
   if (tabName === 'students') loadStudentsForTeacher();
+  if (tabName === 'calendar') loadStaffCalendar();
 
   if (window.innerWidth <= 820) {
     closeSidebar();
   }
+}
+
+function loadStaffCalendar() {
+  initSchoolCalendar({
+    containerId: 'staffCalendarContainer',
+    role: 'staff',
+    db: db,
+    currentUser: { uid: staffUid }
+  });
 }
 
 // Initialize live notifications flyout and realtime sync

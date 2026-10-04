@@ -2874,6 +2874,16 @@
           </svg>
           Exam Calendar
         </a>
+        <a href="#" data-tab="calendar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="m9 16 2 2 4-4" />
+          </svg>
+          Academic Calendar
+        </a>
         <a href="#" data-tab="announcements">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
@@ -3133,6 +3143,21 @@
                   </div>
                   <h4>Notice Broadcast</h4>
                   <p>Post School-Wide Circulars Visible Across All Portals</p>
+                </div>
+              </div>
+              <div class="master-card" data-go-tab="calendar">
+                <div>
+                  <div class="master-card-icon emerald" style="background:#ecfdf5; color:#059669;">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                      <path d="m9 16 2 2 4-4" />
+                    </svg>
+                  </div>
+                  <h4>Academic Calendar</h4>
+                  <p>Schedule Events, Exams, Holidays &amp; PTM Dates</p>
                 </div>
               </div>
               <div class="master-card" data-go-tab="notes">
@@ -4875,6 +4900,24 @@
           <div class="empty-state" id="annEmpty" style="display:none;">No school announcements posted yet.</div>
         </section>
 
+        <!-- ================= 10. ACADEMIC CALENDAR TAB ================= -->
+        <section id="panel-calendar" style="display:none;">
+          <div class="main-header">
+            <div>
+              <h2>School Events &amp; Academic Calendar</h2>
+              <p>Manage, schedule, and publish school events, exams, holidays, and meetings</p>
+            </div>
+            <button type="button" class="btn-exit-tab" data-go-tab="overview"
+              title="Exit this tab and return to Home Overview">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Exit to Home
+            </button>
+          </div>
+          <div id="adminCalendarContainer"></div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -4885,6 +4928,7 @@
       collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot,
       getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut, ensureFreshSession
     } from '../../js/auth.js';
+    import { initSchoolCalendar } from '../../js/calendar-module.js';
 
     // Helper: synchronize identifiers into /loginLookup for safe, O(1) unauthenticated login resolution
     async function syncLoginLookup(key, email) {
@@ -5212,6 +5256,17 @@
 
     // Tab Switching with History State & Browser Back Support
     let currentActiveTab = 'overview';
+    let currentAdminUser = null;
+    let currentAdminProfile = null;
+
+    function loadAcademicCalendar() {
+      initSchoolCalendar({
+        containerId: 'adminCalendarContainer',
+        role: 'admin',
+        db: db,
+        currentUser: currentAdminUser
+      });
+    }
 
     function switchTab(tabName, pushState = true) {
       if (!tabName) tabName = 'overview';
@@ -5245,6 +5300,7 @@
       else { cleanupAttendanceListeners(); }
       if (tabName === 'exams') loadExamCalendar();
       if (tabName === 'announcements') loadAnnouncements();
+      if (tabName === 'calendar') loadAcademicCalendar();
 
       const activeSearchTerm = document.getElementById('globalSearchInput')?.value?.toLowerCase()?.trim();
       if (activeSearchTerm) {
@@ -5286,8 +5342,8 @@
     window.addEventListener('erp:data-error', (e) => {
       const d = (e && e.detail) || {};
       const errMsg = String(d.message || '').toLowerCase();
-      // Ignore transient token clock-skew: auth client automatically retries once clock aligns
-      if (errMsg.includes('future') || errMsg.includes('clock')) return;
+      // Ignore transient token clock-skew and unmigrated calendar table (fallback active)
+      if (errMsg.includes('future') || errMsg.includes('clock') || (d.col === 'calendar_events' && (errMsg.includes('schema cache') || errMsg.includes('could not find the table')))) return;
 
       let bar = document.getElementById('erpDataErrorBar');
       if (!bar) {
@@ -6627,6 +6683,8 @@
 
     requirePortal(['admin'], async ({ user, profile }) => {
       try {
+        currentAdminUser = user;
+        currentAdminProfile = profile;
         // Immediate UI reveal
         const loadInit = document.getElementById('loadingState');
         const contentInit = document.getElementById('content');

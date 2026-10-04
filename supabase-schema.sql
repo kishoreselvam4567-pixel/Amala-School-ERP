@@ -219,8 +219,30 @@ CREATE TABLE IF NOT EXISTS public.announcements (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 1.13 calendar_events (mirrors /calendar_events/{docId})
+CREATE TABLE IF NOT EXISTS public.calendar_events (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  category TEXT DEFAULT 'academic',
+  "startDate" TEXT NOT NULL,
+  "endDate" TEXT,
+  "startTime" TEXT,
+  "endTime" TEXT,
+  "isAllDay" BOOLEAN DEFAULT false,
+  location TEXT,
+  "targetAudience" TEXT DEFAULT 'all',
+  "createdBy" TEXT,
+  "creatorName" TEXT,
+  data JSONB DEFAULT '{}',
+  "createdAt" TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Also create synonym / view for camelCase 'loginLookup' with security_invoker to satisfy Supabase security linter
 CREATE OR REPLACE VIEW public."loginLookup" WITH (security_invoker = true) AS SELECT * FROM public.login_lookup;
+CREATE OR REPLACE VIEW public."calendarEvents" WITH (security_invoker = true) AS SELECT * FROM public.calendar_events;
 
 -- ============================================================
 -- 2. HELPFUL INDEXES
@@ -237,6 +259,7 @@ CREATE INDEX IF NOT EXISTS idx_marks_student ON public.marks("studentUid");
 CREATE INDEX IF NOT EXISTS idx_notes_class ON public.notes("classId");
 CREATE INDEX IF NOT EXISTS idx_homework_class ON public.homework("classId");
 CREATE INDEX IF NOT EXISTS idx_announcements_created ON public.announcements(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_calendar_events_start ON public.calendar_events("startDate");
 
 -- ============================================================
 -- 3. HELPER FUNCTIONS (After tables exist so no 42P01 error)
@@ -414,6 +437,13 @@ DROP POLICY IF EXISTS "announcements_select" ON public.announcements;
 CREATE POLICY "announcements_select" ON public.announcements FOR SELECT USING (auth.uid() IS NOT NULL);
 DROP POLICY IF EXISTS "announcements_admin_all" ON public.announcements;
 CREATE POLICY "announcements_admin_all" ON public.announcements FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- 5.9 calendar_events: all signed-in read, admin write
+ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "calendar_events_select" ON public.calendar_events;
+CREATE POLICY "calendar_events_select" ON public.calendar_events FOR SELECT USING (true);
+DROP POLICY IF EXISTS "calendar_events_admin_all" ON public.calendar_events;
+CREATE POLICY "calendar_events_admin_all" ON public.calendar_events FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- ============================================================
 -- 6. REALTIME PUBLICATION

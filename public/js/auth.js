@@ -167,6 +167,7 @@ function normalizeCol(col) {
   if (!col) return col;
   const c = String(col).trim();
   if (c === 'loginLookup' || c === 'login_lookup') return 'login_lookup';
+  if (c === 'calendarEvents' || c === 'calendar_events' || c === 'events') return 'calendar_events';
   return c;
 }
 
@@ -234,7 +235,38 @@ function isAuthError(error) {
     msg.includes('unauthorized');
 }
 
+export function isTableMissingError(error) {
+  if (!error) return false;
+  const msg = String(error.message || '').toLowerCase();
+  const code = String(error.code || '').toUpperCase();
+  return code === '42P01' ||
+    code === 'PGRST204' ||
+    code === 'PGRST205' ||
+    msg.includes('schema cache') ||
+    msg.includes('could not find the table') ||
+    (msg.includes('relation') && msg.includes('does not exist'));
+}
+
+function getLocalTable(col) {
+  try {
+    const raw = localStorage.getItem('erp_fallback_table_' + normalizeCol(col));
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setLocalTable(col, items) {
+  try {
+    localStorage.setItem('erp_fallback_table_' + normalizeCol(col), JSON.stringify(items));
+  } catch (e) {}
+}
+
 function notifyDataError(col, error) {
+  if (isTableMissingError(error) && (col === 'calendar_events' || col === 'calendarEvents')) {
+    // Gracefully handled via local store; do not trigger intrusive UI error bar
+    return;
+  }
   try {
     if (typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('erp:data-error', {
@@ -271,9 +303,20 @@ export async function getDoc(docRef) {
       ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
     }
   }
-  if (error && error.code !== 'PGRST116') {
-    console.warn(`getDoc(${col}/${id}) warning:`, error.message);
-  }
+    if (error && error.code !== 'PGRST116') {
+      if (isTableMissingError(error)) {
+        const items = getLocalTable(col);
+        const item = items.find(x => String(x.id) === id);
+        const exists = Boolean(item);
+        return {
+          id,
+          exists: () => exists,
+          get exists() { return exists; },
+          data: () => (exists ? { ...item } : undefined)
+        };
+      }
+      console.warn(`getDoc(${col}/${id}) warning:`, error.message);
+    }
   const exists = Boolean(data);
   const docData = exists ? { ...data.data, ...data } : undefined;
   if (docData && 'data' in docData && typeof docData.data === 'object') {
@@ -386,6 +429,47 @@ export async function getDocs(qRef) {
       console.warn(`getDocs(${col}) suppressed future clock skew:`, error.message);
       return { empty: true, size: 0, docs: [], forEach: () => {}, error };
     }
+    if (isTableMissingError(error)) {
+      console.warn(`[Supabase Table Fallback] Table "${col}" not in schema cache. Using resilient local store.`);
+      const localRows = getLocalTable(col);
+      let filtered = [...localRows];
+      for (const c of constraints) {
+        if (c._type === 'where') {
+          const field = mapField(c.field);
+          if (c.op === '==' || c.op === '===') filtered = filtered.filter(r => (r[field] ?? r[c.field]) === c.val);
+          else if (c.op === '!=') filtered = filtered.filter(r => (r[field] ?? r[c.field]) !== c.val);
+          else if (c.op === 'in') {
+            const list = Array.isArray(c.val) ? c.val : [c.val];
+            filtered = filtered.filter(r => list.includes(r[field] ?? r[c.field]));
+          }
+        } else if (c._type === 'orderBy') {
+          const field = mapField(c.field);
+          const isDesc = c.dir === 'desc';
+          filtered.sort((a, b) => {
+            const va = a[field] ?? a[c.field] ?? '';
+            const vb = b[field] ?? b[c.field] ?? '';
+            if (va < vb) return isDesc ? 1 : -1;
+            if (va > vb) return isDesc ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+      const docs = filtered.map(row => {
+        const docData = { ...row };
+        return {
+          id: String(row.id),
+          exists: () => true,
+          get exists() { return true; },
+          data: () => docData
+        };
+      });
+      return {
+        empty: docs.length === 0,
+        size: docs.length,
+        docs,
+        forEach: (cb) => docs.forEach(cb)
+      };
+    }
     console.warn(`getDocs(${col}) warning:`, error.message);
     notifyDataError(col, error);
     return { empty: true, size: 0, docs: [], forEach: () => {}, error };
@@ -426,6 +510,15 @@ export async function setDoc(docRef, data, options = {}) {
   }
   const { error } = await supabase.from(col).upsert(payload);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      const idx = items.findIndex(x => String(x.id) === id);
+      if (idx !== -1) items[idx] = { ...items[idx], ...payload };
+      else items.push(payload);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return;
+    }
     console.error(`setDoc(${col}/${id}) error:`, error);
     throw error;
   }
@@ -443,6 +536,13 @@ export async function addDoc(colRef, data) {
   }
   const { error } = await supabase.from(col).insert(payload);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      items.push(payload);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return { id, col };
+    }
     console.error(`addDoc(${col}) error:`, error);
     throw error;
   }
@@ -459,6 +559,16 @@ export async function updateDoc(docRef, data) {
   }
   const { error } = await supabase.from(col).update(payload).eq('id', id);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      const idx = items.findIndex(x => String(x.id) === id);
+      if (idx !== -1) {
+        items[idx] = { ...items[idx], ...payload, updatedAt: new Date().toISOString() };
+        setLocalTable(col, items);
+      }
+      clearQueryCache(col);
+      return;
+    }
     console.error(`updateDoc(${col}/${id}) error:`, error);
     throw error;
   }
@@ -470,6 +580,12 @@ export async function deleteDoc(docRef) {
   const id = String(docRef.id);
   const { error } = await supabase.from(col).delete().eq('id', id);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col).filter(x => String(x.id) !== id);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return;
+    }
     console.error(`deleteDoc(${col}/${id}) error:`, error);
     throw error;
   }

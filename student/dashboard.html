@@ -70,6 +70,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         Exam Schedule
       </a>
+      <a href="#" data-tab="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+          <path d="m9 16 2 2 4-4" />
+        </svg>
+        Academic Calendar
+      </a>
       <a href="#" data-tab="notes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
         Syllabus Notes
@@ -525,6 +535,21 @@
         <div class="empty-state" id="annEmpty" style="display:none;">No announcements yet.</div>
       </section>
 
+      <!-- 9. ACADEMIC CALENDAR TAB -->
+      <section id="panel-calendar" style="display:none;">
+        <div class="main-header">
+          <div>
+            <h2>School Events &amp; Academic Calendar</h2>
+            <p>View upcoming academic schedules, exams, holidays, and school celebrations</p>
+          </div>
+          <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Exit to Home
+          </button>
+        </div>
+        <div id="studentCalendarContainer"></div>
+      </section>
+
     </div>
   </div>
 </div>
@@ -535,6 +560,7 @@ import {
   getDocs, orderBy, onSnapshot, limit
 } from '../js/auth.js';
 import { initLiveNotifications } from '../js/notifications.js';
+import { initSchoolCalendar } from '../js/calendar-module.js';
 
 document.getElementById('logoutBtn').addEventListener('click', () => logout('../login.html'));
 
@@ -612,6 +638,14 @@ function switchTab(targetTab, pushState = true) {
     if (window.location.hash !== targetHash) {
       history.pushState({ tab: targetTab }, '', targetHash);
     }
+  }
+
+  if (targetTab === 'calendar') {
+    initSchoolCalendar({
+      containerId: 'studentCalendarContainer',
+      role: 'student',
+      db: db
+    });
   }
 
   if (window.innerWidth <= 820) {
