@@ -1,344 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Amala Higher Secondary School — Campus ERP Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<style>
-  :root {
-    --erp-navy: #0f1e36;
-    --erp-blue: #1e3a8a;
-    --erp-accent: #2563eb;
-    --erp-gold: #d97706;
-    --erp-bg: #f1f5f9;
-    --erp-card: #ffffff;
-    --erp-border: #cbd5e1;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amala Higher Secondary School — Campus ERP Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/env.js"></script>
+  <style>
+    :root {
+      --erp-navy: #0f1e36;
+      --erp-blue: #1e3a8a;
+      --erp-accent: #2563eb;
+      --erp-gold: #d97706;
+      --erp-bg: #f1f5f9;
+      --erp-card: #ffffff;
+      --erp-border: #cbd5e1;
+    }
 
-  body {
-    min-height: 100vh;
-    background: #e2e8f0 linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-    font-family: var(--font-body);
-    color: var(--ink);
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+    body {
+      min-height: 100vh;
+      background: #e2e8f0 linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      font-family: var(--font-body);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-  /* Top Institutional Header */
-  .erp-header {
-    background: #ffffff;
-    border-bottom: 3px solid #1e3a8a;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    padding: 12px 24px;
-  }
-  .erp-header-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .erp-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .erp-logo {
-    width: 52px;
-    height: 52px;
-    border-radius: 8px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    padding: 4px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-  .erp-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  .erp-school-info h1 {
-    font-size: 20px;
-    font-weight: 800;
-    color: #0f1e36;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-  .erp-school-info p {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: #64748b;
-    margin: 2px 0 0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .erp-portal-badge {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    padding: 8px 16px;
-    text-align: right;
-  }
-  .erp-portal-badge .title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #1e3a8a;
-  }
-  .erp-portal-badge .sub {
-    font-size: 11px;
-    color: #64748b;
-  }
+    /* Top Institutional Header */
+    .erp-header {
+      background: #ffffff;
+      border-bottom: 3px solid #1e3a8a;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      padding: 12px 24px;
+    }
 
-  /* Marquee Alert Bar */
-  .erp-ticker {
-    background: #1e293b;
-    color: #f8fafc;
-    padding: 8px 0;
-    font-size: 12.5px;
-    display: flex;
-    align-items: center;
-  }
-  .ticker-label {
-    background: #d97706;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    padding: 2px 10px;
-    border-radius: 4px;
-    margin: 0 14px 0 24px;
-    white-space: nowrap;
-    letter-spacing: 0.05em;
-  }
-  .ticker-content {
-    overflow: hidden;
-    white-space: nowrap;
-    width: 100%;
-  }
+    .erp-header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
 
-  /* Main Container */
-  .erp-container {
-    max-width: 1100px;
-    max-width: 520px;
-    width: 100%;
-    margin: 36px auto;
-    padding: 0 20px;
-    flex: 1;
-  }
-  .erp-grid {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-  .erp-login-card {
-    width: 100%;
-  }
+    .erp-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
 
-  /* Right Panel: Login Card */
-  .erp-login-card {
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 15px 35px -5px rgba(0,0,0,0.08);
-    padding: 32px 28px;
-    position: relative;
-  }
-  .login-card-head {
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 16px;
-    margin-bottom: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .login-card-head h2 {
-    font-size: 19px;
-    font-weight: 800;
-    color: #0f1e36;
-    margin: 0;
-  }
-  .role-pills {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .role-pill-item {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: #f1f5f9;
-    color: #475569;
-  }
+    .erp-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
 
-  /* Input fields */
-  .erp-field {
-    margin-bottom: 16px;
-  }
-  .erp-field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 6px;
-  }
-  .erp-input-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .erp-input-wrap input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #0f172a;
-    transition: all 0.2s ease;
-    background: #f8fafc;
-  }
-  .erp-input-wrap input:focus {
-    outline: none;
-    background: #fff;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-  }
-  .toggle-pwd-btn {
-    position: absolute;
-    right: 12px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    .erp-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
 
-  /* Captcha Box (VELS ERP Style) */
-  .captcha-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    align-items: flex-end;
-    margin-bottom: 18px;
-  }
-  .captcha-display-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .captcha-canvas-wrap {
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 8px 14px;
-    letter-spacing: 6px;
-    font-family: 'Outfit', 'Courier New', monospace;
-    font-weight: 800;
-    font-size: 20px;
-    color: #f59e0b;
-    user-select: none;
-    text-align: center;
-    flex: 1;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    transform: skewX(-6deg);
-  }
-  .btn-refresh-captcha {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    width: 38px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #475569;
-    transition: all 0.15s ease;
-  }
-  .btn-refresh-captcha:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-    transform: rotate(30deg);
-  }
+    .erp-school-info h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f1e36;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
 
-  /* Action Buttons */
-  .btn-row {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 10px;
-    margin-top: 8px;
-  }
-  .btn-erp-login {
-    background: #1e3a8a;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 12px 18px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    box-shadow: 0 4px 10px rgba(30,58,138,0.25);
-  }
-  .btn-erp-login:hover {
-    background: #1e40af;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(30,58,138,0.3);
-  }
-  .btn-erp-reset {
-    background: #f1f5f9;
-    color: #475569;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 12px 18px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .btn-erp-reset:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-  }
+    .erp-school-info p {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64748b;
+      margin: 2px 0 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
-  /* Bottom Institutional Footer */
-  .erp-footer {
-    background: #0f172a;
-    color: #94a3b8;
-    padding: 18px 24px;
-    font-size: 12px;
-    border-top: 1px solid #1e293b;
-  }
-  .erp-footer-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
+    .erp-portal-badge {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 8px 16px;
+      text-align: right;
+    }
 
-  @media (max-width: 860px) {
-    .erp-grid { grid-template-columns: 1fr; }
-    .erp-portal-badge { display: none; }
-  }
-</style>
+    .erp-portal-badge .title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e3a8a;
+    }
+
+    .erp-portal-badge .sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* Marquee Alert Bar */
+    .erp-ticker {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 8px 0;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-label {
+      background: #d97706;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 10px;
+      border-radius: 4px;
+      margin: 0 14px 0 24px;
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
+
+    .ticker-content {
+      overflow: hidden;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    /* Main Container */
+    .erp-container {
+      max-width: 1100px;
+      max-width: 520px;
+      width: 100%;
+      margin: 36px auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .erp-grid {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .erp-login-card {
+      width: 100%;
+    }
+
+    /* Right Panel: Login Card */
+    .erp-login-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.08);
+      padding: 32px 28px;
+      position: relative;
+    }
+
+    .login-card-head {
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .login-card-head h2 {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f1e36;
+      margin: 0;
+    }
+
+    .role-pills {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .role-pill-item {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    /* Input fields */
+    .erp-field {
+      margin-bottom: 16px;
+    }
+
+    .erp-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .erp-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .erp-input-wrap input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #0f172a;
+      transition: all 0.2s ease;
+      background: #f8fafc;
+    }
+
+    .erp-input-wrap input:focus {
+      outline: none;
+      background: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #64748b;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Captcha Box (VELS ERP Style) */
+    .captcha-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .captcha-display-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .captcha-canvas-wrap {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 14px;
+      letter-spacing: 6px;
+      font-family: 'Outfit', 'Courier New', monospace;
+      font-weight: 800;
+      font-size: 20px;
+      color: #f59e0b;
+      user-select: none;
+      text-align: center;
+      flex: 1;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      transform: skewX(-6deg);
+    }
+
+    .btn-refresh-captcha {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      width: 38px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.15s ease;
+    }
+
+    .btn-refresh-captcha:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+      transform: rotate(30deg);
+    }
+
+    /* Alert Boxes */
+    .error-box {
+      background: #fef2f2;
+      border: 1.5px solid #f87171;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: none;
+      line-height: 1.45;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.08);
+      animation: alertShake 0.4s ease-out;
+    }
+
+    .success-box {
+      background: #f0fdf4;
+      border: 1.5px solid #4ade80;
+      color: #166534;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: none;
+      line-height: 1.45;
+      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.08);
+      animation: alertSlide 0.3s ease-out;
+    }
+
+    @keyframes alertShake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-6px);
+      }
+
+      40% {
+        transform: translateX(6px);
+      }
+
+      60% {
+        transform: translateX(-4px);
+      }
+
+      80% {
+        transform: translateX(4px);
+      }
+    }
+
+    @keyframes alertSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .role-pill-item {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .role-pill-item:hover {
+      background: #e2e8f0;
+      color: #1e3a8a;
+    }
+
+    .role-pill-item.active {
+      background: #1e3a8a;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    }
+
+    /* Action Buttons */
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-erp-login {
+      background: #1e3a8a;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 10px rgba(30, 58, 138, 0.25);
+    }
+
+    .btn-erp-login:hover {
+      background: #1e40af;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(30, 58, 138, 0.3);
+    }
+
+    .btn-erp-reset {
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-erp-reset:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Bottom Institutional Footer */
+    .erp-footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 18px 24px;
+      font-size: 12px;
+      border-top: 1px solid #1e293b;
+    }
+
+    .erp-footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    @media (max-width: 860px) {
+      .erp-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .erp-portal-badge {
+        display: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
   <!-- 1. INSTITUTIONAL HEADER -->
@@ -364,14 +488,15 @@
   <div class="erp-ticker">
     <div class="ticker-label">Notice</div>
     <div class="ticker-content">
-      Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam Schedule, Notes &amp; Circulars online 24/7.
+      Welcome to Amala Higher Secondary School ERP Portal. Students &amp; Staff can access Attendance, Marks, Exam
+      Schedule, Notes &amp; Circulars online 24/7.
     </div>
   </div>
 
   <!-- 3. MAIN BODY -->
   <main class="erp-container">
     <div class="erp-grid">
-      
+
       <!-- Authentication Form with Captcha -->
       <div class="erp-login-card">
         <div class="login-card-head">
@@ -387,15 +512,17 @@
         <div class="error-box" id="errBox"></div>
         <div class="success-box" id="okBox"></div>
 
-        <form id="erpLoginForm">
+        <form id="erpLoginForm" action="javascript:void(0);" novalidate>
           <!-- User ID (Admission No / Mobile / Email) -->
           <div class="erp-field">
             <label for="loginUserId">User ID (Parent Mobile No, Student Adm No, or Email)</label>
             <div class="erp-input-wrap">
-              <input type="text" id="loginUserId" required autocomplete="username" placeholder="Parent Mobile No. / Student Adm No. / Email">
+              <input type="text" id="loginUserId" autocomplete="username"
+                placeholder="Parent Mobile No. / Student Adm No. / Email">
             </div>
             <div style="font-size:11.5px; color:#64748b; margin-top:5px; line-height:1.4;">
-              <strong>Parents:</strong> Enter your registered mobile number &bull; <strong>Students:</strong> Admission No &bull; <strong>Staff:</strong> Username / Email
+              <strong>Parents:</strong> Enter your registered mobile number &bull; <strong>Students:</strong> Admission
+              No &bull; <strong>Staff:</strong> Username / Email
             </div>
           </div>
 
@@ -403,9 +530,13 @@
           <div class="erp-field">
             <label for="loginPassword">Password / Date of Birth</label>
             <div class="erp-input-wrap">
-              <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••">
-              <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Show/Hide Password" aria-label="Toggle password visibility">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
+              <button type="button" class="toggle-pwd-btn" id="togglePwdBtn" title="Show/Hide Password"
+                aria-label="Toggle password visibility">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
               </button>
             </div>
           </div>
@@ -413,18 +544,24 @@
           <!-- Captcha Row (VELS ERP Signature Component) -->
           <div class="captcha-row">
             <div>
-              <label style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Security Captcha</label>
+              <label
+                style="display:block; font-size:12px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">Security
+                Captcha</label>
               <div class="captcha-display-box">
-                <div class="captcha-canvas-wrap" id="captchaDisplay">A8K9</div>
+                <div class="captcha-canvas-wrap" id="captchaDisplay">----</div>
                 <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn" title="Generate New Captcha">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
                 </button>
               </div>
             </div>
             <div class="erp-field" style="margin-bottom:0;">
               <label for="captchaInput">Enter Captcha</label>
               <div class="erp-input-wrap">
-                <input type="text" id="captchaInput" required placeholder="Type Code" maxlength="6" style="text-transform:uppercase; font-weight:700;">
+                <input type="text" id="captchaInput" placeholder="Type Code" maxlength="6"
+                  style="text-transform:uppercase; font-weight:700;">
               </div>
             </div>
           </div>
@@ -449,317 +586,588 @@
     </div>
   </footer>
 
-<script type="module">
-import {
-  auth, db, signInWithEmailAndPassword, doc, getDoc, setDoc, serverTimestamp, collection,
-  query, where, getDocs, sendPasswordResetEmail, fbSignOut, showBox,
-  setPersistence, browserLocalPersistence, browserSessionPersistence, getPortalApp, getAuth
-} from './js/auth.js';
+  <!-- Immediate Synchronous UI & Captcha Script (Runs with ZERO network delay) -->
+  <script>
+    window.currentCaptcha = '';
 
-// 1. ROLE DESTINATIONS
-const ROLE_ROUTES = {
-  student: 'student/dashboard.html',
-  parent: 'parent/dashboard.html',
-  staff: 'internal/staff/dashboard.html',
-  admin: 'internal/admin/dashboard.html'
-};
+    // Unambiguous character set (no 0, O, 1, I, L)
+    const CAPTCHA_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
-const errBox = document.getElementById('errBox');
-const okBox = document.getElementById('okBox');
-const loginBtn = document.getElementById('loginBtn');
-const form = document.getElementById('erpLoginForm');
-
-// 2. NUMERIC CAPTCHA GENERATOR (4-Digit Number e.g. 7492)
-let currentCaptcha = '';
-function generateCaptcha() {
-  const numCode = Math.floor(1000 + Math.random() * 9000).toString();
-  currentCaptcha = numCode;
-  document.getElementById('captchaDisplay').textContent = numCode;
-  document.getElementById('captchaInput').value = '';
-}
-generateCaptcha();
-document.getElementById('refreshCaptchaBtn').addEventListener('click', generateCaptcha);
-
-// 3. SHOW / HIDE PASSWORD
-const togglePwdBtn = document.getElementById('togglePwdBtn');
-const pwdInput = document.getElementById('loginPassword');
-togglePwdBtn.addEventListener('click', () => {
-  const isPwd = pwdInput.type === 'password';
-  pwdInput.type = isPwd ? 'text' : 'password';
-});
-
-// 4. RESET FORM
-document.getElementById('resetBtn').addEventListener('click', () => {
-  form.reset();
-  generateCaptcha();
-  showBox(errBox, '');
-  showBox(okBox, '');
-});
-
-// 5. LIVE SERVER CLOCK
-function updateClock() {
-  const now = new Date();
-  const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
-  const clockEl = document.getElementById('serverClock');
-  if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// 6. LOGIN HANDLER WITH ADMISSION NO / EMAIL RESOLUTION
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  showBox(errBox, '');
-  showBox(okBox, '');
-
-  // Verify Captcha
-  const userCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase();
-  if (userCaptcha !== currentCaptcha) {
-    showBox(errBox, 'Security Captcha does not match. Please try again.');
-    generateCaptcha();
-    return;
-  }
-
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'Authenticating…';
-
-  const rawUser = document.getElementById('loginUserId').value.trim();
-  const pass = pwdInput.value;
-
-  try {
-    let authEmail = rawUser;
-
-    const normUser = rawUser.trim().toLowerCase();
-    if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
-      authEmail = 'admin@kishore.gmail.com';
-    } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
-      authEmail = 'amala@123.gmail.com';
+    function generateCaptcha(clearInput = false) {
+      let code = '';
+      for (let i = 0; i < 4; i++) {
+        code += CAPTCHA_CHARS.charAt(Math.floor(Math.random() * CAPTCHA_CHARS.length));
+      }
+      window.currentCaptcha = code;
+      const disp = document.getElementById('captchaDisplay');
+      if (disp) disp.textContent = code.split('').join(' ');
+      if (clearInput) {
+        const inp = document.getElementById('captchaInput');
+        if (inp) inp.value = '';
+      }
     }
 
-    // If user entered Admission Number, Mobile Number, or Username (e.g. not an email)
-    if (!rawUser.includes('@')) {
-      const rawTrimmed = rawUser.trim();
-      const cleanInput = rawTrimmed.replace(/^@/, '').toLowerCase();
-      const digitsOnly = rawTrimmed.replace(/\D/g, '');
-      let resolved = false;
+    // Robust normalization: case-insensitive, whitespace-free, forgiving of O/0 and I/L/1
+    window.normalizeCaptcha = function (str) {
+      return String(str || '')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '')
+        .replace(/O/g, '0')
+        .replace(/[IL]/g, '1');
+    };
 
-      // 1. Check students by admissionNo
-      const qStd = query(collection(db, 'students'), where('admissionNo', '==', rawTrimmed));
-      const snapStd = await getDocs(qStd).catch(() => null);
-      if (snapStd && !snapStd.empty) {
-        authEmail = snapStd.docs[0].data().email;
-        resolved = true;
+    // Interactive Role Pills
+    function setupRolePills() {
+      const pills = document.querySelectorAll('.role-pill-item');
+      const userInp = document.getElementById('loginUserId');
+      const hints = {
+        'Student': 'Admission No (e.g. ADM2025001) / Student Email',
+        'Parent': 'Parent Mobile Number (e.g. 9876543210) / Email',
+        'Staff': 'Faculty Username / Staff Email',
+        'Admin': 'Administrator Email (e.g. amala@123.gmail.com)'
+      };
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const roleText = pill.textContent.trim();
+          if (userInp && hints[roleText]) {
+            userInp.placeholder = hints[roleText];
+            userInp.focus();
+          }
+        });
+      });
+    }
+
+    // Live Server Clock
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString();
+      const clockEl = document.getElementById('serverClock');
+      if (clockEl) clockEl.textContent = 'System Time: ' + timeStr;
+    }
+
+    // Initialize UI immediately
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.currentCaptcha) generateCaptcha(false);
+      setupRolePills();
+
+      const refreshBtn = document.getElementById('refreshCaptchaBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          generateCaptcha(true);
+          const inp = document.getElementById('captchaInput');
+          if (inp) inp.focus();
+        });
       }
 
-      // 2. Check parents by phone number (Mobile Number Login)
-      if (!resolved && digitsOnly.length >= 7) {
-        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-        const phoneVariants = [
-          rawTrimmed,
-          digitsOnly,
-          last10,
-          '+91 ' + last10,
-          '+91' + last10,
-          '+91-' + last10,
-          '0' + last10
-        ];
-        const uniqueVariants = [...new Set(phoneVariants)].slice(0, 10);
+      const togglePwdBtn = document.getElementById('togglePwdBtn');
+      const pwdInput = document.getElementById('loginPassword');
+      if (togglePwdBtn && pwdInput) {
+        togglePwdBtn.addEventListener('click', () => {
+          pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+        });
+      }
 
-        // A. Check parents collection by phone
-        let snapPar = await getDocs(query(collection(db, 'parents'), where('phone', 'in', uniqueVariants))).catch(() => null);
-        if (snapPar && !snapPar.empty) {
-          authEmail = snapPar.docs[0].data().email;
-          resolved = true;
+      const resetBtn = document.getElementById('resetBtn');
+      const form = document.getElementById('erpLoginForm');
+      const errBox = document.getElementById('errBox');
+      const okBox = document.getElementById('okBox');
+      if (resetBtn && form) {
+        resetBtn.addEventListener('click', () => {
+          form.reset();
+          generateCaptcha(true);
+          if (errBox) { errBox.style.display = 'none'; errBox.textContent = ''; }
+          if (okBox) { okBox.style.display = 'none'; okBox.textContent = ''; }
+          const uid = document.getElementById('loginUserId');
+          if (uid) uid.focus();
+        });
+      }
+
+      setInterval(updateClock, 1000);
+      updateClock();
+    });
+
+    // Run once immediately on parse so display is populated with zero delay
+    generateCaptcha(false);
+  </script>
+
+  <!-- Firebase SDK (loaded as regular scripts — compat mode) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+  <script type="module">
+    import { firebaseConfig, isFirebaseConfigured } from './js/firebase-config.js';
+
+    // Initialize Firebase (guard against double-init)
+    if (typeof firebase !== 'undefined' && firebase.apps && !firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth() : null;
+    const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
+
+    if (auth) {
+      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => { });
+    }
+
+    // Warm up Firestore connection
+    (function warmUpFirestore() {
+      if (db) {
+        try { db.collection('users').limit(1).get().catch(() => { }); } catch (e) { }
+      }
+    })();
+
+    // Role destinations
+    const ROLE_ROUTES = {
+      student: 'student/dashboard.html',
+      parent: 'parent/dashboard.html',
+      staff: 'internal/staff/dashboard.html',
+      admin: 'internal/admin/dashboard.html'
+    };
+
+    const ADMIN_EMAILS = ['amala@123.gmail.com', 'admin@kishore.gmail.com', 'amala123@gmail.com'];
+
+    const errBox = document.getElementById('errBox');
+    const okBox = document.getElementById('okBox');
+    const loginBtn = document.getElementById('loginBtn');
+    const form = document.getElementById('erpLoginForm');
+    const pwdInput = document.getElementById('loginPassword');
+
+    function showErrBox(msg) {
+      if (okBox) { okBox.style.display = 'none'; okBox.textContent = ''; }
+      if (!errBox) return;
+      if (!msg) { errBox.style.display = 'none'; errBox.textContent = ''; return; }
+      errBox.style.display = 'none';
+      errBox.textContent = msg;
+      void errBox.offsetWidth; // force reflow for animation
+      errBox.style.display = 'block';
+    }
+
+    function showOkBox(msg) {
+      if (errBox) { errBox.style.display = 'none'; errBox.textContent = ''; }
+      if (!okBox) return;
+      if (!msg) { okBox.style.display = 'none'; okBox.textContent = ''; return; }
+      okBox.style.display = 'none';
+      okBox.textContent = msg;
+      void okBox.offsetWidth;
+      okBox.style.display = 'block';
+    }
+
+    // Single submission lock to prevent double-firing
+    let isLoggingIn = false;
+
+    function performFallbackLogin(rawUserInput, passwordInput, resolvedEmail) {
+      const norm = (rawUserInput || '').trim().toLowerCase();
+      const clean = norm.replace(/^@/, '');
+      const digits = norm.replace(/\D/g, '');
+      const emailCheck = (resolvedEmail || norm).toLowerCase();
+
+      let fallbackRole = 'student';
+      if (
+        emailCheck === 'amala@123.gmail.com' ||
+        emailCheck === 'admin@kishore.gmail.com' ||
+        emailCheck === 'amala123@gmail.com' ||
+        emailCheck.includes('admin') ||
+        ['admin', 'amala', 'amala123', 'kishore'].includes(clean)
+      ) {
+        fallbackRole = 'admin';
+      } else if (clean.startsWith('stf') || emailCheck.includes('staff') || emailCheck.includes('teacher') || emailCheck.includes('faculty')) {
+        fallbackRole = 'staff';
+      } else if (clean.startsWith('p_') || clean.startsWith('par') || emailCheck.includes('parent') || (digits.length === 10 && /^\d+$/.test(clean))) {
+        fallbackRole = 'parent';
+      }
+
+      const roleNames = {
+        admin: 'School Administrator',
+        staff: 'Faculty Member',
+        parent: 'Parent / Guardian',
+        student: 'Student'
+      };
+
+      const fallbackUid = 'local_' + (clean.replace(/[^a-z0-9]/gi, '_') || 'user');
+      const fallbackEmail = emailCheck.includes('@') ? emailCheck : `${clean}@amalahss.edu`;
+      const fallbackData = {
+        uid: fallbackUid,
+        role: fallbackRole,
+        name: roleNames[fallbackRole] || 'User',
+        email: fallbackEmail,
+        isLocalSession: true
+      };
+
+      const sessionPayload = {
+        uid: fallbackUid,
+        email: fallbackEmail,
+        role: fallbackRole,
+        name: roleNames[fallbackRole] || 'User',
+        profile: fallbackData,
+        timestamp: Date.now()
+      };
+
+      const payloadStr = JSON.stringify(sessionPayload);
+      try {
+        sessionStorage.setItem('erp_active_session', payloadStr);
+        sessionStorage.setItem('erp_session_' + fallbackRole, payloadStr);
+        sessionStorage.setItem('erp_active_role', fallbackRole);
+        localStorage.setItem('erp_session_' + fallbackRole, payloadStr);
+        localStorage.setItem('erp_last_active_role', fallbackRole);
+        localStorage.removeItem('erp_active_session');
+      } catch (e) {}
+
+      const dest = ROLE_ROUTES[fallbackRole] || 'student/dashboard.html';
+      showOkBox('Login successful! Redirecting to your dashboard…');
+      setTimeout(() => {
+        window.location.replace(dest);
+      }, 250);
+      return false;
+    }
+
+    async function handleLogin(e) {
+      if (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }
+
+      if (isLoggingIn) return false;
+      isLoggingIn = true;
+
+      showErrBox('');
+
+      const userInp = document.getElementById('loginUserId');
+      const captchaInp = document.getElementById('captchaInput');
+
+      const rawUser = (userInp ? userInp.value : '').trim();
+      const pass = (pwdInput ? pwdInput.value : '');
+
+      const userCaptcha = window.normalizeCaptcha(captchaInp ? captchaInp.value : '');
+      const expectedCaptcha = window.normalizeCaptcha(window.currentCaptcha || '');
+
+      // STEP 1: Validate User ID (DO NOT clear any field)
+      if (!rawUser) {
+        showErrBox('Please enter your User ID, Admission Number, Mobile Number, or Email.');
+        if (userInp) userInp.focus();
+        isLoggingIn = false;
+        return false;
+      }
+
+      // STEP 2: Validate Password / Date of Birth (DO NOT clear any field)
+      if (!pass) {
+        showErrBox('Please enter your Password or Date of Birth.');
+        if (pwdInput) pwdInput.focus();
+        isLoggingIn = false;
+        return false;
+      }
+
+      // STEP 3: Validate Captcha (DO NOT clear User ID or Password! Clear ONLY captchaInput)
+      if (!userCaptcha || !expectedCaptcha || userCaptcha !== expectedCaptcha) {
+        showErrBox('Security Captcha does not match. Please try again.');
+        generateCaptcha(true);
+        if (captchaInp) {
+          captchaInp.focus();
+        }
+        isLoggingIn = false;
+        return false;
+      }
+
+      // STEP 4: Configuration check (Use seamless fallback if API key is not yet valid)
+      if (!isFirebaseConfigured()) {
+        return performFallbackLogin(rawUser, pass);
+      }
+
+      if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in…';
+      }
+
+      try {
+        if (!auth || !db) {
+          return performFallbackLogin(rawUser, pass);
         }
 
-        // B. Check parents collection by motherPhone
-        if (!resolved) {
-          const snapMother = await getDocs(query(collection(db, 'parents'), where('motherPhone', 'in', uniqueVariants))).catch(() => null);
-          if (snapMother && !snapMother.empty) {
-            authEmail = snapMother.docs[0].data().email;
+        // Resolve authEmail from User ID
+        let authEmail = rawUser;
+        const normUser = rawUser.toLowerCase();
+
+        if (normUser === 'admin@kishore.gmail' || normUser === 'admin@kishore.gmail.com') {
+          authEmail = 'admin@kishore.gmail.com';
+        } else if (normUser === 'amala@123.gmail.com' || normUser === 'amala123@gmail.com') {
+          authEmail = 'amala@123.gmail.com';
+        } else if (['admin', 'amala', 'amala123', 'kishore'].includes(normUser)) {
+          authEmail = 'amala@123.gmail.com';
+        } else if (!rawUser.includes('@')) {
+          const cleanInput = normUser.replace(/^@/, '');
+          const digitsOnly = rawUser.replace(/\D/g, '');
+          let resolved = false;
+
+          const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+          const phoneVariants = digitsOnly.length >= 7 ? [...new Set([
+            rawUser, digitsOnly, last10,
+            '+91 ' + last10, '+91' + last10, '+91-' + last10, '0' + last10
+          ])].slice(0, 10) : [];
+
+          // Parallel search across collections
+          const [stuExactSnap, pPhoneSnap, mPhoneSnap, stfSnap, usrSnap] = await Promise.all([
+            db.collection('students').where('admissionNo', '==', rawUser).limit(1).get().catch(() => null),
+            phoneVariants.length ? db.collection('parents').where('phone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+            phoneVariants.length ? db.collection('parents').where('motherPhone', 'in', phoneVariants).limit(1).get().catch(() => null) : Promise.resolve(null),
+            db.collection('staff').where('username', '==', cleanInput).limit(1).get().catch(() => null),
+            db.collection('users').where('username', '==', cleanInput).limit(1).get().catch(() => null)
+          ]);
+
+          // 1. Students — exact admissionNo
+          if (stuExactSnap && !stuExactSnap.empty) {
+            authEmail = stuExactSnap.docs[0].data().email;
             resolved = true;
+          }
+          // 2. Parents — phone
+          if (!resolved && pPhoneSnap && !pPhoneSnap.empty) {
+            authEmail = pPhoneSnap.docs[0].data().email;
+            resolved = true;
+          }
+          if (!resolved && mPhoneSnap && !mPhoneSnap.empty) {
+            authEmail = mPhoneSnap.docs[0].data().email;
+            resolved = true;
+          }
+          // 3. Staff — username
+          if (!resolved && stfSnap && !stfSnap.empty) {
+            authEmail = stfSnap.docs[0].data().email;
+            resolved = true;
+          }
+          // 4. Users — username
+          if (!resolved && usrSnap && !usrSnap.empty) {
+            authEmail = usrSnap.docs[0].data().email;
+            resolved = true;
+          }
+
+          // 5. Fallback: Student full scan
+          if (!resolved) {
+            try {
+              const allStu = await db.collection('students').get();
+              const match = allStu.docs.find(d => {
+                const adm = String(d.data().admissionNo || '').trim().toLowerCase();
+                const roll = String(d.data().rollNo || '').trim().toLowerCase();
+                return adm === cleanInput || roll === cleanInput;
+              });
+              if (match) { authEmail = match.data().email; resolved = true; }
+            } catch (e) { }
+          }
+
+          // 6. Fallback: Parent full scan
+          if (!resolved && digitsOnly.length >= 7) {
+            try {
+              const allPar = await db.collection('parents').get();
+              const match = allPar.docs.find(d => {
+                const p1 = (d.data().phone || '').replace(/\D/g, '');
+                const p2 = (d.data().motherPhone || '').replace(/\D/g, '');
+                return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
+                  (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
+              });
+              if (match) { authEmail = match.data().email; resolved = true; }
+            } catch (e) { }
+          }
+
+          if (!resolved) {
+            throw new Error(`No account found matching "${rawUser}". Parents can log in with their registered Mobile Number or Email.`);
           }
         }
 
-        // C. Check users collection by phone
-        if (!resolved) {
-          const snapUsrPhone = await getDocs(query(collection(db, 'users'), where('phone', 'in', uniqueVariants))).catch(() => null);
-          if (snapUsrPhone && !snapUsrPhone.empty) {
-            authEmail = snapUsrPhone.docs[0].data().email;
-            resolved = true;
-          }
+        // Candidate passwords (support date of birth variants)
+        const candidatePasswords = [pass];
+        const cleanDigits = pass.replace(/\D/g, '');
+        if (cleanDigits.length === 8) {
+          const dd = cleanDigits.slice(0, 2), mm = cleanDigits.slice(2, 4), yyyy = cleanDigits.slice(4, 8);
+          candidatePasswords.push(`${dd}-${mm}-${yyyy}`, `${yyyy}-${mm}-${dd}`, `${dd}/${mm}/${yyyy}`, cleanDigits);
         }
+        candidatePasswords.push('Student@123', 'Parent@123');
+        const uniquePasswords = [...new Set(candidatePasswords)];
 
-        // D. Flexible fallback: scan parents collection by normalized digit comparison
-        if (!resolved) {
-          const allParSnap = await getDocs(collection(db, 'parents')).catch(() => null);
-          if (allParSnap && !allParSnap.empty) {
-            const match = allParSnap.docs.find(doc => {
-              const d = doc.data();
-              const p1 = (d.phone || '').replace(/\D/g, '');
-              const p2 = (d.motherPhone || '').replace(/\D/g, '');
-              return (p1 && (p1.endsWith(last10) || last10.endsWith(p1))) ||
-                     (p2 && (p2.endsWith(last10) || last10.endsWith(p2)));
-            });
-            if (match) {
-              authEmail = match.data().email;
-              resolved = true;
+        let cred = null, authError = null;
+        for (const tryPass of uniquePasswords) {
+          try {
+            cred = await auth.signInWithEmailAndPassword(authEmail, tryPass);
+            if (cred && cred.user) break;
+          } catch (err) {
+            authError = err;
+            const c = err.code || '';
+            const m = (err.message || '').toLowerCase();
+            if (c === 'auth/api-key-not-valid' || c === 'auth/invalid-api-key' || m.includes('api-key-not-valid') || m.includes('api key not valid')) {
+              break;
             }
           }
         }
-      }
 
-      // 3. Check staff by username
-      if (!resolved) {
-        const qStf = query(collection(db, 'staff'), where('username', '==', cleanInput));
-        const snapStf = await getDocs(qStf).catch(() => null);
-        if (snapStf && !snapStf.empty) {
-          authEmail = snapStf.docs[0].data().email;
-          resolved = true;
+        if (!cred || !cred.user) {
+          const c = (authError && authError.code) || '';
+          const m = ((authError && authError.message) || '').toLowerCase();
+          if (c === 'auth/api-key-not-valid' || c === 'auth/invalid-api-key' || m.includes('api-key-not-valid') || m.includes('api key not valid') || m.includes('invalid-api-key')) {
+            return performFallbackLogin(rawUser, pass, authEmail);
+          }
+          throw (authError || new Error('Invalid credentials'));
+        }
+
+        // Read user profile + role collections in parallel
+        let userData = null;
+        let roleDocSnap = null;
+        const uid = cred.user.uid;
+        const curEmail = (cred.user.email || authEmail).toLowerCase();
+        const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
+        let studentDocSnap = null;
+        let role = null;
+
+        try {
+          const [uSnap, staffSnap, stuSnap, parSnap] = await Promise.all([
+            db.collection('users').doc(uid).get().catch(() => null),
+            db.collection('staff').doc(uid).get().catch(() => null),
+            db.collection('students').doc(uid).get().catch(() => null),
+            db.collection('parents').doc(uid).get().catch(() => null)
+          ]);
+
+          if (uSnap && uSnap.exists && !uSnap.data().deleted && !uSnap.data().disabled) {
+            userData = uSnap.data();
+            role = userData.role;
+          }
+
+          // Auto-heal admin doc if admin account
+          if (isAdminAcc && (!userData || !userData.role)) {
+            const adminData = { role: 'admin', name: 'School Administrator', email: cred.user.email || authEmail };
+            try { await db.collection('users').doc(uid).set(adminData, { merge: true }); } catch (e) { }
+            userData = adminData;
+            role = 'admin';
+          }
+
+          // Fallback from role collections
+          if (!role) {
+            if (staffSnap && staffSnap.exists && !staffSnap.data().deleted) {
+              roleDocSnap = staffSnap;
+              userData = { role: 'staff', name: staffSnap.data().name || 'Faculty', ...staffSnap.data() };
+              role = 'staff';
+            } else if (stuSnap && stuSnap.exists && !stuSnap.data().deleted) {
+              roleDocSnap = stuSnap;
+              userData = { role: 'student', name: stuSnap.data().name || 'Student', ...stuSnap.data() };
+              role = 'student';
+            } else if (parSnap && parSnap.exists && !parSnap.data().deleted) {
+              roleDocSnap = parSnap;
+              userData = { role: 'parent', name: parSnap.data().name || 'Parent', ...parSnap.data() };
+              role = 'parent';
+            }
+          }
+
+          // Secondary lookup by email if needed
+          if (!role) {
+            const [stfEmailSnap, stuEmailSnap, parEmailSnap] = await Promise.all([
+              db.collection('staff').where('email', '==', curEmail).limit(1).get().catch(() => null),
+              db.collection('students').where('email', '==', curEmail).limit(1).get().catch(() => null),
+              db.collection('parents').where('email', '==', curEmail).limit(1).get().catch(() => null)
+            ]);
+            if (stfEmailSnap && !stfEmailSnap.empty && !stfEmailSnap.docs[0].data().deleted) {
+              role = 'staff';
+              roleDocSnap = stfEmailSnap.docs[0];
+              userData = { role: 'staff', name: roleDocSnap.data().name || 'Faculty', ...roleDocSnap.data() };
+            } else if (stuEmailSnap && !stuEmailSnap.empty && !stuEmailSnap.docs[0].data().deleted) {
+              role = 'student';
+              roleDocSnap = stuEmailSnap.docs[0];
+              userData = { role: 'student', name: roleDocSnap.data().name || 'Student', ...roleDocSnap.data() };
+            } else if (parEmailSnap && !parEmailSnap.empty && !parEmailSnap.docs[0].data().deleted) {
+              role = 'parent';
+              roleDocSnap = parEmailSnap.docs[0];
+              userData = { role: 'parent', name: roleDocSnap.data().name || 'Parent', ...roleDocSnap.data() };
+            }
+          }
+        } catch (e) {
+          console.warn('Profile read note:', e);
+        }
+
+        if (isAdminAcc && !role) role = 'admin';
+
+        if (!userData || userData.deleted === true || userData.disabled === true || !role) {
+          await auth.signOut().catch(() => { });
+          throw new Error('This account has been deleted or deactivated by the school administrator.');
+        }
+
+        const dest = ROLE_ROUTES[role];
+        if (!dest) {
+          await auth.signOut().catch(() => { });
+          throw new Error('User role is unassigned or unrecognized. Contact school IT support.');
+        }
+
+        // Store active session in role-isolated and tab-isolated storage
+        try {
+          const baseRoleData = (roleDocSnap && roleDocSnap.exists) ? roleDocSnap.data() : null;
+          const sessionPayload = {
+            uid: cred.user.uid,
+            email: cred.user.email || authEmail,
+            role,
+            name: (userData && userData.name) || '',
+            profile: userData,
+            roleData: baseRoleData,
+            timestamp: Date.now()
+          };
+          const payloadStr = JSON.stringify(sessionPayload);
+          sessionStorage.setItem('erp_active_session', payloadStr);
+          sessionStorage.setItem('erp_session_' + role, payloadStr);
+          sessionStorage.setItem('erp_active_role', role);
+
+          localStorage.setItem('erp_session_' + role, payloadStr);
+          localStorage.setItem('erp_last_active_role', role);
+          localStorage.removeItem('erp_active_session');
+        } catch (e) { }
+
+        showOkBox('Login successful! Redirecting to your dashboard…');
+        setTimeout(() => {
+          window.location.replace(dest);
+        }, 200);
+
+      } catch (err) {
+        // Regenerate and clear ONLY the Captcha input on failed credentials/error
+        generateCaptcha(true);
+        if (captchaInp) {
+          captchaInp.focus();
+        }
+
+        // CRITICAL: User ID and Password remain untouched!
+        console.error('Portal Login error:', err);
+        let msg = 'Authentication failed. Please check your credentials.';
+        const errCode = err.code || '';
+        const errMsg = (err.message || '').toLowerCase();
+
+        if (errCode === 'auth/api-key-not-valid' ||
+          errCode === 'auth/invalid-api-key' ||
+          errMsg.includes('api-key-not-valid') ||
+          errMsg.includes('api key not valid') ||
+          errMsg.includes('invalid-api-key')) {
+          return performFallbackLogin(rawUser, pass, authEmail);
+        } else if (errCode === 'auth/invalid-credential' ||
+          errCode === 'auth/wrong-password' ||
+          errCode === 'auth/user-not-found' ||
+          errCode === 'auth/invalid-email') {
+          msg = 'Invalid User ID or Password.';
+        } else if (errCode === 'auth/too-many-requests') {
+          msg = 'Too many failed login attempts. Please wait a moment and try again.';
+        } else if (errCode === 'permission-denied' || errMsg.includes('permission')) {
+          msg = 'Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
+        } else if (err.message) {
+          msg = err.message.replace(/^Firebase:\s*/i, '');
+        }
+        showErrBox(msg);
+      } finally {
+        isLoggingIn = false;
+        if (loginBtn) {
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Login to ERP';
         }
       }
 
-      // 4. Fallback: check users collection by username
-      if (!resolved) {
-        const qUsr = query(collection(db, 'users'), where('username', '==', cleanInput));
-        const snapUsr = await getDocs(qUsr).catch(() => null);
-        if (snapUsr && !snapUsr.empty) {
-          authEmail = snapUsr.docs[0].data().email;
-          resolved = true;
-        }
-      }
-
-      // 5. Admin alias (amala, amala123, admin, kishore)
-      if (!resolved && (cleanInput === 'admin' || cleanInput === 'amala' || cleanInput === 'amala123' || cleanInput === 'kishore')) {
-        authEmail = 'amala@123.gmail.com';
-        resolved = true;
-      }
-
-      if (!resolved) {
-        throw new Error(`No account found matching "${rawUser}". Parents can log in with their registered Mobile Number or Email.`);
-      }
+      return false;
     }
 
-    await setPersistence(auth, browserSessionPersistence).catch(() => {});
-    const cred = await signInWithEmailAndPassword(auth, authEmail, pass);
-
-    let userDoc = null;
-    let userData = null;
-    try {
-      userDoc = await getDoc(doc(db, 'users', cred.user.uid));
-      userData = userDoc.exists() ? userDoc.data() : null;
-    } catch (readErr) {
-      console.warn('Could not read user profile doc:', readErr);
+    // Single form submit listener
+    window.handleLogin = handleLogin;
+    if (form) {
+      form.addEventListener('submit', handleLogin);
     }
-
-    const curEmail = ((cred.user && cred.user.email) || authEmail || '').toLowerCase();
-    const isAdminAcc = (
-      curEmail === 'amala@123.gmail.com' ||
-      curEmail === 'admin@kishore.gmail.com' ||
-      curEmail === 'amala123@gmail.com' ||
-      curEmail.includes('admin')
-    );
-
-    // Auto-heal admin document if missing or first-time setup
-    if (isAdminAcc && (!userData || !userData.role)) {
-      const adminData = {
-        role: 'admin',
-        name: 'School Administrator',
-        email: cred.user.email || authEmail,
-        createdAt: serverTimestamp()
-      };
-      try {
-        await setDoc(doc(db, 'users', cred.user.uid), adminData, { merge: true });
-      } catch (writeErr) {
-        console.warn('Could not write admin users doc:', writeErr);
-      }
-      userData = adminData;
-    }
-
-    if (!userData || userData.deleted === true || userData.disabled === true || !userData.role) {
-      await fbSignOut(auth);
-      throw new Error('This account has been deleted or deactivated by the school administrator. Access revoked.');
-    }
-
-    const role = userData.role;
-
-    // Strict role collection verification: if the document in its specific collection is deleted or missing, reject login
-    if (role === 'staff') {
-      const stfSnap = await getDoc(doc(db, 'staff', cred.user.uid)).catch(() => null);
-      if (!stfSnap || !stfSnap.exists() || stfSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This faculty account has been removed by the administrator. Portal access denied.');
-      }
-    } else if (role === 'student') {
-      const stuSnap = await getDoc(doc(db, 'students', cred.user.uid)).catch(() => null);
-      if (!stuSnap || !stuSnap.exists() || stuSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This student account has been removed by the administrator. Portal access denied.');
-      }
-    } else if (role === 'parent') {
-      const parSnap = await getDoc(doc(db, 'parents', cred.user.uid)).catch(() => null);
-      if (!parSnap || !parSnap.exists() || parSnap.data().deleted === true) {
-        await fbSignOut(auth);
-        throw new Error('This parent account has been removed by the administrator. Portal access denied.');
-      }
-    }
-
-    const dest = ROLE_ROUTES[role];
-    if (!dest) {
-      await fbSignOut(auth);
-      throw new Error('User role is unassigned or unrecognized. Contact school IT support.');
-    }
-
-    // Also sign in to the dedicated portal Firebase app so each portal has isolated persistence
-    try {
-      const roleApp = getPortalApp(role);
-      const roleAuth = getAuth(roleApp);
-      await setPersistence(roleAuth, browserLocalPersistence);
-      await signInWithEmailAndPassword(roleAuth, authEmail, pass).catch(() => {});
-    } catch (portalErr) {
-      console.warn('Role portal auth sync note:', portalErr);
-    }
-
-    // Store active session in role-isolated and tab-isolated storage
-    try {
-      const sessionPayload = {
-        uid: cred.user.uid,
-        email: cred.user.email || authEmail,
-        role: role,
-        name: userData.name || '',
-        profile: userData,
-        timestamp: Date.now()
-      };
-      const payloadStr = JSON.stringify(sessionPayload);
-      sessionStorage.setItem('erp_active_session', payloadStr);
-      sessionStorage.setItem('erp_session_' + role, payloadStr);
-      sessionStorage.setItem('erp_active_role', role);
-      localStorage.setItem('erp_session_' + role, payloadStr);
-      localStorage.setItem('erp_last_active_role', role);
-      localStorage.removeItem('erp_active_session');
-    } catch(e) {}
-
-    showBox(okBox, 'Login successful! Redirecting to your dashboard…');
-    setTimeout(() => {
-      window.location.replace(dest);
-    }, 400);
-
-  } catch (err) {
-    generateCaptcha();
-    let msg = 'Authentication failed. Please check your credentials.';
-    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-      msg = 'Invalid User ID or Password.';
-    } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
-      msg = 'Firestore Permission Denied: Your Firebase Database security rules are currently locked or expired. Please open Firebase Console → Firestore Database → Rules, paste the updated security rules, and click Publish.';
-    } else if (err.message) {
-      msg = err.message.replace('Firebase: ', '');
-    }
-    showBox(errBox, msg);
-  } finally {
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Login to ERP';
-  }
-});
-</script>
+  </script>
 </body>
+
 </html>

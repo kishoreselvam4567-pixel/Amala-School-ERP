@@ -1,0 +1,10 @@
+// Environment configuration for static serving (Copy to js/env.js to override locally)
+window.__ENV__ = window.__ENV__ || {
+  VITE_FIREBASE_API_KEY: "YOUR_REAL_FIREBASE_WEB_API_KEY",
+  VITE_FIREBASE_AUTH_DOMAIN: "school-erp-59865.firebaseapp.com",
+  VITE_FIREBASE_PROJECT_ID: "school-erp-59865",
+  VITE_FIREBASE_STORAGE_BUCKET: "school-erp-59865.firebasestorage.app",
+  VITE_FIREBASE_MESSAGING_SENDER_ID: "814200800763",
+  VITE_FIREBASE_APP_ID: "1:814200800763:web:66ee8f726fae707d87775e",
+  VITE_FIREBASE_MEASUREMENT_ID: "G-KFVS0TXHH9"
+};

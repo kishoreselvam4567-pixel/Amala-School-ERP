@@ -17,6 +17,17 @@ import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
+// Re-export modular Firebase SDK utilities so consumers can import directly from auth.js
+export {
+  initializeApp, getApps, getApp,
+  getAuth, initializeAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  fbSignOut, onAuthStateChanged, sendPasswordResetEmail,
+  setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
+  getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs,
+  addDoc, updateDoc, deleteDoc, serverTimestamp, orderBy, onSnapshot,
+  getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+};
+
 // Determine portal role from current URL
 export function getCurrentPortalRole() {
   if (typeof window === 'undefined') return null;
@@ -67,15 +78,6 @@ export function getSecondaryAuth() {
   }
   return cachedSecondaryAuth;
 }
-
-export {
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, fbSignOut,
-  onAuthStateChanged, sendPasswordResetEmail,
-  setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence, initializeAuth, getAuth,
-  doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, updateDoc,
-  deleteDoc, serverTimestamp, orderBy, onSnapshot,
-  ref, uploadBytes, getDownloadURL, deleteObject
-};
 
 // In-memory profile cache for instantaneous lookups
 const userProfileCache = new Map();
