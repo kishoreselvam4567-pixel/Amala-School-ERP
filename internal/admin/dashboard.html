@@ -5370,12 +5370,16 @@
     // Staff Full Profile Modal Handlers
     const staffDetailModal = document.getElementById('staffDetailModal');
     document.getElementById('closeStaffProfileModal')?.addEventListener('click', () => {
-      staffDetailModal.classList.remove('open');
+      if (staffDetailModal) {
+        staffDetailModal.classList.remove('open');
+        staffDetailModal.style.display = 'none';
+      }
       updateBodyModalState();
     });
     staffDetailModal?.addEventListener('click', (e) => {
       if (e.target === staffDetailModal) {
         staffDetailModal.classList.remove('open');
+        staffDetailModal.style.display = 'none';
         updateBodyModalState();
       }
     });
@@ -5389,7 +5393,10 @@
     });
     document.querySelectorAll('.closeStaffModalFooter').forEach(btn => {
       btn.addEventListener('click', () => {
-        staffDetailModal?.classList.remove('open');
+        if (staffDetailModal) {
+          staffDetailModal.classList.remove('open');
+          staffDetailModal.style.display = 'none';
+        }
         updateBodyModalState();
       });
     });
@@ -5440,6 +5447,7 @@
       if (e.key === 'Escape') {
         document.querySelectorAll('.profile-modal-overlay.open, .modal-overlay.open').forEach(m => {
           m.classList.remove('open');
+          m.style.display = 'none';
         });
         updateBodyModalState();
       }
@@ -6988,74 +6996,136 @@
       if (!stf) return;
       currentModalStaff = stf;
 
-      const setText = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = (val !== undefined && val !== null && String(val).trim() !== '') ? val : '—';
-      };
+      try {
+        const setText = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = (val !== undefined && val !== null && String(val).trim() !== '') ? val : '—';
+        };
 
-      setText('modalStaffName', stf.name || 'Faculty Member');
-      setText('modalStaffSub', `${stf.majorSubject || 'Faculty'} • Staff ID: @${stf.username || '—'}`);
-      setText('modalStaffAvatarInit', (stf.name || 'F').charAt(0).toUpperCase());
+        const facultyName = stf.name || 'Faculty Member';
+        setText('modalStaffName', facultyName);
+        setText('modalStaffSub', `${stf.majorSubject || 'Faculty'} • Staff ID: @${stf.username || '—'}`);
+        setText('modalStaffAvatarInit', String(facultyName).charAt(0).toUpperCase() || 'F');
 
-      setText('modalStaffTagUsername', `User: @${stf.username || '—'}`);
-      setText('modalStaffTagGender', `Gender: ${stf.gender || '—'}`);
-      setText('modalStaffTagMajor', `Major: ${stf.majorSubject || '—'}`);
-      setText('modalStaffTagPhone', stf.phone || '—');
-      setText('modalStaffTagCT', `CT: ${stf.classTeacherName && stf.classTeacherName !== '—' ? stf.classTeacherName : 'None'}`);
+        setText('modalStaffTagUsername', `User: @${stf.username || '—'}`);
+        setText('modalStaffTagGender', `Gender: ${stf.gender || '—'}`);
+        setText('modalStaffTagMajor', `Major: ${stf.majorSubject || '—'}`);
+        setText('modalStaffTagPhone', stf.phone || '—');
+        setText('modalStaffTagCT', `CT: ${stf.classTeacherName && stf.classTeacherName !== '—' ? stf.classTeacherName : 'None'}`);
 
-      // Personal & Faculty Identity
-      setText('msp_name', stf.name || '—');
-      setText('msp_username', stf.username ? `@${stf.username}` : '—');
-      setText('msp_gender', stf.gender || '—');
-      setText('msp_phone', stf.phone || '—');
-      setText('msp_major', stf.majorSubject || '—');
-      setText('msp_majorSubject', stf.majorSubject || '—');
-      setText('msp_address', stf.address || '—');
+        // Personal & Faculty Identity
+        setText('msp_name', facultyName);
+        setText('msp_username', stf.username ? `@${stf.username}` : '—');
+        setText('msp_gender', stf.gender || '—');
+        setText('msp_phone', stf.phone || '—');
+        setText('msp_major', stf.majorSubject || '—');
+        setText('msp_majorSubject', stf.majorSubject || '—');
+        setText('msp_address', stf.address || '—');
 
-      // Login Credentials
-      setText('msp_email', stf.email || '—');
-      const passSpan = document.getElementById('msp_pass');
-      const toggleBtn = document.getElementById('msp_togglePassBtn');
-      const rawPass = stf.password || (stf.data && stf.data.password) || '';
-      if (passSpan) {
-        passSpan.textContent = '••••••••';
-        passSpan.dataset.realPass = rawPass || 'Welcome@123';
-        passSpan.dataset.revealed = 'false';
-      }
-      if (toggleBtn) {
-        toggleBtn.style.display = rawPass ? 'inline-block' : 'none';
-        toggleBtn.textContent = 'Reveal';
-      }
-
-      // Teaching Allocations
-      const ctEl = document.getElementById('msp_classTeacher');
-      if (ctEl) {
-        ctEl.innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
-          ? `<span class="badge badge-good">${stf.classTeacherName}</span>`
-          : '<span style="color:var(--ink-soft);">Not assigned as Class Teacher</span>';
-      }
-
-      const subsContainer = document.getElementById('msp_subjects');
-      if (subsContainer) {
-        if (stf.subjects && stf.subjects.length > 0) {
-          subsContainer.innerHTML = stf.subjects.map(s => `
-            <span class="badge badge-purple" style="padding:4px 10px; font-size:12px;">
-              ${s.subject} <strong style="margin-left:4px;">(${s.className || 'Class'})</strong>
-            </span>
-          `).join('');
-        } else {
-          subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
+        // Login Credentials
+        setText('msp_email', stf.email || '—');
+        const passSpan = document.getElementById('msp_pass');
+        const toggleBtn = document.getElementById('msp_togglePassBtn');
+        const rawPass = stf.password || (stf.data && stf.data.password) || '';
+        if (passSpan) {
+          passSpan.textContent = '••••••••';
+          passSpan.dataset.realPass = rawPass || 'Welcome@123';
+          passSpan.dataset.revealed = 'false';
         }
-      }
+        if (toggleBtn) {
+          toggleBtn.style.display = rawPass ? 'inline-block' : 'none';
+          toggleBtn.textContent = 'Reveal';
+        }
 
-      const modalEl = document.getElementById('staffDetailModal');
-      if (modalEl) {
-        modalEl.classList.add('open');
-        updateBodyModalState();
-        const stfBody = modalEl.querySelector('.profile-modal-body');
-        if (stfBody) stfBody.scrollTop = 0;
+        // Teaching Allocations
+        const ctEl = document.getElementById('msp_classTeacher');
+        if (ctEl) {
+          ctEl.innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
+            ? `<span class="badge badge-good">${escapeHtml(stf.classTeacherName)}</span>`
+            : '<span style="color:var(--ink-soft);">Not assigned as Class Teacher</span>';
+        }
+
+        const subsContainer = document.getElementById('msp_subjects');
+        if (subsContainer) {
+          let subsList = [];
+          if (Array.isArray(stf.subjects)) {
+            subsList = stf.subjects;
+          } else if (typeof stf.subjects === 'string' && stf.subjects.trim()) {
+            subsList = stf.subjects.split(',').map(s => s.trim()).filter(Boolean);
+          } else if (stf.subjects && typeof stf.subjects === 'object') {
+            subsList = Object.values(stf.subjects);
+          }
+
+          if (subsList.length > 0) {
+            subsContainer.innerHTML = subsList.map(s => {
+              let subName = 'Subject';
+              let clsName = '';
+              if (typeof s === 'string') {
+                subName = s;
+              } else if (s && typeof s === 'object') {
+                subName = s.subject || s.name || s.title || 'Subject';
+                clsName = s.className ? ` (${s.className})` : (s.class ? ` (${s.class})` : '');
+              }
+              return `
+                <span class="badge badge-purple" style="padding:4px 10px; font-size:12px; margin:2px;">
+                  ${escapeHtml(subName)}<strong style="margin-left:4px;">${escapeHtml(clsName)}</strong>
+                </span>
+              `;
+            }).join('');
+          } else {
+            subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
+          }
+        }
+
+        const modalEl = document.getElementById('staffDetailModal');
+        if (modalEl) {
+          modalEl.classList.add('open');
+          modalEl.style.display = 'flex';
+          updateBodyModalState();
+          const stfBody = modalEl.querySelector('.profile-modal-body');
+          if (stfBody) stfBody.scrollTop = 0;
+        }
+      } catch (err) {
+        console.error('Error opening staff detail modal:', err);
       }
     }
+    window.openStaffDetailModal = openStaffDetailModal;
+
+    // Delegated click listener on document for all Staff View buttons
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.stfViewBtn');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const staffId = btn.dataset.id;
+      let item = allStaffCache.find(x => String(x.id) === String(staffId));
+      if (!item) {
+        const tr = btn.closest('tr');
+        if (tr) {
+          const name = tr.querySelector('strong')?.textContent?.trim() || 'Faculty';
+          const username = tr.querySelector('.badge-purple')?.textContent?.replace('@', '')?.trim() || '';
+          const gender = tr.querySelector('.badge-navy, .badge-amber')?.textContent?.trim() || '—';
+          const phone = tr.cells && tr.cells[2] ? tr.cells[2].textContent?.trim() : '—';
+          const major = tr.cells && tr.cells[3] ? tr.cells[3].textContent?.trim() : '—';
+          item = {
+            id: staffId,
+            name,
+            username,
+            gender,
+            phone,
+            majorSubject: major,
+            email: '—',
+            classTeacherName: '—',
+            subjects: [],
+            password: '—',
+            address: '—'
+          };
+        }
+      }
+      if (item) {
+        openStaffDetailModal(item);
+      }
+    });
 
     // Modal Password Reveal Listener
     document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
@@ -7082,6 +7152,7 @@
     document.getElementById('editStaffFromDetailBtn')?.addEventListener('click', () => {
       if (currentModalStaff) {
         staffDetailModal.classList.remove('open');
+        staffDetailModal.style.display = 'none';
         openEditStaffModal(currentModalStaff);
       }
     });
@@ -7213,13 +7284,32 @@
         <button type="button" class="ctUnassignBtn" data-id="${d.id}" data-cid="${r.classTeacherOf}" data-name="${r.name}" title="Unassign as Class Teacher" style="background:none; border:none; color:#065f46; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#065f46'">&times;</button>
       </span>`;
         }
-        const subjectsPlain = (r.subjects || []).map(s => `${s.subject} (${s.className || ''})`).join(', ') || '—';
-        const subjects = (r.subjects || []).map((s, idx) => `
+        let normSubjects = [];
+        if (Array.isArray(r.subjects)) {
+          normSubjects = r.subjects;
+        } else if (typeof r.subjects === 'string' && r.subjects.trim()) {
+          normSubjects = r.subjects.split(',').map(s => ({ subject: s.trim(), className: '' })).filter(s => s.subject);
+        } else if (r.subjects && typeof r.subjects === 'object') {
+          normSubjects = Object.values(r.subjects);
+        }
+
+        const subjectsPlain = normSubjects.map(s => {
+          if (typeof s === 'string') return s;
+          const sName = s?.subject || s?.name || 'Subject';
+          const cName = s?.className || s?.class || '';
+          return cName ? `${sName} (${cName})` : sName;
+        }).join(', ') || '—';
+
+        const subjects = normSubjects.map((s, idx) => {
+          const sName = typeof s === 'string' ? s : (s?.subject || s?.name || 'Subject');
+          const cName = (typeof s === 'object' && s) ? (s.className || s.class || '') : '';
+          return `
       <span class="badge badge-purple" style="display:inline-flex; align-items:center; gap:6px; margin:2px; padding:3px 8px;">
-        <span>${s.subject} (${s.className || ''})</span>
-        <button type="button" class="subRemoveBtn" data-id="${d.id}" data-idx="${idx}" data-sub="${s.subject}" data-cls="${s.className || ''}" data-name="${r.name}" title="Remove this subject assignment" style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#6b21a8'">&times;</button>
+        <span>${escapeHtml(sName)}${cName ? ' (' + escapeHtml(cName) + ')' : ''}</span>
+        <button type="button" class="subRemoveBtn" data-id="${d.id}" data-idx="${idx}" data-sub="${escapeHtml(sName)}" data-cls="${escapeHtml(cName)}" data-name="${escapeHtml(r.name || '')}" title="Remove this subject assignment" style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#6b21a8'">&times;</button>
       </span>
-    `).join('') || '—';
+    `;
+        }).join('') || '—';
 
         const facultyUsername = r.username || (r.email ? r.email.split('@')[0] : 'staff');
         const facultyGender = r.gender || '—';
@@ -7237,7 +7327,7 @@
           email: r.email || '—',
           classTeacherOf: r.classTeacherOf || null,
           classTeacherName: ctNamePlain,
-          subjects: r.subjects || [],
+          subjects: normSubjects,
           subjectsText: subjectsPlain,
           password: facultyPass,
           address: r.address || '—'
@@ -7293,7 +7383,7 @@
             email: r.email || '—',
             classTeacherOf: r.classTeacherOf || null,
             classTeacherName: ctNamePlain,
-            subjects: r.subjects || [],
+            subjects: normSubjects,
             password: facultyPass,
             address: r.address || '—'
           };
