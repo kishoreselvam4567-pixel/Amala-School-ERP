@@ -12591,7 +12591,7 @@
 
     async function loadAdminNotes() {
       try {
-        const qNotes = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
+        const qNotes = query(collection(db, 'notes'), orderBy('created_at', 'desc'));
         const snap = await getDocs(qNotes);
         allAdminNotesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 

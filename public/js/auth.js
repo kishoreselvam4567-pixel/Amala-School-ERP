@@ -279,6 +279,8 @@ export async function getDoc(docRef) {
   if (docData && 'data' in docData && typeof docData.data === 'object') {
     delete docData.data;
   }
+  if (docData && docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
+  if (docData && docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
   return {
     id,
     exists: () => exists,
@@ -310,19 +312,27 @@ export async function getDocs(qRef) {
     return cached.result;
   }
 
-  const runQuery = () => {
+  const mapField = (field) => {
+    if (field === 'createdAt') return 'created_at';
+    if (field === 'updatedAt') return 'updated_at';
+    return field;
+  };
+
+  const runQuery = (skipOrderBy = false) => {
     let builder = supabase.from(col).select('*');
     for (const c of constraints) {
       if (c._type === 'where') {
-        if (c.op === '==' || c.op === '===') builder = builder.eq(c.field, c.val);
-        else if (c.op === '!=') builder = builder.neq(c.field, c.val);
-        else if (c.op === '>') builder = builder.gt(c.field, c.val);
-        else if (c.op === '>=') builder = builder.gte(c.field, c.val);
-        else if (c.op === '<') builder = builder.lt(c.field, c.val);
-        else if (c.op === '<=') builder = builder.lte(c.field, c.val);
-        else if (c.op === 'in') builder = builder.in(c.field, Array.isArray(c.val) ? c.val : [c.val]);
-      } else if (c._type === 'orderBy') {
-        builder = builder.order(c.field, { ascending: c.dir !== 'desc' });
+        const field = mapField(c.field);
+        if (c.op === '==' || c.op === '===') builder = builder.eq(field, c.val);
+        else if (c.op === '!=') builder = builder.neq(field, c.val);
+        else if (c.op === '>') builder = builder.gt(field, c.val);
+        else if (c.op === '>=') builder = builder.gte(field, c.val);
+        else if (c.op === '<') builder = builder.lt(field, c.val);
+        else if (c.op === '<=') builder = builder.lte(field, c.val);
+        else if (c.op === 'in') builder = builder.in(field, Array.isArray(c.val) ? c.val : [c.val]);
+      } else if (c._type === 'orderBy' && !skipOrderBy) {
+        const field = mapField(c.field);
+        builder = builder.order(field, { ascending: c.dir !== 'desc' });
       } else if (c._type === 'limit') {
         builder = builder.limit(c.count);
       }
@@ -344,6 +354,33 @@ export async function getDocs(qRef) {
       ({ data, error } = await runQuery());
     }
   }
+
+  // Graceful fallback for schema mismatches: if an order column does not exist on table,
+  // retry query without server orderBy and sort in-memory.
+  if (error && (error.code === '42703' || String(error.message || '').toLowerCase().includes('does not exist'))) {
+    const hasOrder = constraints.some(c => c._type === 'orderBy');
+    if (hasOrder) {
+      const fallbackRes = await runQuery(true);
+      if (!fallbackRes.error && fallbackRes.data) {
+        data = fallbackRes.data;
+        const orderConstraints = constraints.filter(c => c._type === 'orderBy');
+        for (const oc of orderConstraints) {
+          const f = oc.field;
+          const mappedF = mapField(f);
+          const isDesc = oc.dir === 'desc';
+          data.sort((a, b) => {
+            const va = a[mappedF] ?? a[f] ?? a.data?.[f] ?? a.id;
+            const vb = b[mappedF] ?? b[f] ?? b.data?.[f] ?? b.id;
+            if (va < vb) return isDesc ? 1 : -1;
+            if (va > vb) return isDesc ? -1 : 1;
+            return 0;
+          });
+        }
+        error = null;
+      }
+    }
+  }
+
   if (error) {
     if (String(error.message || '').toLowerCase().includes('future')) {
       console.warn(`getDocs(${col}) suppressed future clock skew:`, error.message);
@@ -357,6 +394,8 @@ export async function getDocs(qRef) {
   const docs = (data || []).map(row => {
     const docData = { ...row.data, ...row };
     if ('data' in docData && typeof docData.data === 'object') delete docData.data;
+    if (docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
+    if (docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
     return {
       id: String(row.id),
       exists: () => true,
@@ -380,6 +419,8 @@ export async function setDoc(docRef, data, options = {}) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
   const payload = { id, ...data };
+  if (payload.createdAt && !payload.created_at) payload.created_at = payload.createdAt;
+  if (payload.updatedAt && !payload.updated_at) payload.updated_at = payload.updatedAt;
   for (const k of Object.keys(payload)) {
     if (payload[k] === undefined) delete payload[k];
   }
@@ -395,6 +436,8 @@ export async function addDoc(colRef, data) {
   const col = normalizeCol(colRef.col);
   const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
   const payload = { id, ...data };
+  if (payload.createdAt && !payload.created_at) payload.created_at = payload.createdAt;
+  if (payload.updatedAt && !payload.updated_at) payload.updated_at = payload.updatedAt;
   for (const k of Object.keys(payload)) {
     if (payload[k] === undefined) delete payload[k];
   }

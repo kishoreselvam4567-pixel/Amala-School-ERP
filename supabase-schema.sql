@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS public.notes (
   "uploadedBy" TEXT,
   "uploaderName" TEXT,
   data JSONB DEFAULT '{}',
+  "createdAt" TIMESTAMPTZ DEFAULT now(),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
