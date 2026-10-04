@@ -1,52 +1,23 @@
 (function () {
-  const CANDIDATE_PATHS = [
-    'image/school logo.jpg',
-    '/image/school logo.jpg',
-    '../image/school logo.jpg',
-    '../../image/school logo.jpg',
-    'public/image/school logo.jpg',
-    '/public/image/school logo.jpg',
-    'image/school-logo.jpg',
-    '/image/school-logo.jpg',
-    '../image/school-logo.jpg',
-    'image/logo.jpg',
-    '/image/logo.jpg'
-  ];
-
-  const PRIMARY_PATH = 'image/school logo.jpg';
+  const LOGO_PATH = '/image/school logo.jpg';
 
   if (typeof window !== 'undefined') {
-    window.SCHOOL_LOGO_DATA_URL = PRIMARY_PATH;
-    window.SCHOOL_LOGO_URL = PRIMARY_PATH;
+    window.SCHOOL_LOGO_DATA_URL = LOGO_PATH;
+    window.SCHOOL_LOGO_URL = LOGO_PATH;
     window.getSchoolLogoUrl = function () {
-      const el = document.querySelector('[data-school-logo], .erp-logo img, .brand-logo img');
-      return (el && el.src ? el.src : PRIMARY_PATH);
+      return (document.querySelector('[data-school-logo]') ? document.querySelector('[data-school-logo]').src : LOGO_PATH);
     };
   }
 
-  function handleLogoError(img) {
-    if (!img) return;
-    if (typeof img._tryIndex === 'undefined') {
-      img._tryIndex = 0;
-    }
-    img._tryIndex++;
-    if (img._tryIndex < CANDIDATE_PATHS.length) {
-      img.src = CANDIDATE_PATHS[img._tryIndex];
-    }
-  }
-
   function applyLogo() {
-    const logoEls = document.querySelectorAll('[data-school-logo], .erp-logo img, .brand-logo img');
+    const logoEls = document.querySelectorAll('[data-school-logo]');
     if (!logoEls.length) return;
     logoEls.forEach(function (el) {
-      el.addEventListener('error', function () {
-        handleLogoError(this);
-      });
+      if (!el.src || el.src.indexOf('school%20logo.jpg') === -1) {
+        el.src = LOGO_PATH;
+      }
       if (!el.getAttribute('alt')) {
         el.setAttribute('alt', 'Amala Higher Secondary School Logo');
-      }
-      if (!el.src || el.src.endsWith('/')) {
-        el.src = PRIMARY_PATH;
       }
     });
   }

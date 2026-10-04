@@ -656,6 +656,25 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
           sessionStorage.setItem('erp_session_' + cached.role, rawCache);
           sessionStorage.setItem('erp_active_role', cached.role);
         } catch (e) {}
+
+        // HIGH SPEED OPTIMIZATION: Instant UI rendering from cached session (0ms visual latency)
+        isAuthorized = true;
+        const cachedUser = {
+          uid,
+          id: uid,
+          email: cached.email || ''
+        };
+        currentActiveUser = cachedUser;
+        try {
+          onReady({
+            user: cachedUser,
+            profile: cached.profile || { uid, name: cached.name, role: cached.role },
+            roleData: cached.roleData || null,
+            isCached: true
+          });
+        } catch (cbErr) {
+          console.warn("requirePortal instant cached onReady error:", cbErr);
+        }
       }
     }
   } catch (e) {
@@ -675,8 +694,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
         }
       } catch (e) {}
       if (!user) {
-        // No genuine session: a cached identity alone cannot satisfy RLS,
-        // so staying would render an empty portal. Force a fresh login.
+        if (hasHydratedFromCache) {
+          // If we already hydrated from a valid cache (within 24h),
+          // don't immediately purge or kick the user out while session initializes
+          return;
+        }
         purgePortalSession();
         window.location.href = loginPath;
         return;

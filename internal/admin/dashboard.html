@@ -6641,11 +6641,24 @@
         const dateEl = document.getElementById('todayDateStr');
         if (dateEl) dateEl.textContent = `Today is ${dateStr} • Campus Management Active`;
 
-        // Make sure the access token is fresh before the first data load —
-        // otherwise an expired token makes every table render empty.
-        await ensureFreshSession();
-        await loadClasses();
-        await loadOverview();
+        // Restore cached overview counts instantly so metrics are visible in 0ms
+        try {
+          const cachedCounts = sessionStorage.getItem('erp_overview_counts');
+          if (cachedCounts) {
+            const counts = JSON.parse(cachedCounts);
+            if (counts.classes !== undefined) document.getElementById('cntClasses').textContent = counts.classes;
+            if (counts.staff !== undefined) document.getElementById('cntStaff').textContent = counts.staff;
+            if (counts.students !== undefined) document.getElementById('cntStudents').textContent = counts.students;
+            if (counts.parents !== undefined) document.getElementById('cntParents').textContent = counts.parents;
+          }
+        } catch(e) {}
+
+        // Concurrent background fresh session & parallel data fetching
+        ensureFreshSession().catch(() => null);
+        await Promise.allSettled([
+          loadClasses(),
+          loadOverview()
+        ]);
         preloadAllDataForSearch();
       } catch (err) {
         console.error('Portal init error:', err);
@@ -6706,6 +6719,15 @@
       document.getElementById('cntStaff').textContent = sSnap.size;
       document.getElementById('cntStudents').textContent = stSnap.size;
       document.getElementById('cntParents').textContent = pSnap.size;
+
+      try {
+        sessionStorage.setItem('erp_overview_counts', JSON.stringify({
+          classes: cSnap.size,
+          staff: sSnap.size,
+          students: stSnap.size,
+          parents: pSnap.size
+        }));
+      } catch (e) {}
 
       const rawClasses = cSnap.docs.map(cd => ({ id: cd.id, ...cd.data() }));
       const sortedClasses = sortClassList(rawClasses);

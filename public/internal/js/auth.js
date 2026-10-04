@@ -1,7 +1,7 @@
 // ============================================================
-// Shared Supabase Init + Auth/Role Helpers (Internal)
+// Shared Supabase Init + Auth/Role Helpers
 // Drop-in compatible with previous Firestore & Auth signatures
-// Imported by internal pages as a module: <script type="module" src="/internal/js/auth.js">
+// Imported by every page as a module: <script type="module" src="/js/auth.js">
 // ============================================================
 import { supabaseConfig } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -102,6 +102,7 @@ export async function signInWithEmailAndPassword(authInst, email, password) {
 }
 
 export async function createUserWithEmailAndPassword(authInst, email, password) {
+  // Use secondary client if provided so admin session is never overwritten
   const client = (authInst && authInst.auth && authInst !== auth) ? authInst : getSecondaryAuth();
   const { data, error } = await client.auth.signUp({ email, password });
   if (error) throw error;
@@ -157,9 +158,6 @@ export function initializeAuth(appInst) { return auth; }
 export function getAuth(appInst) { return auth; }
 export function getFirestore() { return db; }
 export function getStorage() { return storage; }
-export const persistentLocalCache = () => ({});
-export const persistentMultipleTabManager = () => ({});
-export function initializeFirestore() { return db; }
 
 // ============================================================
 // Firestore Query & Document Adapters
@@ -609,7 +607,7 @@ export async function getUserProfile(uid) {
   return null;
 }
 
-export function requirePortal(allowedRoles, onReady, loginPath = "../login.html") {
+export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") {
   let isAuthorized = false;
   let hasHydratedFromCache = false;
 
@@ -624,6 +622,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
     } catch (e) {}
   };
 
+  // 1. Instant cache hydration
   try {
     let rawCache = null;
     for (const r of allowedRoles) {
@@ -657,6 +656,25 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
           sessionStorage.setItem('erp_session_' + cached.role, rawCache);
           sessionStorage.setItem('erp_active_role', cached.role);
         } catch (e) {}
+
+        // HIGH SPEED OPTIMIZATION: Instant UI rendering from cached session (0ms visual latency)
+        isAuthorized = true;
+        const cachedUser = {
+          uid,
+          id: uid,
+          email: cached.email || ''
+        };
+        currentActiveUser = cachedUser;
+        try {
+          onReady({
+            user: cachedUser,
+            profile: cached.profile || { uid, name: cached.name, role: cached.role },
+            roleData: cached.roleData || null,
+            isCached: true
+          });
+        } catch (cbErr) {
+          console.warn("requirePortal instant cached onReady error:", cbErr);
+        }
       }
     }
   } catch (e) {
@@ -676,8 +694,11 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
         }
       } catch (e) {}
       if (!user) {
-        // No genuine session: a cached identity alone cannot satisfy RLS,
-        // so staying would render an empty portal. Force a fresh login.
+        if (hasHydratedFromCache) {
+          // If we already hydrated from a valid cache (within 24h),
+          // don't immediately purge or kick the user out while session initializes
+          return;
+        }
         purgePortalSession();
         window.location.href = loginPath;
         return;
@@ -789,6 +810,7 @@ export function requirePortal(allowedRoles, onReady, loginPath = "../login.html"
   onAuthStateChanged(auth, handleAuth);
 }
 
+// First time login guide
 export function showFirstTimeLoginGuide(role, user, profile) {
   if (typeof document === 'undefined') return;
   const uid = user ? (user.uid || user.id) : '';

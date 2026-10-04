@@ -23,12 +23,17 @@ amalahss/
 js/env.js
 internal/js/env.js
 
+
 # Logs
 *.log
 
+<<<<<<< HEAD
+=======
 # Netlify
 netlify.toml
 .netlify/
 
 # Legacy backups
 *.legacy
+
+>>>>>>> 54b38b57f8cdc4730f30ff2c5b2d0439ef5f3492
