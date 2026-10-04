@@ -6987,58 +6987,81 @@
     function openStaffDetailModal(stf) {
       if (!stf) return;
       currentModalStaff = stf;
-      document.getElementById('modalStaffName').textContent = stf.name || 'Faculty Member';
-      document.getElementById('modalStaffSub').textContent = `${stf.majorSubject || 'Faculty'} • Staff ID: @${stf.username || '—'}`;
-      document.getElementById('modalStaffAvatarInit').textContent = (stf.name || 'F').charAt(0).toUpperCase();
 
-      document.getElementById('modalStaffTagUsername').textContent = `User: @${stf.username || '—'}`;
-      document.getElementById('modalStaffTagGender').textContent = `Gender: ${stf.gender || '—'}`;
-      document.getElementById('modalStaffTagMajor').textContent = `Major: ${stf.majorSubject || '—'}`;
-      document.getElementById('modalStaffTagPhone').textContent = `${stf.phone || "—"}`;
-      document.getElementById('modalStaffTagCT').textContent = `CT: ${stf.classTeacherName && stf.classTeacherName !== '—' ? stf.classTeacherName : 'None'}`;
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = (val !== undefined && val !== null && String(val).trim() !== '') ? val : '—';
+      };
+
+      setText('modalStaffName', stf.name || 'Faculty Member');
+      setText('modalStaffSub', `${stf.majorSubject || 'Faculty'} • Staff ID: @${stf.username || '—'}`);
+      setText('modalStaffAvatarInit', (stf.name || 'F').charAt(0).toUpperCase());
+
+      setText('modalStaffTagUsername', `User: @${stf.username || '—'}`);
+      setText('modalStaffTagGender', `Gender: ${stf.gender || '—'}`);
+      setText('modalStaffTagMajor', `Major: ${stf.majorSubject || '—'}`);
+      setText('modalStaffTagPhone', stf.phone || '—');
+      setText('modalStaffTagCT', `CT: ${stf.classTeacherName && stf.classTeacherName !== '—' ? stf.classTeacherName : 'None'}`);
 
       // Personal & Faculty Identity
-      document.getElementById('msp_name').textContent = stf.name || '—';
-      document.getElementById('msp_username').textContent = stf.username ? `@${stf.username}` : '—';
-      document.getElementById('msp_gender').textContent = stf.gender || '—';
-      document.getElementById('msp_phone').textContent = stf.phone || '—';
-      document.getElementById('msp_majorSubject').textContent = stf.majorSubject || '—';
+      setText('msp_name', stf.name || '—');
+      setText('msp_username', stf.username ? `@${stf.username}` : '—');
+      setText('msp_gender', stf.gender || '—');
+      setText('msp_phone', stf.phone || '—');
+      setText('msp_major', stf.majorSubject || '—');
+      setText('msp_majorSubject', stf.majorSubject || '—');
+      setText('msp_address', stf.address || '—');
 
       // Login Credentials
-      document.getElementById('msp_email').textContent = stf.email || '—';
+      setText('msp_email', stf.email || '—');
       const passSpan = document.getElementById('msp_pass');
-      passSpan.textContent = 'Protected (Auth)';
-      passSpan.dataset.realPass = '';
-      passSpan.dataset.revealed = 'false';
       const toggleBtn = document.getElementById('msp_togglePassBtn');
-      if (toggleBtn) toggleBtn.style.display = 'none';
-
-      // Teaching Allocations
-      document.getElementById('msp_classTeacher').innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
-        ? `<span class="badge badge-good">${stf.classTeacherName}</span>`
-        : '<span style="color:var(--ink-soft);">Not assigned as Class Teacher</span>';
-
-      const subsContainer = document.getElementById('msp_subjects');
-      if (stf.subjects && stf.subjects.length > 0) {
-        subsContainer.innerHTML = stf.subjects.map(s => `
-          <span class="badge badge-purple" style="padding:4px 10px; font-size:12px;">
-            ${s.subject} <strong style="margin-left:4px;">(${s.className || 'Class'})</strong>
-          </span>
-        `).join('');
-      } else {
-        subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
+      const rawPass = stf.password || (stf.data && stf.data.password) || '';
+      if (passSpan) {
+        passSpan.textContent = '••••••••';
+        passSpan.dataset.realPass = rawPass || 'Welcome@123';
+        passSpan.dataset.revealed = 'false';
+      }
+      if (toggleBtn) {
+        toggleBtn.style.display = rawPass ? 'inline-block' : 'none';
+        toggleBtn.textContent = 'Reveal';
       }
 
-      staffDetailModal.classList.add('open');
-      updateBodyModalState();
-      const stfBody = staffDetailModal.querySelector('.profile-modal-body');
-      if (stfBody) stfBody.scrollTop = 0;
+      // Teaching Allocations
+      const ctEl = document.getElementById('msp_classTeacher');
+      if (ctEl) {
+        ctEl.innerHTML = stf.classTeacherName && stf.classTeacherName !== '—'
+          ? `<span class="badge badge-good">${stf.classTeacherName}</span>`
+          : '<span style="color:var(--ink-soft);">Not assigned as Class Teacher</span>';
+      }
+
+      const subsContainer = document.getElementById('msp_subjects');
+      if (subsContainer) {
+        if (stf.subjects && stf.subjects.length > 0) {
+          subsContainer.innerHTML = stf.subjects.map(s => `
+            <span class="badge badge-purple" style="padding:4px 10px; font-size:12px;">
+              ${s.subject} <strong style="margin-left:4px;">(${s.className || 'Class'})</strong>
+            </span>
+          `).join('');
+        } else {
+          subsContainer.innerHTML = '<span style="color:var(--ink-soft);">No subject teaching allocations assigned yet.</span>';
+        }
+      }
+
+      const modalEl = document.getElementById('staffDetailModal');
+      if (modalEl) {
+        modalEl.classList.add('open');
+        updateBodyModalState();
+        const stfBody = modalEl.querySelector('.profile-modal-body');
+        if (stfBody) stfBody.scrollTop = 0;
+      }
     }
 
     // Modal Password Reveal Listener
     document.getElementById('msp_togglePassBtn')?.addEventListener('click', () => {
       const passSpan = document.getElementById('msp_pass');
       const btn = document.getElementById('msp_togglePassBtn');
+      if (!passSpan || !btn) return;
       if (passSpan.dataset.revealed === 'true') {
         passSpan.textContent = '••••••••';
         passSpan.dataset.revealed = 'false';
@@ -7215,7 +7238,9 @@
           classTeacherOf: r.classTeacherOf || null,
           classTeacherName: ctNamePlain,
           subjects: r.subjects || [],
-          subjectsText: subjectsPlain
+          subjectsText: subjectsPlain,
+          password: facultyPass,
+          address: r.address || '—'
         });
 
         const tr = document.createElement('tr');
@@ -7258,8 +7283,21 @@
 
         // View Details modal click
         tr.querySelector('.stfViewBtn').addEventListener('click', () => {
-          const item = allStaffCache.find(x => x.id === d.id);
-          if (item) openStaffDetailModal(item);
+          const item = allStaffCache.find(x => x.id === d.id) || {
+            id: d.id,
+            name: r.name || 'Faculty',
+            username: facultyUsername,
+            gender: facultyGender,
+            phone: facultyPhone,
+            majorSubject: facultyMajor,
+            email: r.email || '—',
+            classTeacherOf: r.classTeacherOf || null,
+            classTeacherName: ctNamePlain,
+            subjects: r.subjects || [],
+            password: facultyPass,
+            address: r.address || '—'
+          };
+          openStaffDetailModal(item);
         });
 
         // Edit Details modal click
