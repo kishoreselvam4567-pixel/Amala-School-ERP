@@ -657,7 +657,8 @@
               <label for="captchaInput">ENTER CAPTCHA</label>
               <div class="erp-input-wrap">
                 <input type="text" id="captchaInput" required placeholder="TYPE CODE" maxlength="6"
-                  style="text-transform:uppercase; font-weight:700; letter-spacing:1.5px;">
+                  autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+                  style="font-weight:700; letter-spacing:1.5px;">
               </div>
             </div>
           </div>
@@ -687,12 +688,12 @@
   <!-- Immediate Synchronous Captcha Script (Runs instantly without waiting for network/modules) -->
   <script>
     let _captchaHash = '';
+    let _currentCaptchaRaw = '';
     const _captchaSalt = Math.random().toString(36).substring(2);
 
     function _hashCaptcha(str) {
       let hash = 0x811c9dc5;
-      // Strip all whitespaces and normalize to uppercase
-      const cleanStr = String(str || '').replace(/\s+/g, '').trim().toUpperCase();
+      const cleanStr = String(str || '').replace(/\s+/g, '').trim();
       const combined = _captchaSalt + cleanStr;
       for (let i = 0; i < combined.length; i++) {
         hash ^= combined.charCodeAt(i);
@@ -702,20 +703,59 @@
     }
 
     function verifyCaptcha(candidate) {
-      if (!candidate || !_captchaHash) return false;
-      return _hashCaptcha(candidate) === _captchaHash;
+      if (!candidate || !_currentCaptchaRaw) return false;
+      const clean = String(candidate).replace(/\s+/g, '').trim();
+      // Allow exact match OR case-insensitive match for mixed-case user tolerance
+      return clean === _currentCaptchaRaw || clean.toLowerCase() === _currentCaptchaRaw.toLowerCase();
     }
 
     function hasCaptcha() {
-      return !!_captchaHash;
+      return !!_currentCaptchaRaw;
     }
 
+    // High-security mixed character pools (uppercase, lowercase, numbers)
+    const CAP_UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';  // Excludes ambiguous O, I
+    const CAP_LOWER = 'abcdefghijkmnpqrstuvwxyz';  // Excludes ambiguous l, o
+    const CAP_NUMS  = '23456789';                  // Excludes ambiguous 0, 1
+
+    // Vibrant security colors for anti-OCR high contrast
+    const CHAR_COLORS = [
+      '#f59e0b', '#fbbf24', '#38bdf8', '#60a5fa',
+      '#34d399', '#4ade80', '#c084fc', '#f43f5e',
+      '#fb923c', '#e879f9', '#22d3ee', '#a3e635'
+    ];
+
+    // Dynamic dark background themes
+    const BG_THEMES = [
+      ['#090d16', '#1e293b'],
+      ['#030712', '#111827'],
+      ['#020617', '#0f172a'],
+      ['#0a0f1d', '#1e1b4b'],
+      ['#09131f', '#06203a']
+    ];
+
     function generateCaptchaCode() {
-      const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-      let code = '';
-      for (let i = 0; i < 4; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      // Must contain a guaranteed mix of Capital letters, Small letters, and Numbers
+      const u1 = CAP_UPPER.charAt(Math.floor(Math.random() * CAP_UPPER.length));
+      const l1 = CAP_LOWER.charAt(Math.floor(Math.random() * CAP_LOWER.length));
+      const n1 = CAP_NUMS.charAt(Math.floor(Math.random() * CAP_NUMS.length));
+      
+      const allPool = CAP_UPPER + CAP_LOWER + CAP_NUMS;
+      const chars = [u1, l1, n1];
+      
+      // Total 5 characters for optimal spacing & distortion
+      while (chars.length < 5) {
+        chars.push(allPool.charAt(Math.floor(Math.random() * allPool.length)));
       }
+      
+      // Fisher-Yates shuffle so letter/number positions vary randomly
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+
+      const code = chars.join('');
+      _currentCaptchaRaw = code;
       _captchaHash = _hashCaptcha(code);
 
       const canvas = document.getElementById('captchaCanvas');
@@ -724,47 +764,105 @@
         const w = canvas.width;
         const h = canvas.height;
 
+        // 1. Random dynamic background gradient
+        const theme = BG_THEMES[Math.floor(Math.random() * BG_THEMES.length)];
         const bgGrad = ctx.createLinearGradient(0, 0, w, h);
-        bgGrad.addColorStop(0, '#0f172a');
-        bgGrad.addColorStop(1, '#1e293b');
+        bgGrad.addColorStop(0, theme[0]);
+        bgGrad.addColorStop(1, theme[1]);
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, w, h);
 
-        for (let i = 0; i < 20; i++) {
-          ctx.fillStyle = (i % 2 === 0) ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.25)';
+        // 2. Security mesh grid lines
+        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        for (let gx = 10; gx < w; gx += 16) {
           ctx.beginPath();
-          ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 1.5, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx + (Math.random() - 0.5) * 6, h);
+          ctx.stroke();
         }
-
-        for (let i = 0; i < 2; i++) {
-          ctx.strokeStyle = i === 0 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(56, 189, 248, 0.3)';
-          ctx.lineWidth = 1.2;
+        for (let gy = 8; gy < h; gy += 10) {
           ctx.beginPath();
-          ctx.moveTo(Math.random() * 20, Math.random() * h);
-          ctx.bezierCurveTo(w * 0.3, Math.random() * h, w * 0.7, Math.random() * h, w - Math.random() * 10, Math.random() * h);
+          ctx.moveTo(0, gy);
+          ctx.lineTo(w, gy + (Math.random() - 0.5) * 4);
           ctx.stroke();
         }
 
-        const charW = w / (code.length + 1);
+        // 3. Dense multi-colored noise specks
+        for (let i = 0; i < 40; i++) {
+          ctx.fillStyle = CHAR_COLORS[Math.floor(Math.random() * CHAR_COLORS.length)];
+          ctx.globalAlpha = 0.2 + Math.random() * 0.35;
+          ctx.beginPath();
+          ctx.arc(Math.random() * w, Math.random() * h, 0.6 + Math.random() * 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // 4. Background wavy distortion curves
+        for (let i = 0; i < 3; i++) {
+          ctx.strokeStyle = CHAR_COLORS[Math.floor(Math.random() * CHAR_COLORS.length)];
+          ctx.globalAlpha = 0.35;
+          ctx.lineWidth = 1.2 + Math.random() * 0.8;
+          ctx.beginPath();
+          ctx.moveTo(Math.random() * 15, Math.random() * h);
+          ctx.bezierCurveTo(
+            w * 0.25 + (Math.random() - 0.5) * 20, Math.random() * h,
+            w * 0.75 + (Math.random() - 0.5) * 20, Math.random() * h,
+            w - Math.random() * 10, Math.random() * h
+          );
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+
+        // 5. Render mixed-case characters with random rotation, jitter, fonts & colors
+        const fonts = [
+          'Outfit', 'Inter', 'JetBrains Mono', 'Trebuchet MS', 'Arial'
+        ];
+        const charW = w / (code.length + 0.6);
+
         for (let i = 0; i < code.length; i++) {
           ctx.save();
           const char = code[i];
-          const angle = (Math.random() - 0.5) * 0.25;
-          const x = (i + 1) * charW - 4;
-          const y = h * 0.72;
+          const angle = (Math.random() - 0.5) * 0.52; // ±15° to ±28° rotation
+          const x = (i + 0.7) * charW + (Math.random() - 0.5) * 3;
+          const y = h * 0.70 + (Math.random() - 0.5) * 8; // vertical jitter
+          const fontSize = Math.floor(20 + Math.random() * 4); // 20px - 23px
+          const fontFam = fonts[Math.floor(Math.random() * fonts.length)];
+          const fontStyle = Math.random() > 0.6 ? 'italic ' : '';
 
           ctx.translate(x, y);
           ctx.rotate(angle);
-          ctx.font = '800 21px "Outfit", "Inter", sans-serif';
-          ctx.fillStyle = '#f59e0b';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-          ctx.shadowBlur = 3;
-          ctx.shadowOffsetX = 1;
-          ctx.shadowOffsetY = 1;
+
+          // Deep shadow for anti-OCR depth
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 1.5;
+          ctx.shadowOffsetY = 1.5;
+
+          ctx.font = `${fontStyle}800 ${fontSize}px "${fontFam}", sans-serif`;
+          ctx.fillStyle = CHAR_COLORS[Math.floor(Math.random() * CHAR_COLORS.length)];
           ctx.fillText(char, 0, 0);
+
+          // Subtle contrast stroke
+          ctx.shadowColor = 'transparent';
+          ctx.lineWidth = 0.5;
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.strokeText(char, 0, 0);
+
           ctx.restore();
         }
+
+        // 6. Foreground scratch / strike-through line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(5, h * (0.35 + Math.random() * 0.3));
+        ctx.bezierCurveTo(
+          w * 0.35, h * Math.random(),
+          w * 0.65, h * Math.random(),
+          w - 5, h * (0.35 + Math.random() * 0.3)
+        );
+        ctx.stroke();
       }
 
       const inp = document.getElementById('captchaInput');
@@ -913,7 +1011,7 @@
         showErrBox('');
 
         // 1. Captcha check
-        const userCaptcha = (document.getElementById('captchaInput').value || '').trim().toUpperCase();
+        const userCaptcha = (document.getElementById('captchaInput').value || '').trim();
 
         if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
           showErrBox('❌ Security Captcha does not match. A new code has been generated — please try again.');

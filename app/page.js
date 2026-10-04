@@ -29,12 +29,11 @@ export default function LoginPage() {
   const [systemTime, setSystemTime] = useState('');
 
   const canvasRef = useRef(null);
-  const captchaSaltRef = useRef(Math.random().toString(36).substring(2));
-  const captchaHashRef = useRef('');
+  const rawCaptchaRef = useRef('');
 
   const hashCaptcha = useCallback((str) => {
     let hash = 0x811c9dc5;
-    const cleanStr = String(str || '').replace(/\s+/g, '').trim().toUpperCase();
+    const cleanStr = String(str || '').replace(/\s+/g, '').trim();
     const combined = captchaSaltRef.current + cleanStr;
     for (let i = 0; i < combined.length; i++) {
       hash ^= combined.charCodeAt(i);
@@ -50,66 +49,136 @@ export default function LoginPage() {
     const w = canvas.width;
     const h = canvas.height;
 
-    // Background gradient
+    const bgThemes = [
+      ['#090d16', '#1e293b'],
+      ['#030712', '#111827'],
+      ['#020617', '#0f172a'],
+      ['#0a0f1d', '#1e1b4b'],
+      ['#09131f', '#06203a']
+    ];
+    const theme = bgThemes[Math.floor(Math.random() * bgThemes.length)];
     const bgGrad = ctx.createLinearGradient(0, 0, w, h);
-    bgGrad.addColorStop(0, '#0f172a');
-    bgGrad.addColorStop(1, '#1e293b');
+    bgGrad.addColorStop(0, theme[0]);
+    bgGrad.addColorStop(1, theme[1]);
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // Random background dots
-    for (let i = 0; i < 20; i++) {
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.25)';
+    // Mesh lines
+    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    for (let gx = 10; gx < w; gx += 16) {
       ctx.beginPath();
-      ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 1.5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx + (Math.random() - 0.5) * 6, h);
+      ctx.stroke();
     }
-
-    // Distorting wave lines
-    for (let i = 0; i < 2; i++) {
-      ctx.strokeStyle = i === 0 ? 'rgba(251, 191, 36, 0.3)' : 'rgba(56, 189, 248, 0.3)';
-      ctx.lineWidth = 1.2;
+    for (let gy = 8; gy < h; gy += 10) {
       ctx.beginPath();
-      ctx.moveTo(Math.random() * 20, Math.random() * h);
-      ctx.bezierCurveTo(
-        w * 0.3,
-        Math.random() * h,
-        w * 0.7,
-        Math.random() * h,
-        w - Math.random() * 10,
-        Math.random() * h
-      );
+      ctx.moveTo(0, gy);
+      ctx.lineTo(w, gy + (Math.random() - 0.5) * 4);
       ctx.stroke();
     }
 
-    // Letters with random angles
-    const charW = w / (code.length + 1);
+    const charColors = [
+      '#f59e0b', '#fbbf24', '#38bdf8', '#60a5fa',
+      '#34d399', '#4ade80', '#c084fc', '#f43f5e',
+      '#fb923c', '#e879f9', '#22d3ee', '#a3e635'
+    ];
+
+    // Random background noise dots
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = charColors[Math.floor(Math.random() * charColors.length)];
+      ctx.globalAlpha = 0.2 + Math.random() * 0.35;
+      ctx.beginPath();
+      ctx.arc(Math.random() * w, Math.random() * h, 0.6 + Math.random() * 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Distorting wave curves
+    for (let i = 0; i < 3; i++) {
+      ctx.strokeStyle = charColors[Math.floor(Math.random() * charColors.length)];
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 1.2 + Math.random() * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * 15, Math.random() * h);
+      ctx.bezierCurveTo(
+        w * 0.25 + (Math.random() - 0.5) * 20, Math.random() * h,
+        w * 0.75 + (Math.random() - 0.5) * 20, Math.random() * h,
+        w - Math.random() * 10, Math.random() * h
+      );
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Characters with dynamic angles, fonts, colors, and shadows
+    const fonts = ['Outfit', 'Inter', 'JetBrains Mono', 'Trebuchet MS', 'Arial'];
+    const charW = w / (code.length + 0.6);
     for (let i = 0; i < code.length; i++) {
       ctx.save();
       const char = code[i];
-      const angle = (Math.random() - 0.5) * 0.25;
-      const x = (i + 1) * charW - 4;
-      const y = h * 0.72;
+      const angle = (Math.random() - 0.5) * 0.52;
+      const x = (i + 0.7) * charW + (Math.random() - 0.5) * 3;
+      const y = h * 0.70 + (Math.random() - 0.5) * 8;
+      const fontSize = Math.floor(20 + Math.random() * 4);
+      const fontFam = fonts[Math.floor(Math.random() * fonts.length)];
+      const fontStyle = Math.random() > 0.6 ? 'italic ' : '';
 
       ctx.translate(x, y);
       ctx.rotate(angle);
-      ctx.font = '800 21px "Outfit", "Inter", sans-serif';
-      ctx.fillStyle = '#f59e0b';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
+
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 1.5;
+      ctx.shadowOffsetY = 1.5;
+
+      ctx.font = `${fontStyle}800 ${fontSize}px "${fontFam}", sans-serif`;
+      ctx.fillStyle = charColors[Math.floor(Math.random() * charColors.length)];
       ctx.fillText(char, 0, 0);
+
+      ctx.shadowColor = 'transparent';
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.strokeText(char, 0, 0);
+
       ctx.restore();
     }
+
+    // Foreground strike-through line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(5, h * (0.35 + Math.random() * 0.3));
+    ctx.bezierCurveTo(
+      w * 0.35, h * Math.random(),
+      w * 0.65, h * Math.random(),
+      w - 5, h * (0.35 + Math.random() * 0.3)
+    );
+    ctx.stroke();
   }, []);
 
   const generateCaptcha = useCallback((clearInput = false) => {
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    const capUpper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const capLower = 'abcdefghijkmnpqrstuvwxyz';
+    const capNums  = '23456789';
+
+    const u1 = capUpper.charAt(Math.floor(Math.random() * capUpper.length));
+    const l1 = capLower.charAt(Math.floor(Math.random() * capLower.length));
+    const n1 = capNums.charAt(Math.floor(Math.random() * capNums.length));
+    const allPool = capUpper + capLower + capNums;
+    const chars = [u1, l1, n1];
+
+    while (chars.length < 5) {
+      chars.push(allPool.charAt(Math.floor(Math.random() * allPool.length)));
     }
+
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+
+    const code = chars.join('');
+    rawCaptchaRef.current = code;
     captchaHashRef.current = hashCaptcha(code);
     setCaptchaCode(code);
     drawCaptcha(code);
@@ -124,10 +193,11 @@ export default function LoginPage() {
 
   const verifyCaptcha = useCallback(
     (candidate) => {
-      if (!candidate || !captchaHashRef.current) return false;
-      return hashCaptcha(candidate) === captchaHashRef.current;
+      if (!candidate || !rawCaptchaRef.current) return false;
+      const clean = String(candidate).replace(/\s+/g, '').trim();
+      return clean === rawCaptchaRef.current || clean.toLowerCase() === rawCaptchaRef.current.toLowerCase();
     },
-    [hashCaptcha]
+    []
   );
 
   // Initial load: clock & captcha & session check
@@ -164,7 +234,7 @@ export default function LoginPage() {
     setSuccessMsg('');
 
     // 1. Captcha check
-    const userCaptcha = (captchaInput || '').trim().toUpperCase();
+    const userCaptcha = (captchaInput || '').trim();
     if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
       setErrorMsg('❌ Security Captcha does not match. A new code has been generated — please try again.');
       setCaptchaInput('');
@@ -575,8 +645,11 @@ export default function LoginPage() {
                       required
                       placeholder="TYPE CODE"
                       maxLength={6}
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck={false}
                       style={{
-                        textTransform: 'uppercase',
                         fontWeight: 700,
                         letterSpacing: '1.5px',
                       }}
