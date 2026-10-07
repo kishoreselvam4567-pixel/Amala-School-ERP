@@ -167,6 +167,7 @@ function normalizeCol(col) {
   if (!col) return col;
   const c = String(col).trim();
   if (c === 'loginLookup' || c === 'login_lookup') return 'login_lookup';
+  if (c === 'calendarEvents' || c === 'calendar_events' || c === 'events') return 'calendar_events';
   return c;
 }
 
@@ -234,7 +235,38 @@ function isAuthError(error) {
     msg.includes('unauthorized');
 }
 
+export function isTableMissingError(error) {
+  if (!error) return false;
+  const msg = String(error.message || '').toLowerCase();
+  const code = String(error.code || '').toUpperCase();
+  return code === '42P01' ||
+    code === 'PGRST204' ||
+    code === 'PGRST205' ||
+    msg.includes('schema cache') ||
+    msg.includes('could not find the table') ||
+    (msg.includes('relation') && msg.includes('does not exist'));
+}
+
+function getLocalTable(col) {
+  try {
+    const raw = localStorage.getItem('erp_fallback_table_' + normalizeCol(col));
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setLocalTable(col, items) {
+  try {
+    localStorage.setItem('erp_fallback_table_' + normalizeCol(col), JSON.stringify(items));
+  } catch (e) {}
+}
+
 function notifyDataError(col, error) {
+  if (isTableMissingError(error) && (col === 'calendar_events' || col === 'calendarEvents')) {
+    // Gracefully handled via local store; do not trigger intrusive UI error bar
+    return;
+  }
   try {
     if (typeof window !== 'undefined' && window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('erp:data-error', {
@@ -271,13 +303,30 @@ export async function getDoc(docRef) {
       ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
     }
   }
-  if (error && error.code !== 'PGRST116') {
-    console.warn(`getDoc(${col}/${id}) warning:`, error.message);
-  }
+    if (error && error.code !== 'PGRST116') {
+      if (isTableMissingError(error)) {
+        const items = getLocalTable(col);
+        const item = items.find(x => String(x.id) === id);
+        const exists = Boolean(item);
+        return {
+          id,
+          exists: () => exists,
+          get exists() { return exists; },
+          data: () => (exists ? { ...item } : undefined)
+        };
+      }
+      console.warn(`getDoc(${col}/${id}) warning:`, error.message);
+    }
   const exists = Boolean(data);
   const docData = exists ? { ...data.data, ...data } : undefined;
   if (docData && 'data' in docData && typeof docData.data === 'object') {
     delete docData.data;
+  }
+  if (docData && docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
+  if (docData && docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
+  if (docData && (col === 'marks' || col === 'marksObtained')) {
+    if (docData.marksObtained !== undefined && docData.marks === undefined) docData.marks = docData.marksObtained;
+    if (docData.marks !== undefined && docData.marksObtained === undefined) docData.marksObtained = docData.marks;
   }
   return {
     id,
@@ -310,19 +359,27 @@ export async function getDocs(qRef) {
     return cached.result;
   }
 
-  const runQuery = () => {
+  const mapField = (field) => {
+    if (field === 'createdAt') return 'created_at';
+    if (field === 'updatedAt') return 'updated_at';
+    return field;
+  };
+
+  const runQuery = (skipOrderBy = false) => {
     let builder = supabase.from(col).select('*');
     for (const c of constraints) {
       if (c._type === 'where') {
-        if (c.op === '==' || c.op === '===') builder = builder.eq(c.field, c.val);
-        else if (c.op === '!=') builder = builder.neq(c.field, c.val);
-        else if (c.op === '>') builder = builder.gt(c.field, c.val);
-        else if (c.op === '>=') builder = builder.gte(c.field, c.val);
-        else if (c.op === '<') builder = builder.lt(c.field, c.val);
-        else if (c.op === '<=') builder = builder.lte(c.field, c.val);
-        else if (c.op === 'in') builder = builder.in(c.field, Array.isArray(c.val) ? c.val : [c.val]);
-      } else if (c._type === 'orderBy') {
-        builder = builder.order(c.field, { ascending: c.dir !== 'desc' });
+        const field = mapField(c.field);
+        if (c.op === '==' || c.op === '===') builder = builder.eq(field, c.val);
+        else if (c.op === '!=') builder = builder.neq(field, c.val);
+        else if (c.op === '>') builder = builder.gt(field, c.val);
+        else if (c.op === '>=') builder = builder.gte(field, c.val);
+        else if (c.op === '<') builder = builder.lt(field, c.val);
+        else if (c.op === '<=') builder = builder.lte(field, c.val);
+        else if (c.op === 'in') builder = builder.in(field, Array.isArray(c.val) ? c.val : [c.val]);
+      } else if (c._type === 'orderBy' && !skipOrderBy) {
+        const field = mapField(c.field);
+        builder = builder.order(field, { ascending: c.dir !== 'desc' });
       } else if (c._type === 'limit') {
         builder = builder.limit(c.count);
       }
@@ -344,10 +401,78 @@ export async function getDocs(qRef) {
       ({ data, error } = await runQuery());
     }
   }
+
+  // Graceful fallback for schema mismatches: if an order column does not exist on table,
+  // retry query without server orderBy and sort in-memory.
+  if (error && (error.code === '42703' || String(error.message || '').toLowerCase().includes('does not exist'))) {
+    const hasOrder = constraints.some(c => c._type === 'orderBy');
+    if (hasOrder) {
+      const fallbackRes = await runQuery(true);
+      if (!fallbackRes.error && fallbackRes.data) {
+        data = fallbackRes.data;
+        const orderConstraints = constraints.filter(c => c._type === 'orderBy');
+        for (const oc of orderConstraints) {
+          const f = oc.field;
+          const mappedF = mapField(f);
+          const isDesc = oc.dir === 'desc';
+          data.sort((a, b) => {
+            const va = a[mappedF] ?? a[f] ?? a.data?.[f] ?? a.id;
+            const vb = b[mappedF] ?? b[f] ?? b.data?.[f] ?? b.id;
+            if (va < vb) return isDesc ? 1 : -1;
+            if (va > vb) return isDesc ? -1 : 1;
+            return 0;
+          });
+        }
+        error = null;
+      }
+    }
+  }
+
   if (error) {
     if (String(error.message || '').toLowerCase().includes('future')) {
       console.warn(`getDocs(${col}) suppressed future clock skew:`, error.message);
       return { empty: true, size: 0, docs: [], forEach: () => {}, error };
+    }
+    if (isTableMissingError(error)) {
+      console.warn(`[Supabase Table Fallback] Table "${col}" not in schema cache. Using resilient local store.`);
+      const localRows = getLocalTable(col);
+      let filtered = [...localRows];
+      for (const c of constraints) {
+        if (c._type === 'where') {
+          const field = mapField(c.field);
+          if (c.op === '==' || c.op === '===') filtered = filtered.filter(r => (r[field] ?? r[c.field]) === c.val);
+          else if (c.op === '!=') filtered = filtered.filter(r => (r[field] ?? r[c.field]) !== c.val);
+          else if (c.op === 'in') {
+            const list = Array.isArray(c.val) ? c.val : [c.val];
+            filtered = filtered.filter(r => list.includes(r[field] ?? r[c.field]));
+          }
+        } else if (c._type === 'orderBy') {
+          const field = mapField(c.field);
+          const isDesc = c.dir === 'desc';
+          filtered.sort((a, b) => {
+            const va = a[field] ?? a[c.field] ?? '';
+            const vb = b[field] ?? b[c.field] ?? '';
+            if (va < vb) return isDesc ? 1 : -1;
+            if (va > vb) return isDesc ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+      const docs = filtered.map(row => {
+        const docData = { ...row };
+        return {
+          id: String(row.id),
+          exists: () => true,
+          get exists() { return true; },
+          data: () => docData
+        };
+      });
+      return {
+        empty: docs.length === 0,
+        size: docs.length,
+        docs,
+        forEach: (cb) => docs.forEach(cb)
+      };
     }
     console.warn(`getDocs(${col}) warning:`, error.message);
     notifyDataError(col, error);
@@ -357,6 +482,12 @@ export async function getDocs(qRef) {
   const docs = (data || []).map(row => {
     const docData = { ...row.data, ...row };
     if ('data' in docData && typeof docData.data === 'object') delete docData.data;
+    if (docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
+    if (docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
+    if (col === 'marks' || col === 'marksObtained') {
+      if (docData.marksObtained !== undefined && docData.marks === undefined) docData.marks = docData.marksObtained;
+      if (docData.marks !== undefined && docData.marksObtained === undefined) docData.marksObtained = docData.marks;
+    }
     return {
       id: String(row.id),
       exists: () => true,
@@ -376,15 +507,75 @@ export async function getDocs(qRef) {
   return result;
 }
 
-export async function setDoc(docRef, data, options = {}) {
-  const col = normalizeCol(docRef.col);
-  const id = String(docRef.id);
-  const payload = { id, ...data };
+const KNOWN_TABLE_COLUMNS = {
+  attendance: ['id', 'classId', 'className', 'date', 'records', 'studentUid', 'status', 'remarks', 'markedBy', 'data', 'created_at', 'updated_at'],
+  marks: ['id', 'classId', 'className', 'examId', 'examName', 'subject', 'studentUid', 'studentName', 'admissionNo', 'marksObtained', 'maxMarks', 'grade', 'marksData', 'data', 'created_at', 'updated_at'],
+  exams: ['id', 'title', 'name', 'classId', 'className', 'subject', 'date', 'time', 'totalMarks', 'timetable', 'data', 'created_at', 'updated_at'],
+  notes: ['id', 'title', 'description', 'classId', 'className', 'subject', 'fileUrl', 'fileName', 'uploadedBy', 'uploaderName', 'data', 'created_at', 'updated_at'],
+  homework: ['id', 'title', 'description', 'classId', 'className', 'subject', 'dueDate', 'fileUrl', 'fileName', 'assignedBy', 'data', 'created_at', 'updated_at'],
+  announcements: ['id', 'title', 'message', 'targetAudience', 'createdBy', 'creatorName', 'createdAt', 'data', 'created_at', 'updated_at'],
+  classes: ['id', 'name', 'code', 'section', 'classTeacherUid', 'classTeacherName', 'subjects', 'data', 'created_at', 'updated_at', 'createdAt'],
+  students: ['id', 'uid', 'name', 'email', 'admissionNo', 'rollNo', 'dob', 'gender', 'bloodGroup', 'classId', 'className', 'section', 'parentUid', 'parentName', 'parentEmail', 'phone', 'address', 'assignedSubjects', 'stream', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'aadhaarNo', 'fatherName', 'fatherPhone', 'motherName', 'motherPhone', 'emergencyPhone', 'city', 'pincode', 'subjects', 'createdAt'],
+  staff: ['id', 'uid', 'name', 'email', 'phone', 'username', 'role', 'majorSubject', 'type', 'qualification', 'assignedClasses', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'gender', 'classTeacherOf', 'classTeacherName', 'subjects', 'createdAt'],
+  parents: ['id', 'uid', 'name', 'email', 'phone', 'motherPhone', 'childUid', 'childName', 'childAdmissionNo', 'childClassName', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'createdAt'],
+  users: ['id', 'role', 'name', 'email', 'phone', 'username', 'deleted', 'disabled', 'hasSeenFirstLoginGuide', 'firstLoginDone', 'firstLoginGuideShownAt', 'data', 'created_at', 'updated_at'],
+  login_lookup: ['id', 'email', 'created_at']
+};
+
+function sanitizePayload(col, rawData) {
+  const normCol = normalizeCol(col);
+  const knownCols = KNOWN_TABLE_COLUMNS[normCol];
+  const payload = { ...rawData };
+
+  if (payload.createdAt && !payload.created_at) payload.created_at = payload.createdAt;
+  if (payload.updatedAt && !payload.updated_at) payload.updated_at = payload.updatedAt;
+
+  if (normCol === 'marks') {
+    if (payload.marks !== undefined && payload.marksObtained === undefined) {
+      payload.marksObtained = payload.marks;
+    }
+  }
+
+  if (knownCols && Array.isArray(knownCols)) {
+    const existingData = (typeof payload.data === 'object' && payload.data !== null) ? { ...payload.data } : {};
+    const sanitized = {};
+
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined) continue;
+      if (knownCols.includes(k)) {
+        sanitized[k] = v;
+      } else {
+        existingData[k] = v;
+      }
+    }
+
+    if (knownCols.includes('data')) {
+      sanitized.data = existingData;
+    }
+    return sanitized;
+  }
+
   for (const k of Object.keys(payload)) {
     if (payload[k] === undefined) delete payload[k];
   }
+  return payload;
+}
+
+export async function setDoc(docRef, data, options = {}) {
+  const col = normalizeCol(docRef.col);
+  const id = String(docRef.id);
+  const payload = sanitizePayload(col, { id, ...data });
   const { error } = await supabase.from(col).upsert(payload);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      const idx = items.findIndex(x => String(x.id) === id);
+      if (idx !== -1) items[idx] = { ...items[idx], ...payload };
+      else items.push(payload);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return;
+    }
     console.error(`setDoc(${col}/${id}) error:`, error);
     throw error;
   }
@@ -394,12 +585,16 @@ export async function setDoc(docRef, data, options = {}) {
 export async function addDoc(colRef, data) {
   const col = normalizeCol(colRef.col);
   const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
-  const payload = { id, ...data };
-  for (const k of Object.keys(payload)) {
-    if (payload[k] === undefined) delete payload[k];
-  }
+  const payload = sanitizePayload(col, { id, ...data });
   const { error } = await supabase.from(col).insert(payload);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      items.push(payload);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return { id, col };
+    }
     console.error(`addDoc(${col}) error:`, error);
     throw error;
   }
@@ -410,12 +605,19 @@ export async function addDoc(colRef, data) {
 export async function updateDoc(docRef, data) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
-  const payload = { ...data };
-  for (const k of Object.keys(payload)) {
-    if (payload[k] === undefined) delete payload[k];
-  }
+  const payload = sanitizePayload(col, data);
   const { error } = await supabase.from(col).update(payload).eq('id', id);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col);
+      const idx = items.findIndex(x => String(x.id) === id);
+      if (idx !== -1) {
+        items[idx] = { ...items[idx], ...payload, updatedAt: new Date().toISOString() };
+        setLocalTable(col, items);
+      }
+      clearQueryCache(col);
+      return;
+    }
     console.error(`updateDoc(${col}/${id}) error:`, error);
     throw error;
   }
@@ -427,6 +629,12 @@ export async function deleteDoc(docRef) {
   const id = String(docRef.id);
   const { error } = await supabase.from(col).delete().eq('id', id);
   if (error) {
+    if (isTableMissingError(error)) {
+      const items = getLocalTable(col).filter(x => String(x.id) !== id);
+      setLocalTable(col, items);
+      clearQueryCache(col);
+      return;
+    }
     console.error(`deleteDoc(${col}/${id}) error:`, error);
     throw error;
   }
@@ -526,12 +734,13 @@ export async function getUserProfile(uid) {
     console.warn("getUserProfile read failed:", err);
   }
 
-  // Admin account fallback
+  // Admin account fallback - only when the target UID is the authenticated admin's own UID
   const curUser = auth.currentUser;
   const userEmail = (curUser && curUser.email) ? curUser.email.toLowerCase() : '';
-  if (userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com') {
+  const isCurUserAdmin = userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com';
+  if (isCurUserAdmin && (!uid || (curUser && (curUser.uid === uid || curUser.id === uid)))) {
     const adminP = {
-      uid,
+      uid: uid || curUser?.uid || 'admin',
       role: 'admin',
       name: 'School Administrator',
       email: userEmail

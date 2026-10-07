@@ -324,6 +324,10 @@ export async function getDoc(docRef) {
   }
   if (docData && docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
   if (docData && docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
+  if (docData && (col === 'marks' || col === 'marksObtained')) {
+    if (docData.marksObtained !== undefined && docData.marks === undefined) docData.marks = docData.marksObtained;
+    if (docData.marks !== undefined && docData.marksObtained === undefined) docData.marksObtained = docData.marks;
+  }
   return {
     id,
     exists: () => exists,
@@ -480,6 +484,10 @@ export async function getDocs(qRef) {
     if ('data' in docData && typeof docData.data === 'object') delete docData.data;
     if (docData.created_at && !docData.createdAt) docData.createdAt = docData.created_at;
     if (docData.updated_at && !docData.updatedAt) docData.updatedAt = docData.updated_at;
+    if (col === 'marks' || col === 'marksObtained') {
+      if (docData.marksObtained !== undefined && docData.marks === undefined) docData.marks = docData.marksObtained;
+      if (docData.marks !== undefined && docData.marksObtained === undefined) docData.marksObtained = docData.marks;
+    }
     return {
       id: String(row.id),
       exists: () => true,
@@ -499,15 +507,64 @@ export async function getDocs(qRef) {
   return result;
 }
 
-export async function setDoc(docRef, data, options = {}) {
-  const col = normalizeCol(docRef.col);
-  const id = String(docRef.id);
-  const payload = { id, ...data };
+const KNOWN_TABLE_COLUMNS = {
+  attendance: ['id', 'classId', 'className', 'date', 'records', 'studentUid', 'status', 'remarks', 'markedBy', 'data', 'created_at', 'updated_at'],
+  marks: ['id', 'classId', 'className', 'examId', 'examName', 'subject', 'studentUid', 'studentName', 'admissionNo', 'marksObtained', 'maxMarks', 'grade', 'marksData', 'data', 'created_at', 'updated_at'],
+  exams: ['id', 'title', 'name', 'classId', 'className', 'subject', 'date', 'time', 'totalMarks', 'timetable', 'data', 'created_at', 'updated_at'],
+  notes: ['id', 'title', 'description', 'classId', 'className', 'subject', 'fileUrl', 'fileName', 'uploadedBy', 'uploaderName', 'data', 'created_at', 'updated_at'],
+  homework: ['id', 'title', 'description', 'classId', 'className', 'subject', 'dueDate', 'fileUrl', 'fileName', 'assignedBy', 'data', 'created_at', 'updated_at'],
+  announcements: ['id', 'title', 'message', 'targetAudience', 'createdBy', 'creatorName', 'createdAt', 'data', 'created_at', 'updated_at'],
+  classes: ['id', 'name', 'code', 'section', 'classTeacherUid', 'classTeacherName', 'subjects', 'data', 'created_at', 'updated_at', 'createdAt'],
+  students: ['id', 'uid', 'name', 'email', 'admissionNo', 'rollNo', 'dob', 'gender', 'bloodGroup', 'classId', 'className', 'section', 'parentUid', 'parentName', 'parentEmail', 'phone', 'address', 'assignedSubjects', 'stream', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'aadhaarNo', 'fatherName', 'fatherPhone', 'motherName', 'motherPhone', 'emergencyPhone', 'city', 'pincode', 'subjects', 'createdAt'],
+  staff: ['id', 'uid', 'name', 'email', 'phone', 'username', 'role', 'majorSubject', 'type', 'qualification', 'assignedClasses', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'gender', 'classTeacherOf', 'classTeacherName', 'subjects', 'createdAt'],
+  parents: ['id', 'uid', 'name', 'email', 'phone', 'motherPhone', 'childUid', 'childName', 'childAdmissionNo', 'childClassName', 'deleted', 'disabled', 'data', 'created_at', 'updated_at', 'createdAt'],
+  users: ['id', 'role', 'name', 'email', 'phone', 'username', 'deleted', 'disabled', 'hasSeenFirstLoginGuide', 'firstLoginDone', 'firstLoginGuideShownAt', 'data', 'created_at', 'updated_at'],
+  login_lookup: ['id', 'email', 'created_at']
+};
+
+function sanitizePayload(col, rawData) {
+  const normCol = normalizeCol(col);
+  const knownCols = KNOWN_TABLE_COLUMNS[normCol];
+  const payload = { ...rawData };
+
   if (payload.createdAt && !payload.created_at) payload.created_at = payload.createdAt;
   if (payload.updatedAt && !payload.updated_at) payload.updated_at = payload.updatedAt;
+
+  if (normCol === 'marks') {
+    if (payload.marks !== undefined && payload.marksObtained === undefined) {
+      payload.marksObtained = payload.marks;
+    }
+  }
+
+  if (knownCols && Array.isArray(knownCols)) {
+    const existingData = (typeof payload.data === 'object' && payload.data !== null) ? { ...payload.data } : {};
+    const sanitized = {};
+
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === undefined) continue;
+      if (knownCols.includes(k)) {
+        sanitized[k] = v;
+      } else {
+        existingData[k] = v;
+      }
+    }
+
+    if (knownCols.includes('data')) {
+      sanitized.data = existingData;
+    }
+    return sanitized;
+  }
+
   for (const k of Object.keys(payload)) {
     if (payload[k] === undefined) delete payload[k];
   }
+  return payload;
+}
+
+export async function setDoc(docRef, data, options = {}) {
+  const col = normalizeCol(docRef.col);
+  const id = String(docRef.id);
+  const payload = sanitizePayload(col, { id, ...data });
   const { error } = await supabase.from(col).upsert(payload);
   if (error) {
     if (isTableMissingError(error)) {
@@ -528,12 +585,7 @@ export async function setDoc(docRef, data, options = {}) {
 export async function addDoc(colRef, data) {
   const col = normalizeCol(colRef.col);
   const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
-  const payload = { id, ...data };
-  if (payload.createdAt && !payload.created_at) payload.created_at = payload.createdAt;
-  if (payload.updatedAt && !payload.updated_at) payload.updated_at = payload.updatedAt;
-  for (const k of Object.keys(payload)) {
-    if (payload[k] === undefined) delete payload[k];
-  }
+  const payload = sanitizePayload(col, { id, ...data });
   const { error } = await supabase.from(col).insert(payload);
   if (error) {
     if (isTableMissingError(error)) {
@@ -553,10 +605,7 @@ export async function addDoc(colRef, data) {
 export async function updateDoc(docRef, data) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
-  const payload = { ...data };
-  for (const k of Object.keys(payload)) {
-    if (payload[k] === undefined) delete payload[k];
-  }
+  const payload = sanitizePayload(col, data);
   const { error } = await supabase.from(col).update(payload).eq('id', id);
   if (error) {
     if (isTableMissingError(error)) {
@@ -685,12 +734,13 @@ export async function getUserProfile(uid) {
     console.warn("getUserProfile read failed:", err);
   }
 
-  // Admin account fallback
+  // Admin account fallback - only when the target UID is the authenticated admin's own UID
   const curUser = auth.currentUser;
   const userEmail = (curUser && curUser.email) ? curUser.email.toLowerCase() : '';
-  if (userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com') {
+  const isCurUserAdmin = userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com';
+  if (isCurUserAdmin && (!uid || (curUser && (curUser.uid === uid || curUser.id === uid)))) {
     const adminP = {
-      uid,
+      uid: uid || curUser?.uid || 'admin',
       role: 'admin',
       name: 'School Administrator',
       email: userEmail
