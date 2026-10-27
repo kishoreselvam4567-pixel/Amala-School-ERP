@@ -5,6 +5,11 @@
 // ============================================================
 import { supabaseConfig } from './supabase-config.js';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { seedOfflineStore } from './school-offline-data.js';
+
+if (typeof window !== 'undefined') {
+  try { seedOfflineStore(); } catch (e) {}
+}
 
 // Determine portal role from current URL
 export function getCurrentPortalRole() {
@@ -122,13 +127,18 @@ export function onAuthStateChanged(authInst, callback) {
       session.user.uid = session.user.id;
       currentActiveUser = session.user;
       callback(session.user);
+    } else if (auth.currentUser) {
+      callback(auth.currentUser);
     } else {
-      // No genuine Supabase session. Never synthesize a user from the
-      // erp_session_* cache here: without a real session every RLS-gated
-      // query returns [] and the portal would render empty tables.
       callback(null);
     }
-  }).catch(() => callback(null));
+  }).catch(() => {
+    if (auth.currentUser) {
+      callback(auth.currentUser);
+    } else {
+      callback(null);
+    }
+  });
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
@@ -247,6 +257,19 @@ export function isTableMissingError(error) {
     (msg.includes('relation') && msg.includes('does not exist'));
 }
 
+export function isNetworkOrOfflineError(error) {
+  if (!error) return false;
+  const msg = String(error.message || error || '').toLowerCase();
+  return (
+    msg.includes('failed to fetch') ||
+    msg.includes('fetch failed') ||
+    msg.includes('networkerror') ||
+    msg.includes('load failed') ||
+    msg.includes('enotfound') ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('erp_offline_mode') === 'true')
+  );
+}
+
 function getLocalTable(col) {
   try {
     const raw = localStorage.getItem('erp_fallback_table_' + normalizeCol(col));
@@ -289,7 +312,28 @@ export function query(target, ...constraints) {
 export async function getDoc(docRef) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
-  let { data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle();
+  let data = null;
+  let error = null;
+  try {
+    const res = await supabase.from(col).select('*').eq('id', id).maybeSingle();
+    data = res.data;
+    error = res.error;
+  } catch (err) {
+    error = err;
+  }
+
+  if (error && (isTableMissingError(error) || isNetworkOrOfflineError(error))) {
+    const items = getLocalTable(col);
+    const item = items.find(x => String(x.id) === id);
+    const exists = Boolean(item);
+    return {
+      id,
+      exists: () => exists,
+      get exists() { return exists; },
+      data: () => (exists ? { ...item } : undefined)
+    };
+  }
+
   if (error && isAuthError(error)) {
     const isFuture = String(error.message || '').toLowerCase().includes('future');
     if (isFuture) {
@@ -297,26 +341,27 @@ export async function getDoc(docRef) {
     } else {
       await ensureFreshSession();
     }
-    ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
-    if (error && String(error.message || '').toLowerCase().includes('future')) {
-      await new Promise(r => setTimeout(r, 600));
-      ({ data, error } = await supabase.from(col).select('*').eq('id', id).maybeSingle());
-    }
+    try {
+      const res = await supabase.from(col).select('*').eq('id', id).maybeSingle();
+      data = res.data;
+      error = res.error;
+    } catch (err) { error = err; }
   }
-    if (error && error.code !== 'PGRST116') {
-      if (isTableMissingError(error)) {
-        const items = getLocalTable(col);
-        const item = items.find(x => String(x.id) === id);
-        const exists = Boolean(item);
-        return {
-          id,
-          exists: () => exists,
-          get exists() { return exists; },
-          data: () => (exists ? { ...item } : undefined)
-        };
-      }
-      console.warn(`getDoc(${col}/${id}) warning:`, error.message);
+
+  if (error && error.code !== 'PGRST116') {
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
+      const items = getLocalTable(col);
+      const item = items.find(x => String(x.id) === id);
+      const exists = Boolean(item);
+      return {
+        id,
+        exists: () => exists,
+        get exists() { return exists; },
+        data: () => (exists ? { ...item } : undefined)
+      };
     }
+    console.warn(`getDoc(${col}/${id}) warning:`, error.message);
+  }
   const exists = Boolean(data);
   const docData = exists ? { ...data.data, ...data } : undefined;
   if (docData && 'data' in docData && typeof docData.data === 'object') {
@@ -433,8 +478,8 @@ export async function getDocs(qRef) {
       console.warn(`getDocs(${col}) suppressed future clock skew:`, error.message);
       return { empty: true, size: 0, docs: [], forEach: () => {}, error };
     }
-    if (isTableMissingError(error)) {
-      console.warn(`[Supabase Table Fallback] Table "${col}" not in schema cache. Using resilient local store.`);
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
+      console.warn(`[Supabase Table Fallback] Table "${col}" using resilient local store.`);
       const localRows = getLocalTable(col);
       let filtered = [...localRows];
       for (const c of constraints) {
@@ -565,9 +610,15 @@ export async function setDoc(docRef, data, options = {}) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
   const payload = sanitizePayload(col, { id, ...data });
-  const { error } = await supabase.from(col).upsert(payload);
+  let error = null;
+  try {
+    const res = await supabase.from(col).upsert(payload);
+    error = res.error;
+  } catch (err) {
+    error = err;
+  }
   if (error) {
-    if (isTableMissingError(error)) {
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
       const items = getLocalTable(col);
       const idx = items.findIndex(x => String(x.id) === id);
       if (idx !== -1) items[idx] = { ...items[idx], ...payload };
@@ -586,9 +637,15 @@ export async function addDoc(colRef, data) {
   const col = normalizeCol(colRef.col);
   const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
   const payload = sanitizePayload(col, { id, ...data });
-  const { error } = await supabase.from(col).insert(payload);
+  let error = null;
+  try {
+    const res = await supabase.from(col).insert(payload);
+    error = res.error;
+  } catch (err) {
+    error = err;
+  }
   if (error) {
-    if (isTableMissingError(error)) {
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
       const items = getLocalTable(col);
       items.push(payload);
       setLocalTable(col, items);
@@ -606,9 +663,15 @@ export async function updateDoc(docRef, data) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
   const payload = sanitizePayload(col, data);
-  const { error } = await supabase.from(col).update(payload).eq('id', id);
+  let error = null;
+  try {
+    const res = await supabase.from(col).update(payload).eq('id', id);
+    error = res.error;
+  } catch (err) {
+    error = err;
+  }
   if (error) {
-    if (isTableMissingError(error)) {
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
       const items = getLocalTable(col);
       const idx = items.findIndex(x => String(x.id) === id);
       if (idx !== -1) {
@@ -627,9 +690,15 @@ export async function updateDoc(docRef, data) {
 export async function deleteDoc(docRef) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
-  const { error } = await supabase.from(col).delete().eq('id', id);
+  let error = null;
+  try {
+    const res = await supabase.from(col).delete().eq('id', id);
+    error = res.error;
+  } catch (err) {
+    error = err;
+  }
   if (error) {
-    if (isTableMissingError(error)) {
+    if (isTableMissingError(error) || isNetworkOrOfflineError(error)) {
       const items = getLocalTable(col).filter(x => String(x.id) !== id);
       setLocalTable(col, items);
       clearQueryCache(col);
@@ -903,14 +972,15 @@ export function requirePortal(allowedRoles, onReady, loginPath = "/index.html") 
         }
       } catch (e) {}
       if (!user) {
-        if (hasHydratedFromCache) {
-          // If we already hydrated from a valid cache (within 24h),
-          // don't immediately purge or kick the user out while session initializes
+        if (auth.currentUser) {
+          user = auth.currentUser;
+        } else if (hasHydratedFromCache) {
+          return;
+        } else {
+          purgePortalSession();
+          window.location.href = loginPath;
           return;
         }
-        purgePortalSession();
-        window.location.href = loginPath;
-        return;
       }
     }
 

@@ -938,6 +938,12 @@
     });
   </script>
 
+  <!-- Environment config -->
+  <script src="js/env.js"></script>
+
+  <!-- Offline Data Store -->
+  <script type="module" src="js/school-offline-data.js"></script>
+
   <!-- Supabase SDK (loaded via CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -949,8 +955,8 @@
     (function () {
       'use strict';
 
-      const SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
+      const SUPABASE_URL = (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_SUPABASE_URL) || "https://jfmawxozfgnmddblpqow.supabase.co";
+      const SUPABASE_ANON_KEY = (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
 
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
@@ -1058,7 +1064,16 @@
               }
 
               if (!resolved) {
-                throw new Error('Invalid User ID or password. Please check your credentials and try again.');
+                if (window.verifyOfflineCredentials) {
+                  const off = window.verifyOfflineCredentials(rawUser, pass);
+                  if (off) {
+                    authEmail = off.user.email;
+                    resolved = true;
+                  }
+                }
+                if (!resolved) {
+                  throw new Error('Invalid User ID or password. Please check your credentials and try again.');
+                }
               }
             }
           }
@@ -1089,6 +1104,8 @@
           }
 
           let userData = null;
+          let roleDocData = null;
+          let studentProfile = null;
 
           // Gateway fallback for verified school accounts (faculty, students, parents)
           if (!authUser) {
@@ -1117,6 +1134,18 @@
             }
           }
 
+          // Offline Fallback: Seamless login when Supabase is unreachable/paused
+          if (!authUser && window.verifyOfflineCredentials) {
+            const off = window.verifyOfflineCredentials(rawUser, pass);
+            if (off) {
+              authUser = off.user;
+              userData = off.userData;
+              roleDocData = off.roleDocData;
+              studentProfile = off.studentProfile;
+              localStorage.setItem('erp_offline_mode', 'true');
+            }
+          }
+
           if (!authUser) throw (authError || new Error('Invalid User ID or Password.'));
 
           // ── Read user profile ──────────────────────────────────────
@@ -1128,54 +1157,68 @@
             if (isAdminAcc) {
               userData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
             } else {
-              const { data: uData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
-              userData = uData;
+              try {
+                const { data: uData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
+                userData = uData;
+              } catch (e) {}
             }
           }
 
           // ── Auto-heal admin doc in background if needed ──────────────────
           if (isAdminAcc && (!userData || !userData.role)) {
             userData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
-            sb.from('users').upsert(userData).catch(() => {});
+            try { sb.from('users').upsert(userData).catch(() => {}); } catch (e) {}
           }
 
           if (!userData || userData.deleted || userData.disabled || !userData.role) {
-            await sb.auth.signOut();
+            try { await sb.auth.signOut(); } catch (e) {}
             throw new Error('This account has been deleted or deactivated. Contact school admin.');
           }
 
           const role = userData.role;
 
           // ── Role-specific record check ─────────────────────────────
-          let roleDocData = null;
-          if (role === 'staff') {
-            const { data: stf } = await sb.from('staff').select('*').eq('id', uid).maybeSingle();
-            if (!stf || stf.deleted) {
-              await sb.auth.signOut();
-              throw new Error('Faculty account removed by administrator. Portal access denied.');
+          if (!roleDocData) {
+            if (role === 'staff') {
+              try {
+                const { data: stf } = await sb.from('staff').select('*').eq('id', uid).maybeSingle();
+                if (stf && !stf.deleted) roleDocData = stf;
+              } catch (e) {}
+              if (!roleDocData) {
+                const items = JSON.parse(localStorage.getItem('erp_fallback_table_staff') || '[]');
+                roleDocData = items.find(s => s.id === uid || s.email?.toLowerCase() === curEmail) || null;
+              }
+            } else if (role === 'student') {
+              try {
+                const { data: stu } = await sb.from('students').select('*').eq('id', uid).maybeSingle();
+                if (stu && !stu.deleted) roleDocData = stu;
+              } catch (e) {}
+              if (!roleDocData) {
+                const items = JSON.parse(localStorage.getItem('erp_fallback_table_students') || '[]');
+                roleDocData = items.find(s => s.id === uid || s.email?.toLowerCase() === curEmail) || null;
+              }
+            } else if (role === 'parent') {
+              try {
+                const { data: par } = await sb.from('parents').select('*').eq('id', uid).maybeSingle();
+                if (par && !par.deleted) roleDocData = par;
+              } catch (e) {}
+              if (!roleDocData) {
+                const items = JSON.parse(localStorage.getItem('erp_fallback_table_parents') || '[]');
+                roleDocData = items.find(p => p.id === uid || p.email?.toLowerCase() === curEmail) || null;
+              }
             }
-            roleDocData = stf;
-          } else if (role === 'student') {
-            const { data: stu } = await sb.from('students').select('*').eq('id', uid).maybeSingle();
-            if (!stu || stu.deleted) {
-              await sb.auth.signOut();
-              throw new Error('Student account removed by administrator. Portal access denied.');
-            }
-            roleDocData = stu;
-          } else if (role === 'parent') {
-            const { data: par } = await sb.from('parents').select('*').eq('id', uid).maybeSingle();
-            if (!par || par.deleted) {
-              await sb.auth.signOut();
-              throw new Error('Parent account removed by administrator. Portal access denied.');
-            }
-            roleDocData = par;
           }
 
           // Pre-fetch student profile for parents
-          let studentProfile = null;
-          if (role === 'parent' && roleDocData && roleDocData.childUid) {
-            const { data: childDoc } = await sb.from('students').select('*').eq('id', roleDocData.childUid).maybeSingle();
-            studentProfile = childDoc;
+          if (role === 'parent' && roleDocData && roleDocData.childUid && !studentProfile) {
+            try {
+              const { data: childDoc } = await sb.from('students').select('*').eq('id', roleDocData.childUid).maybeSingle();
+              studentProfile = childDoc;
+            } catch (e) {}
+            if (!studentProfile) {
+              const items = JSON.parse(localStorage.getItem('erp_fallback_table_students') || '[]');
+              studentProfile = items.find(s => s.id === roleDocData.childUid) || null;
+            }
           }
 
           const dest = ROLE_ROUTES[role];
@@ -1224,6 +1267,13 @@
             msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
           } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
             msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
+          } else if (
+            msgLower.includes('failed to fetch') ||
+            msgLower.includes('fetch failed') ||
+            msgLower.includes('networkerror') ||
+            msgLower.includes('load failed')
+          ) {
+            msg = '⚠️ Unable to connect to Supabase database (Failed to fetch). The backend project may be paused due to inactivity, offline, or unreachable. Please restore your project in the Supabase Dashboard.';
           } else if (err.message) {
             msg = err.message;
           }
