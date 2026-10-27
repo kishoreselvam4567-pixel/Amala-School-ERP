@@ -806,12 +806,12 @@ export async function getUserProfile(uid) {
   // Admin account fallback - only when the target UID is the authenticated admin's own UID
   const curUser = auth.currentUser;
   const userEmail = (curUser && curUser.email) ? curUser.email.toLowerCase() : '';
-  const isCurUserAdmin = userEmail === 'amala@123.gmail.com' || userEmail === 'admin@kishore.gmail.com' || userEmail === 'amala123@gmail.com';
+  const isCurUserAdmin = (curUser && (curUser.user_metadata?.role === 'admin' || curUser.app_metadata?.role === 'admin' || curUser.role === 'admin'));
   if (isCurUserAdmin && (!uid || (curUser && (curUser.uid === uid || curUser.id === uid)))) {
     const adminP = {
       uid: uid || curUser?.uid || 'admin',
       role: 'admin',
-      name: 'School Administrator',
+      name: curUser?.user_metadata?.full_name || 'School Administrator',
       email: userEmail
     };
     userProfileCache.set(uid, adminP);

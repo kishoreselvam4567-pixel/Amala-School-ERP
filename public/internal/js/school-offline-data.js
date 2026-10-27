@@ -32,26 +32,22 @@ export function verifyOfflineCredentials(rawUser, pass) {
   }
 
   // 2. Find user doc
-  let user = OFFLINE_DATA.users.find(u => (u.email && u.email.toLowerCase() === targetEmail) || (u.username && u.username.toLowerCase() === userTrim) || (u.phone && u.phone === userTrim));
-  if (!user && (userTrim === 'amala' || userTrim === 'admin' || userTrim === 'principal' || targetEmail.includes('admin'))) {
-    user = OFFLINE_DATA.users.find(u => u.role === 'admin');
-  }
+  const user = OFFLINE_DATA.users.find(u => 
+    (u.email && u.email.toLowerCase() === targetEmail) || 
+    (u.username && u.username.toLowerCase() === userTrim) || 
+    (u.phone && u.phone === userTrim)
+  );
 
   if (!user) return null;
 
   // 3. Verify password
-  const role = user.role;
-  const defaultPass = role === 'staff' ? 'Teacher@123' : (role === 'parent' ? 'Parent@123' : (role === 'admin' ? 'amala@123' : 'Student@123'));
-  const storedPass = (user.data && user.data.password) || user.password || defaultPass;
+  const storedPass = (user.data && user.data.password) || user.password;
+  if (!storedPass) return null;
 
-  const validPasswords = [storedPass, defaultPass];
-  if (role === 'staff') validPasswords.push('Teacher123');
-  if (role === 'parent') validPasswords.push('Parent123');
-  if (role === 'student') validPasswords.push('Student123');
-  if (role === 'admin') validPasswords.push('amala123', 'admin123', 'Admin@123');
+  const validPasswords = [storedPass];
 
   // DOB matching for students
-  const digits = passTrim.replace(/D/g, '');
+  const digits = passTrim.replace(/\D/g, '');
   if (digits.length === 8) {
     validPasswords.push(digits);
   }
@@ -60,6 +56,7 @@ export function verifyOfflineCredentials(rawUser, pass) {
   if (!isMatch) return null;
 
   // 4. Find role-specific document
+  const role = user.role;
   let roleDocData = null;
   let studentProfile = null;
   if (role === 'staff') {

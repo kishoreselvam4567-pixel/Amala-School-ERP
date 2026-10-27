@@ -15,12 +15,6 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const ADMIN_PROTECTED_EMAILS = [
-    'amala@123.gmail.com',
-    'admin@kishore.gmail.com',
-    'amala123@gmail.com'
-  ];
-
   // ---------------- CSV & UTF-8 UTILITIES ----------------
   function escapeCsvCell(val) {
     if (val === null || val === undefined) return '""';
@@ -516,9 +510,11 @@
     currentStep++;
     if (progressCb) progressCb(currentStep, totalSteps, 'Purging identifier lookup index...');
     try {
+      const { data: adminUsers } = await supabase.from('users').select('email').eq('role', 'admin');
+      const adminEmails = (adminUsers || []).map(u => (u.email || '').toLowerCase().trim()).filter(Boolean);
       let query = supabase.from('login_lookup').delete();
-      for (const aEmail of ADMIN_PROTECTED_EMAILS) {
-        query = query.neq('email', aEmail.toLowerCase().trim());
+      for (const aEmail of adminEmails) {
+        query = query.neq('email', aEmail);
       }
       const { error } = await query;
       if (error) throw error;
@@ -542,7 +538,6 @@
     exportAttendanceToCsv,
     exportMarksToCsv,
     purgeAllDemoData,
-    ADMIN_PROTECTED_EMAILS,
     TEMPLATES
   };
 });

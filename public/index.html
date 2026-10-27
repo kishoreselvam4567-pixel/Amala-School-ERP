@@ -974,9 +974,6 @@
         admin: 'internal/admin/dashboard.html'
       };
 
-      // Admin email shortcuts
-      const ADMIN_EMAILS = ['amala@123.gmail.com', 'admin@kishore.gmail.com', 'amala123@gmail.com'];
-
       // ── UI helpers ──────────────────────────────────────────────
       const errBox = document.getElementById('errBox');
       const okBox = document.getElementById('okBox');
@@ -1040,40 +1037,36 @@
           const isFullEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser);
 
           if (!isFullEmail) {
-            if (normUser === 'amala' || normUser === 'admin' || normUser === 'administrator' || normUser === 'principal') {
-              authEmail = 'amala@123.gmail.com';
-            } else {
-              const digitsOnly = rawUser.replace(/\D/g, '');
-              const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+            const digitsOnly = rawUser.replace(/\D/g, '');
+            const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
 
-              const lookupKeys = [...new Set([
-                normUser,
-                digitsOnly.length >= 7 ? last10 : null
-              ].filter(Boolean))];
+            const lookupKeys = [...new Set([
+              normUser,
+              digitsOnly.length >= 7 ? last10 : null
+            ].filter(Boolean))];
 
-              let resolved = false;
-              for (const key of lookupKeys) {
-                try {
-                  const { data: lData } = await sb.from('login_lookup').select('email').eq('id', key).maybeSingle();
-                  if (lData && lData.email) {
-                    authEmail = lData.email;
-                    resolved = true;
-                    break;
-                  }
-                } catch (e) { console.warn('loginLookup:', e.message); }
+            let resolved = false;
+            for (const key of lookupKeys) {
+              try {
+                const { data: lData } = await sb.from('login_lookup').select('email').eq('id', key).maybeSingle();
+                if (lData && lData.email) {
+                  authEmail = lData.email;
+                  resolved = true;
+                  break;
+                }
+              } catch (e) { console.warn('loginLookup:', e.message); }
+            }
+
+            if (!resolved) {
+              if (window.verifyOfflineCredentials) {
+                const off = window.verifyOfflineCredentials(rawUser, pass);
+                if (off) {
+                  authEmail = off.user.email;
+                  resolved = true;
+                }
               }
-
               if (!resolved) {
-                if (window.verifyOfflineCredentials) {
-                  const off = window.verifyOfflineCredentials(rawUser, pass);
-                  if (off) {
-                    authEmail = off.user.email;
-                    resolved = true;
-                  }
-                }
-                if (!resolved) {
-                  throw new Error('Invalid User ID or password. Please check your credentials and try again.');
-                }
+                throw new Error('Invalid User ID or password. Please check your credentials and try again.');
               }
             }
           }
@@ -1107,33 +1100,6 @@
           let roleDocData = null;
           let studentProfile = null;
 
-          // Gateway fallback for verified school accounts (faculty, students, parents)
-          if (!authUser) {
-            try {
-              const { data: gwData } = await sb.auth.signInWithPassword({
-                email: 'amala@123.gmail.com',
-                password: 'amala@123'
-              });
-              if (gwData && gwData.user) {
-                const { data: dbUser } = await sb.from('users').select('*').eq('email', authEmail.toLowerCase()).maybeSingle();
-                if (dbUser && !dbUser.deleted && !dbUser.disabled && dbUser.role) {
-                  const defaultPass = dbUser.role === 'staff' ? 'Teacher@123' : (dbUser.role === 'parent' ? 'Parent@123' : 'Student@123');
-                  const storedPass = (dbUser.data && dbUser.data.password) || dbUser.password || defaultPass;
-                  if (uniquePasswords.includes(storedPass)) {
-                    authUser = {
-                      id: dbUser.id,
-                      uid: dbUser.id,
-                      email: dbUser.email
-                    };
-                    userData = dbUser;
-                  }
-                }
-              }
-            } catch (gwErr) {
-              console.warn('Gateway auth fallback notice:', gwErr);
-            }
-          }
-
           // Offline Fallback: Seamless login when Supabase is unreachable/paused
           if (!authUser && window.verifyOfflineCredentials) {
             const off = window.verifyOfflineCredentials(rawUser, pass);
@@ -1151,22 +1117,21 @@
           // ── Read user profile ──────────────────────────────────────
           const uid = authUser.id;
           const curEmail = (authUser.email || authEmail).toLowerCase();
-          const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
           if (!userData) {
-            if (isAdminAcc) {
-              userData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
-            } else {
-              try {
-                const { data: uData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
-                userData = uData;
-              } catch (e) {}
-            }
+            try {
+              const { data: uData } = await sb.from('users').select('*').eq('id', uid).maybeSingle();
+              userData = uData;
+            } catch (e) {}
           }
+
+          const isAdminAcc = (userData && userData.role === 'admin') ||
+            (authUser.user_metadata && authUser.user_metadata.role === 'admin') ||
+            (authUser.app_metadata && authUser.app_metadata.role === 'admin');
 
           // ── Auto-heal admin doc in background if needed ──────────────────
           if (isAdminAcc && (!userData || !userData.role)) {
-            userData = { id: uid, role: 'admin', name: 'School Administrator', email: authUser.email || authEmail };
+            userData = { id: uid, role: 'admin', name: authUser.user_metadata?.full_name || 'School Administrator', email: authUser.email || authEmail };
             try { sb.from('users').upsert(userData).catch(() => {}); } catch (e) {}
           }
 

@@ -18,7 +18,6 @@ const ROLE_ROUTES = {
   admin: 'internal/admin/dashboard.html'
 };
 
-const ADMIN_EMAILS = ['amala@123.gmail.com', 'admin@kishore.gmail.com', 'amala123@gmail.com'];
 
 async function simulateLogin(rawUser, pass) {
   console.log(`\n--------------------------------------------------`);
@@ -30,10 +29,7 @@ async function simulateLogin(rawUser, pass) {
   const isFullEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser);
 
   if (!isFullEmail) {
-    if (['amala', 'admin', 'administrator', 'principal'].includes(normUser)) {
-      authEmail = 'amala@123.gmail.com';
-    } else {
-      const digitsOnly = rawUser.replace(/\D/g, '');
+    const digitsOnly = rawUser.replace(/\D/g, '');
       const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
       const lookupKeys = [...new Set([normUser, digitsOnly.length >= 7 ? last10 : null].filter(Boolean))];
 
@@ -51,7 +47,6 @@ async function simulateLogin(rawUser, pass) {
         throw new Error(`Login lookup failed for '${rawUser}'`);
       }
     }
-  }
   console.log(`Resolved Email: ${authEmail}`);
 
   // 2. Candidate passwords
@@ -84,38 +79,13 @@ async function simulateLogin(rawUser, pass) {
 
   let userData = null;
 
-  // 4. Gateway fallback
+  // Offline verification fallback
   if (!authUser) {
-    console.log(`Direct auth failed, invoking gateway fallback (amala@123.gmail.com)...`);
-    const gwRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: anonHeaders,
-      body: JSON.stringify({ email: 'amala@123.gmail.com', password: 'amala@123' })
-    });
-    const gwData = await gwRes.json();
-    if (gwRes.ok && gwData.user) {
-      const gwHeaders = {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${gwData.access_token}`
-      };
-      const dbRes = await fetch(`${restUrl}/users?email=eq.${encodeURIComponent(authEmail.toLowerCase())}&select=*`, { headers: gwHeaders });
-      const dbUsers = await dbRes.json();
-      if (dbRes.ok && dbUsers.length > 0) {
-        const dbUser = dbUsers[0];
-        if (!dbUser.deleted && !dbUser.disabled && dbUser.role) {
-          const defaultPass = dbUser.role === 'staff' ? 'Teacher@123' : (dbUser.role === 'parent' ? 'Parent@123' : 'Student@123');
-          const storedPass = (dbUser.data && dbUser.data.password) || dbUser.password || defaultPass;
-          if (uniquePasswords.includes(storedPass)) {
-            authUser = {
-              id: dbUser.id,
-              uid: dbUser.id,
-              email: dbUser.email
-            };
-            userData = dbUser;
-            console.log(`Gateway verified credentials for role '${dbUser.role}'!`);
-          }
-        }
-      }
+    const { verifyOfflineCredentials } = await import('../js/school-offline-data.js');
+    const off = verifyOfflineCredentials(rawUser, pass);
+    if (off) {
+      authUser = off.user;
+      userData = off.userData;
     }
   }
 

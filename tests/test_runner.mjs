@@ -4,6 +4,8 @@
 const BASE_URL = 'http://localhost:3000';
 const SUPABASE_URL = 'https://jfmawxozfgnmddblpqow.supabase.co';
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk';
+const ADMIN_EMAIL = process.env.ERP_ADMIN_EMAIL || 'admin@amalahss.in';
+const ADMIN_PASSWORD = process.env.ERP_ADMIN_PASSWORD || '';
 
 const results = {
   total: 0,
@@ -158,13 +160,13 @@ async function runSuite2_DatabaseAndAPI() {
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'amala@123.gmail.com', password: 'amala@123' })
+      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
     });
     const authJson = await authRes.json();
     if (authRes.ok && authJson.access_token) {
       adminToken = authJson.access_token;
       adminUser = authJson.user;
-      recordTest('Admin authentication via Supabase Auth (amala@123.gmail.com)', true);
+      recordTest(`Admin authentication via Supabase Auth (${ADMIN_EMAIL})`, true);
     } else {
       recordTest('Admin authentication via Supabase Auth', false, JSON.stringify(authJson), {
         severity: 'CRITICAL',
@@ -446,9 +448,6 @@ async function runSuite3_MultiRoleAuthAndLookups() {
   // Helper to resolve login identifier
   async function resolveIdentifier(id) {
     const norm = String(id || '').toLowerCase().trim();
-    if (['amala', 'admin', 'administrator', 'principal'].includes(norm)) {
-      return 'amala@123.gmail.com';
-    }
     const digitsOnly = norm.replace(/\D/g, '');
     const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
     const lookupKeys = [...new Set([norm, digitsOnly.length >= 7 ? last10 : null].filter(Boolean))];
@@ -464,10 +463,10 @@ async function runSuite3_MultiRoleAuthAndLookups() {
   }
 
   // 1. Admin Identifier Lookups
-  const adminLookups = ['amala', 'admin', 'administrator', 'principal'];
+  const adminLookups = ['admin', 'principal'];
   for (const al of adminLookups) {
     const resolved = await resolveIdentifier(al);
-    recordTest(`Lookup admin shortcut '${al}' -> 'amala@123.gmail.com'`, resolved === 'amala@123.gmail.com', resolved ? null : `Resolved to ${resolved}`);
+    recordTest(`Lookup admin shortcut '${al}'`, !!resolved, resolved ? null : `Could not resolve '${al}'`);
   }
 
   // 2. Staff/Teacher Lookups (e.g. teacher1)
@@ -515,7 +514,7 @@ async function runSuite3_MultiRoleAuthAndLookups() {
   const authRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'amala@123.gmail.com', password: 'amala@123' })
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
   });
   const authJson = await authRes.json();
   const adminHeaders = {

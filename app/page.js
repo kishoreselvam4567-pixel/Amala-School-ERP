@@ -11,11 +11,6 @@ const ROLE_ROUTES = {
   admin: '/internal/admin/dashboard.html',
 };
 
-const ADMIN_EMAILS = [
-  'amala@123.gmail.com',
-  'admin@kishore.gmail.com',
-  'amala123@gmail.com',
-];
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
@@ -332,33 +327,6 @@ export default function LoginPage() {
       let roleDocData = null;
       let studentProfile = null;
 
-      // Gateway fallback for verified school accounts (faculty, students, parents)
-      if (!authUser) {
-        try {
-          const { data: gwData } = await supabase.auth.signInWithPassword({
-            email: 'amala@123.gmail.com',
-            password: 'amala@123',
-          });
-          if (gwData && gwData.user) {
-            const { data: dbUser } = await supabase.from('users').select('*').eq('email', authEmail.toLowerCase()).maybeSingle();
-            if (dbUser && !dbUser.deleted && !dbUser.disabled && dbUser.role) {
-              const defaultPass = dbUser.role === 'staff' ? 'Teacher@123' : (dbUser.role === 'parent' ? 'Parent@123' : 'Student@123');
-              const storedPass = (dbUser.data && dbUser.data.password) || dbUser.password || defaultPass;
-              if (uniquePasswords.includes(storedPass)) {
-                authUser = {
-                  id: dbUser.id,
-                  uid: dbUser.id,
-                  email: dbUser.email,
-                };
-                userData = dbUser;
-              }
-            }
-          }
-        } catch (gwErr) {
-          console.warn('Gateway auth fallback notice:', gwErr);
-        }
-      }
-
       // Offline Fallback: Seamless login when Supabase is unreachable/paused
       if (!authUser) {
         const offlineMatch = verifyOfflineCredentials(rawUser, pass);
@@ -377,7 +345,6 @@ export default function LoginPage() {
 
       const uid = authUser.id;
       const curEmail = (authUser.email || authEmail).toLowerCase();
-      const isAdminAcc = ADMIN_EMAILS.includes(curEmail) || curEmail.includes('admin');
 
       if (!userData) {
         try {
@@ -390,12 +357,16 @@ export default function LoginPage() {
         } catch (e) {}
       }
 
+      const isAdminAcc = (userData && userData.role === 'admin') ||
+        (authUser.user_metadata && authUser.user_metadata.role === 'admin') ||
+        (authUser.app_metadata && authUser.app_metadata.role === 'admin');
+
       // Auto-heal admin doc if missing
       if (isAdminAcc && (!userData || !userData.role)) {
         const adminData = {
           id: uid,
           role: 'admin',
-          name: 'School Administrator',
+          name: authUser.user_metadata?.full_name || 'School Administrator',
           email: authUser.email || authEmail,
         };
         try {
