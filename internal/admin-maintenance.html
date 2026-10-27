@@ -95,12 +95,10 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="js/auth.js"></script>
 <script>
 "use strict";
-var SUPABASE_URL = "https://jfmawxozfgnmddblpqow.supabase.co";
-var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbWF3eG96ZmdubWRkYmxwcW93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1MTg3NjUsImV4cCI6MjEwNjA5NDc2NX0.E2f6Wy1ZShm58MIZwu8v1Pq7NdRobbCzLk7D2EwJLjk";
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var DJANGO_API_BASE = "http://localhost:8000/api";
 
 function logTo(logId, msg, cls) {
   cls = cls || "log-info";
@@ -128,19 +126,19 @@ async function doAdminLogin() {
   if (!email || !pass) { status.textContent = "Enter email and password."; status.style.color = "#f87171"; return; }
   try {
     status.textContent = "Signing in..."; status.style.color = "#94a3b8";
-    var { data: cred, error: sErr } = await sb.auth.signInWithPassword({ email: email, password: pass });
-    if (sErr) throw sErr;
-    var { data: uDoc } = await sb.from("users").select("role").eq("id", cred.user.id).maybeSingle();
-    var role = uDoc ? uDoc.role : null;
-    var adminEmails = ["amala@123.gmail.com","admin@kishore.gmail.com","amala123@gmail.com"];
-    var isAdmin = role === "admin" || adminEmails.includes(email.toLowerCase());
-    if (!isAdmin) {
-      await sb.auth.signOut();
+    var res = await fetch(DJANGO_API_BASE + "/auth/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier: email, password: pass })
+    });
+    var data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || "Authentication failed");
+    if (data.role !== "admin") {
       status.textContent = "This account does not have admin privileges.";
       status.style.color = "#f87171";
       return;
     }
-    status.textContent = "Signed in as admin. Proceed to Steps 2 & 3.";
+    status.textContent = "Signed in as admin (" + data.user.name + "). Proceed to Steps 2 & 3.";
     status.style.color = "#4ade80";
     enableCard("lookupCard");
     enableCard("cleanupCard");
@@ -164,9 +162,9 @@ async function runLookupPopulation() {
   }
 
   try {
-    logTo("lookupLog", "Fetching students...");
-    var { data: stuRows, error: stuErr } = await sb.from("students").select("*");
-    if (stuErr) throw stuErr;
+    logTo("lookupLog", "Fetching students from Django DB...");
+    var stuRes = await fetch(DJANGO_API_BASE + "/students/");
+    var stuRows = await stuRes.json();
     setStat("lu_students", (stuRows || []).length);
     for (var s of (stuRows || [])) {
       if (!s.email) continue;
@@ -177,9 +175,9 @@ async function runLookupPopulation() {
   } catch(e) { errors++; logTo("lookupLog", "Students error: " + e.message, "log-err"); }
 
   try {
-    logTo("lookupLog", "Fetching parents...");
-    var { data: parRows, error: parErr } = await sb.from("parents").select("*");
-    if (parErr) throw parErr;
+    logTo("lookupLog", "Fetching parents from Django DB...");
+    var parRes = await fetch(DJANGO_API_BASE + "/parents/");
+    var parRows = await parRes.json();
     setStat("lu_parents", (parRows || []).length);
     for (var p of (parRows || [])) {
       if (!p.email) continue;
@@ -197,9 +195,9 @@ async function runLookupPopulation() {
   } catch(e) { errors++; logTo("lookupLog", "Parents error: " + e.message, "log-err"); }
 
   try {
-    logTo("lookupLog", "Fetching staff...");
-    var { data: stfRows, error: stfErr } = await sb.from("staff").select("*");
-    if (stfErr) throw stfErr;
+    logTo("lookupLog", "Fetching staff from Django DB...");
+    var stfRes = await fetch(DJANGO_API_BASE + "/staff/");
+    var stfRows = await stfRes.json();
     setStat("lu_staff", (stfRows || []).length);
     for (var st of (stfRows || [])) {
       if (!st.email) continue;
@@ -210,20 +208,19 @@ async function runLookupPopulation() {
     logTo("lookupLog", "Staff done - " + (stfRows || []).length + " records", "log-ok");
   } catch(e) { errors++; logTo("lookupLog", "Staff error: " + e.message, "log-err"); }
 
-  // Batch insert lookup records
-  var entries = Array.from(lookupMap.entries()).map(function(item) {
-    return { id: item[0], email: item[1] };
-  });
-
-  for (var i = 0; i < entries.length; i += 200) {
-    var chunk = entries.slice(i, i + 200);
+  // Insert lookup records
+  var entries = Array.from(lookupMap.entries());
+  for (var i = 0; i < entries.length; i++) {
+    var item = entries[i];
     try {
-      var { error: insErr } = await sb.from("login_lookup").upsert(chunk);
-      if (insErr) throw insErr;
-      written += chunk.length;
+      await fetch(DJANGO_API_BASE + "/login_lookup/" + encodeURIComponent(item[0]) + "/", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item[0], email: item[1] })
+      });
+      written++;
     } catch(e) {
-      errors += chunk.length;
-      logTo("lookupLog", "Upsert error: " + e.message, "log-err");
+      errors++;
     }
   }
 

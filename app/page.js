@@ -244,209 +244,73 @@ export default function LoginPage() {
     try {
       const rawUser = userId.trim();
       const pass = password;
+      const DJANGO_API_BASE = (typeof window !== 'undefined' && window.__DJANGO_API_URL__)
+        ? window.__DJANGO_API_URL__.replace(/\/+$/, '')
+        : (process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api');
 
-      // Resolve authEmail from User ID
-      let authEmail = rawUser;
-      const normUser = rawUser.toLowerCase();
-      const isFullEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawUser);
-
-      if (!isFullEmail) {
-        const digitsOnly = rawUser.replace(/\D/g, '');
-        const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
-
-        const lookupKeys = [
-          ...new Set(
-            [normUser, digitsOnly.length >= 7 ? last10 : null].filter(Boolean)
-          ),
-        ];
-
-        let resolved = false;
-        for (const key of lookupKeys) {
-          try {
-            const { data: lData } = await supabase
-              .from('login_lookup')
-              .select('email')
-              .eq('id', key)
-              .maybeSingle();
-            if (lData && lData.email) {
-              authEmail = lData.email;
-              resolved = true;
-              break;
-            }
-          } catch (e) {
-            console.warn('loginLookup:', e.message);
-          }
-        }
-
-        if (!resolved) {
-          const offlineMatch = verifyOfflineCredentials(rawUser, pass);
-          if (offlineMatch) {
-            authEmail = offlineMatch.user.email;
-          } else {
-            throw new Error('Invalid User ID or password. Please check your credentials and try again.');
-          }
-        }
-      }
-
-      // Build password candidates (DDMMYYYY DOB flexibility)
-      const candidatePasswords = [pass];
-      const cleanDigits = pass.replace(/\D/g, '');
-      if (cleanDigits.length === 8) {
-        const dd = cleanDigits.slice(0, 2);
-        const mm = cleanDigits.slice(2, 4);
-        const yyyy = cleanDigits.slice(4, 8);
-        candidatePasswords.push(
-          `${dd}-${mm}-${yyyy}`,
-          `${yyyy}-${mm}-${dd}`,
-          `${dd}/${mm}/${yyyy}`,
-          cleanDigits
-        );
-      }
-      const uniquePasswords = [...new Set(candidatePasswords)];
-
-      // Attempt Supabase Auth sign-in
-      let authUser = null;
+      let authResult = null;
       let authError = null;
-      for (const tryPass of uniquePasswords) {
-        try {
-          const { data: sData, error: sErr } = await supabase.auth.signInWithPassword({
-            email: authEmail,
-            password: tryPass,
-          });
-          if (sData && sData.user) {
-            authUser = sData.user;
-            break;
-          }
-          if (sErr) authError = sErr;
-        } catch (err) {
-          authError = err;
+
+      // 1. Try Django REST Backend
+      try {
+        const res = await fetch(`${DJANGO_API_BASE}/auth/login/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: rawUser, password: pass })
+        });
+        const data = await res.json();
+        if (res.ok && data.user) {
+          authResult = data;
+        } else {
+          authError = new Error(data.error || 'Invalid User ID or Password.');
         }
+      } catch (netErr) {
+        console.warn('Django auth fetch failed, attempting offline fallback:', netErr);
+        authError = netErr;
       }
 
-      let userData = null;
-      let roleDocData = null;
-      let studentProfile = null;
-
-      // Offline Fallback: Seamless login when Supabase is unreachable/paused
-      if (!authUser) {
-        const offlineMatch = verifyOfflineCredentials(rawUser, pass);
-        if (offlineMatch) {
-          authUser = offlineMatch.user;
-          userData = offlineMatch.userData;
-          roleDocData = offlineMatch.roleDocData;
-          studentProfile = offlineMatch.studentProfile;
+      // 2. Offline Fallback
+      if (!authResult && typeof verifyOfflineCredentials === 'function') {
+        const off = verifyOfflineCredentials(rawUser, pass);
+        if (off) {
+          authResult = {
+            user: off.user,
+            userData: off.userData,
+            role: off.userData.role,
+            roleDocData: off.roleDocData,
+            studentProfile: off.studentProfile,
+            token: 'offline_token_' + Date.now()
+          };
           if (typeof localStorage !== 'undefined') {
             localStorage.setItem('erp_offline_mode', 'true');
           }
         }
       }
 
-      if (!authUser) throw authError || new Error('Invalid User ID or Password.');
+      if (!authResult) throw authError || new Error('Invalid User ID or Password.');
 
-      const uid = authUser.id;
-      const curEmail = (authUser.email || authEmail).toLowerCase();
-
-      if (!userData) {
-        try {
-          const { data: uData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', uid)
-            .maybeSingle();
-          userData = uData;
-        } catch (e) {}
-      }
-
-      const isAdminAcc = (userData && userData.role === 'admin') ||
-        (authUser.user_metadata && authUser.user_metadata.role === 'admin') ||
-        (authUser.app_metadata && authUser.app_metadata.role === 'admin');
-
-      // Auto-heal admin doc if missing
-      if (isAdminAcc && (!userData || !userData.role)) {
-        const adminData = {
-          id: uid,
-          role: 'admin',
-          name: authUser.user_metadata?.full_name || 'School Administrator',
-          email: authUser.email || authEmail,
-        };
-        try {
-          await supabase.from('users').upsert(adminData);
-        } catch (e) {}
-        userData = adminData;
-      }
-
-      if (!userData || userData.deleted || userData.disabled || !userData.role) {
-        try { await supabase.auth.signOut(); } catch (e) {}
-        throw new Error('This account has been deleted or deactivated. Contact school admin.');
-      }
-
-      const role = userData.role;
-
-      // Role-specific record check
-      if (!roleDocData) {
-        if (role === 'staff') {
-          try {
-            const { data: stf } = await supabase.from('staff').select('*').eq('id', uid).maybeSingle();
-            if (stf && !stf.deleted) roleDocData = stf;
-          } catch (e) {}
-          if (!roleDocData) {
-            const items = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('erp_fallback_table_staff') || '[]') : [];
-            roleDocData = items.find(s => s.id === uid || s.email?.toLowerCase() === curEmail) || null;
-          }
-        } else if (role === 'student') {
-          try {
-            const { data: stu } = await supabase.from('students').select('*').eq('id', uid).maybeSingle();
-            if (stu && !stu.deleted) roleDocData = stu;
-          } catch (e) {}
-          if (!roleDocData) {
-            const items = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('erp_fallback_table_students') || '[]') : [];
-            roleDocData = items.find(s => s.id === uid || s.email?.toLowerCase() === curEmail) || null;
-          }
-        } else if (role === 'parent') {
-          try {
-            const { data: par } = await supabase.from('parents').select('*').eq('id', uid).maybeSingle();
-            if (par && !par.deleted) roleDocData = par;
-          } catch (e) {}
-          if (!roleDocData) {
-            const items = typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('erp_fallback_table_parents') || '[]') : [];
-            roleDocData = items.find(p => p.id === uid || p.email?.toLowerCase() === curEmail) || null;
-          }
-        }
-      }
-
-      if (role === 'parent' && roleDocData && roleDocData.childUid && !studentProfile) {
-        try {
-          const { data: childDoc } = await supabase
-            .from('students')
-            .select('*')
-            .eq('id', roleDocData.childUid)
-            .maybeSingle();
-          studentProfile = childDoc;
-        } catch (e) {}
-      }
-
+      const role = authResult.role || (authResult.userData && authResult.userData.role);
       const dest = ROLE_ROUTES[role];
       if (!dest) {
-        await supabase.auth.signOut();
         throw new Error('Unrecognized user role. Contact school IT support.');
       }
 
-      // Store rich session payload
+      // 3. Store rich session payload
       try {
-        const roleData = roleDocData
+        const roleData = authResult.roleDocData
           ? {
-              ...roleDocData,
-              studentProfile: studentProfile || null,
+              ...authResult.roleDocData,
+              studentProfile: authResult.studentProfile || null,
             }
           : null;
 
         const sessionPayload = {
-          uid: authUser.id,
-          id: authUser.id,
-          email: authUser.email || authEmail,
+          uid: authResult.user.id || authResult.user.uid,
+          id: authResult.user.id || authResult.user.uid,
+          email: authResult.user.email || '',
           role,
-          name: userData.name || '',
-          profile: userData,
+          name: authResult.user.name || (authResult.userData && authResult.userData.name) || '',
+          profile: authResult.userData || authResult.user,
           roleData: roleData,
           timestamp: Date.now(),
         };
