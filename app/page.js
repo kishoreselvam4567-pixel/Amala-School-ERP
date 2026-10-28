@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { verifyOfflineCredentials, seedOfflineStore } from '../js/school-offline-data';
 
 const ROLE_ROUTES = {
   student: '/student/dashboard.html',
@@ -198,7 +197,6 @@ export default function LoginPage() {
 
   // Initial load: clock & captcha & session check
   useEffect(() => {
-    seedOfflineStore();
     generateCaptcha();
 
     const updateClock = () => {
@@ -265,26 +263,8 @@ export default function LoginPage() {
           authError = new Error(data.error || 'Invalid User ID or Password.');
         }
       } catch (netErr) {
-        console.warn('Django auth fetch failed, attempting offline fallback:', netErr);
+        console.warn('Django auth fetch failed:', netErr);
         authError = netErr;
-      }
-
-      // 2. Offline Fallback
-      if (!authResult && typeof verifyOfflineCredentials === 'function') {
-        const off = verifyOfflineCredentials(rawUser, pass);
-        if (off) {
-          authResult = {
-            user: off.user,
-            userData: off.userData,
-            role: off.userData.role,
-            roleDocData: off.roleDocData,
-            studentProfile: off.studentProfile,
-            token: 'offline_token_' + Date.now()
-          };
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('erp_offline_mode', 'true');
-          }
-        }
       }
 
       if (!authResult) throw authError || new Error('Invalid User ID or Password.');

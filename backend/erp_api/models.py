@@ -307,3 +307,54 @@ class CalendarEvent(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.startDate})"
+
+
+class SubjectTeacherAssignment(models.Model):
+    id = models.CharField(max_length=255, primary_key=True)
+    classId = models.CharField(max_length=100)
+    className = models.CharField(max_length=100, null=True, blank=True)
+    section = models.CharField(max_length=20, null=True, blank=True)
+    subject = models.CharField(max_length=100)
+    teacherUid = models.CharField(max_length=255)
+    teacherName = models.CharField(max_length=255, null=True, blank=True)
+    teacherEmail = models.EmailField(null=True, blank=True)
+    academicYear = models.CharField(max_length=50, default='2025-2026')
+    status = models.CharField(max_length=20, default='active')
+    data = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'subject_teacher_assignments'
+        unique_together = ['classId', 'subject', 'teacherUid']
+        ordering = ['className', 'subject']
+
+    def __str__(self):
+        return f"{self.teacherName} -> {self.className} ({self.subject})"
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            import uuid
+            self.id = f"sta_{uuid.uuid4().hex[:10]}"
+        super().save(*args, **kwargs)
+
+
+class AuditLog(models.Model):
+    id = models.CharField(max_length=255, primary_key=True)
+    actorUid = models.CharField(max_length=255, null=True, blank=True)
+    actorName = models.CharField(max_length=255, null=True, blank=True)
+    actorRole = models.CharField(max_length=50, null=True, blank=True)
+    action = models.CharField(max_length=100)
+    resource = models.CharField(max_length=100)
+    resourceId = models.CharField(max_length=255, null=True, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    ipAddress = models.CharField(max_length=100, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'audit_logs'
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"[{self.timestamp}] {self.actorName} ({self.actorRole}): {self.action} on {self.resource}"
+

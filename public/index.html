@@ -941,9 +941,6 @@
   <!-- Environment config -->
   <script src="js/env.js"></script>
 
-  <!-- Offline Data Store -->
-  <script type="module" src="js/school-offline-data.js"></script>
-
   <!-- Django REST Backend Client Adapter -->
   <script type="module" src="js/auth.js"></script>
 
@@ -1025,7 +1022,7 @@
           let authResult = null;
           let authError = null;
 
-          // 1. Try Django REST Backend
+          // 1. Authenticate against Django REST Backend
           try {
             const res = await fetch(`${DJANGO_API_BASE}/auth/login/`, {
               method: 'POST',
@@ -1039,28 +1036,12 @@
               authError = new Error(data.error || 'Invalid User ID or Password.');
             }
           } catch (netErr) {
-            console.warn('Django auth fetch failed, attempting offline fallback:', netErr);
-            authError = netErr;
-          }
-
-          // 2. Offline Fallback if server unreachable or returned error
-          if (!authResult && window.verifyOfflineCredentials) {
-            const off = window.verifyOfflineCredentials(rawUser, pass);
-            if (off) {
-              authResult = {
-                user: off.user,
-                userData: off.userData,
-                role: off.userData.role,
-                roleDocData: off.roleDocData,
-                studentProfile: off.studentProfile,
-                token: 'offline_token_' + Date.now()
-              };
-              localStorage.setItem('erp_offline_mode', 'true');
-            }
+            console.error('Django auth fetch failed:', netErr);
+            authError = new Error('Backend server is unreachable. Please verify the server is running on http://localhost:8000.');
           }
 
           if (!authResult) {
-            throw (authError || new Error('Invalid User ID or Password.'));
+            throw (authError || new Error('Invalid User ID or Password. Please check your credentials and try again.'));
           }
 
           const role = authResult.role || (authResult.userData && authResult.userData.role);
@@ -1104,7 +1085,9 @@
 
           let msg = err.message || 'Authentication failed. Please check your credentials and try again.';
           const msgLower = msg.toLowerCase();
-          if (msgLower.includes('invalid') || msgLower.includes('credentials')) {
+          if (msgLower.includes('failed to fetch') || msgLower.includes('network') || msgLower.includes('connection')) {
+            msg = '❌ Invalid User ID or Password. (Note: Backend server is unreachable; offline lookup also did not match).';
+          } else if (msgLower.includes('invalid') || msgLower.includes('credentials') || msgLower.includes('not found')) {
             msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
           } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
             msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';

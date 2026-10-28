@@ -557,7 +557,7 @@
 <script type="module">
 import {
   auth, db, requirePortal, logout, doc, getDoc, collection, query, where,
-  getDocs, orderBy, onSnapshot, limit
+  getDocs, orderBy, onSnapshot, limit, DJANGO_API_BASE
 } from '../js/auth.js';
 import { initLiveNotifications } from '../js/notifications.js';
 import { initSchoolCalendar } from '../js/calendar-module.js';
@@ -886,9 +886,25 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
 
     const loadMarks = async () => {
       try {
-        const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid), limit(100));
-        const marksSnap = await getDocs(marksQ);
-        const marksRows = marksSnap.docs.map(d => d.data());
+        let marksRows = [];
+        try {
+          const res = await fetch(`${DJANGO_API_BASE}/student/my-marks/?studentUid=${user.uid}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.marks && Array.isArray(data.marks)) {
+              marksRows = data.marks;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn("Backend my-marks fetch error, using fallback query:", fetchErr);
+        }
+
+        if (!marksRows.length) {
+          const marksQ = query(collection(db, 'marks'), where('studentUid', '==', user.uid), limit(100));
+          const marksSnap = await getDocs(marksQ);
+          marksRows = marksSnap.docs.map(d => d.data());
+        }
+
         const marksBody = document.querySelector('#marksTable tbody');
         if (marksBody) {
           marksBody.innerHTML = '';
@@ -898,17 +914,21 @@ requirePortal(['student'], async ({ user, profile, roleData }) => {
           }
           let totalPct = 0;
           marksRows.forEach(r => {
-            const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+            const obtained = r.marksObtained !== undefined ? r.marksObtained : r.marks;
+            const maxM = r.maxMarks || 100;
+            const p = maxM ? Math.round((obtained / maxM) * 100) : 0;
             totalPct += p;
-            let grade = 'A';
-            if (p < 40) grade = 'F';
-            else if (p < 60) grade = 'C';
-            else if (p < 75) grade = 'B';
-            else if (p < 90) grade = 'A';
-            else grade = 'A+';
+            let grade = r.grade || 'A';
+            if (!r.grade) {
+              if (p < 40) grade = 'F';
+              else if (p < 60) grade = 'C';
+              else if (p < 75) grade = 'B';
+              else if (p < 90) grade = 'A';
+              else grade = 'A+';
+            }
 
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${r.subject || '—'}</strong></td><td>${r.examName || '—'}</td><td>${r.marks ?? '—'}</td><td>${r.maxMarks ?? '—'}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
+            tr.innerHTML = `<td><strong>${r.subject || '—'}</strong></td><td>${r.examName || '—'}</td><td>${obtained ?? '—'}</td><td>${maxM ?? '—'}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
             marksBody.appendChild(tr);
           });
           setText('avgMarks', marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—');

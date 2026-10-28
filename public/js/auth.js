@@ -4,16 +4,14 @@
 // Preserves 100% of frontend function signatures, return shapes, and caching.
 // ============================================================
 
-import { seedOfflineStore } from './school-offline-data.js';
-
-if (typeof window !== 'undefined') {
-  try { seedOfflineStore(); } catch (e) {}
-}
 
 // Configurable API base URL
 export const DJANGO_API_BASE = (typeof window !== 'undefined' && window.__DJANGO_API_URL__)
   ? window.__DJANGO_API_URL__.replace(/\/+$/, '')
   : 'http://localhost:8000/api';
+if (typeof window !== 'undefined') {
+  window.DJANGO_API_BASE = DJANGO_API_BASE;
+}
 
 // Determine portal role from current URL
 export function getCurrentPortalRole() {
@@ -278,6 +276,19 @@ function formatDocData(row, col) {
 // CRUD Functions against Django REST API
 // ============================================================
 
+// Helper to create a compliant Firestore DocumentSnapshot
+function createDocSnapshot(id, exists, data) {
+  const isExists = Boolean(exists);
+  const existsFn = () => isExists;
+  existsFn.valueOf = () => isExists;
+  existsFn.toString = () => String(isExists);
+  return {
+    id: String(id),
+    exists: existsFn,
+    data: () => (isExists ? data : undefined)
+  };
+}
+
 export async function getDoc(docRef) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
@@ -288,13 +299,7 @@ export async function getDoc(docRef) {
       // Check local table
       const items = getLocalTable(col);
       const item = items.find(x => String(x.id) === id);
-      const exists = Boolean(item);
-      return {
-        id,
-        exists: () => exists,
-        get exists() { return exists; },
-        data: () => (exists ? formatDocData(item, col) : undefined)
-      };
+      return createDocSnapshot(id, Boolean(item), item ? formatDocData(item, col) : undefined);
     }
 
     if (!res.ok) {
@@ -302,26 +307,12 @@ export async function getDoc(docRef) {
     }
 
     const row = await res.json();
-    const exists = Boolean(row && row.id);
-    const docData = formatDocData(row, col);
-
-    return {
-      id,
-      exists: () => exists,
-      get exists() { return exists; },
-      data: () => docData
-    };
+    return createDocSnapshot(id, Boolean(row && row.id), formatDocData(row, col));
   } catch (err) {
     // Graceful offline fallback
     const items = getLocalTable(col);
     const item = items.find(x => String(x.id) === id);
-    const exists = Boolean(item);
-    return {
-      id,
-      exists: () => exists,
-      get exists() { return exists; },
-      data: () => (exists ? formatDocData(item, col) : undefined)
-    };
+    return createDocSnapshot(id, Boolean(item), item ? formatDocData(item, col) : undefined);
   }
 }
 
@@ -359,12 +350,7 @@ export async function getDocs(qRef) {
 
     const docs = (Array.isArray(rows) ? rows : []).map(row => {
       const docData = formatDocData(row, col);
-      return {
-        id: String(row.id),
-        exists: () => true,
-        get exists() { return true; },
-        data: () => docData
-      };
+      return createDocSnapshot(row.id, true, docData);
     });
 
     const result = {

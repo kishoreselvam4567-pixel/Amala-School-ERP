@@ -1781,7 +1781,7 @@
           <div class="field" style="flex:1;">
             <label>Portal Password</label>
             <div style="position:relative; display:flex; align-items:center;">
-              <input type="password" id="editStfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;"
+              <input type="password" id="editStfPass" placeholder="Enter faculty password" style="padding-right:40px;"
                 autocomplete="new-password">
               <button type="button" class="pass-toggle-btn" data-target="editStfPass"
                 style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -1895,7 +1895,7 @@
           <div class="field" style="flex:1;">
             <label>Student Password</label>
             <div style="position:relative; display:flex; align-items:center;">
-              <input type="password" id="editStuPass" placeholder="e.g. Student@123" style="padding-right:40px;"
+              <input type="password" id="editStuPass" placeholder="Enter student password" style="padding-right:40px;"
                 autocomplete="new-password">
               <button type="button" class="pass-toggle-btn" data-target="editStuPass"
                 style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -2203,7 +2203,7 @@
           <div class="field" style="flex:1;">
             <label>Portal Password</label>
             <div style="position:relative; display:flex; align-items:center;">
-              <input type="password" id="editParPass" placeholder="e.g. Parent@123" style="padding-right:40px;"
+              <input type="password" id="editParPass" placeholder="Enter parent password" style="padding-right:40px;"
                 autocomplete="new-password">
               <button type="button" class="pass-toggle-btn" data-target="editParPass"
                 style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -3124,19 +3124,96 @@
           </div>
 
           <div class="card table-wrap">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h3 style="margin:0 0 4px 0; font-size:16px;">Class Incharge &amp; Subject Teacher Management</h3>
+                <p style="margin:0; font-size:12.5px; color:var(--ink-soft);">Assign exactly 1 Class Incharge per section and delegate multi-subject teaching allocations.</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="text" id="clsSearchInput" placeholder="Filter class or teacher…" style="padding:7px 12px; border-radius:8px; border:1px solid var(--line); font-size:13px; width:240px; outline:none;">
+                <button type="button" class="btn btn-outline btn-sm" id="clsRefreshBtn" title="Refresh assignments">↻ Refresh</button>
+              </div>
+            </div>
             <table id="clsTable">
               <thead>
                 <tr>
-                  <th>Class Name</th>
-                  <th>Registration Code</th>
-                  <th>Assigned Class Teacher</th>
-                  <th style="text-align:right;">Actions</th>
+                  <th style="min-width:140px;">Class &amp; Code</th>
+                  <th style="min-width:220px;">Class Incharge (1 Active)</th>
+                  <th style="min-width:280px;">Assigned Subject Teachers</th>
+                  <th style="text-align:right; min-width:90px;">Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
         </section>
+
+        <!-- MODAL: ASSIGN / CHANGE CLASS INCHARGE -->
+        <div class="profile-modal-overlay" id="modalAssignIncharge">
+          <div class="profile-modal-card" style="max-width:480px; padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--ink);">Assign Class Incharge</h3>
+              <button type="button" class="btn btn-ghost btn-sm closeAssignInchargeModal" style="font-size:18px;">&times;</button>
+            </div>
+            <p style="font-size:13px; color:var(--ink-soft); margin-top:0; margin-bottom:14px;">
+              Assign exactly 1 active teacher as Class Incharge for <strong id="modalInchargeClassName">—</strong>.
+            </p>
+            <input type="hidden" id="modalInchargeClassId">
+            <div class="field" style="margin-bottom:16px;">
+              <label style="font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:6px; display:block;">Select Active Faculty Member *</label>
+              <select id="modalInchargeTeacherSel" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); font-size:13.5px;"></select>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; margin-bottom:16px; font-size:12px; color:var(--ink-soft);">
+              ℹ️ The Class Incharge will be authorized to access the class roster, attendance records, and class academic summaries.
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              <button type="button" class="btn btn-outline closeAssignInchargeModal">Cancel</button>
+              <button type="button" class="btn btn-primary" id="modalSaveInchargeBtn">Save Assignment</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: ASSIGN SUBJECT TEACHER -->
+        <div class="profile-modal-overlay" id="modalAssignSubjectTeacher">
+          <div class="profile-modal-card" style="max-width:520px; padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 style="margin:0; font-size:17px; font-weight:800; color:var(--ink);">Assign Subject Teacher</h3>
+              <button type="button" class="btn btn-ghost btn-sm closeAssignSubjectModal" style="font-size:18px;">&times;</button>
+            </div>
+            <p style="font-size:13px; color:var(--ink-soft); margin-top:0; margin-bottom:14px;">
+              Allocate a subject to an eligible teacher for <strong id="modalSubjectClassName">—</strong>.
+            </p>
+            <input type="hidden" id="modalSubjectClassId">
+            <div class="field" style="margin-bottom:14px;">
+              <label style="font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:6px; display:block;">Subject Name *</label>
+              <input type="text" id="modalSubjectName" placeholder="e.g. Mathematics, Science, English, Physics" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); font-size:13.5px;" list="commonSubjectList">
+              <datalist id="commonSubjectList">
+                <option value="Tamil">
+                <option value="English">
+                <option value="Mathematics">
+                <option value="Science">
+                <option value="Social Science">
+                <option value="Physics">
+                <option value="Chemistry">
+                <option value="Biology">
+                <option value="Computer Science">
+                <option value="Commerce">
+                <option value="Accountancy">
+                <option value="Economics">
+              </datalist>
+            </div>
+            <div class="field" style="margin-bottom:16px;">
+              <label style="font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:6px; display:block;">Select Faculty Member *</label>
+              <select id="modalSubjectTeacherSel" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); font-size:13.5px;"></select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              <button type="button" class="btn btn-outline closeAssignSubjectModal">Cancel</button>
+              <button type="button" class="btn btn-primary" id="modalSaveSubjectBtn">Save Subject Allocation</button>
+            </div>
+          </div>
+        </div>
+
+
 
         <!-- ================= 3. STAFF TAB ================= -->
         <section id="panel-staff" style="display:none;">
@@ -3213,7 +3290,7 @@
               <div class="field">
                 <label>Temp Password <span style="color:var(--bad);">*</span></label>
                 <div style="position:relative; display:flex; align-items:center;">
-                  <input type="password" id="stfPass" placeholder="e.g. Welcome@123" style="padding-right:40px;"
+                  <input type="password" id="stfPass" placeholder="Enter faculty password" style="padding-right:40px;"
                     autocomplete="new-password">
                   <button type="button" class="pass-toggle-btn" data-target="stfPass"
                     style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -3537,7 +3614,7 @@
                 <div class="field" style="flex:1;">
                   <label>Student Password *</label>
                   <div style="position:relative; display:flex; align-items:center;">
-                    <input type="password" id="stuPass" placeholder="e.g. Student@123" style="padding-right:40px;"
+                    <input type="password" id="stuPass" placeholder="Enter student password" style="padding-right:40px;"
                       autocomplete="new-password">
                     <button type="button" class="pass-toggle-btn" data-target="stuPass"
                       style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -3589,7 +3666,7 @@
                 <div class="field" style="flex:1;">
                   <label>Parent Portal Password *</label>
                   <div style="position:relative; display:flex; align-items:center;">
-                    <input type="password" id="parLoginPass" placeholder="e.g. Parent@123" style="padding-right:40px;"
+                    <input type="password" id="parLoginPass" placeholder="Enter parent password" style="padding-right:40px;"
                       autocomplete="new-password">
                     <button type="button" class="pass-toggle-btn" data-target="parLoginPass"
                       style="position:absolute; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:0.65; padding:4px;"
@@ -4287,19 +4364,27 @@
                 </select>
               </div>
 
-              <div class="field" style="flex:1.2; min-width:200px;">
-                <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Examination *</label>
-                <div style="display:flex; gap:8px;">
-                  <select id="marksExamSelect" style="flex:1; font-weight:600; font-size:13.5px; padding:9px 12px;">
-                    <option value="Quarterly Examination">Quarterly Examination</option>
-                    <option value="Midterm 1">Midterm 1</option>
-                    <option value="Midterm 2">Midterm 2</option>
-                    <option value="Half Yearly Examination">Half Yearly Examination</option>
-                    <option value="Annual / Final Examination">Annual / Final Examination</option>
-                    <option value="Unit Test 1">Unit Test 1</option>
-                    <option value="Unit Test 2">Unit Test 2</option>
-                    <option value="__custom__">+ Custom Exam...</option>
-                  </select>
+              <div class="field" style="flex:1.2; min-width:220px;">
+                <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Exam Type / Examination *</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                  <input type="text" id="marksExamSelect" list="adminMarksExamOptionsList"
+                    value="Quarterly Examination"
+                    placeholder="Type or select exam name..."
+                    style="width:100%; font-weight:600; font-size:13.5px; padding:9px 12px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--ink);"
+                    autocomplete="off">
+                  <datalist id="adminMarksExamOptionsList">
+                    <option value="Quarterly Examination"></option>
+                    <option value="Midterm 1"></option>
+                    <option value="Midterm 2"></option>
+                    <option value="Half Yearly Examination"></option>
+                    <option value="Annual / Final Examination"></option>
+                    <option value="Unit Test 1"></option>
+                    <option value="Unit Test 2"></option>
+                    <option value="Slip Test"></option>
+                    <option value="Revision Exam 1"></option>
+                    <option value="Revision Exam 2"></option>
+                    <option value="Model Examination"></option>
+                  </datalist>
                   <input type="text" id="marksCustomExamInput" placeholder="Exam Name"
                     style="display:none; flex:1; padding:9px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
                 </div>
@@ -4752,7 +4837,9 @@
     import {
       auth, db, supabase, storage, ref, uploadBytes, getDownloadURL, requirePortal, logout, doc, getDoc, setDoc, updateDoc, deleteDoc,
       collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, onSnapshot,
-      getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut, ensureFreshSession
+      getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut, ensureFreshSession,
+      clearQueryCache,
+      DJANGO_API_BASE
     } from '../../js/auth.js';
     import { initSchoolCalendar } from '../../js/calendar-module.js';
 
@@ -6696,73 +6783,314 @@
     });
 
     async function loadClasses() {
-      const [snap, staffSnap] = await Promise.all([
-        getDocs(collection(db, 'classes')),
-        allStaffCache.length ? Promise.resolve(null) : getDocs(collection(db, 'staff'))
-      ]);
-      const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      allClasses = sortClassList(rawClasses);
-      const body = document.querySelector('#clsTable tbody');
-      body.innerHTML = '';
-      const selOptions = [];
+      try {
+        const [snap, staffSnap, staRes] = await Promise.all([
+          getDocs(collection(db, 'classes')),
+          allStaffCache.length ? Promise.resolve(null) : getDocs(collection(db, 'staff')),
+          fetch(`${DJANGO_API_BASE}/assignments/subjects/`).then(r => r.ok ? r.json() : []).catch(() => [])
+        ]);
+        const rawClasses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        allClasses = sortClassList(rawClasses);
+        const body = document.querySelector('#clsTable tbody');
+        if (!body) return;
+        body.innerHTML = '';
+        const selOptions = [];
 
-      const staffMap = new Map();
-      if (allStaffCache.length) {
-        allStaffCache.forEach(s => staffMap.set(s.id, s.name));
-      } else if (staffSnap && staffSnap.docs) {
-        staffSnap.docs.forEach(d => staffMap.set(d.id, d.data().name));
-      }
-
-      for (const r of allClasses) {
-        const teacherName = r.classTeacherName || staffMap.get(r.classTeacherUid) || '—';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td><strong>${r.name}</strong></td>
-      <td><span class="badge badge-navy" style="font-family:var(--font-mono);">${r.code}</span></td>
-      <td>${teacherName}</td>
-      <td style="text-align:right;">
-        <button class="btn btn-danger btn-sm clsDelBtn" data-id="${r.id}">Delete</button>
-      </td>
-    `;
-        tr.querySelector('.clsDelBtn').addEventListener('click', async () => {
-          if (confirm(`Delete class "${r.name}"?`)) {
-            await deleteDoc(doc(db, 'classes', r.id));
-            showToast(`Class "${r.name}" deleted.`);
-            await loadClasses();
-            await loadOverview();
+        // Active staff members map
+        const activeStaffList = [];
+        const staffMap = new Map();
+        const fullStaff = allStaffCache.length ? allStaffCache : (staffSnap && staffSnap.docs ? staffSnap.docs.map(d => ({ id: d.id, ...d.data() })) : []);
+        fullStaff.forEach(s => {
+          if (!s.deleted && !s.disabled) {
+            activeStaffList.push(s);
+            staffMap.set(s.id, s.name);
+            if (s.uid) staffMap.set(s.uid, s.name);
           }
         });
-        body.appendChild(tr);
-        selOptions.push(`<option value="${r.id}">${r.name}</option>`);
-      }
 
-      ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel', 'examClassSel'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = (id === 'finderClassSel' || id === 'examClassSel' ? '<option value="">-- Choose Class Section --</option>' : '') + selOptions.join('');
-      });
+        // Group subject assignments by classId
+        const staList = Array.isArray(staRes) ? staRes : [];
+        const staByClass = new Map();
+        staList.forEach(sta => {
+          if (!staByClass.has(sta.classId)) staByClass.set(sta.classId, []);
+          staByClass.get(sta.classId).push(sta);
+        });
 
-      const classOpts = '<option value="">All Classes</option>' + selOptions.join('');
-      const attF = document.getElementById('attClassFilter');
-      const mrkF = document.getElementById('marksClassFilter');
-      const stuTblF = document.getElementById('stuTableClassFilter');
-      const examCalF = document.getElementById('examCalFilterClass');
-      if (attF) {
-        const curVal = attF.value;
-        attF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
-        if (curVal) attF.value = curVal;
-      }
-      if (mrkF) mrkF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
-      if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
-      if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
-      const parTblF = document.getElementById('parTableClassFilter');
-      if (parTblF) {
-        const curVal = parTblF.value;
-        parTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
-        if (curVal) parTblF.value = curVal;
-      }
+        // Populate modal select dropdowns with active faculty
+        const facultyOpts = ['<option value="">-- Choose Faculty Member --</option>']
+          .concat(activeStaffList.map(s => `<option value="${s.id}">${s.name} (${s.majorSubject || 'Faculty'})</option>`))
+          .join('');
+        const inchargeSel = document.getElementById('modalInchargeTeacherSel');
+        const subjectStaffSel = document.getElementById('modalSubjectTeacherSel');
+        if (inchargeSel) inchargeSel.innerHTML = facultyOpts;
+        if (subjectStaffSel) subjectStaffSel.innerHTML = facultyOpts;
 
-      updateAdmissionSubjectsUI();
+        for (const r of allClasses) {
+          const inchargeTeacherName = r.classTeacherName || staffMap.get(r.classTeacherUid);
+          const hasIncharge = Boolean(r.classTeacherUid && inchargeTeacherName);
+          const classSubjectList = staByClass.get(r.id) || [];
+
+          // Subject badges HTML
+          let subjectsHtml = '';
+          if (classSubjectList.length) {
+            subjectsHtml = classSubjectList.map(sta => `
+              <span class="badge badge-purple" style="font-size:11.5px; padding:3px 8px; margin:2px; display:inline-flex; align-items:center; gap:5px;">
+                <strong>${sta.subject}:</strong> ${sta.teacherName}
+                <button type="button" class="btn-del-sta" data-id="${sta.id}" data-subject="${sta.subject}" data-teacher="${sta.teacherName}" data-class="${r.name}"
+                  style="background:none; border:none; color:#7e22ce; font-weight:800; cursor:pointer; padding:0 2px; font-size:13px; line-height:1;" title="Remove Subject Assignment">&times;</button>
+              </span>
+            `).join('');
+          } else {
+            subjectsHtml = `<span style="font-size:12px; color:var(--ink-soft); font-style:italic;">No subject teachers assigned</span>`;
+          }
+
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-class-search', `${r.name} ${r.code || ''} ${inchargeTeacherName || ''} ${classSubjectList.map(s => s.subject + ' ' + s.teacherName).join(' ')}`.toLowerCase());
+          tr.innerHTML = `
+            <td>
+              <div style="font-weight:700; color:var(--ink); font-size:14px;">${r.name}</div>
+              <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; margin-top:2px;">${r.code || 'NO-CODE'}</span>
+            </td>
+            <td>
+              ${hasIncharge ? `
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="badge badge-good" style="font-weight:700; font-size:12px;">${inchargeTeacherName}</span>
+                  <button type="button" class="btn btn-ghost btn-xs btn-change-incharge" data-class-id="${r.id}" data-class-name="${r.name}" data-teacher-uid="${r.classTeacherUid}" style="font-size:11px; padding:2px 6px; font-weight:700;" title="Change Incharge">Change</button>
+                  <button type="button" class="btn btn-ghost btn-xs btn-remove-incharge" data-class-id="${r.id}" data-class-name="${r.name}" style="font-size:11px; padding:2px 6px; color:var(--bad); font-weight:700;" title="Remove Incharge">&times;</button>
+                </div>
+              ` : `
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="badge" style="background:#fee2e2; color:#991b1b; font-weight:700; font-size:11px;">Unassigned</span>
+                  <button type="button" class="btn btn-outline btn-xs btn-assign-incharge" data-class-id="${r.id}" data-class-name="${r.name}" style="font-size:11px; padding:3px 8px; font-weight:700;">+ Assign</button>
+                </div>
+              `}
+            </td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; flex-wrap:wrap; align-items:center;">
+                  ${subjectsHtml}
+                </div>
+                <div>
+                  <button type="button" class="btn btn-ghost btn-xs btn-add-subject" data-class-id="${r.id}" data-class-name="${r.name}"
+                    style="font-size:11px; padding:2px 8px; color:var(--brand-green); font-weight:700; border:1px dashed #a7f3d0; background:#f0fdf4; border-radius:6px;">
+                    + Assign Subject Teacher
+                  </button>
+                </div>
+              </div>
+            </td>
+            <td style="text-align:right;">
+              <button class="btn btn-danger btn-sm clsDelBtn" data-id="${r.id}">Delete</button>
+            </td>
+          `;
+
+          // Event: Delete class
+          tr.querySelector('.clsDelBtn').addEventListener('click', async () => {
+            if (confirm(`Delete class section "${r.name}"? This action cannot be undone.`)) {
+              await deleteDoc(doc(db, 'classes', r.id));
+              showToast(`Class "${r.name}" deleted.`);
+              await loadClasses();
+              await loadOverview();
+            }
+          });
+
+          // Event: Assign Incharge
+          tr.querySelectorAll('.btn-assign-incharge, .btn-change-incharge').forEach(b => {
+            b.addEventListener('click', () => {
+              const modal = document.getElementById('modalAssignIncharge');
+              document.getElementById('modalInchargeClassId').value = r.id;
+              document.getElementById('modalInchargeClassName').textContent = r.name;
+              if (inchargeSel && r.classTeacherUid) inchargeSel.value = r.classTeacherUid;
+              modal?.classList.add('open');
+            });
+          });
+
+          // Event: Remove Incharge
+          tr.querySelector('.btn-remove-incharge')?.addEventListener('click', async () => {
+            if (confirm(`Remove ${inchargeTeacherName} as Class Incharge of ${r.name}?`)) {
+              try {
+                const res = await fetch(`${DJANGO_API_BASE}/assignments/incharge/`, {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin' },
+                  body: JSON.stringify({ classId: r.id })
+                });
+                const d = await res.json();
+                if (!res.ok) throw new Error(d.error || 'Failed to remove incharge');
+                showToast(`Class Incharge removed from ${r.name}.`);
+                await loadClasses();
+                await loadStaff();
+              } catch (err) {
+                alert('Error removing incharge: ' + err.message);
+              }
+            }
+          });
+
+          // Event: Add Subject Teacher Modal Open
+          tr.querySelector('.btn-add-subject')?.addEventListener('click', () => {
+            const modal = document.getElementById('modalAssignSubjectTeacher');
+            document.getElementById('modalSubjectClassId').value = r.id;
+            document.getElementById('modalSubjectClassName').textContent = r.name;
+            document.getElementById('modalSubjectName').value = '';
+            modal?.classList.add('open');
+          });
+
+          // Event: Remove Subject Teacher
+          tr.querySelectorAll('.btn-del-sta').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const staId = btn.getAttribute('data-id');
+              const subName = btn.getAttribute('data-subject');
+              const tName = btn.getAttribute('data-teacher');
+              const cName = btn.getAttribute('data-class');
+              if (confirm(`Remove ${tName} from teaching ${subName} in ${cName}?`)) {
+                try {
+                  const res = await fetch(`${DJANGO_API_BASE}/assignments/subjects/${staId}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-User-Role': 'admin' }
+                  });
+                  const d = await res.json();
+                  if (!res.ok) throw new Error(d.error || 'Failed to remove subject allocation');
+                  showToast(`Removed ${subName} assignment for ${tName}.`);
+                  await loadClasses();
+                  await loadStaff();
+                } catch (err) {
+                  alert('Error removing assignment: ' + err.message);
+                }
+              }
+            });
+          });
+
+          body.appendChild(tr);
+          selOptions.push(`<option value="${r.id}">${r.name}</option>`);
+        }
+
+        // Search filter listener
+        const searchInput = document.getElementById('clsSearchInput');
+        if (searchInput && !searchInput.dataset.listening) {
+          searchInput.dataset.listening = 'true';
+          searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLowerCase();
+            document.querySelectorAll('#clsTable tbody tr').forEach(tr => {
+              const searchContent = tr.getAttribute('data-class-search') || '';
+              tr.style.display = searchContent.includes(query) ? '' : 'none';
+            });
+          });
+        }
+
+        document.getElementById('clsRefreshBtn')?.addEventListener('click', async () => {
+          showToast('Refreshing class and teacher allocations…');
+          await loadClasses();
+        });
+
+        // Update other dropdowns throughout the portal
+        ['ctClassSel', 'subClassSel', 'stuClassSelAdd', 'finderClassSel', 'examClassSel'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = (id === 'finderClassSel' || id === 'examClassSel' ? '<option value="">-- Choose Class Section --</option>' : '') + selOptions.join('');
+        });
+
+        const attF = document.getElementById('attClassFilter');
+        const mrkF = document.getElementById('marksClassFilter');
+        const stuTblF = document.getElementById('stuTableClassFilter');
+        const examCalF = document.getElementById('examCalFilterClass');
+        if (attF) {
+          const curVal = attF.value;
+          attF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
+          if (curVal) attF.value = curVal;
+        }
+        if (mrkF) mrkF.innerHTML = '<option value="">-- Choose Class Section --</option>' + selOptions.join('');
+        if (stuTblF) stuTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+        if (examCalF) examCalF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+        const parTblF = document.getElementById('parTableClassFilter');
+        if (parTblF) {
+          const curVal = parTblF.value;
+          parTblF.innerHTML = '<option value="">All Classes (Show All)</option>' + selOptions.join('');
+          if (curVal) parTblF.value = curVal;
+        }
+
+        updateAdmissionSubjectsUI();
+      } catch (err) {
+        console.error('Error loading classes:', err);
+      }
     }
+
+    // Modal Close Listeners
+    document.querySelectorAll('.closeAssignInchargeModal').forEach(b => {
+      b.addEventListener('click', () => {
+        document.getElementById('modalAssignIncharge')?.classList.remove('open');
+      });
+    });
+
+    document.querySelectorAll('.closeAssignSubjectModal').forEach(b => {
+      b.addEventListener('click', () => {
+        document.getElementById('modalAssignSubjectTeacher')?.classList.remove('open');
+      });
+    });
+
+    // Save Incharge Assignment Handler
+    document.getElementById('modalSaveInchargeBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('modalInchargeClassId')?.value;
+      const teacherUid = document.getElementById('modalInchargeTeacherSel')?.value;
+      const btn = document.getElementById('modalSaveInchargeBtn');
+
+      if (!classId || !teacherUid) {
+        alert('Please select an active faculty member.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        const res = await fetch(`${DJANGO_API_BASE}/assignments/incharge/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin' },
+          body: JSON.stringify({ classId, teacherUid })
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Failed to assign class incharge');
+        showToast(d.message || 'Class Incharge assigned successfully.');
+        document.getElementById('modalAssignIncharge')?.classList.remove('open');
+        await loadClasses();
+        await loadStaff();
+      } catch (err) {
+        alert('Error assigning class incharge: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Assignment';
+      }
+    });
+
+    // Save Subject Teacher Allocation Handler
+    document.getElementById('modalSaveSubjectBtn')?.addEventListener('click', async () => {
+      const classId = document.getElementById('modalSubjectClassId')?.value;
+      const subject = document.getElementById('modalSubjectName')?.value.trim();
+      const teacherUid = document.getElementById('modalSubjectTeacherSel')?.value;
+      const btn = document.getElementById('modalSaveSubjectBtn');
+
+      if (!classId || !subject || !teacherUid) {
+        alert('Please enter both the Subject Name and select a Faculty Member.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Allocating…';
+      try {
+        const res = await fetch(`${DJANGO_API_BASE}/assignments/subjects/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin' },
+          body: JSON.stringify({ classId, subject, teacherUid })
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Failed to assign subject teacher');
+        showToast(`Assigned ${subject} to ${d.teacherName || 'teacher'}.`);
+        document.getElementById('modalAssignSubjectTeacher')?.classList.remove('open');
+        await loadClasses();
+        await loadStaff();
+      } catch (err) {
+        alert('Error assigning subject teacher: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Subject Allocation';
+      }
+    });
+
 
     // Attach subject & stream allocation change listeners
     document.getElementById('stuClassSelAdd')?.addEventListener('change', () => {
@@ -6788,7 +7116,7 @@
       let username = document.getElementById('stfUsername').value.trim();
       const email = document.getElementById('stfEmail').value.trim();
       const rawPass = document.getElementById('stfPass').value.trim();
-      const pass = rawPass || 'Welcome@123';
+      const pass = rawPass || ((phone && phone.length >= 6) ? phone : (username ? username + '@' + new Date().getFullYear() : ''));
       const phone = document.getElementById('stfPhone').value.trim();
       const majorSubject = document.getElementById('stfMajorSubject').value.trim();
       const gender = document.getElementById('stfGender').value;
@@ -6913,7 +7241,7 @@
         const rawPass = stf.password || (stf.data && stf.data.password) || '';
         if (passSpan) {
           passSpan.textContent = '••••••••';
-          passSpan.dataset.realPass = rawPass || 'Welcome@123';
+          passSpan.dataset.realPass = rawPass || '—';
           passSpan.dataset.revealed = 'false';
         }
         if (toggleBtn) {
@@ -7021,7 +7349,7 @@
         passSpan.dataset.revealed = 'false';
         btn.textContent = 'Reveal';
       } else {
-        passSpan.textContent = passSpan.dataset.realPass || 'Welcome@123';
+        passSpan.textContent = passSpan.dataset.realPass || '—';
         passSpan.dataset.revealed = 'true';
         btn.textContent = 'Hide';
       }
@@ -7185,12 +7513,25 @@
         }).join(', ') || '—';
 
         const subjects = normSubjects.map((s, idx) => {
+          const sId = (typeof s === 'object' && s) ? (s.id || '') : '';
           const sName = typeof s === 'string' ? s : (s?.subject || s?.name || 'Subject');
           const cName = (typeof s === 'object' && s) ? (s.className || s.class || '') : '';
+          const cId = (typeof s === 'object' && s) ? (s.classId || '') : '';
           return `
       <span class="badge badge-purple" style="display:inline-flex; align-items:center; gap:6px; margin:2px; padding:3px 8px;">
         <span>${escapeHtml(sName)}${cName ? ' (' + escapeHtml(cName) + ')' : ''}</span>
-        <button type="button" class="subRemoveBtn" data-id="${d.id}" data-idx="${idx}" data-sub="${escapeHtml(sName)}" data-cls="${escapeHtml(cName)}" data-name="${escapeHtml(r.name || '')}" title="Remove this subject assignment" style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;" onmouseover="this.style.color='#991b1b'" onmouseout="this.style.color='#6b21a8'">&times;</button>
+        <button type="button" class="subRemoveBtn"
+          data-id="${d.id}"
+          data-sta-id="${escapeHtml(sId)}"
+          data-idx="${idx}"
+          data-sub="${escapeHtml(sName)}"
+          data-cls="${escapeHtml(cName)}"
+          data-cid="${escapeHtml(cId)}"
+          data-name="${escapeHtml(r.name || '')}"
+          title="Remove this subject assignment"
+          style="background:none; border:none; color:#6b21a8; cursor:pointer; font-weight:900; font-size:15px; line-height:1; padding:0 2px; margin-left:2px;"
+          onmouseover="this.style.color='#991b1b'"
+          onmouseout="this.style.color='#6b21a8'">&times;</button>
       </span>
     `;
         }).join('') || '—';
@@ -7199,7 +7540,7 @@
         const facultyGender = r.gender || '—';
         const facultyPhone = r.phone || '—';
         const facultyMajor = r.majorSubject || '—';
-        const facultyPass = r.password || 'Welcome@123';
+        const facultyPass = r.password || (r.data && r.data.password) || '—';
 
         allStaffCache.push({
           id: d.id,
@@ -7291,7 +7632,7 @@
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const span = btn.previousElementSibling;
-            const pass = btn.dataset.pass || 'Welcome@123';
+            const pass = btn.dataset.pass || '—';
             if (span.textContent === '••••••••') {
               span.textContent = pass;
               span.style.color = 'var(--brand-green)';
@@ -7313,20 +7654,95 @@
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const staffId = btn.dataset.id;
+            const staId = btn.dataset.staId;
             const subIdx = parseInt(btn.dataset.idx, 10);
             const subName = btn.dataset.sub;
             const clsName = btn.dataset.cls;
+            const clsId = btn.dataset.cid;
             const staffName = btn.dataset.name;
-            if (confirm(`Remove "${subName} (${clsName})" from ${staffName}?`)) {
-              const staffSnap = await getDoc(doc(db, 'staff', staffId));
-              const current = staffSnap.data() || {};
-              const newSubs = (current.subjects || []).filter((_, i) => i !== subIdx);
-              await updateDoc(doc(db, 'staff', staffId), {
-                subjects: newSubs,
-                type: current.classTeacherOf ? 'both' : 'subject'
-              });
-              showToast(`Removed ${subName} (${clsName}).`);
-              await loadStaff();
+            const displayLabel = clsName ? `${subName} (${clsName})` : subName;
+
+            if (confirm(`Remove "${displayLabel}" from ${staffName}?`)) {
+              btn.disabled = true;
+              const badgeSpan = btn.closest('.badge-purple') || btn.parentElement;
+              if (badgeSpan) {
+                badgeSpan.style.opacity = '0.35';
+                badgeSpan.style.pointerEvents = 'none';
+              }
+              try {
+                // 1. Delete assignment from Django backend API
+                const url = (staId && staId.startsWith('sta_'))
+                  ? `${DJANGO_API_BASE}/assignments/subjects/${encodeURIComponent(staId)}/`
+                  : `${DJANGO_API_BASE}/assignments/subjects/`;
+
+                const res = await fetch(url, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Role': 'admin',
+                    'X-User-Uid': 'admin'
+                  },
+                  body: JSON.stringify({
+                    id: staId || undefined,
+                    teacherUid: staffId,
+                    subject: subName,
+                    classId: clsId || clsName,
+                    className: clsName
+                  })
+                });
+
+                if (!res.ok && res.status !== 404) {
+                  const errData = await res.json().catch(() => ({}));
+                  console.warn('Backend DELETE warning:', errData);
+                }
+
+                // 2. Also clean Firestore / staff doc if present
+                try {
+                  const staffSnap = await getDoc(doc(db, 'staff', staffId));
+                  if (staffSnap.exists()) {
+                    const current = staffSnap.data() || {};
+                    const newSubs = (current.subjects || []).filter((s, i) => {
+                      if (i === subIdx) return false;
+                      const sSub = typeof s === 'string' ? s : (s?.subject || s?.name);
+                      const sCls = typeof s === 'object' ? (s?.className || s?.class || '') : '';
+                      const sCid = typeof s === 'object' ? (s?.classId || '') : '';
+                      if (sSub === subName && (sCls === clsName || (clsId && sCid === clsId))) return false;
+                      return true;
+                    });
+                    await updateDoc(doc(db, 'staff', staffId), {
+                      subjects: newSubs,
+                      type: current.classTeacherOf ? 'both' : (newSubs.length ? 'subject' : 'subject')
+                    });
+                  }
+                } catch (fsErr) {
+                  console.warn('Firestore update warning:', fsErr);
+                }
+
+                // Optimistically remove badge element from DOM immediately
+                if (badgeSpan) {
+                  badgeSpan.remove();
+                }
+
+                // Invalidate query caches so subsequent loadStaff gets fresh database data
+                if (typeof clearQueryCache === 'function') {
+                  clearQueryCache('staff');
+                  clearQueryCache('classes');
+                  clearQueryCache('subject_teacher_assignments');
+                }
+
+                showToast(`Removed ${displayLabel} from ${staffName}.`);
+                await loadStaff();
+                if (typeof loadClasses === 'function') await loadClasses();
+              } catch (err) {
+                console.error('Error removing subject:', err);
+                if (badgeSpan) {
+                  badgeSpan.style.opacity = '1';
+                  badgeSpan.style.pointerEvents = 'auto';
+                }
+                alert('Error removing subject: ' + err.message);
+              } finally {
+                btn.disabled = false;
+              }
             }
           });
         });
@@ -7339,18 +7755,35 @@
             const classId = btn.dataset.cid;
             const staffName = btn.dataset.name;
             if (confirm(`Unassign ${staffName} as Class Teacher?`)) {
-              const staffSnap = await getDoc(doc(db, 'staff', staffId));
-              const current = staffSnap.data() || {};
-              await updateDoc(doc(db, 'staff', staffId), {
-                classTeacherOf: null,
-                type: (current.subjects && current.subjects.length) ? 'subject' : 'subject'
-              });
-              if (classId) {
-                await updateDoc(doc(db, 'classes', classId), { classTeacherUid: null }).catch(() => { });
+              try {
+                // Delete incharge assignment via backend API if classId is present
+                if (classId) {
+                  await fetch(`${DJANGO_API_BASE}/assignments/incharge/`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin', 'X-User-Uid': 'admin' },
+                    body: JSON.stringify({ classId })
+                  }).catch(() => {});
+                }
+                const staffSnap = await getDoc(doc(db, 'staff', staffId));
+                const current = staffSnap.data() || {};
+                await updateDoc(doc(db, 'staff', staffId), {
+                  classTeacherOf: null,
+                  type: (current.subjects && current.subjects.length) ? 'subject' : 'subject'
+                });
+                if (classId) {
+                  await updateDoc(doc(db, 'classes', classId), { classTeacherUid: null }).catch(() => { });
+                }
+                if (typeof clearQueryCache === 'function') {
+                  clearQueryCache('staff');
+                  clearQueryCache('classes');
+                }
+                showToast('Class teacher unassigned.');
+                await loadStaff();
+                await loadClasses();
+              } catch (err) {
+                console.error('Error unassigning class teacher:', err);
+                alert('Error unassigning class teacher: ' + err.message);
               }
-              showToast('Class teacher unassigned.');
-              await loadStaff();
-              await loadClasses();
             }
           });
         });
@@ -7500,14 +7933,28 @@
       try {
         if (role === 'classTeacher') {
           const classSnap = await getDoc(doc(db, 'classes', classId));
-          const className = classSnap.exists() ? (classSnap.data().name || 'Class') : 'Class';
-          const prevTeacherUid = classSnap.exists() ? classSnap.data().classTeacherUid : null;
+          const isClassExists = typeof classSnap.exists === 'function' ? classSnap.exists() : Boolean(classSnap.exists);
+          const classData = (isClassExists && classSnap.data) ? (classSnap.data() || {}) : {};
+          const className = classData.name || 'Class';
+          const prevTeacherUid = classData.classTeacherUid || null;
+
+          // Call backend API for class incharge assignment
+          try {
+            await fetch(`${DJANGO_API_BASE}/assignments/incharge/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin' },
+              body: JSON.stringify({ classId, teacherUid: staffUid })
+            });
+          } catch (apiErr) {
+            console.warn('Backend incharge assignment warning:', apiErr);
+          }
 
           // Clear any previous class teacher assigned to this class
           if (prevTeacherUid && prevTeacherUid !== staffUid) {
             const prevSnap = await getDoc(doc(db, 'staff', prevTeacherUid));
-            if (prevSnap.exists()) {
-              const prevData = prevSnap.data();
+            const prevExists = typeof prevSnap.exists === 'function' ? prevSnap.exists() : Boolean(prevSnap.exists);
+            if (prevExists) {
+              const prevData = prevSnap.data() || {};
               await updateDoc(doc(db, 'staff', prevTeacherUid), {
                 classTeacherOf: null,
                 type: (prevData.subjects && prevData.subjects.length) ? 'subject' : 'subject'
@@ -7516,7 +7963,8 @@
           }
 
           const staffSnap = await getDoc(doc(db, 'staff', staffUid));
-          const current = staffSnap.exists() ? staffSnap.data() : {};
+          const staffExists = typeof staffSnap.exists === 'function' ? staffSnap.exists() : Boolean(staffSnap.exists);
+          const current = staffExists ? (staffSnap.data() || {}) : {};
           const staffName = current.name || 'Faculty';
 
           await updateDoc(doc(db, 'staff', staffUid), {
@@ -7537,16 +7985,40 @@
           }
 
           const classSnap = await getDoc(doc(db, 'classes', classId));
-          const className = classSnap.exists() ? (classSnap.data().name || 'Class') : 'Class';
+          const isClassExists = typeof classSnap.exists === 'function' ? classSnap.exists() : Boolean(classSnap.exists);
+          const classData = (isClassExists && classSnap.data) ? (classSnap.data() || {}) : {};
+          const className = classData.name || 'Class';
 
           const staffSnap = await getDoc(doc(db, 'staff', staffUid));
-          const current = staffSnap.exists() ? staffSnap.data() : {};
+          const staffExists = typeof staffSnap.exists === 'function' ? staffSnap.exists() : Boolean(staffSnap.exists);
+          const current = staffExists ? (staffSnap.data() || {}) : {};
           const staffName = current.name || 'Faculty';
           const subjects = current.subjects || [];
 
-          if (subjects.some(s => s.classId === classId && s.subject.toLowerCase() === subject.toLowerCase())) {
+          if (subjects.some(s => {
+            const sClass = typeof s === 'object' ? (s.classId || s.className || '') : '';
+            const sSub = typeof s === 'object' ? (s.subject || s.name || '') : s;
+            return sClass === classId && sSub.toLowerCase() === subject.toLowerCase();
+          })) {
             alert(`${staffName} is already assigned to teach ${subject} in ${className}.`);
             return;
+          }
+
+          // Call backend API for subject assignment
+          try {
+            const apiRes = await fetch(`${DJANGO_API_BASE}/assignments/subjects/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-User-Role': 'admin' },
+              body: JSON.stringify({ classId, subject, teacherUid: staffUid })
+            });
+            if (!apiRes.ok) {
+              const errJson = await apiRes.json().catch(() => ({}));
+              if (errJson.error && !errJson.error.toLowerCase().includes('already assigned')) {
+                throw new Error(errJson.error);
+              }
+            }
+          } catch (apiErr) {
+            console.warn('Backend subject assignment warning:', apiErr);
           }
 
           subjects.push({ classId, className, subject });
@@ -7558,6 +8030,7 @@
           if (subSubjectInput) subSubjectInput.value = '';
           showToast(`Assigned ${subject} (${className}) to ${staffName}.`);
           await loadStaff();
+          if (typeof loadClasses === 'function') await loadClasses();
         }
       } catch (err) {
         alert('Error updating assignment: ' + err.message);
@@ -7596,7 +8069,7 @@
       const aadhaar = document.getElementById('stuAadhaar').value.trim();
       const stuEmail = document.getElementById('stuEmail').value.trim();
       const rawStuPass = document.getElementById('stuPass').value.trim();
-      const stuPass = rawStuPass || 'Student@123';
+      const stuPass = rawStuPass || ((dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : (admNo ? admNo.toUpperCase() + '@' + new Date().getFullYear() : ''));
 
       // 2. Parent fields
       const fatherName = document.getElementById('parFatherName').value.trim();
@@ -7605,7 +8078,7 @@
       const motherPhone = document.getElementById('parMotherPhone').value.trim();
       const parEmail = document.getElementById('parLoginEmail').value.trim();
       const rawParPass = document.getElementById('parLoginPass').value.trim();
-      const parPass = rawParPass || 'Parent@123';
+      const parPass = rawParPass || (fatherPhone && fatherPhone.length >= 6 ? fatherPhone : (admNo ? 'Par@' + admNo.toUpperCase() : ''));
       const emergencyPhone = document.getElementById('stuEmergencyPhone').value.trim();
 
       // 3. Address fields
@@ -7946,7 +8419,7 @@
       <td style="text-align:center; white-space:nowrap;">
         <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 8px; white-space:nowrap;">
           <span class="pass-val">••••••••</span>
-          <button type="button" class="pass-reveal-btn" data-pass="${r.password || (r.data && r.data.password) || 'Student@123'}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1; color:var(--ink-soft); display:inline-flex;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button type="button" class="pass-reveal-btn" data-pass="${r.password || (r.data && r.data.password) || '—'}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1; color:var(--ink-soft); display:inline-flex;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </span>
       </td>
       <td style="text-align:left;">
@@ -7974,7 +8447,7 @@
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const span = btn.previousElementSibling;
-            const pass = btn.dataset.pass || 'Student@123';
+            const pass = btn.dataset.pass || '—';
             if (span.textContent === '••••••••') {
               span.textContent = pass;
               span.style.color = 'var(--brand-green)';
@@ -8305,7 +8778,7 @@
       document.getElementById('mp_email').textContent = s.email || '—';
       const stuPassSpan = document.getElementById('mp_pass');
       const stuToggleBtn = document.getElementById('mp_togglePassBtn');
-      const stuRealPass = s.password || (s.data && s.data.password) || 'Student@123';
+      const stuRealPass = s.password || (s.data && s.data.password) || '—';
       if (stuPassSpan) {
         stuPassSpan.textContent = '••••••••';
         stuPassSpan.dataset.realPass = stuRealPass;
@@ -8353,7 +8826,7 @@
         document.getElementById('mp_parEmail').textContent = linkedPar.email || '—';
         document.getElementById('mp_parPhone').textContent = linkedPar.phone || '—';
 
-        const parRealPass = linkedPar.password || (linkedPar.data && linkedPar.data.password) || 'Parent@123';
+        const parRealPass = linkedPar.password || (linkedPar.data && linkedPar.data.password) || '—';
         const passSpan = document.getElementById('mp_parPass');
         const revBtn   = document.getElementById('mp_parPassRevealBtn');
         if (passSpan) {
@@ -8423,7 +8896,7 @@
         passSpan.style.color = '';
         btn.textContent = 'Reveal';
       } else {
-        passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
+        passSpan.textContent = passSpan.dataset.realPass || '—';
         passSpan.dataset.revealed = 'true';
         passSpan.style.color = 'var(--brand-green)';
         btn.textContent = 'Hide';
@@ -8978,7 +9451,7 @@
           <td style="padding:10px 14px;">
             <span class="badge badge-navy" style="font-family:var(--font-mono); font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:2px 8px;">
               <span class="pass-val">••••••••</span>
-              <button type="button" class="par-pass-reveal-btn" data-pass="${r.password || (r.data && r.data.password) || 'Parent@123'}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1; color:var(--ink-soft); display:inline-flex;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+              <button type="button" class="par-pass-reveal-btn" data-pass="${r.password || (r.data && r.data.password) || '—'}" style="background:none; border:none; cursor:pointer; padding:0; font-size:12px; line-height:1; color:var(--ink-soft); display:inline-flex;" title="Show Password"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </span>
           </td>
           <td style="padding:10px 14px; text-align:right; white-space:nowrap;">
@@ -8997,7 +9470,7 @@
         e.stopPropagation();
         const btn = e.currentTarget;
         const span = btn.previousElementSibling;
-        const pass = btn.dataset.pass || 'Parent@123';
+        const pass = btn.dataset.pass || '—';
         if (span.textContent === '••••••••') {
           span.textContent = pass;
           span.style.color = 'var(--brand-green)';
@@ -11393,23 +11866,33 @@
       renderConsolidatedMarksTable();
     });
 
-    // Custom Exam input toggle
-    document.getElementById('marksExamSelect')?.addEventListener('change', (e) => {
-      const customInp = document.getElementById('marksCustomExamInput');
-      if (e.target.value === '__custom__') {
-        if (customInp) { customInp.style.display = 'block'; customInp.focus(); }
-      } else {
-        if (customInp) { customInp.style.display = 'none'; }
+    // Typeable Exam input listener
+    document.getElementById('marksExamSelect')?.addEventListener('change', async (e) => {
+      const val = (e.target.value || '').trim();
+      if (val) currentMarksExamName = val;
+      if (document.getElementById('marksClassFilter')?.value) {
+        await loadClassAcademicMarks();
+      }
+    });
+    document.getElementById('marksExamSelect')?.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = (e.target.value || '').trim();
+        if (val) currentMarksExamName = val;
+        if (document.getElementById('marksClassFilter')?.value) {
+          await loadClassAcademicMarks();
+        }
       }
     });
 
     function getSelectedExamName() {
       const sel = document.getElementById('marksExamSelect');
       if (!sel) return 'Quarterly Examination';
-      if (sel.value === '__custom__') {
-        return (document.getElementById('marksCustomExamInput')?.value.trim()) || 'Custom Examination';
+      const val = (sel.value || '').trim();
+      if (!val || val === '__custom__') {
+        return (document.getElementById('marksCustomExamInput')?.value?.trim()) || 'Quarterly Examination';
       }
-      return sel.value;
+      return val;
     }
 
     // Load Class Marks handler
@@ -12744,13 +13227,18 @@
           const blood = idxBlood !== -1 && r[idxBlood] ? r[idxBlood].trim() : 'O+';
           const aadhaar = idxAadhaar !== -1 && r[idxAadhaar] ? r[idxAadhaar].trim() : '';
           const stuEmail = idxStuEmail !== -1 && r[idxStuEmail] ? r[idxStuEmail].trim() : '';
-          const stuPass = idxStuPass !== -1 && r[idxStuPass] ? r[idxStuPass].trim() : 'Student@123';
+          const cleanAdmCode = (admNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const stuPass = (idxStuPass !== -1 && r[idxStuPass] && r[idxStuPass].trim())
+            ? r[idxStuPass].trim()
+            : ((dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : (cleanAdmCode ? cleanAdmCode.toUpperCase() + '@' + new Date().getFullYear() : 'Stu@' + Math.floor(1000 + Math.random() * 9000)));
           const fatherName = idxFather !== -1 && r[idxFather] ? r[idxFather].trim() : '';
           const fatherPhone = idxFatherPhone !== -1 && r[idxFatherPhone] ? String(r[idxFatherPhone]).replace(/\D/g, '') : '';
           const motherName = idxMother !== -1 && r[idxMother] ? r[idxMother].trim() : '';
           const motherPhone = idxMotherPhone !== -1 && r[idxMotherPhone] ? String(r[idxMotherPhone]).replace(/\D/g, '') : '';
           const parEmail = idxParEmail !== -1 && r[idxParEmail] ? r[idxParEmail].trim() : '';
-          const parPass = idxParPass !== -1 && r[idxParPass] ? r[idxParPass].trim() : 'Parent@123';
+          const parPass = (idxParPass !== -1 && r[idxParPass] && r[idxParPass].trim())
+            ? r[idxParPass].trim()
+            : (fatherPhone && fatherPhone.length >= 6 ? fatherPhone : (cleanAdmCode ? 'Par@' + cleanAdmCode.toUpperCase() : 'Par@' + Math.floor(1000 + Math.random() * 9000)));
           const address = idxAddr !== -1 && r[idxAddr] ? r[idxAddr].trim() : '';
           const city = idxCity !== -1 && r[idxCity] ? r[idxCity].trim() : '';
           const pincode = idxPin !== -1 && r[idxPin] ? r[idxPin].trim() : '';
@@ -12847,7 +13335,7 @@
           const cleanAdm = s.admNo.toLowerCase().replace(/[^a-z0-9]/g, '');
           const cleanRoll = s.rollNo.replace(/[^a-z0-9]/gi, '');
           const studentEmail = s.stuEmail || `${cleanAdm || cleanRoll}@student.amalaschool.edu`;
-          const studentPass = s.stuPass || 'Student@123';
+          const studentPass = s.stuPass || (cleanAdm ? cleanAdm.toUpperCase() + '@' + new Date().getFullYear() : 'Stu@' + Math.floor(1000 + Math.random() * 9000));
 
           let stuUid = null;
           try {
@@ -12864,7 +13352,7 @@
 
           // Parent login credentials
           const parentEmail = s.parEmail || (s.fatherPhone ? `${s.fatherPhone}@parent.amalaschool.edu` : `${cleanAdm || cleanRoll}@parent.amalaschool.edu`);
-          const parentPass = s.parPass || 'Parent@123';
+          const parentPass = s.parPass || (s.fatherPhone && s.fatherPhone.length >= 6 ? s.fatherPhone : (cleanAdm ? 'Par@' + cleanAdm.toUpperCase() : 'Par@' + Math.floor(1000 + Math.random() * 9000)));
           let parUid = null;
           try {
             const parCred = await createUserWithEmailAndPassword(secAuth, parentEmail, parentPass);

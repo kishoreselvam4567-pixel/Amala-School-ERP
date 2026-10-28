@@ -1444,6 +1444,59 @@
   </div>
 </div>
 
+<!-- ================= CLASS INCHARGE GRANT SUBJECT PERMISSION MODAL ================= -->
+<div class="profile-modal-overlay" id="inchargeGrantSubModal">
+  <div class="profile-modal-card" style="max-width:560px; width:95%;">
+    <button type="button" class="modal-close" id="closeInchargeGrantSubModal">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+      <div style="width:42px; height:42px; border-radius:10px; background:rgba(16,185,129,0.12); color:#059669; display:flex; align-items:center; justify-content:center;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 style="margin:0; font-size:18px; color:var(--ink);">Grant Subject Faculty Permission</h3>
+        <p style="margin:2px 0 0 0; font-size:12.5px; color:var(--ink-soft);">
+          As Class Incharge, authorize another teacher to teach and enter marks for a subject in your class.
+        </p>
+      </div>
+    </div>
+
+    <form id="inchargeGrantSubForm">
+      <div class="field" style="margin-bottom:14px;">
+        <label style="font-weight:700; font-size:12.5px;">My Class Section</label>
+        <input type="text" id="inchargeModalClassName" readonly
+          style="background:#f8fafc; font-weight:700; color:var(--ink); padding:9px 12px; border:1px solid var(--line); border-radius:8px;">
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label style="font-weight:700; font-size:12.5px;">Subject to Assign <span style="color:var(--bad);">*</span></label>
+        <select id="inchargeModalSubjectSelect" required style="font-weight:600; padding:9px 12px; border:1px solid var(--line); border-radius:8px;">
+          <option value="">-- Choose Subject --</option>
+        </select>
+      </div>
+
+      <div class="field" style="margin-bottom:18px;">
+        <label style="font-weight:700; font-size:12.5px;">Faculty Member to Authorize <span style="color:var(--bad);">*</span></label>
+        <select id="inchargeModalTeacherSelect" required style="font-weight:600; padding:9px 12px; border:1px solid var(--line); border-radius:8px;">
+          <option value="">-- Select Teacher --</option>
+        </select>
+      </div>
+
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; margin-bottom:18px; font-size:12px; color:#1e40af;">
+        ℹ️ The authorized faculty member will immediately receive permission to view student rosters and enter marks for this subject in your class section.
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn btn-outline" id="cancelInchargeGrantSubBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitInchargeGrantSubBtn" style="font-weight:700;">
+          Grant Subject Permission
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="app-shell">
   <div class="sidebar" id="sidebar">
     <div class="brand-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
@@ -1496,7 +1549,7 @@
       </a>
       <a href="#" data-tab="students" id="navStudents" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        Manage Students
+        Class Incharge
       </a>
     </nav>
     <div class="user-box">
@@ -2258,6 +2311,25 @@
           </div>
         </div>
 
+        <!-- ================= MY ASSIGNED TEACHING CLASSES & SUBJECTS TABS ================= -->
+        <div class="card" style="margin-bottom:16px; padding:12px 18px; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:6px; background:#eff6ff; color:#2563eb;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </span>
+              <span style="font-size:13px; font-weight:700; color:var(--ink);">My Assigned Teaching Classes:</span>
+              <span style="font-size:12px; color:var(--ink-soft);">(Click tab to switch class)</span>
+            </div>
+            <span class="badge badge-purple" id="facultyTeachingCountBadge" style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px;">0 Allocations</span>
+          </div>
+
+          <!-- Small Size Tab Strip -->
+          <div id="facultyTeachingGrid" class="faculty-tabs-strip" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <div style="color:var(--ink-soft); font-style:italic; font-size:12.5px; padding:4px 0;">Loading allocations…</div>
+          </div>
+        </div>
+
         <!-- Filter & Control Card -->
         <div class="card" style="margin-bottom:20px; padding:18px 22px;">
           <div class="field-row" style="align-items:flex-end; gap:16px;">
@@ -2268,19 +2340,27 @@
               </select>
             </div>
 
-            <div class="field" style="flex:1.2; min-width:200px;">
-              <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Examination *</label>
-              <div style="display:flex; gap:8px;">
-                <select id="marksExamSelect" style="flex:1; font-weight:600; font-size:13.5px; padding:9px 12px;">
-                  <option value="Quarterly Examination">Quarterly Examination</option>
-                  <option value="Midterm 1">Midterm 1</option>
-                  <option value="Midterm 2">Midterm 2</option>
-                  <option value="Half Yearly Examination">Half Yearly Examination</option>
-                  <option value="Annual / Final Examination">Annual / Final Examination</option>
-                  <option value="Unit Test 1">Unit Test 1</option>
-                  <option value="Unit Test 2">Unit Test 2</option>
-                  <option value="__custom__">+ Custom Exam...</option>
-                </select>
+            <div class="field" style="flex:1.2; min-width:220px;">
+              <label style="font-weight:700; color:var(--ink); font-size:12.5px;">Exam Type / Examination *</label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="text" id="marksExamSelect" list="marksExamOptionsList"
+                  value="Quarterly Examination"
+                  placeholder="Type or select exam name..."
+                  style="width:100%; font-weight:600; font-size:13.5px; padding:9px 12px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--ink);"
+                  autocomplete="off">
+                <datalist id="marksExamOptionsList">
+                  <option value="Quarterly Examination"></option>
+                  <option value="Midterm 1"></option>
+                  <option value="Midterm 2"></option>
+                  <option value="Half Yearly Examination"></option>
+                  <option value="Annual / Final Examination"></option>
+                  <option value="Unit Test 1"></option>
+                  <option value="Unit Test 2"></option>
+                  <option value="Slip Test"></option>
+                  <option value="Revision Exam 1"></option>
+                  <option value="Revision Exam 2"></option>
+                  <option value="Model Examination"></option>
+                </datalist>
                 <input type="text" id="marksCustomExamInput" placeholder="Exam Name"
                   style="display:none; flex:1; padding:9px 12px; font-size:13px; border-radius:8px; border:1px solid var(--line);">
               </div>
@@ -2310,6 +2390,28 @@
             </div>
             <div style="font-size:12px; color:var(--ink-soft);">
               💡 <em>Click any student below to inspect their full subject list and enter/edit marks.</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVE SUBJECT ACTION BANNER -->
+        <div id="activeSubjectBanner" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 20px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <span class="badge badge-blue" style="font-size:11px; font-weight:700; margin-bottom:4px;">Currently Active for Marks Entry</span>
+              <h4 id="activeSubjectBannerTitle" style="margin:2px 0 0 0; font-size:17px; color:#1e3a8a;">
+                Class — Subject
+              </h4>
+              <p id="activeSubjectBannerDesc" style="margin:2px 0 0 0; font-size:12.5px; color:#3b82f6;">
+                Enter marks directly in the table below or click "Inspect Subjects" for full scorecard.
+              </p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <span class="badge badge-good" id="activeSubMarkedStatusBadge" style="font-size:12px; font-weight:700;">0 / 0 Marked</span>
+              <button type="button" class="btn btn-primary btn-sm" id="quickSaveActiveSubMarksBtn" style="font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save All Subject Marks Live
+              </button>
             </div>
           </div>
         </div>
@@ -2467,18 +2569,75 @@
         </div>
       </section>
 
-      <!-- MANAGE STUDENTS (Class Teacher Only) -->
+      <!-- CLASS INCHARGE DASHBOARD -->
       <section id="panel-students" style="display:none;">
         <div class="main-header">
           <div>
-            <h2>Class Student Roster</h2>
-            <p style="color:var(--ink-soft);">Register new students for your class with speed-boosted DOB and view ID cards.</p>
+            <h2>Class Incharge Dashboard</h2>
+            <p style="color:var(--ink-soft);">Official Class Section Administration, Student Roster &amp; Academic Intelligence</p>
           </div>
           <button type="button" class="btn-exit-tab" data-go-tab="overview" title="Exit this tab and return to Home Overview">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             Exit to Home
           </button>
         </div>
+
+        <!-- Incharge Hero Header Card -->
+        <div class="card" style="margin-bottom:20px; background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:1px solid #bbf7d0; padding:20px 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--brand-green); margin-bottom:4px;">★ Official Class Incharge Authority</div>
+              <h3 style="margin:0 0 6px 0; font-size:22px; color:var(--ink);" id="inchargeClassHeaderTitle">Assigned Class Section</h3>
+              <p style="margin:0; font-size:13px; color:var(--ink-soft);" id="inchargeClassHeaderDesc">Authorized for student mentorship, attendance oversight, and class performance tracking.</p>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:10px; padding:8px 14px; text-align:center;">
+                <div style="font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">Enrolled</div>
+                <div style="font-size:18px; font-weight:800; color:var(--brand-green);" id="inchargeEnrolledCount">0</div>
+              </div>
+              <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:10px; padding:8px 14px; text-align:center;">
+                <div style="font-size:11px; font-weight:700; color:var(--ink-soft); text-transform:uppercase;">Attendance</div>
+                <div style="font-size:18px; font-weight:800; color:#2563eb;" id="inchargeAttendanceRate">Active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incharge Academic & Subject Teachers Summary Cards -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-bottom:20px;">
+          <!-- Card A: Assigned Subject Teachers in this class -->
+          <div class="card card-static" style="margin:0; padding:18px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <h4 style="margin:0; font-size:14px; font-weight:800; color:var(--ink);">Assigned Subject Faculty &amp; Permissions</h4>
+                <div style="font-size:11.5px; color:var(--ink-soft);">Authorize or revoke subject mark entry permissions for this class</div>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span class="badge badge-purple" id="inchargeSubjectFacultyBadge">0 Teachers</span>
+                <button type="button" class="btn btn-primary btn-sm" id="openInchargeGrantSubModalBtn"
+                  style="font-size:11px; font-weight:700; padding:5px 12px; display:inline-flex; align-items:center; gap:5px;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Grant Subject Permission
+                </button>
+              </div>
+            </div>
+            <div id="inchargeSubjectFacultyList" style="display:flex; flex-direction:column; gap:8px; font-size:12.5px;">
+              <span style="color:var(--ink-soft); font-style:italic;">Loading teaching allocations…</span>
+            </div>
+          </div>
+
+          <!-- Card B: Class Academic Performance Summary -->
+          <div class="card card-static" style="margin:0; padding:18px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h4 style="margin:0; font-size:14px; font-weight:800; color:var(--ink);">Class Academic Summaries</h4>
+              <span class="badge badge-good" id="inchargeAcademicEvalBadge">Evaluated</span>
+            </div>
+            <div id="inchargeAcademicSummaryList" style="display:flex; flex-direction:column; gap:8px; font-size:12.5px;">
+              <span style="color:var(--ink-soft); font-style:italic;">Loading subject averages…</span>
+            </div>
+          </div>
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
             <span id="staffStuCountBadge" class="badge" style="background:#e0e7ff; color:#3730a3; font-weight:700; padding:6px 12px; border-radius:20px;">0 Enrolled</span>
@@ -2508,6 +2667,7 @@
 
         <div class="card card-static table-wrap">
           <table id="stuTable">
+
             <thead>
               <tr>
                 <th>Roll No.</th>
@@ -2542,7 +2702,8 @@
 import {
   auth, db, storage, requirePortal, logout, doc, getDoc, setDoc, collection,
   query, where, getDocs, addDoc, deleteDoc, updateDoc, serverTimestamp, orderBy, onSnapshot,
-  limit, ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut
+  limit, ref, uploadBytes, getDownloadURL, getSecondaryAuth, createUserWithEmailAndPassword, fbSignOut,
+  DJANGO_API_BASE
 } from '../../js/auth.js';
 import { initLiveNotifications } from '../../js/notifications.js';
 import { initSchoolCalendar } from '../../js/calendar-module.js';
@@ -2999,7 +3160,7 @@ document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
     passSpan.style.color = '';
     btn.textContent = 'Reveal';
   } else {
-    passSpan.textContent = passSpan.dataset.realPass || 'Student@123';
+    passSpan.textContent = passSpan.dataset.realPass || '—';
     passSpan.dataset.revealed = 'true';
     passSpan.style.color = 'var(--brand-green)';
     btn.textContent = 'Hide';
@@ -3008,7 +3169,7 @@ document.getElementById('mp_togglePassBtn')?.addEventListener('click', () => {
 
 // Direct Portal Launch Helper
 function launchStaffPortalSession(role, userPayload, targetUrl) {
-  const pass = userPayload.tempPassword || userPayload.password || (role === 'student' ? 'Student@123' : (role === 'parent' ? 'Parent@123' : 'Staff@123'));
+  const pass = userPayload.tempPassword || userPayload.password || '';
   const sessionPayload = {
     uid: userPayload.uid || userPayload.id,
     email: userPayload.email,
@@ -3048,8 +3209,8 @@ function loginToParentPortalFromStaff() {
     name: currentModalStudent.fatherName || currentModalStudent.motherName || 'Parent of ' + currentModalStudent.name,
     email: currentModalStudent.parentEmail || 'parent@amalaschool.edu.in',
     phone: currentModalStudent.fatherPhone || currentModalStudent.motherPhone || '9840123456',
-    password: currentModalStudent.parentPassword || 'Parent@123',
-    tempPassword: currentModalStudent.parentPassword || 'Parent@123',
+    password: currentModalStudent.parentPassword || currentModalStudent.password || '',
+    tempPassword: currentModalStudent.parentPassword || currentModalStudent.password || '',
     studentId: currentModalStudent.id || currentModalStudent.uid,
     studentName: currentModalStudent.name,
     childAdmNo: currentModalStudent.admissionNo,
@@ -3089,12 +3250,28 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
     if (topStaffAvatarEl) topStaffAvatarEl.textContent = avatarLetter;
 
     let staffData = (roleData && typeof roleData === 'object') ? roleData : {};
-    if (!staffData.subjects) {
+
+    // Always fetch live staff doc from DB to avoid stale localStorage/sessionStorage cache
+    try {
+      const staffDoc = await getDoc(doc(db, 'staff', staffUid));
+      if (staffDoc.exists()) {
+        staffData = { ...staffData, ...staffDoc.data() };
+      }
+    } catch (e) {
+      console.warn('Backend live staff doc fetch error:', e);
+    }
+
+    // Direct backend staff endpoint fallback
+    if (!staffData.subjects || !staffData.subjects.length) {
       try {
-        const staffDoc = await getDoc(doc(db, 'staff', staffUid));
-        if (staffDoc.exists()) staffData = { ...staffData, ...staffDoc.data() };
+        const sRes = await fetch(`${DJANGO_API_BASE}/staff/${staffUid}/`);
+        if (sRes.ok) {
+          const sJson = await sRes.json();
+          staffData = { ...staffData, ...sJson };
+        }
       } catch (e) {}
     }
+
     subjectAssignments = staffData.subjects || [];
 
     if (staffData.classTeacherOf) {
@@ -3104,6 +3281,57 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
           classTeacherClass = { id: classDoc.id, ...classDoc.data() };
         }
       } catch(e) {}
+    }
+
+    // Verify live Class Incharge authority via Backend API
+    try {
+      const incRes = await fetch(`${DJANGO_API_BASE}/teacher/incharge-dashboard/?teacherUid=${staffUid}`);
+      if (incRes.ok) {
+        const incData = await incRes.json();
+        if (incData.isClassIncharge && incData.class) {
+          classTeacherClass = incData.class;
+        } else {
+          classTeacherClass = null;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend incharge status check error:', e);
+    }
+
+    // Fetch official live Subject Teacher assignments via Backend API
+    try {
+      const subRes = await fetch(`${DJANGO_API_BASE}/teacher/assigned-subjects/?teacherUid=${staffUid}`);
+      if (subRes.ok) {
+        const subs = await subRes.json();
+        if (Array.isArray(subs)) {
+          const merged = [];
+          const seenKeys = new Set();
+
+          subs.forEach(s => {
+            if (s && s.subject) {
+              const k = `${s.classId || s.className}::${s.subject}`.toLowerCase();
+              if (!seenKeys.has(k)) {
+                seenKeys.add(k);
+                merged.push(s);
+              }
+            }
+          });
+
+          (staffData.subjects || []).forEach(s => {
+            if (s && s.subject) {
+              const k = `${s.classId || s.className}::${s.subject}`.toLowerCase();
+              if (!seenKeys.has(k)) {
+                seenKeys.add(k);
+                merged.push(s);
+              }
+            }
+          });
+
+          subjectAssignments = merged;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend subject assignments fetch error:', e);
     }
 
     // Set roles label
@@ -3151,22 +3379,70 @@ requirePortal(['staff'], async ({ user, profile, roleData }) => {
           </div>
         </div>
       </div>
-      <h4 style="margin:0 0 10px 0; font-size:14px;">Assigned Classes &amp; Subjects</h4>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:#2563eb; margin-bottom:2px;">
+            ★ Teaching Schedule &amp; Responsibilities
+          </div>
+          <h4 style="margin:0; font-size:16px; color:var(--ink);">My Assigned Classes &amp; Teaching Subjects</h4>
+        </div>
+        <span class="badge badge-purple" style="font-size:11.5px; font-weight:700;">
+          ${(subjectAssignments?.length || 0) + (classTeacherClass ? 1 : 0)} Allocation${((subjectAssignments?.length || 0) + (classTeacherClass ? 1 : 0)) !== 1 ? 's' : ''}
+        </span>
+      </div>
     `;
 
+    const allAllocations = [];
     if (classTeacherClass) {
-      html += `<div style="margin-bottom:12px;"><span class="badge badge-good">Class Teacher</span> <strong>${classTeacherClass.name}</strong></div>`;
-    }
-    if (subjectAssignments.length) {
-      html += '<div><strong>Subject Allocations:</strong><ul style="margin:8px 0 0 20px;padding:0;">';
-      subjectAssignments.forEach(a => {
-        html += `<li><strong>${a.subject}</strong> — ${a.className || 'Class'}</li>`;
+      allAllocations.push({
+        classId: classTeacherClass.id,
+        className: classTeacherClass.name,
+        subject: classTeacherClass.majorSubject || 'Class Incharge Duties',
+        isClassIncharge: true
       });
-      html += '</ul></div>';
     }
-    if (!classTeacherClass && !subjectAssignments.length) {
-      html += '<p style="color:var(--ink-soft);">No teaching assignments currently active. Please contact the administrator.</p>';
+    (subjectAssignments || []).forEach(sa => {
+      // If not already added as incharge with same subject
+      if (!allAllocations.some(a => a.classId === sa.classId && a.subject === sa.subject)) {
+        allAllocations.push({
+          classId: sa.classId,
+          className: sa.className || 'Class',
+          subject: sa.subject,
+          isClassIncharge: classTeacherClass && classTeacherClass.id === sa.classId
+        });
+      }
+    });
+
+    if (allAllocations.length > 0) {
+      html += `
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; margin-top:8px;">
+          ${allAllocations.map(a => `
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; justify-content:space-between; transition:all 0.2s ease;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span class="badge ${a.isClassIncharge ? 'badge-good' : 'badge-navy'}" style="font-size:10px; font-weight:700;">
+                    ${a.isClassIncharge ? '★ Class Incharge' : 'Subject Faculty'}
+                  </span>
+                  <span class="badge badge-purple" style="font-size:11px; font-weight:700;">${escapeHtml(a.subject)}</span>
+                </div>
+                <h5 style="margin:2px 0 4px 0; font-size:15px; color:var(--ink);">${escapeHtml(a.className)}</h5>
+                <div style="font-size:12px; color:var(--ink-soft);">Teaching: <strong style="color:#2563eb;">${escapeHtml(a.subject)}</strong></div>
+              </div>
+              <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="window.jumpToFacultyMarksEntry('${a.classId}', '${escapeHtml(a.subject)}')"
+                  style="font-size:11.5px; font-weight:700; color:#059669; border-color:#059669; background:#fff; padding:4px 10px; border-radius:6px; cursor:pointer;"
+                  title="Switch to Marks tab and enter marks for ${escapeHtml(a.subject)} in ${escapeHtml(a.className)}">
+                  Enter Class Marks &rarr;
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } else {
+      html += '<p style="color:var(--ink-soft); font-style:italic; margin-top:8px;">No teaching assignments currently active. Please contact the administrator.</p>';
     }
+
     document.getElementById('assignBox').innerHTML = html;
 
     // Configure Students Access for Class Teacher
@@ -5487,57 +5763,283 @@ let currentMarksStudents = [];
 let currentMarksRecordsMap = {}; // key: `${studentUid}_${subject}` -> record obj
 let currentMarksActiveStudentIdx = 0;
 let currentMarksViewMode = 'students'; // 'students' or 'consolidated'
+let activeFacultySelectedSubject = null;
+
+function renderFacultyTeachingSchedule() {
+  const grid = document.getElementById('facultyTeachingGrid');
+  const countBadge = document.getElementById('facultyTeachingCountBadge');
+  if (!grid) return;
+
+  const allocations = [];
+
+  // 1. Add all subject allocations
+  (subjectAssignments || []).forEach(sa => {
+    if (sa.classId && sa.subject) {
+      allocations.push({
+        classId: sa.classId,
+        className: sa.className || 'Class',
+        subject: sa.subject,
+        isClassIncharge: classTeacherClass && classTeacherClass.id === sa.classId
+      });
+    }
+  });
+
+  // 2. If Class Incharge, add master incharge allocation card with Full Permission
+  if (classTeacherClass) {
+    const isHS = isHigherSecondaryClass(classTeacherClass.name);
+    const inchargeSubjects = isHS ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects : STANDARD_CORE_SUBJECTS;
+    allocations.unshift({
+      classId: classTeacherClass.id,
+      className: classTeacherClass.name,
+      subject: inchargeSubjects[0] || 'Tamil',
+      isClassIncharge: true,
+      isInchargeMaster: true
+    });
+  }
+
+  if (countBadge) {
+    countBadge.textContent = `${allocations.length} Class Allocation${allocations.length !== 1 ? 's' : ''}`;
+  }
+
+  if (!allocations.length) {
+    grid.innerHTML = '<div style="color:var(--ink-soft); font-style:italic; padding:12px; grid-column:1/-1;">No teaching allocations assigned yet. Please contact the administrator.</div>';
+    return;
+  }
+
+  grid.innerHTML = allocations.map(a => {
+    if (a.isInchargeMaster) {
+      const isSelected = currentMarksClassId === a.classId;
+      const border = isSelected ? '1.5px solid #059669' : '1px solid #a7f3d0';
+      const bg = isSelected ? '#059669' : '#ecfdf5';
+      const text = isSelected ? '#ffffff' : '#065f46';
+      const badgeBg = isSelected ? 'rgba(255,255,255,0.25)' : '#d1fae5';
+      const badgeText = isSelected ? '#ffffff' : '#047857';
+      const shadow = isSelected ? 'box-shadow: 0 2px 6px rgba(5, 150, 105, 0.28);' : 'none';
+
+      return `
+        <button type="button" class="faculty-alloc-card incharge-master-card ${isSelected ? 'active-tab' : ''}"
+          data-classid="${a.classId}" data-subject="${escapeHtml(a.subject)}"
+          style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all 0.15s ease; border:${border}; background:${bg}; color:${text}; ${shadow}">
+          <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700;">★ ${escapeHtml(a.className)}</span>
+          <span style="display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:4px; background:${badgeBg}; color:${badgeText};">
+            Incharge (All)
+          </span>
+        </button>
+      `;
+    }
+
+    const isSelected = (currentMarksClassId === a.classId && (!activeFacultySelectedSubject || activeFacultySelectedSubject.toLowerCase() === a.subject.toLowerCase()));
+    const border = isSelected ? '1.5px solid #2563eb' : '1px solid #cbd5e1';
+    const bg = isSelected ? '#2563eb' : '#ffffff';
+    const text = isSelected ? '#ffffff' : 'var(--ink)';
+    const badgeBg = isSelected ? 'rgba(255,255,255,0.22)' : '#ede9fe';
+    const badgeText = isSelected ? '#ffffff' : '#6d28d9';
+    const shadow = isSelected ? 'box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);' : 'none';
+    const capSub = a.subject ? a.subject.charAt(0).toUpperCase() + a.subject.slice(1) : '';
+
+    return `
+      <button type="button" class="faculty-alloc-card ${isSelected ? 'active-tab' : ''}"
+        data-classid="${a.classId}" data-subject="${escapeHtml(a.subject)}"
+        style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all 0.15s ease; border:${border}; background:${bg}; color:${text}; ${shadow}">
+        <span style="font-weight:700;">${escapeHtml(a.className)}</span>
+        <span style="display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:4px; background:${badgeBg}; color:${badgeText};">
+          ${escapeHtml(capSub)}
+        </span>
+      </button>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.faculty-alloc-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const cid = card.dataset.classid;
+      const sub = card.dataset.subject;
+      selectFacultyClassAndSubject(cid, sub);
+    });
+  });
+}
+
+function updateFacultyTeachingTabActiveStates() {
+  const grid = document.getElementById('facultyTeachingGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.faculty-alloc-card').forEach(card => {
+    const cid = card.dataset.classid;
+    const sub = card.dataset.subject;
+    const isIncharge = card.classList.contains('incharge-master-card');
+    const isSelected = isIncharge 
+      ? (currentMarksClassId === cid)
+      : (currentMarksClassId === cid && (!activeFacultySelectedSubject || activeFacultySelectedSubject.toLowerCase() === (sub || '').toLowerCase()));
+
+    if (isIncharge) {
+      card.style.border = isSelected ? '1.5px solid #059669' : '1px solid #a7f3d0';
+      card.style.background = isSelected ? '#059669' : '#ecfdf5';
+      card.style.color = isSelected ? '#ffffff' : '#065f46';
+      card.style.boxShadow = isSelected ? '0 2px 6px rgba(5, 150, 105, 0.28)' : 'none';
+      const badge = card.querySelector('span:last-child');
+      if (badge) {
+        badge.style.background = isSelected ? 'rgba(255,255,255,0.25)' : '#d1fae5';
+        badge.style.color = isSelected ? '#ffffff' : '#047857';
+      }
+    } else {
+      card.style.border = isSelected ? '1.5px solid #2563eb' : '1px solid #cbd5e1';
+      card.style.background = isSelected ? '#2563eb' : '#ffffff';
+      card.style.color = isSelected ? '#ffffff' : 'var(--ink)';
+      card.style.boxShadow = isSelected ? '0 2px 6px rgba(37, 99, 235, 0.28)' : 'none';
+      const badge = card.querySelector('span:last-child');
+      if (badge) {
+        badge.style.background = isSelected ? 'rgba(255,255,255,0.22)' : '#ede9fe';
+        badge.style.color = isSelected ? '#ffffff' : '#6d28d9';
+      }
+    }
+  });
+}
+
+function selectFacultyClassAndSubject(classId, subject) {
+  const sel = document.getElementById('marksClassFilter');
+  if (sel) {
+    if (!sel.options.length || sel.options.length <= 1) {
+      initStaffMarksClassFilter();
+    }
+    let matched = false;
+    for (const opt of sel.options) {
+      const optCid = opt.dataset.classid || (opt.value ? opt.value.split('__')[0] : '');
+      const optSub = opt.dataset.subject || (opt.value ? opt.value.split('__')[1] : '');
+      if (optCid === classId && (!subject || (optSub && optSub.toLowerCase() === subject.toLowerCase()))) {
+        opt.selected = true;
+        sel.value = opt.value;
+        matched = true;
+        if (optSub) activeFacultySelectedSubject = optSub;
+        break;
+      }
+    }
+    if (!matched) {
+      for (const opt of sel.options) {
+        const optCid = opt.dataset.classid || (opt.value ? opt.value.split('__')[0] : '');
+        if (optCid === classId) {
+          opt.selected = true;
+          sel.value = opt.value;
+          if (opt.dataset.subject) activeFacultySelectedSubject = opt.dataset.subject;
+          matched = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (subject && subject !== 'Class Administration') {
+    activeFacultySelectedSubject = subject;
+  }
+  updateFacultyTeachingTabActiveStates();
+  loadClassAcademicMarks();
+}
+window.selectFacultyClassAndSubject = selectFacultyClassAndSubject;
+
+window.jumpToFacultyMarksEntry = function(classId, subject) {
+  switchTab('marks');
+  setTimeout(() => {
+    initStaffMarksClassFilter();
+    selectFacultyClassAndSubject(classId, subject);
+  }, 80);
+};
 
 function initStaffMarksClassFilter() {
   const sel = document.getElementById('marksClassFilter');
   if (!sel) return;
   const prevVal = sel.value;
+  const prevSelOpt = sel.selectedOptions?.[0];
+  const prevClassId = prevSelOpt?.dataset?.classid || (prevVal ? prevVal.split('__')[0] : '');
+  const prevSubject = prevSelOpt?.dataset?.subject || activeFacultySelectedSubject;
 
-  const assignedClasses = [];
-  const seenClassIds = new Set();
+  const assignedOptions = [];
 
-  if (classTeacherClass && classTeacherClass.id) {
-    seenClassIds.add(classTeacherClass.id);
-    assignedClasses.push({
-      id: classTeacherClass.id,
-      name: `${classTeacherClass.name} ★ (My Class Teacher Section)`
-    });
-  }
-
+  // Add all subject assignments as separate distinct options
   (subjectAssignments || []).forEach(sa => {
-    if (sa.classId && !seenClassIds.has(sa.classId)) {
-      seenClassIds.add(sa.classId);
-      assignedClasses.push({
-        id: sa.classId,
-        name: `${sa.className || 'Class'} (${sa.subject})`
-      });
+    if (sa.classId && sa.subject) {
+      const optName = `${sa.className || 'Class'} (${sa.subject})`;
+      if (!assignedOptions.some(o => o.id === sa.classId && o.subject.toLowerCase() === sa.subject.toLowerCase())) {
+        assignedOptions.push({
+          id: sa.classId,
+          subject: sa.subject,
+          name: optName,
+          isAssignedSubject: true
+        });
+      }
     }
   });
 
-  let optionsHtml = '';
-  if (assignedClasses.length > 1) {
-    optionsHtml = '<option value="">-- Choose Managed Class --</option>';
-    assignedClasses.forEach(c => {
-      optionsHtml += `<option value="${c.id}">${c.name}</option>`;
+  // If Class Incharge, add all subjects for incharge class with Full Permission
+  if (classTeacherClass && classTeacherClass.id) {
+    const isHS = isHigherSecondaryClass(classTeacherClass.name);
+    const inchargeSubjects = isHS ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects : STANDARD_CORE_SUBJECTS;
+
+    inchargeSubjects.forEach(sub => {
+      const existing = assignedOptions.find(o => o.id === classTeacherClass.id && o.subject.toLowerCase() === sub.toLowerCase());
+      if (!existing) {
+        assignedOptions.unshift({
+          id: classTeacherClass.id,
+          subject: sub,
+          name: `${classTeacherClass.name} — ${sub} ★ (Incharge Full Permission)`,
+          isIncharge: true
+        });
+      } else {
+        existing.name = `${classTeacherClass.name} (${existing.subject}) ★ (Assigned Faculty & Incharge)`;
+      }
     });
-  } else if (assignedClasses.length === 1) {
-    optionsHtml = `<option value="${assignedClasses[0].id}">${assignedClasses[0].name}</option>`;
+  }
+
+  let optionsHtml = '';
+  if (assignedOptions.length > 1) {
+    optionsHtml = '<option value="">-- Choose Class Section &amp; Subject --</option>';
+    assignedOptions.forEach(c => {
+      const optVal = `${c.id}__${c.subject}`;
+      optionsHtml += `<option value="${optVal}" data-classid="${c.id}" data-subject="${escapeHtml(c.subject)}">${escapeHtml(c.name)}</option>`;
+    });
+  } else if (assignedOptions.length === 1) {
+    const c = assignedOptions[0];
+    const optVal = `${c.id}__${c.subject}`;
+    optionsHtml = `<option value="${optVal}" data-classid="${c.id}" data-subject="${escapeHtml(c.subject)}">${escapeHtml(c.name)}</option>`;
   } else {
     optionsHtml = '<option value="">No Class Assigned to You</option>';
   }
 
   sel.innerHTML = optionsHtml;
 
-  if (prevVal && sel.querySelector(`option[value="${prevVal}"]`)) {
-    sel.value = prevVal;
-  } else if (assignedClasses.length > 0) {
-    sel.value = assignedClasses[0].id;
+  // Restore selection or select first
+  let restored = false;
+  if (prevVal) {
+    for (const opt of sel.options) {
+      const optCid = opt.dataset.classid || (opt.value ? opt.value.split('__')[0] : '');
+      const optSub = opt.dataset.subject || (opt.value ? opt.value.split('__')[1] : '');
+      if (opt.value === prevVal || (prevClassId && optCid === prevClassId && prevSubject && optSub.toLowerCase() === prevSubject.toLowerCase())) {
+        opt.selected = true;
+        sel.value = opt.value;
+        restored = true;
+        if (optSub) activeFacultySelectedSubject = optSub;
+        break;
+      }
+    }
   }
+
+  if (!restored && assignedOptions.length > 0) {
+    const defaultOpt = assignedOptions.find(o => prevSubject && o.subject.toLowerCase() === prevSubject.toLowerCase()) || assignedOptions[0];
+    const targetVal = `${defaultOpt.id}__${defaultOpt.subject}`;
+    for (const opt of sel.options) {
+      if (opt.value === targetVal) {
+        opt.selected = true;
+        sel.value = opt.value;
+        break;
+      }
+    }
+    activeFacultySelectedSubject = defaultOpt.subject;
+  }
+
+  renderFacultyTeachingSchedule();
 }
 
 function onStaffMarksTabOpen() {
   initStaffMarksClassFilter();
-  const cid = document.getElementById('marksClassFilter')?.value;
+  const selOpt = document.getElementById('marksClassFilter')?.selectedOptions?.[0];
+  const rawVal = document.getElementById('marksClassFilter')?.value || '';
+  const cid = selOpt?.dataset?.classid || (rawVal.includes('__') ? rawVal.split('__')[0] : rawVal);
   if (cid && (!currentMarksClassId || currentMarksClassId !== cid || !currentMarksStudents.length)) {
     loadClassAcademicMarks();
   }
@@ -5561,23 +6063,33 @@ document.getElementById('marksTabBtnConsolidated')?.addEventListener('click', ()
   renderConsolidatedMarksTable();
 });
 
-// Custom Exam input toggle
-document.getElementById('marksExamSelect')?.addEventListener('change', (e) => {
-  const customInp = document.getElementById('marksCustomExamInput');
-  if (e.target.value === '__custom__') {
-    if (customInp) { customInp.style.display = 'block'; customInp.focus(); }
-  } else {
-    if (customInp) { customInp.style.display = 'none'; }
+// Typeable Exam input listener
+document.getElementById('marksExamSelect')?.addEventListener('change', async (e) => {
+  const val = (e.target.value || '').trim();
+  if (val) currentMarksExamName = val;
+  if (document.getElementById('marksClassFilter')?.value) {
+    await loadClassAcademicMarks();
+  }
+});
+document.getElementById('marksExamSelect')?.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = (e.target.value || '').trim();
+    if (val) currentMarksExamName = val;
+    if (document.getElementById('marksClassFilter')?.value) {
+      await loadClassAcademicMarks();
+    }
   }
 });
 
 function getSelectedExamName() {
   const sel = document.getElementById('marksExamSelect');
   if (!sel) return 'Quarterly Examination';
-  if (sel.value === '__custom__') {
-    return (document.getElementById('marksCustomExamInput')?.value.trim()) || 'Custom Examination';
+  const val = (sel.value || '').trim();
+  if (!val || val === '__custom__') {
+    return (document.getElementById('marksCustomExamInput')?.value?.trim()) || 'Quarterly Examination';
   }
-  return sel.value;
+  return val;
 }
 
 // Load Class Marks handler
@@ -5586,20 +6098,38 @@ document.getElementById('marksReportBtn')?.addEventListener('click', async () =>
 });
 
 document.getElementById('marksClassFilter')?.addEventListener('change', async () => {
+  const selOpt = document.getElementById('marksClassFilter')?.selectedOptions?.[0];
+  if (selOpt && selOpt.dataset.subject) {
+    activeFacultySelectedSubject = selOpt.dataset.subject;
+  }
   if (document.getElementById('marksClassFilter')?.value) {
     await loadClassAcademicMarks();
   }
 });
 
 async function loadClassAcademicMarks() {
-  const classId = document.getElementById('marksClassFilter')?.value;
+  const sel = document.getElementById('marksClassFilter');
+  const selOpt = sel?.selectedOptions?.[0];
+  const rawVal = sel?.value || '';
+  const classId = selOpt?.dataset?.classid || (rawVal.includes('__') ? rawVal.split('__')[0] : rawVal);
   if (!classId) {
     alert('Please select a class section first.');
     return;
   }
   currentMarksClassId = classId;
+  updateFacultyTeachingTabActiveStates();
   currentMarksExamName = getSelectedExamName();
   const maxMarksVal = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+  // Determine active subject
+  if (selOpt && selOpt.dataset.subject) {
+    activeFacultySelectedSubject = selOpt.dataset.subject;
+  } else if (rawVal.includes('__')) {
+    activeFacultySelectedSubject = rawVal.split('__')[1];
+  } else if (!activeFacultySelectedSubject) {
+    const matched = (subjectAssignments || []).find(sa => sa.classId === classId);
+    if (matched) activeFacultySelectedSubject = matched.subject;
+  }
 
   const btn = document.getElementById('marksReportBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Loading Marks…'; }
@@ -5620,6 +6150,80 @@ async function loadClassAcademicMarks() {
       currSubList.textContent = isHS
         ? 'Tamil, English, Mathematics, Physics, Chemistry, Biology / Stream Electives'
         : STANDARD_CORE_SUBJECTS.join(', ');
+    }
+
+    // Update Active Subject Action Banner
+    const banner = document.getElementById('activeSubjectBanner');
+    const bannerTitle = document.getElementById('activeSubjectBannerTitle');
+    const bannerDesc = document.getElementById('activeSubjectBannerDesc');
+    const isThisClassIncharge = classTeacherClass && classTeacherClass.id === classId;
+
+    if (banner && activeFacultySelectedSubject) {
+      banner.style.display = 'block';
+      if (isThisClassIncharge) {
+        banner.style.background = '#f0fdf4';
+        banner.style.borderColor = '#86efac';
+      } else {
+        banner.style.background = '#eff6ff';
+        banner.style.borderColor = '#bfdbfe';
+      }
+      if (bannerTitle) {
+        bannerTitle.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="color:${isThisClassIncharge ? '#059669' : '#2563eb'}; font-weight:700;">${escapeHtml(classObj.name)}</span>
+            &mdash;
+            <strong style="color:${isThisClassIncharge ? '#065f46' : '#1e3a8a'};">${escapeHtml(activeFacultySelectedSubject)}</strong>
+            ${isThisClassIncharge ? '<span class="badge badge-good" style="font-size:10.5px; font-weight:700;">★ Incharge Full Authority</span>' : '<span class="badge badge-purple" style="font-size:10.5px; font-weight:700;">Subject Faculty</span>'}
+          </div>
+        `;
+      }
+      if (bannerDesc) {
+        bannerDesc.innerHTML = isThisClassIncharge
+          ? `As the designated <strong>Class Incharge</strong>, you hold full academic authority over this class. You can enter or review marks for <strong>${escapeHtml(activeFacultySelectedSubject)}</strong>, or use the quick switcher below to switch to any other subject.`
+          : `You are authorized to enter marks for <strong>${escapeHtml(activeFacultySelectedSubject)}</strong> in this class section. Enter student scores directly in the table below and click "Save All Subject Marks Live".`;
+      }
+
+      // Quick Subject Switcher for Class Incharge
+      let pillsContainer = document.getElementById('inchargeSubjectPillsContainer');
+      if (!pillsContainer) {
+        pillsContainer = document.createElement('div');
+        pillsContainer.id = 'inchargeSubjectPillsContainer';
+        pillsContainer.style.marginTop = '12px';
+        pillsContainer.style.paddingTop = '10px';
+        pillsContainer.style.borderTop = '1px dashed #cbd5e1';
+        banner.appendChild(pillsContainer);
+      }
+
+      if (isThisClassIncharge) {
+        const classSubs = isHS ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects : STANDARD_CORE_SUBJECTS;
+        pillsContainer.style.display = 'block';
+        pillsContainer.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-size:11.5px; font-weight:700; color:#065f46;">Class Incharge Subject Switcher:</span>
+            ${classSubs.map(s => {
+              const isCur = s.toLowerCase() === activeFacultySelectedSubject.toLowerCase();
+              return `
+                <button type="button" class="btn btn-sm incharge-sub-pill" data-sub="${escapeHtml(s)}"
+                  style="font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:14px; cursor:pointer; transition:all 0.15s ease;
+                    ${isCur ? 'background:#059669; color:#fff; border:1px solid #059669; box-shadow:0 1px 4px rgba(5,150,105,0.3);' : 'background:#fff; color:#334155; border:1px solid #cbd5e1;'}">
+                  ${escapeHtml(s)}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        `;
+        pillsContainer.querySelectorAll('.incharge-sub-pill').forEach(pill => {
+          pill.addEventListener('click', () => {
+            const chosenSub = pill.dataset.sub;
+            activeFacultySelectedSubject = chosenSub;
+            loadClassAcademicMarks();
+          });
+        });
+      } else {
+        pillsContainer.style.display = 'none';
+      }
+    } else if (banner) {
+      banner.style.display = 'none';
     }
 
     // 1. Fetch Students
@@ -5645,6 +6249,8 @@ async function loadClassAcademicMarks() {
         const rExam = (rec.examName || '').trim().toLowerCase();
         const curExam = currentMarksExamName.trim().toLowerCase();
         if (rExam === curExam) {
+          const obtained = rec.marksObtained !== undefined ? rec.marksObtained : rec.marks;
+          rec.marks = (obtained !== undefined && obtained !== null) ? Number(obtained) : null;
           const key = `${sId}_${rec.subject.trim().toLowerCase()}`;
           currentMarksRecordsMap[key] = rec;
         }
@@ -5653,6 +6259,7 @@ async function loadClassAcademicMarks() {
 
     renderStudentsMarksTable();
     renderConsolidatedMarksTable();
+    renderFacultyTeachingSchedule();
 
   } catch (err) {
     console.error('Error loading marks:', err);
@@ -5707,6 +6314,7 @@ function calculateStudentMarksSummary(student, classObj) {
 }
 
 function renderStudentsMarksTable() {
+  const thead = document.querySelector('#marksStudentsTable thead');
   const tbody = document.querySelector('#marksStudentsTable tbody');
   const emptyEl = document.getElementById('marksStudentsEmpty');
   if (!tbody) return;
@@ -5721,7 +6329,47 @@ function renderStudentsMarksTable() {
   }
   if (emptyEl) emptyEl.style.display = 'none';
 
+  const defaultMax = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
   const classObj = (allClassesCache && allClassesCache.find(c => c.id === currentMarksClassId)) || (classTeacherClass && classTeacherClass.id === currentMarksClassId ? classTeacherClass : null);
+
+  // Configure dynamic headers based on whether activeFacultySelectedSubject is set
+  if (thead) {
+    if (activeFacultySelectedSubject) {
+      thead.innerHTML = `
+        <tr>
+          <th style="width:65px; text-align:center;">Roll No</th>
+          <th>Student Details</th>
+          <th style="width:115px; text-align:center;">Admission No</th>
+          <th style="width:140px;">Stream</th>
+          <th style="width:175px; text-align:center; background:#eff6ff; color:#1e3a8a; border-left:2px solid #93c5fd; border-right:2px solid #93c5fd;">
+            ★ ${escapeHtml(activeFacultySelectedSubject)} Mark (${defaultMax} M)
+          </th>
+          <th style="width:110px; text-align:center;">Class Total</th>
+          <th style="width:90px; text-align:center;">Overall %</th>
+          <th style="width:80px; text-align:center;">Grade</th>
+          <th style="width:90px; text-align:center;">Status</th>
+          <th style="width:125px; text-align:center;">Scorecard</th>
+        </tr>
+      `;
+    } else {
+      thead.innerHTML = `
+        <tr>
+          <th style="width:70px; text-align:center;">Roll No</th>
+          <th>Student Details</th>
+          <th style="width:120px; text-align:center;">Admission No</th>
+          <th style="width:160px;">Curriculum / Stream</th>
+          <th style="width:100px; text-align:center;">Subjects</th>
+          <th style="width:130px; text-align:center;">Total Marks</th>
+          <th style="width:100px; text-align:center;">Percentage</th>
+          <th style="width:90px; text-align:center;">Grade</th>
+          <th style="width:100px; text-align:center;">Result</th>
+          <th style="width:150px; text-align:center;">Action</th>
+        </tr>
+      `;
+    }
+  }
+
+  let markedActiveSubCount = 0;
 
   currentMarksStudents.forEach((s, idx) => {
     const summary = calculateStudentMarksSummary(s, classObj);
@@ -5750,31 +6398,83 @@ function renderStudentsMarksTable() {
       ? `<span class="badge badge-navy" style="font-size:11px;">${HIGHER_SECONDARY_STREAMS[s.stream]?.name.split(':')[1]?.trim() || s.stream}</span>`
       : (isHigherSecondaryClass(classObj?.name) ? '<span class="badge badge-navy" style="font-size:11px;">Higher Secondary</span>' : '<span class="badge badge-yellow" style="font-size:11px;">Standard 5 Sub</span>');
 
-    tr.innerHTML = `
-      <td style="text-align:center;">
-        <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
-      </td>
-      <td>
-        <strong style="color:var(--ink); font-size:13.5px;">${s.name}</strong>
-        <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
-      </td>
-      <td style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">
-        ${s.admissionNo || '—'}
-      </td>
-      <td>${streamDisplay}</td>
-      <td style="text-align:center;">
-        <span class="badge badge-purple" style="font-weight:700;">${summary.subjects.length} Subjects</span>
-      </td>
-      <td style="text-align:center;">${totalDisplay}</td>
-      <td style="text-align:center;">${pctDisplay}</td>
-      <td style="text-align:center;">${gradeBadge}</td>
-      <td style="text-align:center;">${resultBadge}</td>
-      <td style="text-align:center;">
-        <button type="button" class="btn btn-outline btn-sm inspectStudentMarksBtn" data-idx="${idx}" style="font-weight:700; font-size:12px; padding:5px 12px; background:var(--white); border-color:var(--brand-green); color:var(--brand-green); border-radius:6px; cursor:pointer;" title="Inspect full subjects and enter/edit marks">
-          Inspect Subjects &rarr;
-        </button>
-      </td>
-    `;
+    if (activeFacultySelectedSubject) {
+      // Direct subject mark lookup
+      const subKey = `${s.id || s.uid}_${activeFacultySelectedSubject.trim().toLowerCase()}`;
+      const subRec = currentMarksRecordsMap[subKey];
+      const subMarkVal = (subRec && subRec.marks !== undefined && subRec.marks !== null) ? subRec.marks : null;
+
+      if (subMarkVal !== null) markedActiveSubCount++;
+
+      let subGradeBadge = '<span style="color:var(--ink-soft);">—</span>';
+      if (subMarkVal !== null && !isNaN(subMarkVal)) {
+        const p = defaultMax ? Math.round((subMarkVal / defaultMax) * 100) : 0;
+        const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+        subGradeBadge = `<span class="badge ${g === 'F' ? 'badge-bad' : 'badge-good'}" style="font-size:10px; font-weight:700;">${g}</span>`;
+      }
+
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
+        </td>
+        <td>
+          <strong style="color:var(--ink); font-size:13.5px;">${s.name}</strong>
+          <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
+        </td>
+        <td style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">
+          ${s.admissionNo || '—'}
+        </td>
+        <td>${streamDisplay}</td>
+        <td style="text-align:center; background:#f8fafc; border-left:2px solid #93c5fd; border-right:2px solid #93c5fd;" onclick="event.stopPropagation();">
+          <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+            <input type="number" class="direct-subject-mark-input mrk-input"
+              data-idx="${idx}" data-stuuid="${s.id || s.uid}" data-stuname="${escapeHtml(s.name)}" data-sub="${escapeHtml(activeFacultySelectedSubject)}"
+              value="${subMarkVal !== null ? subMarkVal : ''}" min="0" max="${defaultMax}" placeholder="—"
+              style="width:72px; font-size:14px; font-weight:700; text-align:center; color:var(--brand-green); padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; background:#fff;">
+            <span class="direct-row-grade-badge">${subGradeBadge}</span>
+          </div>
+        </td>
+        <td style="text-align:center;">${totalDisplay}</td>
+        <td style="text-align:center;">${pctDisplay}</td>
+        <td style="text-align:center;">${gradeBadge}</td>
+        <td style="text-align:center;">${resultBadge}</td>
+        <td style="text-align:center;">
+          <button type="button" class="btn btn-outline btn-sm inspectStudentMarksBtn" data-idx="${idx}"
+            style="font-weight:700; font-size:11.5px; padding:4px 10px; background:var(--white); border-color:var(--brand-green); color:var(--brand-green); border-radius:6px; cursor:pointer;"
+            title="Inspect full subjects and enter/edit marks">
+            Scorecard &rarr;
+          </button>
+        </td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td style="text-align:center;">
+          <span class="badge badge-navy" style="font-family:var(--font-mono); font-weight:700; font-size:12px;">${s.rollNo || '—'}</span>
+        </td>
+        <td>
+          <strong style="color:var(--ink); font-size:13.5px;">${s.name}</strong>
+          <div style="font-size:11.5px; color:var(--ink-soft);">${s.fatherName ? 'S/O ' + s.fatherName : (s.email || '')}</div>
+        </td>
+        <td style="text-align:center; font-family:var(--font-mono); font-size:12.5px; color:var(--slate-700);">
+          ${s.admissionNo || '—'}
+        </td>
+        <td>${streamDisplay}</td>
+        <td style="text-align:center;">
+          <span class="badge badge-purple" style="font-weight:700;">${summary.subjects.length} Subjects</span>
+        </td>
+        <td style="text-align:center;">${totalDisplay}</td>
+        <td style="text-align:center;">${pctDisplay}</td>
+        <td style="text-align:center;">${gradeBadge}</td>
+        <td style="text-align:center;">${resultBadge}</td>
+        <td style="text-align:center;">
+          <button type="button" class="btn btn-outline btn-sm inspectStudentMarksBtn" data-idx="${idx}"
+            style="font-weight:700; font-size:12px; padding:5px 12px; background:var(--white); border-color:var(--brand-green); color:var(--brand-green); border-radius:6px; cursor:pointer;"
+            title="Inspect full subjects and enter/edit marks">
+            Inspect Subjects &rarr;
+          </button>
+        </td>
+      `;
+    }
 
     // Clicking anywhere on row opens full subjects modal
     tr.addEventListener('click', () => {
@@ -5783,7 +6483,136 @@ function renderStudentsMarksTable() {
 
     tbody.appendChild(tr);
   });
+
+  // Attach direct inputs input listeners and Enter navigation
+  tbody.querySelectorAll('.direct-subject-mark-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const val = inp.value.trim();
+      const num = val !== '' ? parseFloat(val) : null;
+      const gradeEl = inp.parentElement?.querySelector('.direct-row-grade-badge');
+      if (gradeEl) {
+        if (num !== null && !isNaN(num)) {
+          const p = defaultMax ? Math.round((num / defaultMax) * 100) : 0;
+          const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+          gradeEl.innerHTML = `<span class="badge ${g === 'F' ? 'badge-bad' : 'badge-good'}" style="font-size:10px; font-weight:700;">${g}</span>`;
+        } else {
+          gradeEl.textContent = '—';
+        }
+      }
+    });
+
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const allDirectInputs = Array.from(document.querySelectorAll('.direct-subject-mark-input'));
+        const curIdx = allDirectInputs.indexOf(inp);
+        if (curIdx !== -1 && curIdx < allDirectInputs.length - 1) {
+          allDirectInputs[curIdx + 1].focus();
+          allDirectInputs[curIdx + 1].select();
+        } else {
+          saveAllDirectSubjectMarks();
+        }
+      }
+    });
+  });
+
+  // Update Active Subject Marked Status Badge
+  const statusBadge = document.getElementById('activeSubMarkedStatusBadge');
+  if (statusBadge && activeFacultySelectedSubject) {
+    statusBadge.textContent = `${markedActiveSubCount} of ${currentMarksStudents.length} Marked (${Math.round((markedActiveSubCount / (currentMarksStudents.length || 1)) * 100)}%)`;
+  }
 }
+
+// Function to save all marks entered in the direct table inputs for active subject
+async function saveAllDirectSubjectMarks() {
+  if (!activeFacultySelectedSubject || !currentMarksClassId) {
+    alert('Please select an assigned class and subject first.');
+    return;
+  }
+
+  const btn = document.getElementById('quickSaveActiveSubMarksBtn');
+  const prevHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Saving Marks…';
+  }
+
+  try {
+    const inputs = document.querySelectorAll('.direct-subject-mark-input');
+    const records = [];
+    const maxMarksVal = parseInt(document.getElementById('marksMaxPerSubject')?.value) || 100;
+
+    inputs.forEach(inp => {
+      const stuUid = inp.dataset.stuuid;
+      const valStr = inp.value.trim();
+      if (stuUid && valStr !== '' && !isNaN(parseFloat(valStr))) {
+        records.push({
+          studentUid: stuUid,
+          marksObtained: parseFloat(valStr)
+        });
+      }
+    });
+
+    if (!records.length) {
+      alert(`No marks entered yet for ${activeFacultySelectedSubject}. Enter marks in the table before saving.`);
+      return;
+    }
+
+    const res = await fetch(`${DJANGO_API_BASE}/teacher/marks/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Teacher-Uid': staffUid || auth.currentUser?.uid || '',
+        'X-Teacher-Name': staffProfile?.name || 'Faculty'
+      },
+      body: JSON.stringify({
+        teacherUid: staffUid || auth.currentUser?.uid,
+        classId: currentMarksClassId,
+        subject: activeFacultySelectedSubject,
+        examName: currentMarksExamName,
+        maxMarks: maxMarksVal,
+        records: records
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP ${res.status}: Failed to save marks`);
+    }
+
+    // Update local currentMarksRecordsMap
+    records.forEach(r => {
+      const key = `${r.studentUid}_${activeFacultySelectedSubject.trim().toLowerCase()}`;
+      currentMarksRecordsMap[key] = {
+        studentUid: r.studentUid,
+        classId: currentMarksClassId,
+        subject: activeFacultySelectedSubject,
+        examName: currentMarksExamName,
+        marks: r.marksObtained,
+        maxMarks: maxMarksVal,
+        updatedAt: new Date().toISOString(),
+        uploadedBy: staffUid
+      };
+    });
+
+    showToast(`Successfully saved ${records.length} marks for ${activeFacultySelectedSubject}!`);
+    renderStudentsMarksTable();
+    renderConsolidatedMarksTable();
+  } catch (err) {
+    console.error('Error in saveAllDirectSubjectMarks:', err);
+    alert('Failed to save marks: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = prevHtml || 'Save All Subject Marks Live';
+    }
+  }
+}
+
+// Hook up Quick Save Button in active subject banner
+document.getElementById('quickSaveActiveSubMarksBtn')?.addEventListener('click', () => {
+  saveAllDirectSubjectMarks();
+});
 
 function openStudentFullMarksModal(studentIdx) {
   studentIdx = parseInt(studentIdx, 10);
@@ -5841,18 +6670,24 @@ function openStudentFullMarksModal(studentIdx) {
     const rec = currentMarksRecordsMap[key];
     const maxM = rec && rec.maxMarks ? rec.maxMarks : defaultMax;
     const marksVal = (rec && rec.marks !== undefined && rec.marks !== null) ? rec.marks : '';
+    const isAuthorizedSubject = (subjectAssignments || []).some(sa => 
+      sa.classId === currentMarksClassId && sa.subject && sa.subject.trim().toLowerCase() === sub.trim().toLowerCase()
+    );
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="text-align:center; font-weight:bold; color:var(--ink-soft);">${i + 1}</td>
       <td>
         <strong style="color:var(--ink); font-size:13.5px;">${sub}</strong>
+        ${isAuthorizedSubject 
+          ? '<span class="badge badge-good" style="margin-left:6px; font-size:10.5px;">✓ Authorized</span>' 
+          : '<span class="badge" style="margin-left:6px; background:#f1f5f9; color:#64748b; font-size:10.5px;" title="Only the assigned subject teacher can enter marks for this subject.">🔒 Read-Only</span>'}
       </td>
       <td style="text-align:center;">
-        <input type="number" class="sfm-max-input mrk-input" data-sub="${sub}" value="${maxM}" min="10" max="500" style="width:70px;">
+        <input type="number" class="sfm-max-input mrk-input" data-sub="${sub}" value="${maxM}" min="10" max="500" style="width:70px; ${!isAuthorizedSubject ? 'opacity:0.6; cursor:not-allowed;' : ''}" ${!isAuthorizedSubject ? 'disabled title="Read-only: You are not assigned to teach this subject."' : ''}>
       </td>
       <td style="text-align:center;">
-        <input type="number" class="sfm-marks-input mrk-input" data-sub="${sub}" value="${marksVal}" min="0" max="${maxM}" placeholder="—" style="width:80px; font-size:14px; color:var(--brand-green);">
+        <input type="number" class="sfm-marks-input mrk-input" data-sub="${sub}" value="${marksVal}" min="0" max="${maxM}" placeholder="—" style="width:80px; font-size:14px; ${isAuthorizedSubject ? 'color:var(--brand-green);' : 'opacity:0.6; cursor:not-allowed;'}" ${!isAuthorizedSubject ? 'disabled title="Read-only: You are not assigned to teach this subject in this class."' : ''}>
       </td>
       <td style="text-align:center;" class="sfm-row-pct font-mono font-bold">—</td>
       <td style="text-align:center;" class="sfm-row-grade">—</td>
@@ -5993,17 +6828,47 @@ async function saveActiveStudentMarks(silent = false) {
   });
 
   try {
-    const promises = [];
+    let savedCount = 0;
+    let attemptedCount = 0;
 
-    rows.forEach(tr => {
+    for (const tr of rows) {
       const marksInput = tr.querySelector('.sfm-marks-input');
       const maxInput = tr.querySelector('.sfm-max-input');
-      const subject = marksInput?.dataset.sub;
-      const marksVal = marksInput?.value.trim();
+      if (!marksInput || marksInput.disabled) continue; // Skip read-only inputs
+
+      const subject = marksInput.dataset.sub;
+      const marksVal = marksInput.value.trim();
       const maxMarksVal = parseInt(maxInput?.value) || 100;
 
       if (subject && marksVal !== '' && !isNaN(parseFloat(marksVal))) {
+        attemptedCount++;
         const numMarks = parseFloat(marksVal);
+
+        const res = await fetch(`${DJANGO_API_BASE}/teacher/marks/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Teacher-Uid': staffUid || auth.currentUser?.uid || '',
+            'X-Teacher-Name': staffProfile?.name || 'Faculty'
+          },
+          body: JSON.stringify({
+            teacherUid: staffUid || auth.currentUser?.uid,
+            classId: currentMarksClassId,
+            subject: subject,
+            examName: currentMarksExamName,
+            maxMarks: maxMarksVal,
+            records: [{
+              studentUid: sUid,
+              marksObtained: numMarks
+            }]
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `HTTP ${res.status} saving marks for ${subject}`);
+        }
+
         const cleanSub = subject.replace(/[\s/]+/g, '_');
         const cleanExam = currentMarksExamName.replace(/[\s/]+/g, '_');
         const docId = `${sUid}_${cleanExam}_${cleanSub}`;
@@ -6019,27 +6884,27 @@ async function saveActiveStudentMarks(silent = false) {
           examName: currentMarksExamName,
           marks: numMarks,
           maxMarks: maxMarksVal,
-          updatedAt: serverTimestamp(),
+          updatedAt: new Date().toISOString(),
           uploadedBy: staffUid || auth.currentUser?.uid || 'staff'
         };
 
         const key = `${sUid}_${subject.trim().toLowerCase()}`;
         currentMarksRecordsMap[key] = { id: docId, ...markData };
-        promises.push(setDoc(doc(db, 'marks', docId), markData, { merge: true }));
+        savedCount++;
       }
-    });
-
-    if (promises.length > 0) {
-      await Promise.all(promises);
     }
 
     if (!silent) {
-      showToast(`Marks saved for ${s.name} (${promises.length} subjects)!`);
-      const msgEl = document.getElementById('sfmSaveMsg');
-      if (msgEl) {
-        msgEl.style.display = 'inline';
-        msgEl.textContent = `Saved ${promises.length} subjects!`;
-        setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+      if (savedCount > 0) {
+        showToast(`Marks successfully recorded for ${s.name} (${savedCount} subject${savedCount > 1 ? 's' : ''})!`);
+        const msgEl = document.getElementById('sfmSaveMsg');
+        if (msgEl) {
+          msgEl.style.display = 'inline';
+          msgEl.textContent = `Saved ${savedCount} subject${savedCount > 1 ? 's' : ''}!`;
+          setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+        }
+      } else if (attemptedCount === 0) {
+        showToast(`No authorized subject marks to save for this student.`);
       }
     }
 
@@ -6047,7 +6912,7 @@ async function saveActiveStudentMarks(silent = false) {
     renderStudentsMarksTable();
     renderConsolidatedMarksTable();
 
-    return promises.length;
+    return savedCount;
   } catch (err) {
     console.error('Error saving subject marks:', err);
     if (!silent) alert('Failed to save subject marks: ' + err.message);
@@ -6943,6 +7808,129 @@ document.getElementById('staffStuSearchClearBtn')?.addEventListener('click', () 
 });
 
 async function loadStudentsForTeacher() {
+  try {
+    const res = await fetch(`${DJANGO_API_BASE}/teacher/incharge-dashboard/?teacherUid=${staffUid}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (!data.isClassIncharge) {
+        const nav = document.getElementById('navStudents');
+        if (nav) nav.style.display = 'none';
+        const hTitle = document.getElementById('inchargeClassHeaderTitle');
+        if (hTitle) hTitle.textContent = 'Not Assigned as Class Incharge';
+        const hDesc = document.getElementById('inchargeClassHeaderDesc');
+        if (hDesc) hDesc.textContent = 'You do not hold Class Incharge responsibility for any active section. Subject teaching marks are accessible under the Marks tab.';
+        const facList = document.getElementById('inchargeSubjectFacultyList');
+        if (facList) facList.innerHTML = '<span style="color:var(--ink-soft); font-style:italic;">Access limited to assigned Class Incharge.</span>';
+        const acList = document.getElementById('inchargeAcademicSummaryList');
+        if (acList) acList.innerHTML = '<span style="color:var(--ink-soft); font-style:italic;">Access limited to assigned Class Incharge.</span>';
+        cachedTeacherStudents = [];
+        renderTeacherStudentsTable();
+        return;
+      }
+
+      classTeacherClass = data.class;
+      cachedTeacherStudents = data.students || [];
+
+      // Populate Hero Card
+      const hTitle = document.getElementById('inchargeClassHeaderTitle');
+      if (hTitle) hTitle.textContent = `${data.class.name} — Section ${data.class.section || 'A'}`;
+      const hDesc = document.getElementById('inchargeClassHeaderDesc');
+      if (hDesc) hDesc.textContent = `Official Class Incharge: ${data.class.classTeacherName || 'You'} • Academic Session 2026-2027`;
+      const enrCount = document.getElementById('inchargeEnrolledCount');
+      if (enrCount) enrCount.textContent = data.studentsCount || cachedTeacherStudents.length;
+      const attRate = document.getElementById('inchargeAttendanceRate');
+      if (attRate) attRate.textContent = data.attendanceTotalDates ? `${data.attendanceTotalDates} Days Tracked` : 'Active';
+
+      // Populate Card A: Assigned Subject Faculty
+      const facBadge = document.getElementById('inchargeSubjectFacultyBadge');
+      if (facBadge) facBadge.textContent = `${(data.subjectTeachers || []).length} Faculty`;
+      const facList = document.getElementById('inchargeSubjectFacultyList');
+      if (facList) {
+        if (data.subjectTeachers && data.subjectTeachers.length) {
+          facList.innerHTML = data.subjectTeachers.map(t => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px; gap:8px;">
+              <div>
+                <strong style="color:var(--ink);">${escapeHtml(t.subject)}</strong>: 
+                <span style="color:#2563eb; font-weight:600;">${escapeHtml(t.teacherName)}</span>
+                <span class="badge badge-good" style="margin-left:6px; font-size:10px; font-weight:700;">Mark Entry Permitted</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge badge-purple" style="font-size:11px;">${escapeHtml(t.teacherEmail || 'Faculty')}</span>
+                <button type="button" class="btn btn-ghost btn-sm revoke-incharge-sub-btn" data-id="${t.id}" data-subject="${escapeHtml(t.subject)}" data-name="${escapeHtml(t.teacherName)}"
+                  style="color:#ef4444; font-size:11px; font-weight:700; padding:3px 8px; border:1px solid #fecaca; border-radius:5px; cursor:pointer;" title="Revoke mark entry permission for this teacher">
+                  Revoke
+                </button>
+              </div>
+            </div>
+          `).join('');
+
+          facList.querySelectorAll('.revoke-incharge-sub-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              const assignId = btn.dataset.id;
+              const subName = btn.dataset.subject;
+              const teacherName = btn.dataset.name;
+              if (!confirm(`Revoke mark entry permission for ${teacherName} in ${subName}?`)) return;
+
+              try {
+                btn.disabled = true;
+                btn.textContent = 'Revoking…';
+                const delRes = await fetch(`${DJANGO_API_BASE}/assignments/subjects/${assignId}/`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Teacher-Uid': staffUid || auth.currentUser?.uid || ''
+                  }
+                });
+                if (!delRes.ok) {
+                  const errData = await delRes.json().catch(() => ({}));
+                  throw new Error(errData.error || `HTTP ${delRes.status}: Failed to revoke permission`);
+                }
+                showToast(`Revoked permission for ${teacherName} (${subName}).`);
+                await loadStudentsForTeacher();
+                initStaffMarksClassFilter();
+              } catch (err) {
+                alert('Error revoking permission: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Revoke';
+              }
+            });
+          });
+        } else {
+          facList.innerHTML = '<span style="color:var(--ink-soft); font-style:italic;">No other subject teachers assigned yet. As Class Incharge, you have full permission for all subjects, or click "+ Grant Subject Permission" above to authorize another teacher.</span>';
+        }
+      }
+
+      // Populate Card B: Class Academic Performance Summary
+      const acBadge = document.getElementById('inchargeAcademicEvalBadge');
+      if (acBadge) acBadge.textContent = `${(data.academicSummary || []).length} Subjects Evaluated`;
+      const acList = document.getElementById('inchargeAcademicSummaryList');
+      if (acList) {
+        if (data.academicSummary && data.academicSummary.length) {
+          acList.innerHTML = data.academicSummary.map(item => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 12px;">
+              <div>
+                <strong style="color:var(--ink);">${escapeHtml(item.subject)}</strong>
+                <span style="font-size:11px; color:var(--ink-soft); margin-left:4px;">(${item.evaluatedCount} assessed)</span>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-weight:700; color:var(--brand-green);">${item.averageMarks}</span> / ${item.maxMarks}
+                <span class="badge ${item.passRate >= 75 ? 'badge-good' : 'badge-bad'}" style="margin-left:6px; font-size:11px;">${item.passRate}% Pass</span>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          acList.innerHTML = '<span style="color:var(--ink-soft); font-style:italic;">No exam marks published yet for this class section.</span>';
+        }
+      }
+
+      renderTeacherStudentsTable();
+      return;
+    }
+  } catch (err) {
+    console.warn('Backend incharge dashboard fetch error, falling back:', err);
+  }
+
   if (!classTeacherClass) return;
   const students = await getClassStudents(classTeacherClass.id);
   cachedTeacherStudents = students;
@@ -6951,6 +7939,105 @@ async function loadStudentsForTeacher() {
   const parSel = document.getElementById('parStudentSel');
   if (parSel) parSel.innerHTML = '';
 }
+
+// ================= CLASS INCHARGE GRANT SUBJECT PERMISSION MODAL LOGIC =================
+let cachedAllStaffForIncharge = [];
+
+async function openInchargeGrantSubjectModal() {
+  if (!classTeacherClass) {
+    alert('You are not currently designated as Class Incharge.');
+    return;
+  }
+  const modal = document.getElementById('inchargeGrantSubModal');
+  const classNameInp = document.getElementById('inchargeModalClassName');
+  const subSel = document.getElementById('inchargeModalSubjectSelect');
+  const teacherSel = document.getElementById('inchargeModalTeacherSelect');
+  if (!modal) return;
+
+  if (classNameInp) classNameInp.value = classTeacherClass.name;
+
+  // Populate subjects based on class curriculum
+  const isHS = isHigherSecondaryClass(classTeacherClass.name);
+  const subjects = isHS ? HIGHER_SECONDARY_STREAMS.bio_maths.subjects : STANDARD_CORE_SUBJECTS;
+  if (subSel) {
+    subSel.innerHTML = '<option value="">-- Choose Subject --</option>' +
+      subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  }
+
+  // Populate teachers from backend API
+  if (teacherSel) {
+    teacherSel.innerHTML = '<option value="">Loading faculty members…</option>';
+    try {
+      if (!cachedAllStaffForIncharge.length) {
+        const staffRes = await fetch(`${DJANGO_API_BASE}/records/staff/`);
+        if (staffRes.ok) {
+          cachedAllStaffForIncharge = await staffRes.json();
+        }
+      }
+      teacherSel.innerHTML = '<option value="">-- Select Teacher --</option>' +
+        cachedAllStaffForIncharge
+          .filter(t => !t.deleted && !t.disabled && t.id !== staffUid)
+          .map(t => `<option value="${t.id}">${escapeHtml(t.name)} (${escapeHtml(t.majorSubject || t.email || 'Teacher')})</option>`).join('');
+    } catch (e) {
+      console.warn('Error loading staff for incharge modal:', e);
+      teacherSel.innerHTML = '<option value="">Error loading teachers</option>';
+    }
+  }
+
+  modal.classList.add('open');
+}
+
+document.getElementById('openInchargeGrantSubModalBtn')?.addEventListener('click', openInchargeGrantSubjectModal);
+document.getElementById('closeInchargeGrantSubModal')?.addEventListener('click', () => {
+  document.getElementById('inchargeGrantSubModal')?.classList.remove('open');
+});
+document.getElementById('cancelInchargeGrantSubBtn')?.addEventListener('click', () => {
+  document.getElementById('inchargeGrantSubModal')?.classList.remove('open');
+});
+
+document.getElementById('inchargeGrantSubForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const sub = document.getElementById('inchargeModalSubjectSelect')?.value;
+  const tUid = document.getElementById('inchargeModalTeacherSelect')?.value;
+  const btn = document.getElementById('submitInchargeGrantSubBtn');
+
+  if (!classTeacherClass || !sub || !tUid) {
+    alert('Please select both a subject and a faculty member.');
+    return;
+  }
+
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = 'Granting Permission…'; }
+
+    const res = await fetch(`${DJANGO_API_BASE}/assignments/subjects/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Teacher-Uid': staffUid || auth.currentUser?.uid || ''
+      },
+      body: JSON.stringify({
+        classId: classTeacherClass.id,
+        subject: sub,
+        teacherUid: tUid,
+        academicYear: '2025-2026'
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP ${res.status}: Failed to grant permission`);
+    }
+
+    showToast(`Successfully granted mark entry permission for ${sub}!`);
+    document.getElementById('inchargeGrantSubModal')?.classList.remove('open');
+    await loadStudentsForTeacher();
+    initStaffMarksClassFilter();
+  } catch (err) {
+    alert('Error granting permission: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Grant Subject Permission'; }
+  }
+});
 
 // ---------------- CSV UTILITIES ----------------
 // downloadCsv is defined above in print & export utilities
@@ -7126,12 +8213,12 @@ document.getElementById('staffStuCsvFileInput')?.addEventListener('change', asyn
 
       const safeAdm = (admNo || `s${Date.now()}_${i + 1}`).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
       const stuEmail = `${safeAdm}@amalahss.edu`;
-      const stuPass = (dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : 'Student@123';
+      const stuPass = (dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : (safeAdm ? safeAdm.toUpperCase() + '@' + new Date().getFullYear() : 'Stu@' + Math.floor(1000 + Math.random() * 9000));
 
       const parEmail = (idxParEmail !== -1 && r[idxParEmail] && String(r[idxParEmail]).includes('@'))
         ? String(r[idxParEmail]).trim().toLowerCase()
         : (fatherPhone ? `p_${fatherPhone}@amalahss.edu` : `parent_${safeAdm}@amalahss.edu`);
-      const parPass = fatherPhone && fatherPhone.length >= 6 ? fatherPhone : 'Parent@123';
+      const parPass = fatherPhone && fatherPhone.length >= 6 ? fatherPhone : (safeAdm ? 'Par@' + safeAdm.toUpperCase() : 'Par@' + Math.floor(1000 + Math.random() * 9000));
 
       parsedStaffStudents.push({
         name, admNo: admNo || `ADM-${Date.now().toString().slice(-4)}-${i + 1}`,

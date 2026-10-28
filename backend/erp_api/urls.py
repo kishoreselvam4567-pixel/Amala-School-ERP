@@ -13,6 +13,24 @@ urlpatterns = [
     # File Uploads (replaces Supabase Storage)
     path('storage/upload/', views.upload_file, name='storage_upload'),
 
+    # Class Incharge & Subject Teacher Management (Admin & Portal APIs)
+    path('assignments/incharge/', views.manage_class_incharge, name='manage_class_incharge'),
+    path('assignments/subjects/', views.manage_subject_teachers, name='manage_subject_teachers'),
+    path('assignments/subjects/<str:pk>/', views.manage_subject_teachers, name='manage_subject_teacher_detail'),
+
+    # Teacher Portal Assignment-Based Endpoints
+    path('teacher/incharge-dashboard/', views.teacher_incharge_dashboard, name='teacher_incharge_dashboard'),
+    path('teacher/assigned-subjects/', views.teacher_assigned_subjects, name='teacher_assigned_subjects'),
+    path('teacher/marks/', views.enter_subject_marks, name='enter_subject_marks'),
+
+    # Student & Parent Academic Access Endpoints
+    path('student/my-marks/', views.student_my_marks, name='student_my_marks'),
+    path('parent/child-academics/', views.parent_child_academics, name='parent_child_academics'),
+    path('parent/child-academics/<str:child_uid>/', views.parent_child_academics, name='parent_child_academics_detail'),
+
+    # Audit Logging
+    path('audit-logs/', views.audit_logs_list, name='audit_logs_list'),
+
     # Generic Collection REST Endpoints
     path('records/<str:collection>/', views.CollectionListView.as_view(), name='collection_list'),
     path('records/<str:collection>/<str:pk>/', views.CollectionDetailView.as_view(), name='collection_detail'),

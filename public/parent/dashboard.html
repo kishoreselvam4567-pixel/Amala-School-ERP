@@ -531,7 +531,7 @@
 <script type="module">
 import {
   auth, db, requirePortal, logout, doc, getDoc, collection, query, where,
-  getDocs, orderBy, onSnapshot, limit
+  getDocs, orderBy, onSnapshot, limit, DJANGO_API_BASE
 } from '../js/auth.js';
 import { initLiveNotifications } from '../js/notifications.js';
 import { initSchoolCalendar } from '../js/calendar-module.js';
@@ -853,13 +853,51 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
 
     const targetClass = classId || className || student.classId || student.className || '__none__';
 
-    // ---- PARALLEL LOADERS ----
+    // ---- PARALLEL LOADERS WITH BACKEND AUTHORIZATION & IDOR DEFENSE ----
+    let childAcademicsCache = null;
+    let childAcademicsForbidden = false;
+
+    const fetchChildAcademicsApi = async () => {
+      if (childAcademicsCache !== null || childAcademicsForbidden) return childAcademicsCache;
+      try {
+        const res = await fetch(`${DJANGO_API_BASE}/parent/child-academics/?parentUid=${user.uid}&childUid=${childUid}`);
+        if (res.status === 403) {
+          childAcademicsForbidden = true;
+          console.error("IDOR Security Alert: Parent not authorized to access child", childUid);
+          return null;
+        }
+        if (res.ok) {
+          childAcademicsCache = await res.json();
+          return childAcademicsCache;
+        }
+      } catch (e) {
+        console.warn("Child academics API fetch failed, fallback to local query:", e);
+      }
+      return null;
+    };
+
     const loadAttendance = async () => {
       try {
-        const attQ = query(collection(db, 'attendance'), where('studentUid', '==', childUid), limit(150));
-        const attSnap = await getDocs(attQ);
-        const attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
-        const present = attRows.filter(r => r.status === 'present').length;
+        const apiData = await fetchChildAcademicsApi();
+        if (childAcademicsForbidden) {
+          const el = document.getElementById('attEmpty');
+          if (el) {
+            el.textContent = 'Access Restricted: You are not authorized to view attendance records for this student.';
+            el.style.display = 'block';
+          }
+          return;
+        }
+
+        let attRows = [];
+        if (apiData && Array.isArray(apiData.attendance)) {
+          attRows = apiData.attendance;
+        } else {
+          const attQ = query(collection(db, 'attendance'), where('studentUid', '==', childUid), limit(150));
+          const attSnap = await getDocs(attQ);
+          attRows = attSnap.docs.map(d => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
+        }
+
+        const present = attRows.filter(r => (r.status || '').toLowerCase() === 'present').length;
         const pct = attRows.length ? Math.round((present / attRows.length) * 100) : null;
         
         document.getElementById('attPct').textContent = pct !== null ? pct + '%' : '—';
@@ -886,26 +924,46 @@ requirePortal(['parent'], async ({ user, profile, roleData }) => {
 
     const loadMarks = async () => {
       try {
-        const marksQ = query(collection(db, 'marks'), where('studentUid', '==', childUid), limit(100));
-        const marksSnap = await getDocs(marksQ);
-        const marksRows = marksSnap.docs.map(d => d.data());
+        const apiData = await fetchChildAcademicsApi();
+        if (childAcademicsForbidden) {
+          const el = document.getElementById('marksEmpty');
+          if (el) {
+            el.textContent = 'Access Restricted: You are not authorized to view academic marks for this student.';
+            el.style.display = 'block';
+          }
+          return;
+        }
+
+        let marksRows = [];
+        if (apiData && Array.isArray(apiData.marks)) {
+          marksRows = apiData.marks;
+        } else {
+          const marksQ = query(collection(db, 'marks'), where('studentUid', '==', childUid), limit(100));
+          const marksSnap = await getDocs(marksQ);
+          marksRows = marksSnap.docs.map(d => d.data());
+        }
+
         const marksBody = document.querySelector('#marksTable tbody');
         if (marksBody) {
           marksBody.innerHTML = '';
           if (!marksRows.length) { document.getElementById('marksEmpty').style.display = 'block'; }
           let totalPct = 0;
           marksRows.forEach(r => {
-            const p = r.maxMarks ? Math.round((r.marks / r.maxMarks) * 100) : 0;
+            const obtained = r.marksObtained !== undefined ? r.marksObtained : r.marks;
+            const maxM = r.maxMarks || 100;
+            const p = maxM ? Math.round((obtained / maxM) * 100) : 0;
             totalPct += p;
-            let grade = 'A';
-            if (p < 40) grade = 'F';
-            else if (p < 60) grade = 'C';
-            else if (p < 75) grade = 'B';
-            else if (p < 90) grade = 'A';
-            else grade = 'A+';
+            let grade = r.grade || 'A';
+            if (!r.grade) {
+              if (p < 40) grade = 'F';
+              else if (p < 60) grade = 'C';
+              else if (p < 75) grade = 'B';
+              else if (p < 90) grade = 'A';
+              else grade = 'A+';
+            }
 
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${r.marks}</td><td>${r.maxMarks}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
+            tr.innerHTML = `<td><strong>${r.subject}</strong></td><td>${r.examName}</td><td>${obtained}</td><td>${maxM}</td><td>${p}%</td><td><span class="badge ${grade === 'F' ? 'badge-bad' : 'badge-good'}">${grade}</span></td>`;
             marksBody.appendChild(tr);
           });
           document.getElementById('avgMarks').textContent = marksRows.length ? Math.round(totalPct / marksRows.length) + '%' : '—';
