@@ -1113,7 +1113,7 @@
           let msg = err.message || 'Authentication failed. Please check your credentials and try again.';
           const msgLower = msg.toLowerCase();
           if (msgLower.includes('failed to fetch') || msgLower.includes('network') || msgLower.includes('connection')) {
-            msg = 'Backend server is unreachable and offline record was not found. Please verify the server is running on http://localhost:8000.';
+            msg = 'Backend server is unreachable and offline record was not found. Please verify the server is running on ${DJANGO_API_BASE}.';
           } else if (msgLower.includes('invalid') || msgLower.includes('credentials') || msgLower.includes('not found')) {
             msg = 'Invalid User ID or Password. Please check your credentials and try again.';
           } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
