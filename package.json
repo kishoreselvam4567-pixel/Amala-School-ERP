@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Amala Higher Secondary School ERP System",
   "scripts": {
-    "dev": "serve . -p 3000",
+    "dev": "node scripts/start-all.mjs",
     "backend": "backend\\venv\\Scripts\\python.exe backend\\manage.py runserver 8000",
+    "frontend": "serve . -p 3000",
     "build": "next build",
-    "start": "serve . -p 3000",
+    "start": "node scripts/start-all.mjs",
     "serve-static": "npx serve . -p 3000"
   },
   "dependencies": {

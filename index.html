@@ -941,6 +941,9 @@
   <!-- Environment config -->
   <script src="js/env.js"></script>
 
+  <!-- 24/7 Offline High-Availability Data Engine -->
+  <script type="module" src="js/school-offline-data.js"></script>
+
   <!-- Django REST Backend Client Adapter -->
   <script type="module" src="js/auth.js"></script>
 
@@ -1036,8 +1039,24 @@
               authError = new Error(data.error || 'Invalid User ID or Password.');
             }
           } catch (netErr) {
-            console.error('Django auth fetch failed:', netErr);
-            authError = new Error('Backend server is unreachable. Please verify the server is running on http://localhost:8000.');
+            console.warn('Django auth fetch failed, attempting 24/7 offline fallback:', netErr);
+            authError = netErr;
+          }
+
+          // 2. High-Availability 24/7 Offline Fallback
+          if (!authResult && window.verifyOfflineCredentials) {
+            const off = window.verifyOfflineCredentials(rawUser, pass);
+            if (off) {
+              authResult = {
+                user: off.user,
+                userData: off.userData,
+                role: off.userData.role,
+                roleDocData: off.roleDocData,
+                studentProfile: off.studentProfile,
+                token: 'offline_token_' + Date.now()
+              };
+              localStorage.setItem('erp_offline_mode', 'true');
+            }
           }
 
           if (!authResult) {
@@ -1076,7 +1095,8 @@
           localStorage.setItem('erp_last_active_role', role);
           localStorage.removeItem('erp_active_session');
 
-          showOkBox('✅ Login successful! Redirecting to your dashboard…');
+          const isOfflineMode = localStorage.getItem('erp_offline_mode') === 'true';
+          showOkBox(isOfflineMode ? '✅ Login successful! Redirecting to your dashboard (24/7 Offline Mode active)…' : '✅ Login successful! Redirecting to your dashboard…');
           setTimeout(() => { window.location.replace(dest); }, 80);
 
         } catch (err) {
@@ -1086,7 +1106,7 @@
           let msg = err.message || 'Authentication failed. Please check your credentials and try again.';
           const msgLower = msg.toLowerCase();
           if (msgLower.includes('failed to fetch') || msgLower.includes('network') || msgLower.includes('connection')) {
-            msg = '❌ Invalid User ID or Password. (Note: Backend server is unreachable; offline lookup also did not match).';
+            msg = '❌ Backend server is unreachable and offline record was not found. Please verify the server is running on http://localhost:8000.';
           } else if (msgLower.includes('invalid') || msgLower.includes('credentials') || msgLower.includes('not found')) {
             msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
           } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
