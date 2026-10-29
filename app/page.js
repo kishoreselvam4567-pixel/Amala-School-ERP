@@ -231,7 +231,7 @@ export default function LoginPage() {
     // 1. Captcha check
     const userCaptcha = (captchaInput || '').trim();
     if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
-      setErrorMsg('❌ Security Captcha does not match. A new code has been generated — please try again.');
+      setErrorMsg('Security Captcha does not match. A new code has been generated — please try again.');
       setCaptchaInput('');
       generateCaptcha();
       return;
@@ -304,7 +304,7 @@ export default function LoginPage() {
         localStorage.removeItem('erp_active_session');
       } catch (e) {}
 
-      setSuccessMsg('✅ Login successful! Redirecting to your dashboard…');
+      setSuccessMsg('Login successful! Redirecting to your dashboard…');
       setTimeout(() => {
         window.location.replace(dest);
       }, 100);
@@ -318,19 +318,19 @@ export default function LoginPage() {
         msgLower.includes('invalid login credentials') ||
         msgLower.includes('invalid credentials')
       ) {
-        msg = '❌ Invalid User ID or Password. Please check your credentials and try again.';
+        msg = 'Invalid User ID or Password. Please check your credentials and try again.';
       } else if (
         msgLower.includes('rate limit') ||
         msgLower.includes('too many requests')
       ) {
-        msg = '⚠️ Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
+        msg = 'Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
       } else if (
         msgLower.includes('failed to fetch') ||
         msgLower.includes('fetch failed') ||
         msgLower.includes('networkerror') ||
         msgLower.includes('load failed')
       ) {
-        msg = '⚠️ Unable to connect to Supabase database (Failed to fetch). The backend project may be paused due to inactivity, offline, or unreachable. Please restore your project in the Supabase Dashboard.';
+        msg = 'Unable to connect to Supabase database (Failed to fetch). The backend project may be paused due to inactivity, offline, or unreachable. Please restore your project in the Supabase Dashboard.';
       } else if (err.message) {
         msg = err.message;
       }

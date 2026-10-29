@@ -13,12 +13,12 @@ import {
 
 // Pre-defined event categories with color palettes & icons
 export const CALENDAR_CATEGORIES = {
-  academic: { key: 'academic', label: 'Academic & Term', icon: '📘', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  exam: { key: 'exam', label: 'Exams & Tests', icon: '📝', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' },
-  holiday: { key: 'holiday', label: 'Holidays & Vacations', icon: '🏖️', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-  meeting: { key: 'meeting', label: 'Meetings & PTM', icon: '👥', bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' },
-  sports: { key: 'sports', label: 'Sports & Cultural', icon: '🏆', bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
-  celebration: { key: 'celebration', label: 'Celebrations & Events', icon: '🎉', bg: '#fefce8', color: '#a16207', border: '#fef08a' }
+  academic: { key: 'academic', label: 'Academic & Term', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  exam: { key: 'exam', label: 'Exams & Tests', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' },
+  holiday: { key: 'holiday', label: 'Holidays & Vacations', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  meeting: { key: 'meeting', label: 'Meetings & PTM', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' },
+  sports: { key: 'sports', label: 'Sports & Cultural', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M6 4h12v7a6 6 0 0 1-12 0V4z"/></svg>', bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+  celebration: { key: 'celebration', label: 'Celebrations & Events', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', bg: '#fefce8', color: '#a16207', border: '#fef08a' }
 };
 
 // Realistic initial sample events if repository is empty
@@ -150,7 +150,7 @@ class SchoolCalendar {
         <div class="cal-toolbar">
           <div class="cal-toolbar-left">
             <div class="cal-title-row">
-              <span class="cal-icon-badge">📅</span>
+              <span class="cal-icon-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
               <div>
                 <h3 class="cal-main-title">School Academic &amp; Events Calendar</h3>
                 <p class="cal-sub-title">Official examination schedules, holidays, academic milestones &amp; campus events</p>
@@ -182,8 +182,8 @@ class SchoolCalendar {
           <div class="cal-filter-and-views">
             <!-- View Mode Switcher -->
             <div class="cal-view-toggles">
-              <button type="button" class="cal-view-tab active" data-view="grid" id="calViewGridBtn">📅 Grid</button>
-              <button type="button" class="cal-view-tab" data-view="agenda" id="calViewAgendaBtn">📋 Agenda</button>
+              <button type="button" class="cal-view-tab active" data-view="grid" id="calViewGridBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Grid</button>
+              <button type="button" class="cal-view-tab" data-view="agenda" id="calViewAgendaBtn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>Agenda</button>
             </div>
           </div>
         </div>
@@ -191,12 +191,12 @@ class SchoolCalendar {
         <!-- CATEGORY CHIPS BAR -->
         <div class="cal-chips-bar" id="calChipsBar">
           <button type="button" class="cal-chip active" data-cat="all">All Events</button>
-          <button type="button" class="cal-chip chip-exam" data-cat="exam">📝 Exams</button>
-          <button type="button" class="cal-chip chip-holiday" data-cat="holiday">🏖️ Holidays</button>
-          <button type="button" class="cal-chip chip-academic" data-cat="academic">📘 Academic</button>
-          <button type="button" class="cal-chip chip-meeting" data-cat="meeting">👥 Meetings &amp; PTM</button>
-          <button type="button" class="cal-chip chip-sports" data-cat="sports">🏆 Sports &amp; Cultural</button>
-          <button type="button" class="cal-chip chip-celebration" data-cat="celebration">🎉 Celebrations</button>
+          <button type="button" class="cal-chip chip-exam" data-cat="exam"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Exams</button>
+          <button type="button" class="cal-chip chip-holiday" data-cat="holiday"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>Holidays</button>
+          <button type="button" class="cal-chip chip-academic" data-cat="academic"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Academic</button>
+          <button type="button" class="cal-chip chip-meeting" data-cat="meeting"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Meetings &amp; PTM</button>
+          <button type="button" class="cal-chip chip-sports" data-cat="sports"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M6 4h12v7a6 6 0 0 1-12 0V4z"/></svg>Sports &amp; Cultural</button>
+          <button type="button" class="cal-chip chip-celebration" data-cat="celebration"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Celebrations</button>
         </div>
 
         <!-- BODY WRAPPER (Switches between Month Grid & Agenda List) -->
@@ -216,15 +216,15 @@ class SchoolCalendar {
           </div>
           <div class="cal-modal-body">
             <div class="cal-detail-item">
-              <span class="cal-detail-label">📍 Venue / Location:</span>
+              <span class="cal-detail-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Venue / Location:</span>
               <span class="cal-detail-val" id="calDetailsLocation">—</span>
             </div>
             <div class="cal-detail-item">
-              <span class="cal-detail-label">👥 Target Audience:</span>
+              <span class="cal-detail-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Target Audience:</span>
               <span class="cal-detail-val" id="calDetailsAudience">All School Community</span>
             </div>
             <div class="cal-detail-item" style="display:block; margin-top:12px;">
-              <span class="cal-detail-label">📝 Description &amp; Instructions:</span>
+              <span class="cal-detail-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Description &amp; Instructions:</span>
               <p class="cal-detail-desc" id="calDetailsDesc">No additional details provided.</p>
             </div>
           </div>
@@ -258,21 +258,21 @@ class SchoolCalendar {
                 <div class="cal-form-group" style="flex:1;">
                   <label>Category <span style="color:#ef4444;">*</span></label>
                   <select id="calEventCategorySelect" class="cal-input" required>
-                    <option value="academic">📘 Academic &amp; Term</option>
-                    <option value="exam">📝 Exams &amp; Assessments</option>
-                    <option value="holiday">🏖️ Holiday / Vacation</option>
-                    <option value="meeting">👥 Meeting &amp; PTM</option>
-                    <option value="sports">🏆 Sports &amp; Cultural</option>
-                    <option value="celebration">🎉 Celebrations &amp; Fest</option>
+                    <option value="academic">Academic &amp; Term</option>
+                    <option value="exam">Exams &amp; Assessments</option>
+                    <option value="holiday">Holiday / Vacation</option>
+                    <option value="meeting">Meeting &amp; PTM</option>
+                    <option value="sports">Sports &amp; Cultural</option>
+                    <option value="celebration">Celebrations &amp; Fest</option>
                   </select>
                 </div>
                 <div class="cal-form-group" style="flex:1;">
                   <label>Target Audience</label>
                   <select id="calEventAudienceSelect" class="cal-input">
-                    <option value="all">👥 All School Community</option>
-                    <option value="students">🎓 Students Only</option>
-                    <option value="staff">👨‍🏫 Faculty &amp; Staff Only</option>
-                    <option value="parents">👨‍👩‍👧 Parents Only</option>
+                    <option value="all">All School Community</option>
+                    <option value="students">Students Only</option>
+                    <option value="staff">Faculty &amp; Staff Only</option>
+                    <option value="parents">Parents Only</option>
                   </select>
                 </div>
               </div>
@@ -1071,7 +1071,7 @@ class SchoolCalendar {
               <div class="cal-cell-events">
                 ${dayEvents.slice(0, 3).map(ev => {
                   const catClass = `cal-pill-${ev.category || 'academic'}`;
-                  const icon = CALENDAR_CATEGORIES[ev.category]?.icon || '📌';
+                  const icon = CALENDAR_CATEGORIES[ev.category]?.icon || '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
                   const timeStr = ev.isAllDay ? '' : (ev.startTime ? ev.startTime + ' ' : '');
                   return `
                     <div class="cal-event-pill ${catClass}" data-id="${ev.id}" title="${this.escapeHtml(ev.title)}">
@@ -1125,7 +1125,7 @@ class SchoolCalendar {
     if (!filteredEvents.length) {
       return `
         <div style="text-align:center; padding:50px 20px; color:#64748b;">
-          <div style="font-size:36px; margin-bottom:8px;">📅</div>
+          <div style="font-size:36px; margin-bottom:8px; display:flex; justify-content:center;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
           <h4 style="margin:0 0 6px 0; color:#0f172a; font-size:16px;">No Events Found</h4>
           <p style="margin:0; font-size:13px;">There are no scheduled calendar events matching this category filter.</p>
         </div>
@@ -1158,9 +1158,9 @@ class SchoolCalendar {
               <h4>${this.escapeHtml(ev.title)}</h4>
               <div class="cal-agenda-meta">
                 <span class="cal-modal-cat-badge" style="background:${cat.bg}; color:${cat.color}; border:1px solid ${cat.border};">${cat.icon} ${cat.label}</span>
-                <span>⏰ ${timeLabel} ${endLabel}</span>
-                ${ev.location ? `<span>📍 ${this.escapeHtml(ev.location)}</span>` : ''}
-                ${ev.targetAudience ? `<span>👥 ${this.getAudienceLabel(ev.targetAudience)}</span>` : ''}
+                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${timeLabel} ${endLabel}</span>
+                ${ev.location ? `<span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${this.escapeHtml(ev.location)}</span>` : ''}
+                ${ev.targetAudience ? `<span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${this.getAudienceLabel(ev.targetAudience)}</span>` : ''}
               </div>
               ${ev.description ? `<p class="cal-agenda-desc">${this.escapeHtml(ev.description)}</p>` : ''}
             </div>
@@ -1233,8 +1233,8 @@ class SchoolCalendar {
     }
 
     const timeStr = ev.isAllDay
-      ? `📅 ${ev.startDate}${ev.endDate && ev.endDate !== ev.startDate ? ' to ' + ev.endDate : ''} • All Day`
-      : `📅 ${ev.startDate} • ⏰ ${ev.startTime || '09:00'} ${ev.endTime ? 'to ' + ev.endTime : ''}`;
+      ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${ev.startDate}${ev.endDate && ev.endDate !== ev.startDate ? ' to ' + ev.endDate : ''} • All Day`
+      : `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${ev.startDate} • <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; display:inline-block; margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.startTime} || '09:00'} ${ev.endTime ? 'to ' + ev.endTime : ''}`;
     document.getElementById('calDetailsTime').textContent = timeStr;
 
     document.getElementById('calDetailsLocation').textContent = ev.location || 'Campus / School Premises';
@@ -1372,10 +1372,10 @@ class SchoolCalendar {
   }
 
   getAudienceLabel(key) {
-    if (key === 'students') return '🎓 Students Only';
-    if (key === 'staff') return '👨‍🏫 Faculty & Staff Only';
-    if (key === 'parents') return '👨‍👩‍👧 Parents Only';
-    return '👥 All School Community';
+    if (key === 'students') return 'Students Only';
+    if (key === 'staff') return 'Faculty & Staff Only';
+    if (key === 'parents') return 'Parents Only';
+    return 'All School Community';
   }
 
   escapeHtml(str) {

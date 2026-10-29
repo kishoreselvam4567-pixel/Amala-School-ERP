@@ -112,7 +112,7 @@ document.getElementById('adminForm').addEventListener('submit', async (e) => {
       createdAt: serverTimestamp()
     });
 
-    showBox(okBox, `✅ Admin account "${email}" created successfully with full privileges! You can now log into the Admin portal.`);
+    showBox(okBox, `Admin account "${email}" created successfully with full privileges! You can now log into the Admin portal.`);
   } catch (err) {
     let msg = err.message.replace('Firebase: ', '');
     if (err.code === 'auth/email-already-in-use' || (err.message && err.message.toLowerCase().includes('already registered'))) {
@@ -148,7 +148,7 @@ seedClassesBtn.addEventListener('click', async () => {
         createdAt: serverTimestamp()
       });
     }
-    showBox(okBox, '✅ Successfully seeded classes: 10A-2026, 10B-2026, 9A-2026, 9B-2026. Students can now register with these codes!');
+    showBox(okBox, 'Successfully seeded classes: 10A-2026, 10B-2026, 9A-2026, 9B-2026. Students can now register with these codes!');
   } catch (err) {
     showBox(errBox, 'Error seeding classes: ' + err.message.replace('Firebase: ', ''));
   } finally {
