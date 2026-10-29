@@ -13230,32 +13230,36 @@
         const tbody = document.querySelector('#studentPreviewTable tbody');
         tbody.innerHTML = '';
 
+        const cellStr = (val) => (val !== undefined && val !== null ? String(val).trim() : '');
+
         rows.forEach((r, rowIdx) => {
-          const name = idxName !== -1 ? (r[idxName] || '').trim() : (r[0] || '').trim();
+          const name = idxName !== -1 ? cellStr(r[idxName]) : cellStr(r[0]);
           if (!name) return;
-          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : `ADM-2026-${String(rowIdx + 1).padStart(3, '0')}`;
-          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : String(rowIdx + 1);
-          const className = idxClass !== -1 ? (r[idxClass] || '').trim() : '';
-          const gender = idxGender !== -1 && r[idxGender] ? r[idxGender].trim() : 'Male';
-          const dob = idxDob !== -1 && r[idxDob] ? r[idxDob].trim() : '';
-          const blood = idxBlood !== -1 && r[idxBlood] ? r[idxBlood].trim() : 'O+';
-          const aadhaar = idxAadhaar !== -1 && r[idxAadhaar] ? r[idxAadhaar].trim() : '';
-          const stuEmail = idxStuEmail !== -1 && r[idxStuEmail] ? r[idxStuEmail].trim() : '';
-          const cleanAdmCode = (admNo || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-          const stuPass = (idxStuPass !== -1 && r[idxStuPass] && r[idxStuPass].trim())
-            ? r[idxStuPass].trim()
+          const admNo = idxAdm !== -1 ? cellStr(r[idxAdm]) : `ADM-2026-${String(rowIdx + 1).padStart(3, '0')}`;
+          const rollNo = idxRoll !== -1 ? cellStr(r[idxRoll]) : String(rowIdx + 1);
+          const className = idxClass !== -1 ? cellStr(r[idxClass]) : '';
+          const gender = idxGender !== -1 && cellStr(r[idxGender]) ? cellStr(r[idxGender]) : 'Male';
+          const dob = idxDob !== -1 ? cellStr(r[idxDob]) : '';
+          const blood = idxBlood !== -1 && cellStr(r[idxBlood]) ? cellStr(r[idxBlood]) : 'O+';
+          const aadhaar = idxAadhaar !== -1 ? cellStr(r[idxAadhaar]) : '';
+          const stuEmail = idxStuEmail !== -1 ? cellStr(r[idxStuEmail]) : '';
+          const cleanAdmCode = cellStr(admNo).toLowerCase().replace(/[^a-z0-9]/g, '');
+          const stuPassFromRow = idxStuPass !== -1 ? cellStr(r[idxStuPass]) : '';
+          const stuPass = stuPassFromRow
+            ? stuPassFromRow
             : ((dob && dob.replace(/\D/g, '').length >= 6) ? dob.replace(/\D/g, '') : (cleanAdmCode ? cleanAdmCode.toUpperCase() + '@' + new Date().getFullYear() : 'Stu@' + Math.floor(1000 + Math.random() * 9000)));
-          const fatherName = idxFather !== -1 && r[idxFather] ? r[idxFather].trim() : '';
-          const fatherPhone = idxFatherPhone !== -1 && r[idxFatherPhone] ? String(r[idxFatherPhone]).replace(/\D/g, '') : '';
-          const motherName = idxMother !== -1 && r[idxMother] ? r[idxMother].trim() : '';
-          const motherPhone = idxMotherPhone !== -1 && r[idxMotherPhone] ? String(r[idxMotherPhone]).replace(/\D/g, '') : '';
-          const parEmail = idxParEmail !== -1 && r[idxParEmail] ? r[idxParEmail].trim() : '';
-          const parPass = (idxParPass !== -1 && r[idxParPass] && r[idxParPass].trim())
-            ? r[idxParPass].trim()
+          const fatherName = idxFather !== -1 ? cellStr(r[idxFather]) : '';
+          const fatherPhone = idxFatherPhone !== -1 ? cellStr(r[idxFatherPhone]).replace(/\D/g, '') : '';
+          const motherName = idxMother !== -1 ? cellStr(r[idxMother]) : '';
+          const motherPhone = idxMotherPhone !== -1 ? cellStr(r[idxMotherPhone]).replace(/\D/g, '') : '';
+          const parEmail = idxParEmail !== -1 ? cellStr(r[idxParEmail]) : '';
+          const parPassFromRow = idxParPass !== -1 ? cellStr(r[idxParPass]) : '';
+          const parPass = parPassFromRow
+            ? parPassFromRow
             : (fatherPhone && fatherPhone.length >= 6 ? fatherPhone : (cleanAdmCode ? 'Par@' + cleanAdmCode.toUpperCase() : 'Par@' + Math.floor(1000 + Math.random() * 9000)));
-          const address = idxAddr !== -1 && r[idxAddr] ? r[idxAddr].trim() : '';
-          const city = idxCity !== -1 && r[idxCity] ? r[idxCity].trim() : '';
-          const pincode = idxPin !== -1 && r[idxPin] ? r[idxPin].trim() : '';
+          const address = idxAddr !== -1 ? cellStr(r[idxAddr]) : '';
+          const city = idxCity !== -1 ? cellStr(r[idxCity]) : '';
+          const pincode = idxPin !== -1 ? cellStr(r[idxPin]) : '';
 
           parsedBulkStudents.push({
             name, admNo, rollNo, className, gender, dob, bloodGroup: blood,
@@ -13509,19 +13513,21 @@
         const tbody = document.querySelector('#staffPreviewTable tbody');
         tbody.innerHTML = '';
 
+        const cellStr = (val) => (val !== undefined && val !== null ? String(val).trim() : '');
+
         rows.forEach((r, rowIdx) => {
-          const name = idxName !== -1 ? (r[idxName] || '').trim() : (r[0] || '').trim();
+          const name = idxName !== -1 ? cellStr(r[idxName]) : cellStr(r[0]);
           if (!name) return;
-          let username = idxUser !== -1 ? (r[idxUser] || '').trim() : '';
+          let username = idxUser !== -1 ? cellStr(r[idxUser]) : '';
           if (!username) {
             username = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').slice(0, 15);
           }
-          const gender = idxGender !== -1 && r[idxGender] ? r[idxGender].trim() : 'Male';
-          const phone = idxPhone !== -1 && r[idxPhone] ? String(r[idxPhone]).replace(/\D/g, '') : '';
-          const majorSubject = idxSub !== -1 && r[idxSub] ? r[idxSub].trim() : 'General';
-          const email = idxEmail !== -1 && r[idxEmail] ? r[idxEmail].trim() : `${username}@amalaschool.edu.in`;
-          const pass = idxPass !== -1 && r[idxPass] ? r[idxPass].trim() : 'Faculty@123';
-          const role = idxRole !== -1 && r[idxRole] ? r[idxRole].trim() : 'staff';
+          const gender = idxGender !== -1 && cellStr(r[idxGender]) ? cellStr(r[idxGender]) : 'Male';
+          const phone = idxPhone !== -1 ? cellStr(r[idxPhone]).replace(/\D/g, '') : '';
+          const majorSubject = idxSub !== -1 && cellStr(r[idxSub]) ? cellStr(r[idxSub]) : 'General';
+          const email = idxEmail !== -1 && cellStr(r[idxEmail]) ? cellStr(r[idxEmail]) : `${username}@amalaschool.edu.in`;
+          const pass = idxPass !== -1 && cellStr(r[idxPass]) ? cellStr(r[idxPass]) : 'Faculty@123';
+          const role = idxRole !== -1 && cellStr(r[idxRole]) ? cellStr(r[idxRole]) : 'staff';
 
           parsedBulkStaff.push({ name, username, gender, phone, majorSubject, email, pass, role });
 
@@ -13684,13 +13690,15 @@
         const tbody = document.querySelector('#notesPreviewTable tbody');
         tbody.innerHTML = '';
 
+        const cellStr = (val) => (val !== undefined && val !== null ? String(val).trim() : '');
+
         rows.forEach((r, rowIdx) => {
-          const className = idxClass !== -1 ? (r[idxClass] || '').trim() : '';
-          const subject = idxSub !== -1 ? (r[idxSub] || '').trim() : 'General';
-          const title = idxTitle !== -1 ? (r[idxTitle] || '').trim() : (r[0] || '').trim();
+          const className = idxClass !== -1 ? cellStr(r[idxClass]) : '';
+          const subject = idxSub !== -1 ? cellStr(r[idxSub]) : 'General';
+          const title = idxTitle !== -1 ? cellStr(r[idxTitle]) : cellStr(r[0]);
           if (!title) return;
-          const description = idxDesc !== -1 ? (r[idxDesc] || '').trim() : '';
-          const fileUrl = idxLink !== -1 ? (r[idxLink] || '').trim() : '';
+          const description = idxDesc !== -1 ? cellStr(r[idxDesc]) : '';
+          const fileUrl = idxLink !== -1 ? cellStr(r[idxLink]) : '';
 
           parsedBulkNotes.push({ className, subject, title, description, fileUrl });
 
@@ -13833,15 +13841,17 @@
         const tbody = document.querySelector('#attPreviewTable tbody');
         tbody.innerHTML = '';
 
+        const cellStr = (val) => (val !== undefined && val !== null ? String(val).trim() : '');
+
         rows.forEach((r, rowIdx) => {
-          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
-          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
-          const name = idxName !== -1 ? (r[idxName] || '').trim() : '';
-          let status = idxStatus !== -1 && r[idxStatus] ? r[idxStatus].trim() : 'Present';
+          const admNo = idxAdm !== -1 ? cellStr(r[idxAdm]) : '';
+          const rollNo = idxRoll !== -1 ? cellStr(r[idxRoll]) : '';
+          const name = idxName !== -1 ? cellStr(r[idxName]) : '';
+          let status = idxStatus !== -1 && cellStr(r[idxStatus]) ? cellStr(r[idxStatus]) : 'Present';
           if (/^p/i.test(status)) status = 'Present';
           else if (/^a/i.test(status)) status = 'Absent';
           else if (/^l/i.test(status)) status = 'Late';
-          const remarks = idxRemarks !== -1 && r[idxRemarks] ? r[idxRemarks].trim() : '';
+          const remarks = idxRemarks !== -1 ? cellStr(r[idxRemarks]) : '';
 
           parsedBulkAttendance.push({ admNo, rollNo, name, status, remarks });
 
@@ -13993,11 +14003,13 @@
         const tbody = document.querySelector('#marksPreviewTable tbody');
         tbody.innerHTML = '';
 
+        const cellStr = (val) => (val !== undefined && val !== null ? String(val).trim() : '');
+
         rows.forEach(r => {
-          const admNo = idxAdm !== -1 ? (r[idxAdm] || '').trim() : '';
-          const rollNo = idxRoll !== -1 ? (r[idxRoll] || '').trim() : '';
-          const name = idxName !== -1 ? (r[idxName] || '').trim() : '';
-          const subject = idxSub !== -1 ? (r[idxSub] || '').trim() : 'General';
+          const admNo = idxAdm !== -1 ? cellStr(r[idxAdm]) : '';
+          const rollNo = idxRoll !== -1 ? cellStr(r[idxRoll]) : '';
+          const name = idxName !== -1 ? cellStr(r[idxName]) : '';
+          const subject = idxSub !== -1 ? cellStr(r[idxSub]) : 'General';
           const marksObtained = idxOb !== -1 ? parseFloat(r[idxOb]) || 0 : 0;
           const maxMarks = idxMax !== -1 ? parseFloat(r[idxMax]) || 100 : 100;
 

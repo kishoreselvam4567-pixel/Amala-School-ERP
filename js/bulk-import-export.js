@@ -122,10 +122,12 @@
             const workbook = window.XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            const aoa = window.XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+            const aoa = window.XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
             if (!aoa.length) throw new Error('Selected Excel worksheet is completely empty.');
-            const headers = (aoa[0] || []).map(h => String(h || '').trim());
-            const rows = aoa.slice(1).filter(r => r.some(c => String(c || '').trim().length > 0));
+            const headers = (aoa[0] || []).map(h => (h !== undefined && h !== null ? String(h).trim() : ''));
+            const rows = aoa.slice(1)
+              .filter(r => Array.isArray(r) && r.some(c => c !== null && c !== undefined && String(c).trim().length > 0))
+              .map(r => r.map(c => (c !== null && c !== undefined ? String(c).trim() : '')));
             resolve({ headers, rows, rawName: file.name });
           } catch (err) {
             reject(new Error('Failed to parse Excel file: ' + err.message));
@@ -146,8 +148,10 @@
               aoa = parseCsvText(text);
             }
             if (!aoa.length) throw new Error('File has no readable rows.');
-            const headers = (aoa[0] || []).map(h => String(h || '').trim());
-            const rows = aoa.slice(1).filter(r => r.some(c => String(c || '').trim().length > 0));
+            const headers = (aoa[0] || []).map(h => (h !== undefined && h !== null ? String(h).trim() : ''));
+            const rows = aoa.slice(1)
+              .filter(r => Array.isArray(r) && r.some(c => c !== null && c !== undefined && String(c).trim().length > 0))
+              .map(r => r.map(c => (c !== null && c !== undefined ? String(c).trim() : '')));
             resolve({ headers, rows, rawName: file.name });
           } catch (err) {
             reject(new Error('Failed to parse CSV file: ' + err.message));
