@@ -4,10 +4,16 @@
   "description": "Amala Higher Secondary School ERP System",
   "scripts": {
     "dev": "serve . -p 3000",
-    "backend": "backend\\venv\\Scripts\\python.exe backend\\manage.py runserver 8000",
+    "backend": "python -m daphne -b 127.0.0.1 -p 8000 config.asgi:application",
+    "backend:dev": "python backend\\manage.py runserver 8000",
+    "backend:asgi": "python -m daphne -b 127.0.0.1 -p 8000 config.asgi:application",
     "build": "next build",
     "start": "serve . -p 3000",
-    "serve-static": "npx serve . -p 3000"
+    "serve-static": "npx serve . -p 3000",
+    "test:e2e": "node tests/test_django_migration_e2e.mjs",
+    "test:incharge": "node tests/test_incharge_and_subject_teachers.mjs",
+    "test:login": "node tests/simulate_browser_logins.mjs",
+    "test:load": "node tests/load_test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

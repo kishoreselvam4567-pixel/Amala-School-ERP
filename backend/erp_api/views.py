@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from django.db import transaction
 from django.db.models import Q
+from django.core.cache import cache
 from .models import (
     LoginLookup, ERPUser, Student, Parent, Staff,
     SchoolClass, Attendance, Marks, Exam, Note,
@@ -60,6 +61,11 @@ def lookup_identifier(request, key=None):
         return Response({'error': 'Missing lookup identifier'}, status=status.HTTP_400_BAD_REQUEST)
 
     norm_key = str(k).strip().lower()
+    cache_key = f"erp:lookup:{norm_key}"
+    cached_val = cache.get(cache_key)
+    if cached_val is not None:
+        return Response(cached_val)
+
     item = LoginLookup.objects.filter(id__iexact=norm_key).first()
     if not item:
         # Check by digits if phone or roll number
@@ -73,7 +79,9 @@ def lookup_identifier(request, key=None):
         item = LoginLookup.objects.filter(id__iexact=prefix).first()
 
     if item:
-        return Response({'id': item.id, 'email': item.email})
+        resp_data = {'id': item.id, 'email': item.email}
+        cache.set(cache_key, resp_data, timeout=300)
+        return Response(resp_data)
     return Response({'error': 'Identifier not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -247,6 +255,12 @@ class CollectionListView(APIView):
         if collection not in MODEL_MAP:
             return Response({'error': f'Collection {collection} not found'}, status=status.HTTP_404_NOT_FOUND)
 
+        # High-speed in-memory cache for static classes query
+        if collection == 'classes' and not request.query_params:
+            cached_classes = cache.get('erp:all_classes')
+            if cached_classes is not None:
+                return Response(cached_classes)
+
         model, serializer_cls = MODEL_MAP[collection]
         qs = model.objects.all()
 
@@ -269,13 +283,39 @@ class CollectionListView(APIView):
         if order_by and hasattr(model, order_by.lstrip('-')):
             qs = qs.order_by(order_by)
 
-        # Limit
+        # Pagination & Limit protection (prevents loading entire unbounded tables into RAM)
         limit = request.query_params.get('_limit')
-        if limit and limit.isdigit():
-            qs = qs[:int(limit)]
+        offset = request.query_params.get('_offset')
+        page = request.query_params.get('_page')
+
+        limit_val = int(limit) if (limit and limit.isdigit()) else 1000
+        limit_val = min(limit_val, 2000)
+
+        if page and page.isdigit() and int(page) > 0:
+            start = (int(page) - 1) * limit_val
+            qs = qs[start:start + limit_val]
+        elif offset and offset.isdigit():
+            o = int(offset)
+            qs = qs[o:o + limit_val]
+        elif limit and limit.isdigit():
+            qs = qs[:limit_val]
+
+        # N+1 Query Elimination for Staff collection
+        if collection == 'staff':
+            staff_list = list(qs)
+            staff_ids = [s.id for s in staff_list]
+            all_assignments = SubjectTeacherAssignment.objects.filter(teacherUid__in=staff_ids, status='active')
+            assignments_map = {}
+            for a in all_assignments:
+                assignments_map.setdefault(a.teacherUid, []).append(a)
+            serializer = serializer_cls(staff_list, many=True, context={'assignments_by_teacher': assignments_map})
+            return Response(serializer.data)
 
         serializer = serializer_cls(qs, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        if collection == 'classes' and not request.query_params:
+            cache.set('erp:all_classes', data, timeout=60)
+        return Response(data)
 
     def post(self, request, collection):
         if collection not in MODEL_MAP:
@@ -321,6 +361,8 @@ class CollectionListView(APIView):
         serializer = serializer_cls(data=data)
         if serializer.is_valid():
             serializer.save()
+            if collection == 'classes':
+                cache.delete('erp:all_classes')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -379,6 +421,8 @@ class CollectionDetailView(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            if collection == 'classes':
+                cache.delete('erp:all_classes')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -413,6 +457,8 @@ class CollectionDetailView(APIView):
         serializer = serializer_cls(obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            if collection == 'classes':
+                cache.delete('erp:all_classes')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -429,6 +475,8 @@ class CollectionDetailView(APIView):
             return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
         obj.delete()
+        if collection == 'classes':
+            cache.delete('erp:all_classes')
         return Response({'success': True, 'id': pk}, status=status.HTTP_200_OK)
 
 
@@ -625,6 +673,7 @@ def manage_class_incharge(request):
                 ip_address=ip_addr
             )
 
+        cache.delete('erp:all_classes')
         return Response({
             'success': True,
             'message': f'{teacher.name} assigned as Class Incharge of {school_class.name}.',
@@ -675,6 +724,7 @@ def manage_class_incharge(request):
                 ip_address=ip_addr
             )
 
+        cache.delete('erp:all_classes')
         return Response({
             'success': True,
             'message': f'Class Incharge removed from {school_class.name}.'

@@ -18,8 +18,8 @@ class ERPUserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'role', 'name', 'email', 'phone', 'username',
             'deleted', 'disabled', 'hasSeenFirstLoginGuide',
-            'firstLoginDone', 'firstLoginGuideShownAt', 'data',
-            'created_at', 'updated_at'
+            'firstLoginDone', 'firstLoginGuideShownAt',
+            'data', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'password_hash': {'write_only': True}
@@ -48,7 +48,12 @@ class StaffSerializer(serializers.ModelSerializer):
     def get_subjects(self, obj):
         res = []
         seen = set()
-        active_assignments = SubjectTeacherAssignment.objects.filter(teacherUid=obj.id, status='active')
+        # High-performance pre-fetched context to prevent N+1 queries
+        if self.context and 'assignments_by_teacher' in self.context:
+            active_assignments = self.context['assignments_by_teacher'].get(obj.id, [])
+        else:
+            active_assignments = SubjectTeacherAssignment.objects.filter(teacherUid=obj.id, status='active')
+
         for a in active_assignments:
             key = ((a.classId or '').lower(), (a.subject or '').lower())
             seen.add(key)
@@ -154,4 +159,3 @@ class AuditLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuditLog
         fields = '__all__'
-

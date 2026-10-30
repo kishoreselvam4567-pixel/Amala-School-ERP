@@ -243,17 +243,47 @@ export async function ensureFreshSession() {
   return auth.currentUser;
 }
 
-// Query cache
+// Query & Document Caches with In-Flight Request Collapsing
 const queryCache = new Map();
+const docCache = new Map();
+const inFlightRequests = new Map();
+
 export function clearQueryCache(col) {
   if (col) {
     const prefix = normalizeCol(col) + ':';
     for (const k of queryCache.keys()) {
       if (k.startsWith(prefix)) queryCache.delete(k);
     }
+    for (const k of docCache.keys()) {
+      if (k.startsWith(prefix)) docCache.delete(k);
+    }
   } else {
     queryCache.clear();
+    docCache.clear();
   }
+}
+
+// High-performance Debounce Utility for Search and Filter Inputs
+export function debounce(fn, wait = 300) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+// Double-Submission Prevention Utility for Forms and Action Buttons
+export function preventDoubleSubmit(buttonEl, asyncCallback) {
+  if (!buttonEl) return asyncCallback();
+  if (buttonEl.dataset.submitting === 'true') return;
+  buttonEl.dataset.submitting = 'true';
+  const originalDisabled = buttonEl.disabled;
+  buttonEl.disabled = true;
+
+  return Promise.resolve(asyncCallback()).finally(() => {
+    buttonEl.dataset.submitting = 'false';
+    buttonEl.disabled = originalDisabled;
+  });
 }
 
 // Format document data ensuring camelCase createdAt / updatedAt compatibility
@@ -292,28 +322,50 @@ function createDocSnapshot(id, exists, data) {
 export async function getDoc(docRef) {
   const col = normalizeCol(docRef.col);
   const id = String(docRef.id);
+  const cacheKey = `${col}:${id}`;
 
-  try {
-    const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`);
-    if (res.status === 404) {
-      // Check local table
+  const cached = docCache.get(cacheKey);
+  if (cached && (Date.now() - cached.time) < 15000) {
+    return cached.result;
+  }
+
+  // Deduplicate identical concurrent requests in-flight
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`);
+      if (res.status === 404) {
+        // Check local table
+        const items = getLocalTable(col);
+        const item = items.find(x => String(x.id) === id);
+        const snap = createDocSnapshot(id, Boolean(item), item ? formatDocData(item, col) : undefined);
+        docCache.set(cacheKey, { time: Date.now(), result: snap });
+        return snap;
+      }
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const row = await res.json();
+      const snap = createDocSnapshot(id, Boolean(row && row.id), formatDocData(row, col));
+      docCache.set(cacheKey, { time: Date.now(), result: snap });
+      return snap;
+    } catch (err) {
+      // Graceful offline fallback
       const items = getLocalTable(col);
       const item = items.find(x => String(x.id) === id);
       return createDocSnapshot(id, Boolean(item), item ? formatDocData(item, col) : undefined);
+    } finally {
+      inFlightRequests.delete(cacheKey);
     }
+  })();
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-
-    const row = await res.json();
-    return createDocSnapshot(id, Boolean(row && row.id), formatDocData(row, col));
-  } catch (err) {
-    // Graceful offline fallback
-    const items = getLocalTable(col);
-    const item = items.find(x => String(x.id) === id);
-    return createDocSnapshot(id, Boolean(item), item ? formatDocData(item, col) : undefined);
-  }
+  inFlightRequests.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export async function getDocs(qRef) {
@@ -322,73 +374,85 @@ export async function getDocs(qRef) {
   const cacheKey = col + ':' + JSON.stringify(constraints);
 
   const cached = queryCache.get(cacheKey);
-  if (cached && (Date.now() - cached.time) < 12000) {
+  if (cached && (Date.now() - cached.time) < 15000) {
     return cached.result;
   }
 
-  // Construct URL query parameters
-  const params = new URLSearchParams();
-  for (const c of constraints) {
-    if (c._type === 'where') {
-      if (c.op === '==' || c.op === '===') {
-        params.append(c.field, String(c.val));
-      }
-    } else if (c._type === 'orderBy') {
-      const field = c.field === 'createdAt' ? 'created_at' : (c.field === 'updatedAt' ? 'updated_at' : c.field);
-      params.append('_order', c.dir === 'desc' ? `-${field}` : field);
-    } else if (c._type === 'limit') {
-      params.append('_limit', String(c.count));
-    }
+  // Deduplicate identical concurrent queries in-flight
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
   }
 
-  const queryUrl = `${DJANGO_API_BASE}/${col}/` + (params.toString() ? `?${params.toString()}` : '');
-
-  try {
-    const res = await fetch(queryUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
-
-    const docs = (Array.isArray(rows) ? rows : []).map(row => {
-      const docData = formatDocData(row, col);
-      return createDocSnapshot(row.id, true, docData);
-    });
-
-    const result = {
-      empty: docs.length === 0,
-      size: docs.length,
-      docs,
-      forEach: (cb) => docs.forEach(cb)
-    };
-
-    queryCache.set(cacheKey, { time: Date.now(), result });
-    return result;
-  } catch (err) {
-    // Offline local fallback
-    const localRows = getLocalTable(col);
-    let filtered = [...localRows];
+  const fetchPromise = (async () => {
+    // Construct URL query parameters
+    const params = new URLSearchParams();
     for (const c of constraints) {
       if (c._type === 'where') {
-        if (c.op === '==' || c.op === '===') filtered = filtered.filter(r => (r[c.field] ?? r.data?.[c.field]) === c.val);
-        else if (c.op === '!=') filtered = filtered.filter(r => (r[c.field] ?? r.data?.[c.field]) !== c.val);
+        if (c.op === '==' || c.op === '===') {
+          params.append(c.field, String(c.val));
+        }
+      } else if (c._type === 'orderBy') {
+        const field = c.field === 'createdAt' ? 'created_at' : (c.field === 'updatedAt' ? 'updated_at' : c.field);
+        params.append('_order', c.dir === 'desc' ? `-${field}` : field);
+      } else if (c._type === 'limit') {
+        params.append('_limit', String(c.count));
       }
     }
-    const docs = filtered.map(row => {
-      const docData = formatDocData(row, col);
-      return {
-        id: String(row.id),
-        exists: () => true,
-        get exists() { return true; },
-        data: () => docData
-      };
-    });
 
-    return {
-      empty: docs.length === 0,
-      size: docs.length,
-      docs,
-      forEach: (cb) => docs.forEach(cb)
-    };
-  }
+    const queryUrl = `${DJANGO_API_BASE}/${col}/` + (params.toString() ? `?${params.toString()}` : '');
+
+    try {
+      const res = await fetch(queryUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = await res.json();
+
+      const docs = (Array.isArray(rows) ? rows : []).map(row => {
+        const docData = formatDocData(row, col);
+        return createDocSnapshot(row.id, true, docData);
+      });
+
+      const result = {
+        empty: docs.length === 0,
+        size: docs.length,
+        docs,
+        forEach: (cb) => docs.forEach(cb)
+      };
+
+      queryCache.set(cacheKey, { time: Date.now(), result });
+      return result;
+    } catch (err) {
+      // Offline local fallback
+      const localRows = getLocalTable(col);
+      let filtered = [...localRows];
+      for (const c of constraints) {
+        if (c._type === 'where') {
+          if (c.op === '==' || c.op === '===') filtered = filtered.filter(r => (r[c.field] ?? r.data?.[c.field]) === c.val);
+          else if (c.op === '!=') filtered = filtered.filter(r => (r[c.field] ?? r.data?.[c.field]) !== c.val);
+        }
+      }
+      const docs = filtered.map(row => {
+        const docData = formatDocData(row, col);
+        return {
+          id: String(row.id),
+          exists: () => true,
+          get exists() { return true; },
+          data: () => docData
+        };
+      });
+
+      return {
+        empty: docs.length === 0,
+        size: docs.length,
+        docs,
+        forEach: (cb) => docs.forEach(cb)
+      };
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  inFlightRequests.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export async function setDoc(docRef, data, options = {}) {
