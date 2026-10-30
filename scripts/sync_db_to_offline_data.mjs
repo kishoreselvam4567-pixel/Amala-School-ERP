@@ -67,9 +67,30 @@ export function seedOfflineStore(force = false) {
   if (typeof window === 'undefined' || !window.localStorage) return;
   for (const [key, val] of Object.entries(OFFLINE_DATA)) {
     const storeKey = 'erp_fallback_table_' + key;
-    if (force || !localStorage.getItem(storeKey)) {
-      try { localStorage.setItem(storeKey, JSON.stringify(val)); } catch (e) {}
-    }
+    try {
+      const existing = localStorage.getItem(storeKey);
+      if (force || !existing) {
+        localStorage.setItem(storeKey, JSON.stringify(val));
+      } else {
+        const parsed = JSON.parse(existing);
+        if (Array.isArray(parsed) && Array.isArray(val)) {
+          const idMap = new Map();
+          for (const item of parsed) {
+            if (item && item.id) idMap.set(String(item.id), item);
+          }
+          let hasNew = false;
+          for (const offItem of val) {
+            if (offItem && offItem.id && !idMap.has(String(offItem.id))) {
+              idMap.set(String(offItem.id), offItem);
+              hasNew = true;
+            }
+          }
+          if (hasNew) {
+            localStorage.setItem(storeKey, JSON.stringify(Array.from(idMap.values())));
+          }
+        }
+      }
+    } catch (e) {}
   }
 }
 

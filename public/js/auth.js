@@ -223,21 +223,45 @@ export function query(target, ...constraints) {
 // Fallback Local Storage
 function getLocalTable(col) {
   const normCol = normalizeCol(col);
+  let localItems = [];
   try {
     const raw = localStorage.getItem('erp_fallback_table_' + normCol);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) localItems = parsed;
     }
   } catch (e) {}
 
-  // Fallback to bundled OFFLINE_DATA (for mobile / standalone offline mode)
-  const globalOffline = (typeof window !== 'undefined' && (window.OFFLINE_DATA || window.__OFFLINE_DATA__)) ? (window.OFFLINE_DATA || window.__OFFLINE_DATA__) : null;
+  // Merge with bundled OFFLINE_DATA so any newly imported/deployed records appear immediately on mobile & desktop
+  const globalOffline = (typeof window !== 'undefined' && (window.OFFLINE_DATA || window.__OFFLINE_DATA__)) 
+    ? (window.OFFLINE_DATA || window.__OFFLINE_DATA__) 
+    : null;
+
   if (globalOffline && Array.isArray(globalOffline[normCol])) {
-    return globalOffline[normCol];
+    const offList = globalOffline[normCol];
+    if (localItems.length === 0) {
+      localItems = offList;
+      try { localStorage.setItem('erp_fallback_table_' + normCol, JSON.stringify(localItems)); } catch (e) {}
+    } else {
+      const idMap = new Map();
+      for (const item of localItems) {
+        if (item && item.id) idMap.set(String(item.id), item);
+      }
+      let added = false;
+      for (const offItem of offList) {
+        if (offItem && offItem.id && !idMap.has(String(offItem.id))) {
+          idMap.set(String(offItem.id), offItem);
+          added = true;
+        }
+      }
+      if (added) {
+        localItems = Array.from(idMap.values());
+        try { localStorage.setItem('erp_fallback_table_' + normCol, JSON.stringify(localItems)); } catch (e) {}
+      }
+    }
   }
 
-  return [];
+  return localItems;
 }
 
 function setLocalTable(col, items) {
