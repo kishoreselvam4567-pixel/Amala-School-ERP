@@ -49,9 +49,9 @@ async function main() {
       }
     }
     const managePy = path.join(rootDir, 'backend', 'manage.py');
-    console.log(`\n[1/2] Starting Django REST Backend on http://127.0.0.1:8000 ...`);
+    console.log(`\n[1/2] Starting Django REST Backend on http://0.0.0.0:8000 (accessible on laptop & mobile) ...`);
 
-    backendProcess = spawn(pythonBin, [managePy, 'runserver', '127.0.0.1:8000', '--noreload'], {
+    backendProcess = spawn(pythonBin, [managePy, 'runserver', '0.0.0.0:8000', '--noreload'], {
       cwd: rootDir,
       stdio: 'inherit',
       shell: true

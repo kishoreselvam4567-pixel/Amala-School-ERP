@@ -5,10 +5,23 @@
 // ============================================================
 
 
-// Configurable API base URL
-export const DJANGO_API_BASE = (typeof window !== 'undefined' && window.__DJANGO_API_URL__)
-  ? window.__DJANGO_API_URL__.replace(/\/+$/, '')
-  : 'http://localhost:8000/api';
+// Configurable API base URL with automatic mobile & multi-device LAN IP detection
+function resolveDjangoApiBase() {
+  if (typeof window !== 'undefined') {
+    if (window.__DJANGO_API_URL__) return window.__DJANGO_API_URL__.replace(/\/+$/, '');
+    if (window.__ENV__ && window.__ENV__.DJANGO_API_URL && !window.__ENV__.DJANGO_API_URL.includes('localhost')) {
+      return window.__ENV__.DJANGO_API_URL.replace(/\/+$/, '');
+    }
+    const host = window.location.hostname;
+    // When accessing from mobile phone or other device on same Wi-Fi / local network
+    if (host && host !== 'localhost' && host !== '127.0.0.1' && !host.endsWith('.vercel.app')) {
+      return `http://${host}:8000/api`;
+    }
+  }
+  return 'http://localhost:8000/api';
+}
+
+export const DJANGO_API_BASE = resolveDjangoApiBase();
 if (typeof window !== 'undefined') {
   window.DJANGO_API_BASE = DJANGO_API_BASE;
 }
@@ -209,12 +222,22 @@ export function query(target, ...constraints) {
 
 // Fallback Local Storage
 function getLocalTable(col) {
+  const normCol = normalizeCol(col);
   try {
-    const raw = localStorage.getItem('erp_fallback_table_' + normalizeCol(col));
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
+    const raw = localStorage.getItem('erp_fallback_table_' + normCol);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+
+  // Fallback to bundled OFFLINE_DATA (for mobile / standalone offline mode)
+  const globalOffline = (typeof window !== 'undefined' && (window.OFFLINE_DATA || window.__OFFLINE_DATA__)) ? (window.OFFLINE_DATA || window.__OFFLINE_DATA__) : null;
+  if (globalOffline && Array.isArray(globalOffline[normCol])) {
+    return globalOffline[normCol];
   }
+
+  return [];
 }
 
 function setLocalTable(col, items) {
@@ -396,6 +419,13 @@ export async function setDoc(docRef, data, options = {}) {
   const id = String(docRef.id);
   const payload = { id, ...data };
 
+  // Always keep localStorage synchronized for mobile & offline access
+  const items = getLocalTable(col);
+  const idx = items.findIndex(x => String(x.id) === id);
+  if (idx !== -1) items[idx] = { ...items[idx], ...payload };
+  else items.push(payload);
+  setLocalTable(col, items);
+
   try {
     const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`, {
       method: 'PUT',
@@ -406,12 +436,7 @@ export async function setDoc(docRef, data, options = {}) {
       throw new Error(`setDoc failed HTTP ${res.status}`);
     }
   } catch (err) {
-    // Fallback store
-    const items = getLocalTable(col);
-    const idx = items.findIndex(x => String(x.id) === id);
-    if (idx !== -1) items[idx] = { ...items[idx], ...payload };
-    else items.push(payload);
-    setLocalTable(col, items);
+    // Already saved to localTable
   }
   clearQueryCache(col);
 }

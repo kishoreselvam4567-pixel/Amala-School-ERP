@@ -1297,6 +1297,74 @@
       cursor: default;
       user-select: none;
     }
+  
+    /* ==========================================================
+       RESPONSIVE MOBILE DISPLAY (SHOW DATA ON LAPTOP & MOBILE)
+       ========================================================== */
+    @media (max-width: 768px) {
+      #stuTable thead {
+        display: none;
+      }
+      #stuTable, #stuTable tbody, #stuTable tr, #stuTable td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      #stuTable tbody tr {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+      }
+      [data-theme="dark"] #stuTable tbody tr {
+        background: #1e293b;
+        border-color: #334155;
+      }
+      #stuTable td {
+        padding: 6px 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left !important;
+      }
+      #stuTable td:nth-child(1) {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: 8px;
+        justify-content: flex-start;
+      }
+      [data-theme="dark"] #stuTable td:nth-child(1) {
+        border-bottom-color: #334155;
+      }
+      #stuTable td:nth-child(2)::before { content: "Admission No:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(3)::before { content: "Roll No:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(4)::before { content: "Class Section:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(5)::before { content: "Password:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(6)::before { content: "Father / Contact:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(7)::before { content: "Blood Group:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(8)::before { content: "Parent Account:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:last-child {
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        margin-top: 8px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      [data-theme="dark"] #stuTable td:last-child {
+        border-top-color: #334155;
+      }
+      .bulk-preview-wrap {
+        max-height: 320px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
   </style>
 
 </head>
@@ -13329,10 +13397,17 @@
           let targetClassId = fallbackClassId;
           let targetClassName = fallbackClassName;
           if (s.className) {
-            const matched = classesList.find(c =>
-              c.name?.toLowerCase().trim() === s.className.toLowerCase().trim() ||
-              c.code?.toLowerCase().trim() === s.className.toLowerCase().trim()
-            );
+            const normC = (str) => String(str || '').toLowerCase().replace(/section/g, '').replace(/[^a-z0-9]/g, '');
+            const targetNorm = normC(s.className);
+            const matched = classesList.find(c => {
+              const cNameNorm = normC(c.name);
+              const cCodeNorm = normC(c.code);
+              return cNameNorm === targetNorm ||
+                cCodeNorm === targetNorm ||
+                (targetNorm.length >= 2 && (cNameNorm.endsWith(targetNorm) || targetNorm.endsWith(cNameNorm))) ||
+                c.name?.toLowerCase().trim() === s.className.toLowerCase().trim() ||
+                c.code?.toLowerCase().trim() === s.className.toLowerCase().trim();
+            });
             if (matched) {
               targetClassId = matched.id;
               targetClassName = matched.name;

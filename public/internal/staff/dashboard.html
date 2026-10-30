@@ -798,7 +798,68 @@
     background: #161b22;
     border-top-color: #30363d;
   }
-</style>
+
+    /* ==========================================================
+       RESPONSIVE MOBILE DISPLAY (SHOW DATA ON LAPTOP & MOBILE)
+       ========================================================== */
+    @media (max-width: 768px) {
+      #stuTable thead {
+        display: none;
+      }
+      #stuTable, #stuTable tbody, #stuTable tr, #stuTable td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      #stuTable tbody tr {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+      }
+      [data-theme="dark"] #stuTable tbody tr {
+        background: #1e293b;
+        border-color: #334155;
+      }
+      #stuTable td {
+        padding: 6px 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left !important;
+      }
+      #stuTable td:nth-child(2) {
+        order: -1;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f1f5f9;
+        margin-bottom: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        justify-content: flex-start;
+      }
+      [data-theme="dark"] #stuTable td:nth-child(2) {
+        border-bottom-color: #334155;
+      }
+      #stuTable td:nth-child(1)::before { content: "Roll No:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(3)::before { content: "Admission No:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(4)::before { content: "Blood Group:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:nth-child(5)::before { content: "Parent Status:"; font-weight: 700; font-size: 11.5px; color: var(--ink-soft); }
+      #stuTable td:last-child {
+        padding-top: 10px;
+        border-top: 1px solid #f1f5f9;
+        margin-top: 8px;
+        display: flex;
+        justify-content: flex-end;
+      }
+      [data-theme="dark"] #stuTable td:last-child {
+        border-top-color: #334155;
+      }
+    }
+
+  </style>
 </head>
 <body>
 

@@ -192,7 +192,7 @@
           'Kishore S',
           'ADM-2026-001',
           '101',
-          'Class 10 - Section A',
+          'Class 10-A',
           'Male',
           '2009-05-15',
           'O+',
@@ -213,7 +213,7 @@
           'Ananya Raman',
           'ADM-2026-002',
           '102',
-          'Class 10 - Section A',
+          'Class 10-A',
           'Female',
           '2009-08-22',
           'B+',
@@ -276,14 +276,14 @@
       ],
       samples: [
         [
-          'Class 10 - Section A',
+          'Class 10-A',
           'Mathematics',
           'Chapter 1 Real Numbers Master Study Notes',
           'Includes theorem explanations, Euclid lemma step-by-step proofs, and 15 solved practice questions.',
           'https://drive.google.com/sample-notes-maths-ch1.pdf'
         ],
         [
-          'Class 10 - Section A',
+          'Class 10-A',
           'Physics',
           'Chapter 2 Light Reflection & Refraction Quick Formula Sheet',
           'Mirror formula, lens maker formula, sign conventions, and ray diagram summaries.',
@@ -317,10 +317,10 @@
         'Max Marks'
       ],
       samples: [
-        ['ADM-2026-001', '101', 'Kishore S', 'Class 10 - Section A', 'Mid-Term Examination', 'Mathematics', '94', '100'],
-        ['ADM-2026-001', '101', 'Kishore S', 'Class 10 - Section A', 'Mid-Term Examination', 'Physics', '88', '100'],
-        ['ADM-2026-002', '102', 'Ananya Raman', 'Class 10 - Section A', 'Mid-Term Examination', 'Mathematics', '98', '100'],
-        ['ADM-2026-002', '102', 'Ananya Raman', 'Class 10 - Section A', 'Mid-Term Examination', 'Physics', '95', '100']
+        ['ADM-2026-001', '101', 'Kishore S', 'Class 10-A', 'Mid-Term Examination', 'Mathematics', '94', '100'],
+        ['ADM-2026-001', '101', 'Kishore S', 'Class 10-A', 'Mid-Term Examination', 'Physics', '88', '100'],
+        ['ADM-2026-002', '102', 'Ananya Raman', 'Class 10-A', 'Mid-Term Examination', 'Mathematics', '98', '100'],
+        ['ADM-2026-002', '102', 'Ananya Raman', 'Class 10-A', 'Mid-Term Examination', 'Physics', '95', '100']
       ]
     }
   };

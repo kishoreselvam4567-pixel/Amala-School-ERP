@@ -4,7 +4,7 @@
 $rootDir = "D:\Amala-School-ERP"
 $pythonPath = "$rootDir\backend\venv\Scripts\python.exe"
 $managePy = "$rootDir\backend\manage.py"
-$cmdLine = "`"$pythonPath`" `"$managePy`" runserver 127.0.0.1:8000 --noreload"
+$cmdLine = "`"$pythonPath`" `"$managePy`" runserver 0.0.0.0:8000 --noreload"
 
 # Check if already listening on port 8000
 $existing = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
@@ -22,7 +22,7 @@ if ($result.ReturnValue -eq 0) {
     Start-Sleep -Seconds 2
     $check = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
     if ($check) {
-        Write-Host "[VERIFIED] Backend is actively listening on http://127.0.0.1:8000"
+        Write-Host "[VERIFIED] Backend is actively listening on http://0.0.0.0:8000 (accessible on laptop & mobile)"
     }
 } else {
     Write-Host "[ERROR] Failed to start backend, return code: $($result.ReturnValue)"
