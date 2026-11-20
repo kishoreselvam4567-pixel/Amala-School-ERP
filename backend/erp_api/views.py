@@ -454,18 +454,33 @@ class CollectionDetailView(APIView):
 # 3. STORAGE & FILE ATTACHMENTS
 # ============================================================
 
+ALLOWED_UPLOAD_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.webp', '.xlsx', '.xls', '.csv', '.doc', '.docx'}
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB maximum
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def upload_file(request):
     """
     Replaces Supabase Storage bucket uploads.
-    Saves file to media storage and returns public URL.
+    Saves file to media storage and returns public URL with strict extension and size validation.
     """
     file_obj = request.FILES.get('file')
-    bucket = request.data.get('bucket', 'general')
+    raw_bucket = request.data.get('bucket', 'general')
 
     if not file_obj:
-        return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'No file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Sanitize bucket name (prevent directory traversal)
+    bucket = ''.join(c for c in str(raw_bucket) if c.isalnum() or c in ('-', '_')) or 'general'
+
+    # Validate file size
+    if file_obj.size > MAX_UPLOAD_SIZE:
+        return Response({'error': 'File exceeds maximum allowed size of 10MB.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate extension
+    ext = os.path.splitext(file_obj.name)[1].lower()
+    if ext not in ALLOWED_UPLOAD_EXTENSIONS:
+        return Response({'error': f'File extension "{ext}" is not permitted.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Generate safe path
     filename = f"{uuid.uuid4().hex[:12]}_{file_obj.name}"

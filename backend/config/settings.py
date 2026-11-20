@@ -13,7 +13,10 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-amala-school-erp-key-2026-prod-fallback')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,10.182.116.240,amala-erp.vercel.app,testserver').split(',') if h.strip()]
+if DEBUG and '*' not in ALLOWED_HOSTS:
+    # Retain wildcard fallback only when explicitly debugging on local subnet
+    ALLOWED_HOSTS.append('*')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -127,9 +130,16 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings for frontend connection
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL', 'False').lower() in ('true', '1')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://10.182.116.240:3000',
+    'https://amala-erp.vercel.app',
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+    r"^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:3000$",
+    r"^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:3000$",
 ]
