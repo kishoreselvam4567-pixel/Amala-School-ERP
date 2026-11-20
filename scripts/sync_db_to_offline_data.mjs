@@ -132,7 +132,13 @@ export function verifyOfflineCredentials(rawUser, pass) {
     }
   }
 
-  if (!user) return null;
+  if (!user) {
+    return {
+      success: false,
+      error: 'Incorrect User ID. Please try again.',
+      code: 'invalid_user'
+    };
+  }
 
   // 3. Verify password
   let storedPass = (user.data && user.data.password) || user.password;
@@ -168,7 +174,13 @@ export function verifyOfflineCredentials(rawUser, pass) {
   }
 
   const isMatch = validPasswords.some(p => p.toLowerCase() === passTrim.toLowerCase());
-  if (!isMatch) return null;
+  if (!isMatch) {
+    return {
+      success: false,
+      error: 'Incorrect Password. Please try again.',
+      code: 'invalid_password'
+    };
+  }
 
   // 4. Find role-specific document
   const role = user.role;
@@ -186,6 +198,7 @@ export function verifyOfflineCredentials(rawUser, pass) {
   }
 
   return {
+    success: true,
     user: {
       id: user.id,
       uid: user.id,

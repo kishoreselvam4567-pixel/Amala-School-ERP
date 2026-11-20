@@ -137,7 +137,7 @@ def auth_login(request):
             user = ERPUser.objects.filter(id=prefix).first()
 
     if not user:
-        return Response({'error': 'Invalid User ID or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Incorrect User ID. Please try again.', 'code': 'invalid_user'}, status=status.HTTP_401_UNAUTHORIZED)
 
     if user.deleted or user.disabled:
         return Response({'error': 'This account has been deactivated. Contact school admin.'}, status=status.HTTP_403_FORBIDDEN)
@@ -166,7 +166,7 @@ def auth_login(request):
                 is_valid = True
 
     if not is_valid:
-        return Response({'error': 'Invalid User ID or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Incorrect Password. Please try again.', 'code': 'invalid_password'}, status=status.HTTP_401_UNAUTHORIZED)
 
     # 4. Fetch role-specific document
     role_doc = None

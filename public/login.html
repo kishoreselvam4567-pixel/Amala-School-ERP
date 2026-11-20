@@ -703,11 +703,10 @@
     }
 
     function verifyCaptcha(candidate) {
-      // Permanent fix: never block legitimate logins with captcha errors
-      if (!candidate || !_currentCaptchaRaw) return true;
+      if (!candidate || !_currentCaptchaRaw) return false;
       const clean = String(candidate).replace(/\s+/g, '').trim();
-      if (!clean) return true;
-      return true;
+      if (!clean) return false;
+      return clean.toLowerCase() === _currentCaptchaRaw.toLowerCase();
     }
 
     function hasCaptcha() {
@@ -1024,12 +1023,26 @@
         e.preventDefault();
         showErrBox('');
 
-        // 1. Captcha check
+        const rawUser = document.getElementById('loginUserId').value.trim();
+        const pass = pwdInput.value;
         const userCaptcha = (document.getElementById('captchaInput').value || '').trim();
 
-        // 1. Captcha check (permissive: never blocks user login)
-        if (userCaptcha && !verifyCaptcha(userCaptcha)) {
-          showErrBox('Security Captcha does not match. A new code has been generated — please try again.');
+        // Simple input checks
+        if (!rawUser) {
+          showErrBox('Incorrect User ID. Please enter your User ID.');
+          document.getElementById('loginUserId').focus();
+          return;
+        }
+
+        if (!pass) {
+          showErrBox('Incorrect Password. Please enter your Password.');
+          pwdInput.focus();
+          return;
+        }
+
+        // 1. Captcha validation
+        if (!userCaptcha || !verifyCaptcha(userCaptcha)) {
+          showErrBox('Invalid Captcha. Please try again.');
           generateCaptchaCode();
           const inp = document.getElementById('captchaInput');
           if (inp) { inp.value = ''; inp.focus(); }
@@ -1038,9 +1051,6 @@
 
         loginBtn.disabled = true;
         loginBtn.textContent = 'Authenticating…';
-
-        const rawUser = document.getElementById('loginUserId').value.trim();
-        const pass = pwdInput.value;
 
         try {
           let authResult = null;
@@ -1057,7 +1067,7 @@
             if (res.ok && data.user) {
               authResult = data;
             } else {
-              authError = new Error(data.error || 'Invalid User ID or Password.');
+              authError = new Error(data.error || 'Incorrect User ID or Password. Please try again.');
             }
           } catch (netErr) {
             console.warn('Django auth fetch failed, attempting 24/7 offline fallback:', netErr);
@@ -1067,7 +1077,7 @@
           // 2. High-Availability 24/7 Offline Fallback
           if (!authResult && window.verifyOfflineCredentials) {
             const off = window.verifyOfflineCredentials(rawUser, pass);
-            if (off) {
+            if (off && (off.success || (off.user && !off.error))) {
               authResult = {
                 user: off.user,
                 userData: off.userData,
@@ -1077,11 +1087,13 @@
                 token: 'offline_token_' + Date.now()
               };
               localStorage.setItem('erp_offline_mode', 'true');
+            } else if (off && off.error) {
+              authError = new Error(off.error);
             }
           }
 
           if (!authResult) {
-            throw (authError || new Error('Invalid User ID or Password. Please check your credentials and try again.'));
+            throw (authError || new Error('Incorrect User ID or Password. Please try again.'));
           }
 
           const role = authResult.role || (authResult.userData && authResult.userData.role);
@@ -1122,21 +1134,28 @@
 
         } catch (err) {
           generateCaptchaCode();
-          document.getElementById('captchaInput').value = '';
+          const capInp = document.getElementById('captchaInput');
+          if (capInp) capInp.value = '';
 
-          let msg = err.message || 'Authentication failed. Please check your credentials and try again.';
+          let msg = err.message || 'Incorrect User ID or Password. Please try again.';
           const msgLower = msg.toLowerCase();
-          if (msgLower.includes('failed to fetch') || msgLower.includes('network') || msgLower.includes('connection')) {
-            if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
-            msg = 'Authentication failed. Please verify your User ID and Password, or connect to the campus network.';
-          } else {
-            msg = `Backend server is unreachable and offline record was not found. Please verify the server is running on ${DJANGO_API_BASE}.`;
-          }
-          } else if (msgLower.includes('invalid') || msgLower.includes('credentials') || msgLower.includes('not found')) {
-            msg = 'Invalid User ID or Password. Please check your credentials and try again.';
+
+          if (msgLower.includes('incorrect user id') || msgLower.includes('user not found') || msgLower.includes('identifier')) {
+            msg = 'Incorrect User ID. Please try again.';
+          } else if (msgLower.includes('incorrect password') || (msgLower.includes('password') && !msgLower.includes('user id'))) {
+            msg = 'Incorrect Password. Please try again.';
+          } else if (msgLower.includes('captcha')) {
+            msg = 'Invalid Captcha. Please try again.';
+          } else if (msgLower.includes('failed to fetch') || msgLower.includes('network') || msgLower.includes('connection') || msgLower.includes('backend server')) {
+            msg = 'Incorrect User ID or Password. Please try again.';
+          } else if (msgLower.includes('deactivated') || msgLower.includes('disabled')) {
+            msg = 'Account is deactivated. Contact school admin.';
           } else if (msgLower.includes('rate limit') || msgLower.includes('too many requests')) {
-            msg = 'Too many failed attempts. Account temporarily locked. Please try again in a few minutes.';
+            msg = 'Too many failed attempts. Please try again in a few minutes.';
+          } else if (msgLower.includes('invalid') || msgLower.includes('credentials') || msgLower.includes('authentication failed')) {
+            msg = 'Incorrect User ID or Password. Please try again.';
           }
+
           showErrBox(msg);
         } finally {
           loginBtn.disabled = false;
