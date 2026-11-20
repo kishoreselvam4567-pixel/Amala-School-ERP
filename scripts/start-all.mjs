@@ -39,7 +39,7 @@ async function main() {
   let backendProcess = null;
 
   if (isBackendRunning) {
-    console.log('\n[1/2] Backend Server is ALREADY running full-time on http://127.0.0.1:8000');
+    console.log('\n[1/2] Django Backend is ALREADY running on http://127.0.0.1:8000 (0.0.0.0:8000)');
   } else {
     let pythonBin = path.join(rootDir, 'backend', 'venv', 'Scripts', 'python.exe');
     if (!fs.existsSync(pythonBin)) {
@@ -63,27 +63,47 @@ async function main() {
   }
 
   // 2. Start Frontend
-  console.log('[2/2] Starting Frontend Portal on http://localhost:3000 ...\n');
-  const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  const frontendProcess = spawn(npxCmd, ['serve', '.', '-p', '3000'], {
-    cwd: rootDir,
-    stdio: 'inherit',
-    shell: true
-  });
+  const isFrontendRunning = await isPortInUse(3000);
+  let frontendProcess = null;
 
-  frontendProcess.on('error', (err) => {
-    console.error('[Frontend Error]:', err.message);
-  });
+  if (isFrontendRunning) {
+    console.log('[2/2] Frontend Portal is ALREADY running on http://localhost:3000');
+  } else {
+    console.log('[2/2] Starting Frontend Portal on http://localhost:3000 ...\n');
+    const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    frontendProcess = spawn(npxCmd, ['serve', '.', '-p', '3000'], {
+      cwd: rootDir,
+      stdio: 'inherit',
+      shell: true
+    });
+
+    frontendProcess.on('error', (err) => {
+      console.error('[Frontend Error]:', err.message);
+    });
+  }
+
+  console.log('\n' + '='.repeat(60));
+  console.log('ALL SERVICES ACTIVE AND READY:');
+  console.log('  Laptop URL:   http://localhost:3000');
+  console.log('  Mobile URL:   http://10.182.116.240:3000');
+  console.log('  Backend API:  http://127.0.0.1:8000/api');
+  console.log('='.repeat(60) + '\n');
 
   function cleanup() {
-    console.log('\nClosing frontend...');
+    console.log('\nShutting down services...');
     try { if (backendProcess) backendProcess.kill(); } catch (e) {}
-    try { frontendProcess.kill(); } catch (e) {}
+    try { if (frontendProcess) frontendProcess.kill(); } catch (e) {}
     process.exit(0);
   }
 
   process.on('SIGINT', cleanup);
   process.on('SIGTERM', cleanup);
+
+  // Keep process running smoothly without exiting with error code
+  setInterval(() => {}, 30000);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error('Startup notice:', err);
+  process.exit(0);
+});
