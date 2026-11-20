@@ -975,3 +975,19 @@ if (typeof window !== 'undefined') {
   window.escapeHtml = escapeHtml;
   window.supabase = supabase;
 }
+
+// Global Error Boundary & Centralized Exception Handler
+export function initGlobalErrorBoundary() {
+  if (typeof window === 'undefined') return;
+  if (window.__erpErrorBoundaryActive) return;
+  window.__erpErrorBoundaryActive = true;
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.warn('[ERP Unhandled Rejection Caught]:', event.reason);
+  });
+
+  window.addEventListener('error', (event) => {
+    console.error('[ERP Uncaught UI Exception]:', event.message, event.filename, event.lineno);
+  });
+}
+initGlobalErrorBoundary();
