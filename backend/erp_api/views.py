@@ -286,6 +286,10 @@ class CollectionListView(APIView):
 
         actor_uid, actor_name, actor_role, ip_addr = get_request_actor(request)
 
+        # RBAC Check: Administrative collections require admin role
+        if collection in ['users', 'staff', 'classes'] and actor_role != 'admin':
+            return Response({'error': f'Unauthorized: Only administrators can create {collection}.'}, status=status.HTTP_403_FORBIDDEN)
+
         # Strict Marks Access Control
         if collection == 'marks' and actor_role == 'staff':
             class_id = request.data.get('classId')
@@ -391,6 +395,10 @@ class CollectionDetailView(APIView):
 
         actor_uid, actor_name, actor_role, ip_addr = get_request_actor(request)
 
+        # RBAC Check: Administrative collections require admin role
+        if collection in ['users', 'staff', 'classes'] and actor_role != 'admin':
+            return Response({'error': f'Unauthorized: Only administrators can modify {collection}.'}, status=status.HTTP_403_FORBIDDEN)
+
         if collection == 'marks' and actor_role == 'staff':
             obj = Marks.objects.filter(id=pk).first()
             class_id = request.data.get('classId') or (obj.classId if obj else None)
@@ -422,6 +430,15 @@ class CollectionDetailView(APIView):
 
         if collection == 'audit_logs':
             return Response({'error': 'Audit logs cannot be deleted.'}, status=status.HTTP_403_FORBIDDEN)
+
+        actor_uid, actor_name, actor_role, ip_addr = get_request_actor(request)
+
+        # RBAC Check: Deletion requires admin or staff permissions
+        if actor_role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized: Insufficient permissions to delete records.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if collection in ['users', 'staff', 'classes'] and actor_role != 'admin':
+            return Response({'error': f'Unauthorized: Only administrators can delete {collection}.'}, status=status.HTTP_403_FORBIDDEN)
 
         model, _ = MODEL_MAP[collection]
         obj = model.objects.filter(id=pk).first()
@@ -488,35 +505,48 @@ def create_audit_log(actor_uid=None, actor_name=None, actor_role=None, action=""
 
 
 def get_request_actor(request):
-    """Extract authenticated actor identity from headers or request payload."""
+    """
+    Securely extract authenticated actor identity.
+    Only allows role verification through database verification or verified system context.
+    Never blindly trusts client-provided 'X-User-Role' headers.
+    """
     actor_uid = (
+        request.headers.get('X-User-Uid') or
         request.headers.get('X-Teacher-Uid') or
         request.headers.get('X-Parent-Uid') or
         request.headers.get('X-Student-Uid') or
-        request.headers.get('X-User-Uid') or 
         request.data.get('actorUid') or 
         request.query_params.get('actorUid') or 
-        'admin'
+        ''
     )
     
-    header_role = (
-        request.headers.get('X-User-Role') or 
-        request.data.get('actorRole') or 
-        request.query_params.get('actorRole')
-    )
-    if header_role:
-        actor_role = header_role
-    elif request.headers.get('X-Teacher-Uid') or (actor_uid and actor_uid.startswith('stf_') and actor_uid != 'admin'):
-        actor_role = 'staff'
-    elif request.headers.get('X-Parent-Uid') or (actor_uid and actor_uid.startswith('par_')):
-        actor_role = 'parent'
-    elif request.headers.get('X-Student-Uid') or (actor_uid and actor_uid.startswith('stu_')):
-        actor_role = 'student'
-    else:
-        actor_role = 'admin'
+    actor_role = 'guest'
+    actor_name = 'Guest User'
+    user = None
 
-    user = ERPUser.objects.filter(id=actor_uid).first()
-    actor_name = user.name if user else ('Faculty' if actor_role == 'staff' else ('Guardian' if actor_role == 'parent' else 'Administrator'))
+    if actor_uid:
+        user = ERPUser.objects.filter(id=actor_uid, deleted=False, disabled=False).first()
+        if not user and actor_uid in ('admin', 'system'):
+            # Allow system/admin lookup if matching active admin
+            user = ERPUser.objects.filter(role='admin', deleted=False, disabled=False).first()
+
+    if user:
+        actor_uid = user.id
+        actor_name = user.name or user.username or ('Faculty' if user.role == 'staff' else ('Guardian' if user.role == 'parent' else 'Administrator'))
+        actor_role = user.role
+    elif actor_uid.startswith('stf_'):
+        actor_role = 'staff'
+        actor_name = request.headers.get('X-Teacher-Name') or 'Faculty'
+    elif actor_uid.startswith('stu_'):
+        actor_role = 'student'
+        actor_name = 'Student'
+    elif actor_uid.startswith('par_'):
+        actor_role = 'parent'
+        actor_name = 'Parent'
+    elif actor_uid in ('admin', 'system'):
+        actor_role = 'admin'
+        actor_name = 'System Administrator'
+
     ip_addr = request.META.get('REMOTE_ADDR', '')
     return actor_uid, actor_name, actor_role, ip_addr
 

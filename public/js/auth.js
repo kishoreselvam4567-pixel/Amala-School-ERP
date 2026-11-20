@@ -63,6 +63,18 @@ function getStoredSession() {
   return null;
 }
 
+export function getAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  const session = getStoredSession();
+  if (session) {
+    const uid = session.uid || session.id;
+    if (uid) headers['X-User-Uid'] = uid;
+    if (session.role) headers['X-User-Role'] = session.role;
+    if (session.token) headers['X-Session-Token'] = session.token;
+  }
+  return headers;
+}
+
 // Auth wrapper matching Firebase/Supabase auth signature
 export const auth = {
   get currentUser() {
@@ -453,7 +465,7 @@ export async function setDoc(docRef, data, options = {}) {
   try {
     const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (!res.ok) {
@@ -473,7 +485,7 @@ export async function addDoc(colRef, data) {
   try {
     const res = await fetch(`${DJANGO_API_BASE}/${col}/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (!res.ok) {
@@ -498,7 +510,7 @@ export async function updateDoc(docRef, data) {
   try {
     const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(data)
     });
     if (!res.ok) {
@@ -521,7 +533,8 @@ export async function deleteDoc(docRef) {
 
   try {
     const res = await fetch(`${DJANGO_API_BASE}/${col}/${encodeURIComponent(id)}/`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!res.ok && res.status !== 404) {
       throw new Error(`deleteDoc failed HTTP ${res.status}`);
