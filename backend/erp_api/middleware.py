@@ -47,3 +47,4 @@ class RequestLoggingMiddleware(MiddlewareMixin):
             'requestId': request_id,
             'code': 'internal_error'
         }, status=500)
+
