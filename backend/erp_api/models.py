@@ -48,10 +48,10 @@ class Student(models.Model):
     dob = models.CharField(max_length=50, null=True, blank=True)
     gender = models.CharField(max_length=20, null=True, blank=True)
     bloodGroup = models.CharField(max_length=20, null=True, blank=True)
-    classId = models.CharField(max_length=100, null=True, blank=True)
+    classId = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     className = models.CharField(max_length=100, null=True, blank=True)
     section = models.CharField(max_length=20, null=True, blank=True)
-    parentUid = models.CharField(max_length=255, null=True, blank=True)
+    parentUid = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     parentName = models.CharField(max_length=255, null=True, blank=True)
     parentEmail = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=50, null=True, blank=True)
@@ -146,9 +146,9 @@ class SchoolClass(models.Model):
 
 class Attendance(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
-    classId = models.CharField(max_length=100, null=True, blank=True)
+    classId = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     className = models.CharField(max_length=100, null=True, blank=True)
-    date = models.CharField(max_length=50, null=True, blank=True)
+    date = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     records = models.JSONField(default=dict, blank=True)
     studentUid = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=50, null=True, blank=True)
@@ -161,6 +161,9 @@ class Attendance(models.Model):
     class Meta:
         db_table = 'attendance'
         ordering = ['-date']
+        indexes = [
+            models.Index(fields=['classId', 'date']),
+        ]
 
     def __str__(self):
         return f"{self.className} on {self.date}"
@@ -168,12 +171,12 @@ class Attendance(models.Model):
 
 class Marks(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
-    classId = models.CharField(max_length=100, null=True, blank=True)
+    classId = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     className = models.CharField(max_length=100, null=True, blank=True)
-    examId = models.CharField(max_length=100, null=True, blank=True)
+    examId = models.CharField(max_length=100, null=True, blank=True, db_index=True)
     examName = models.CharField(max_length=100, null=True, blank=True)
-    subject = models.CharField(max_length=100, null=True, blank=True)
-    studentUid = models.CharField(max_length=255, null=True, blank=True)
+    subject = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    studentUid = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     studentName = models.CharField(max_length=255, null=True, blank=True)
     admissionNo = models.CharField(max_length=100, null=True, blank=True)
     marksObtained = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
@@ -187,6 +190,10 @@ class Marks(models.Model):
     class Meta:
         db_table = 'marks'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['classId', 'subject']),
+            models.Index(fields=['studentUid', 'subject']),
+        ]
 
     def __str__(self):
         return f"{self.studentName} - {self.subject} ({self.marksObtained}/{self.maxMarks})"
