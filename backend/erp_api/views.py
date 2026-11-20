@@ -269,10 +269,23 @@ class CollectionListView(APIView):
         if order_by and hasattr(model, order_by.lstrip('-')):
             qs = qs.order_by(order_by)
 
-        # Limit
-        limit = request.query_params.get('_limit')
-        if limit and limit.isdigit():
-            qs = qs[:int(limit)]
+        # Safe Pagination & Query Protection
+        max_limit = 1000
+        default_limit = 500
+        limit_param = request.query_params.get('_limit')
+        offset_param = request.query_params.get('_offset', '0')
+
+        try:
+            limit = min(int(limit_param), max_limit) if (limit_param and limit_param.isdigit()) else default_limit
+        except (ValueError, TypeError):
+            limit = default_limit
+
+        try:
+            offset = max(0, int(offset_param)) if (offset_param and offset_param.isdigit()) else 0
+        except (ValueError, TypeError):
+            offset = 0
+
+        qs = qs[offset:offset + limit]
 
         serializer = serializer_cls(qs, many=True)
         return Response(serializer.data)
